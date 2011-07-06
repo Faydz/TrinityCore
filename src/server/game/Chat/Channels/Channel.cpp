@@ -173,7 +173,7 @@ void Channel::Join(uint64 p, const char *pass)
     if (plr)
     {
         if (HasFlag(CHANNEL_FLAG_LFG) &&
-            sWorld->getBoolConfig(CONFIG_RESTRICTED_LFG_CHANNEL) && plr->GetSession()->GetSecurity() == SEC_PLAYER && plr->GetGroup())
+            sWorld->getBoolConfig(CONFIG_RESTRICTED_LFG_CHANNEL) && plr->GetSession()->GetSecurity() <= SEC_MODERATOR && plr->GetGroup())
         {
             MakeNotInLfg(&data);
             SendToOne(&data, p);
@@ -567,7 +567,7 @@ void Channel::List(Player* player)
 
             // PLAYER can't see MODERATOR, GAME MASTER, ADMINISTRATOR characters
             // MODERATOR, GAME MASTER, ADMINISTRATOR can see all
-            if (plr && (player->GetSession()->GetSecurity() > SEC_PLAYER || plr->GetSession()->GetSecurity() <= AccountTypes(gmLevelInWhoList)) &&
+            if (plr && (player->GetSession()->GetSecurity() > SEC_MODERATOR || plr->GetSession()->GetSecurity() <= AccountTypes(gmLevelInWhoList)) &&
                 plr->IsVisibleGloballyFor(player))
             {
                 data << uint64(i->first);
