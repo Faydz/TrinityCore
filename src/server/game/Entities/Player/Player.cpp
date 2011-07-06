@@ -18767,7 +18767,7 @@ void Player::_SaveSpells(SQLTransaction& trans)
 
         // add only changed/new not dependent spells
         if (!itr->second->dependent && (itr->second->state == PLAYERSPELL_NEW || itr->second->state == PLAYERSPELL_CHANGED))
-            trans->PAppend("INSERT INTO character_spell (guid, spell, active, disabled) VALUES ('%u', '%u', '%u', '%u')", GetGUIDLow(), itr->first, itr->second->active ? 1 : 0, itr->second->disabled ? 1 : 0);
+            trans->PAppend("INSERT IGNORE INTO character_spell (guid, spell, active, disabled) VALUES ('%u', '%u', '%u', '%u')", GetGUIDLow(), itr->first, itr->second->active ? 1 : 0, itr->second->disabled ? 1 : 0);
 
         if (itr->second->state == PLAYERSPELL_REMOVED)
         {
@@ -20512,7 +20512,7 @@ void Player::UpdatePvPState(bool onlyFFA)
     if (onlyFFA)
         return;
 
-    if (pvpInfo.inHostileArea)                               // in hostile area
+    if (pvpInfo.inHostileArea || GetMapId() == 37)                               // in hostile area
     {
         if (!IsPvP() || pvpInfo.endTimer != 0)
             UpdatePvP(true, true);
