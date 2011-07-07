@@ -1050,6 +1050,9 @@ class Player : public Unit, public GridObject<Player>
         bool CanFly() const { return m_CanFly; }
         void SetCanFly(bool CanFly) { m_CanFly=CanFly; }
         inline bool Anti__CheatOccurred(const char* Reason,float Speed,uint16 Op, float Val1=0.0f,uint32 Val2=0,const MovementInfo* MvInfo=NULL,bool ForceReport=false);
+        bool m_anti_sendmsg;
+        bool GetAntiGMMsg() const { return m_anti_sendmsg; }
+        void SetAntiGMMsg(bool on) { m_anti_sendmsg=on; }
 
         void CleanupsBeforeDelete(bool finalCleanup = true);
 

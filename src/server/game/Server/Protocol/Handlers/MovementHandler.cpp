@@ -129,7 +129,7 @@ bool Player::Anti__CheatOccurred(const char* Reason,float Speed,uint16 Op,
     if (!ForceReport && m_anti_alarmcount <= sWorld->GetMvAnticheatAlarmCount())
         return false;
     
-    const char* Player = GetName();
+    const char* PlayerName = GetName();
     uint32 Acc = GetSession()->GetAccountId();
     uint32 Map = GetMapId();
     uint32 zone_id = GetZoneId();
@@ -152,13 +152,13 @@ bool Player::Anti__CheatOccurred(const char* Reason,float Speed,uint16 Op,
     CharacterDatabase.EscapeString(zoneName);
     CharacterDatabase.EscapeString(areaName);
 
-    if(!Player)
+    if(!PlayerName)
     {
         sLog->outError("Anti__ReportCheat: Player with no name?!?");
         return false;
     }
 
-    QueryResult Res=CharacterDatabase.PQuery("SELECT speed,Val1 FROM cheaters WHERE player='%s' AND reason LIKE '%s' AND Map='%u' AND last_date >= NOW()-300",Player,Reason,Map);
+    QueryResult Res=CharacterDatabase.PQuery("SELECT speed,Val1 FROM cheaters WHERE player='%s' AND reason LIKE '%s' AND Map='%u' AND last_date >= NOW()-300",PlayerName,Reason,Map);
     if(Res)
     {
         Field* Fields = Res->Fetch();
@@ -172,7 +172,7 @@ bool Player::Anti__CheatOccurred(const char* Reason,float Speed,uint16 Op,
         if(Val1>0.0f && Val1 > Fields[1].GetFloat())
             Query << ",Val1='" << Val1 << "'";
 
-        Query << " WHERE player='" << Player << "' AND reason='" << Reason << "' AND Map='" << Map << "' AND last_date >= NOW()-300 ORDER BY entry DESC LIMIT 1";
+        Query << " WHERE player='" << PlayerName << "' AND reason='" << Reason << "' AND Map='" << Map << "' AND last_date >= NOW()-300 ORDER BY entry DESC LIMIT 1";
 
         CharacterDatabase.Execute(Query.str().c_str());
     }
@@ -195,7 +195,7 @@ bool Player::Anti__CheatOccurred(const char* Reason,float Speed,uint16 Op,
 
         CharacterDatabase.PExecute("INSERT INTO cheaters (player,acctid,reason,speed,count,first_date,last_date,Op,Val1,Val2,Map,mapEntry,zone_id,zoneEntry,area_id,areaEntry,Level,startX,startY,startZ,endX,endY,endZ,t_guid,flags,fallTime) "
                                    "VALUES ('%s','%u','%s','%f','1',NOW(),NOW(),'%s','%f','%u','%u','%s','%u','%s','%u','%s','%u','%f','%f','%f','%f','%f','%f','%u','%u','%u')",
-                                   Player,Acc,Reason,Speed,LookupOpcodeName(Op),Val1,Val2,
+                                   PlayerName,Acc,Reason,Speed,LookupOpcodeName(Op),Val1,Val2,
                                    Map,mapName.c_str(),
                                    zone_id,zoneName.c_str(),
                                    area_id,areaName.c_str(),
@@ -212,7 +212,7 @@ bool Player::Anti__CheatOccurred(const char* Reason,float Speed,uint16 Op,
         GetSession()->KickPlayer();
 
     if(sWorld->GetMvAnticheatBan() & 1)
-        sWorld->BanAccount(BAN_CHARACTER,Player,sWorld->GetMvAnticheatBanTime(),"Cheat","Anticheat");
+        sWorld->BanAccount(BAN_CHARACTER,PlayerName,sWorld->GetMvAnticheatBanTime(),"Cheat","Anticheat");
 
     if(sWorld->GetMvAnticheatBan() & 2)
     {
@@ -226,6 +226,20 @@ bool Player::Anti__CheatOccurred(const char* Reason,float Speed,uint16 Op,
                 sWorld->BanAccount(BAN_IP,LastIP,sWorld->GetMvAnticheatBanTime(),"Cheat","Anticheat");
         }
     }
+
+    char buff[2048];
+    sprintf(buff, "[AC] C: %s, A: %d (%s)", PlayerName, Acc, Reason);
+
+    WorldPacket data(SMSG_SERVER_MESSAGE, 50);              // guess size
+    data << uint32(3);
+    data << buff;
+
+    ACE_GUARD_RETURN(ACE_Thread_Mutex, guard, *HashMapHolder<Player>::GetLock(), true);
+    HashMapHolder<Player>::MapType const& plist = sObjectAccessor->GetPlayers();
+    for (HashMapHolder<Player>::MapType::const_iterator itr = plist.begin(); itr != plist.end(); ++itr)
+        if (itr->second->GetAntiGMMsg())
+            itr->second->GetSession()->SendPacket(&data);
+
     return true;
 }
 

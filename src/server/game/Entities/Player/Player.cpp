@@ -764,6 +764,7 @@ Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputa
     m_anti_alarmcount = 0;       //alarm counter
     m_anti_TeleTime = 0;
     m_CanFly=false;
+    m_anti_sendmsg = false;
     /////////////////////////////////
 
     m_mailsLoaded = false;

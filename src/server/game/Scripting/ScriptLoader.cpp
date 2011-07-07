@@ -1223,6 +1223,7 @@ void AddBattlegroundScripts()
 #ifdef SCRIPTS
 /* This is where custom scripts' loading functions should be declared. */
 
+    void AddSC_anticheat_commandscript();
     void AddSC_npc_dtporter();
     void AddSC_npc_dtlostskills();
     void AddSC_npc_dtvipvendor();
@@ -1236,6 +1237,7 @@ void AddCustomScripts()
 #ifdef SCRIPTS
     /* This is where custom scripts should be added. */
 
+    AddSC_anticheat_commandscript();
     AddSC_npc_dtporter();
     AddSC_npc_dtlostskills();
     AddSC_npc_dtvipvendor();
