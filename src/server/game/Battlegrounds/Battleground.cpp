@@ -805,6 +805,29 @@ void Battleground::EndBattleground(uint32 winner)
                     plr->SetRandomWinner(true);
             }
 
+            if (isBattleground())
+            {
+                switch ((IsRandom()) ? GetTypeID(true) : GetTypeID())
+                {
+                    case BATTLEGROUND_AV:
+                        if (plr->GetQuestStatus(988090) == QUEST_STATUS_INCOMPLETE)
+                            plr->CompleteQuest(988090);
+                        break;
+                    case BATTLEGROUND_WS:
+                        if (plr->GetQuestStatus(988091) == QUEST_STATUS_INCOMPLETE)
+                            plr->CompleteQuest(988091);
+                        break;
+                    case BATTLEGROUND_AB:
+                        if (plr->GetQuestStatus(988092) == QUEST_STATUS_INCOMPLETE)
+                            plr->CompleteQuest(988092);
+                        break;
+                    case BATTLEGROUND_EY:
+                        if (plr->GetQuestStatus(988093) == QUEST_STATUS_INCOMPLETE)
+                            plr->CompleteQuest(988093);
+                        break;
+                }
+            }
+
             plr->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_WIN_BG, 1);
         }
         else

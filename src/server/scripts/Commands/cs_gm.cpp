@@ -95,9 +95,15 @@ public:
 
         WorldPacket data(12);
         if (strncmp(args, "on", 3) == 0)
+        {
             data.SetOpcode(SMSG_MOVE_SET_CAN_FLY);
+            static_cast<Player*>((target))->SetCanFly(true);
+        }
         else if (strncmp(args, "off", 4) == 0)
+        {
             data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
+            static_cast<Player*>((target))->SetCanFly(false);
+        }
         else
         {
             handler->SendSysMessage(LANG_USE_BOL);
@@ -120,7 +126,7 @@ public:
         for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
         {
             AccountTypes itr_sec = itr->second->GetSession()->GetSecurity();
-            if ((itr->second->isGameMaster() || (itr_sec > SEC_PLAYER && itr_sec <= AccountTypes(sWorld->getIntConfig(CONFIG_GM_LEVEL_IN_GM_LIST)))) &&
+            if ((itr->second->isGameMaster() || (itr_sec > SEC_MODERATOR && itr_sec <= AccountTypes(sWorld->getIntConfig(CONFIG_GM_LEVEL_IN_GM_LIST)))) &&
                 (!handler->GetSession() || itr->second->IsVisibleGloballyFor(handler->GetSession()->GetPlayer())))
             {
                 if (first)

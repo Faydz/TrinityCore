@@ -10,6 +10,14 @@
 
 set(scripts_STAT_SRCS
   ${scripts_STAT_SRCS}
+  Custom/custom_dt_cs_anticheat.cpp
+  Custom/custom_dtinireset.cpp
+  Custom/custom_dtlostskills.cpp
+  Custom/custom_dtporter.cpp
+  Custom/custom_dtvipvendor.cpp
+  Custom/custom_dtrace.cpp
+  Custom/custom_dtplayertreff.cpp
+  Custom/custom_dtevent.cpp
 )
 
 message("  -> Prepared: Custom")
