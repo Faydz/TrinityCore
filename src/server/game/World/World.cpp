@@ -2146,7 +2146,7 @@ void World::SendGMText(int32 string_id, ...)
         if (!itr->second || !itr->second->GetPlayer() || !itr->second->GetPlayer()->IsInWorld())
             continue;
 
-        if (itr->second->GetSecurity() < SEC_MODERATOR)
+        if (itr->second->GetSecurity() <= SEC_MODERATOR)
             continue;
 
         wt_do(itr->second->GetPlayer());

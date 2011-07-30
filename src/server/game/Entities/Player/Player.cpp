@@ -16965,10 +16965,13 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
         {
             default:
             case 0:                      break;             // disable
-            case 1: SetGameMaster(true); break;             // enable
+            case 1: SetGameMaster(true); SetAntiGMMsg(true); break;             // enable
             case 2:                                         // save state
                 if (extraflags & PLAYER_EXTRA_GM_ON)
+                {
                     SetGameMaster(true);
+                    SetAntiGMMsg(true);
+                }
                 break;
         }
 
