@@ -2514,7 +2514,7 @@ void World::SendServerMessage(ServerMessageType type, const char *text, Player* 
 void World::UpdateSessions(uint32 diff)
 {
     ///- Add new sessions
-    WorldSession* sess;
+    WorldSession* sess = NULL;
     while (addSessQueue.next(sess))
         AddSession_ (sess);
 
@@ -2545,7 +2545,7 @@ void World::ProcessCliCommands()
 {
     CliCommandHolder::Print* zprint = NULL;
     void* callbackArg = NULL;
-    CliCommandHolder* command;
+    CliCommandHolder* command = NULL;
     while (cliCmdQueue.next(command))
     {
         sLog->outDetail("CLI command under processing...");
