@@ -256,6 +256,21 @@ public:
             return true;
         }
 
+        if (argstr == "island") //GM Island
+        {
+            if (handler->GetSession()->GetPlayer()->isInFlight())
+            {
+                handler->GetSession()->GetPlayer()->GetMotionMaster()->MovementExpired();
+                handler->GetSession()->GetPlayer()->CleanupAfterTaxiFlight();
+            }
+            else
+                handler->GetSession()->GetPlayer()->SaveRecallPosition();
+
+            handler->GetSession()->GetPlayer()->TeleportTo(1, 16226.2f, 16257.0f, 13.2022f, 1.65007f);
+
+            return true;
+        }
+
         handler->SendSysMessage(LANG_USE_BOL);
         handler->SetSentErrorMessage(true);
         return false;

@@ -297,6 +297,52 @@ public:
             return false;
         }
 
+        std::string tmpname = tele->name;
+        const char * telename = tmpname.c_str();
+
+        if (strcmp(telename,"CathedralSquare") == 0 ||
+            strcmp(telename,"CathedralSquare") == 0 ||
+            strcmp(telename,"CathedralOfLight") == 0 ||
+            strcmp(telename,"DwarvenDistrict") == 0 ||
+            strcmp(telename,"MageQuarter") == 0 ||
+            strcmp(telename,"OldTown") == 0 ||
+            strcmp(telename,"Stormwind") == 0 ||
+            strcmp(telename,"ThePark") == 0 ||
+            strcmp(telename,"TradeDistrict") == 0 ||
+            strcmp(telename,"StormwindHarbor") == 0 ||
+            strcmp(telename,"StormwindKeep") == 0 ||
+            strcmp(telename,"WizardsSanctum") == 0 ||
+            strcmp(telename,"allypt") == 0)
+        {
+            if (me->GetTeam() == HORDE && me->GetSession()->GetSecurity() <= SEC_MODERATOR)
+            {
+                handler->SendSysMessage(LANG_COMMAND_TELE_NOTFOUND);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+        }
+
+        if (strcmp(telename,"hordept") == 0 ||
+            strcmp(telename,"ValleyOfWisdom") == 0 ||
+            strcmp(telename,"ValleyOfStrength") == 0 ||
+            strcmp(telename,"ValleyOfSpirits") == 0 ||
+            strcmp(telename,"ValleyOfHonor") == 0 ||
+            strcmp(telename,"TheRingOfValor") == 0 ||
+            strcmp(telename,"TheDrag") == 0 ||
+            strcmp(telename,"RagefireChasm") == 0 ||
+            strcmp(telename,"Orgrimmar") == 0 ||
+            strcmp(telename,"HallOfTheBrave") == 0 ||
+            strcmp(telename,"CleftOfShadow") == 0 ||
+            strcmp(telename,"GrommashHold") == 0)
+        {
+            if (me->GetTeam() == ALLIANCE && me->GetSession()->GetSecurity() <= SEC_MODERATOR)
+            {
+                handler->SendSysMessage(LANG_COMMAND_TELE_NOTFOUND);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+        }
+
         // stop flight if need
         if (me->isInFlight())
         {
