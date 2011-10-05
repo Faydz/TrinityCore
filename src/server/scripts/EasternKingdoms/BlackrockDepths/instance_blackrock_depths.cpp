@@ -42,6 +42,7 @@ enum eEnums
     NPC_GLOOMREL            = 9037,
     NPC_DOOMREL             = 9039,
     NPC_MAGMUS              = 9938,
+    NPC_MOIRA               = 8929,
 
     GO_ARENA1               = 161525,
     GO_ARENA2               = 161522,
@@ -87,6 +88,7 @@ public:
         uint64 EmperorGUID;
         uint64 PhalanxGUID;
         uint64 MagmusGUID;
+        uint64 MoiraGUID;
 
         uint64 GoArena1GUID;
         uint64 GoArena2GUID;
@@ -124,6 +126,7 @@ public:
             EmperorGUID = 0;
             PhalanxGUID = 0;
             MagmusGUID = 0;
+            MoiraGUID = 0;
 
             GoArena1GUID = 0;
             GoArena2GUID = 0;
@@ -159,10 +162,11 @@ public:
 
         void OnCreatureCreate(Creature* creature)
         {
-            switch(creature->GetEntry())
+            switch (creature->GetEntry())
             {
             case NPC_EMPEROR: EmperorGUID = creature->GetGUID(); break;
             case NPC_PHALANX: PhalanxGUID = creature->GetGUID(); break;
+            case NPC_MOIRA: MoiraGUID = creature->GetGUID(); break;
             case NPC_DOOMREL: TombBossGUIDs[0] = creature->GetGUID(); break;
             case NPC_DOPEREL: TombBossGUIDs[1] = creature->GetGUID(); break;
             case NPC_HATEREL: TombBossGUIDs[2] = creature->GetGUID(); break;
@@ -180,7 +184,7 @@ public:
 
         void OnGameObjectCreate(GameObject* go)
         {
-            switch(go->GetEntry())
+            switch (go->GetEntry())
             {
             case GO_ARENA1: GoArena1GUID = go->GetGUID(); break;
             case GO_ARENA2: GoArena2GUID = go->GetGUID(); break;
@@ -216,7 +220,7 @@ public:
         {
             sLog->outDebug(LOG_FILTER_TSCR, "TSCR: Instance Blackrock Depths: SetData64 update (Type: %u Data " UI64FMTD ")", type, data);
 
-            switch(type)
+            switch (type)
             {
             case DATA_EVENSTARTER:
                 TombEventStarterGUID = data;
@@ -232,7 +236,7 @@ public:
         {
             sLog->outDebug(LOG_FILTER_TSCR, "TSCR: Instance Blackrock Depths: SetData update (Type: %u Data %u)", type, data);
 
-            switch(type)
+            switch (type)
             {
             case TYPE_RING_OF_LAW:
                 m_auiEncounter[0] = data;
@@ -277,7 +281,7 @@ public:
 
         uint32 GetData(uint32 type)
         {
-            switch(type)
+            switch (type)
             {
             case TYPE_RING_OF_LAW:
                 return m_auiEncounter[0];
@@ -302,12 +306,14 @@ public:
 
         uint64 GetData64(uint32 data)
         {
-            switch(data)
+            switch (data)
             {
             case DATA_EMPEROR:
                 return EmperorGUID;
             case DATA_PHALANX:
                 return PhalanxGUID;
+            case DATA_MOIRA:
+                return MoiraGUID;
             case DATA_ARENA1:
                 return GoArena1GUID;
             case DATA_ARENA2:

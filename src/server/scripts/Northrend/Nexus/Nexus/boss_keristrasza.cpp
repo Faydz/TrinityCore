@@ -157,7 +157,7 @@ public:
             }
         }
 
-        void SetGUID(uint64 const guid, int32 id/* = 0 */)
+        void SetGUID(uint64 guid, int32 id/* = 0 */)
         {
             if (id == DATA_INTENSE_COLD)
                 intenseColdList.push_back(guid);
@@ -210,13 +210,13 @@ public:
 
     bool OnGossipHello(Player* /*player*/, GameObject* pGO)
     {
-        InstanceScript *pInstance = pGO->GetInstanceScript();
+        InstanceScript* pInstance = pGO->GetInstanceScript();
 
         Creature* pKeristrasza = Unit::GetCreature(*pGO, pInstance ? pInstance->GetData64(DATA_KERISTRASZA) : 0);
         if (pKeristrasza && pKeristrasza->isAlive())
         {
             // maybe these are hacks :(
-            pGO->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
+            pGO->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
             pGO->SetGoState(GO_STATE_ACTIVE);
 
             CAST_AI(boss_keristrasza::boss_keristraszaAI, pKeristrasza->AI())->CheckContainmentSpheres(true);
@@ -237,12 +237,13 @@ class spell_intense_cold : public SpellScriptLoader
 
             void HandlePeriodicTick(AuraEffect const* aurEff)
             {
-                Unit* caster = GetCaster();
-                if (!caster)
+                if (aurEff->GetBase()->GetStackAmount() < 2)
                     return;
-
-                if (aurEff->GetBase()->GetStackAmount() >= 2)
-                    caster->GetAI()->SetGUID(GetTarget()->GetGUID(), DATA_INTENSE_COLD);
+                Unit* caster = GetCaster();
+                //TODO: the caster should be boss but not the player
+                if (!caster || !caster->GetAI())
+                    return;
+                caster->GetAI()->SetGUID(GetTarget()->GetGUID(), DATA_INTENSE_COLD);
             }
 
             void Register()

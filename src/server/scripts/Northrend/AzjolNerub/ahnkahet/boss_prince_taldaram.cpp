@@ -195,7 +195,7 @@ public:
                     case NORMAL:
                         if (uiBloodthirstTimer <= diff)
                         {
-                            DoCast(me->getVictim(), SPELL_BLOODTHIRST);
+                            DoCast(me, SPELL_BLOODTHIRST);
                             uiBloodthirstTimer = 10*IN_MILLISECONDS;
                         } else uiBloodthirstTimer -= diff;
 
@@ -211,9 +211,9 @@ public:
                         {
                             //Count alive players
                             Unit* target = NULL;
-                            std::list<HostileReference *> t_list = me->getThreatManager().getThreatList();
-                            std::vector<Unit* > target_list;
-                            for (std::list<HostileReference *>::const_iterator itr = t_list.begin(); itr!= t_list.end(); ++itr)
+                            std::list<HostileReference*> t_list = me->getThreatManager().getThreatList();
+                            std::vector<Unit*> target_list;
+                            for (std::list<HostileReference*>::const_iterator itr = t_list.begin(); itr!= t_list.end(); ++itr)
                             {
                                 target = Unit::GetUnit(*me, (*itr)->getUnitGuid());
                                 // exclude pets & totems
@@ -325,7 +325,7 @@ public:
         }
     };
 
-    CreatureAI *GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const
     {
         return new boss_taldaramAI(creature);
     }
@@ -375,7 +375,7 @@ public:
         }
     };
 
-    CreatureAI *GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const
     {
         return new mob_taldaram_flamesphereAI(creature);
     }
@@ -388,16 +388,16 @@ public:
 
     bool OnGossipHello(Player* /*player*/, GameObject* pGO)
     {
-        InstanceScript *pInstance = pGO->GetInstanceScript();
+        InstanceScript* pInstance = pGO->GetInstanceScript();
 
         Creature* pPrinceTaldaram = Unit::GetCreature(*pGO, pInstance ? pInstance->GetData64(DATA_PRINCE_TALDARAM) : 0);
         if (pPrinceTaldaram && pPrinceTaldaram->isAlive())
         {
             // maybe these are hacks :(
-            pGO->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
+            pGO->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
             pGO->SetGoState(GO_STATE_ACTIVE);
 
-            switch(pGO->GetEntry())
+            switch (pGO->GetEntry())
             {
                 case GO_SPHERE1: pInstance->SetData(DATA_SPHERE1_EVENT, IN_PROGRESS); break;
                 case GO_SPHERE2: pInstance->SetData(DATA_SPHERE2_EVENT, IN_PROGRESS); break;

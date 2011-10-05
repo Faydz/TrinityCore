@@ -719,7 +719,7 @@ class npc_high_overlord_saurfang_icc : public CreatureScript
                                 float x, y, z;
                                 deathbringer->GetClosePoint(x, y, z, deathbringer->GetObjectSize());
                                 me->AddUnitMovementFlag(MOVEMENTFLAG_WALKING);
-                                me->GetMotionMaster()->MovePoint(POINT_CORPSE , x, y, z);
+                                me->GetMotionMaster()->MovePoint(POINT_CORPSE, x, y, z);
                             }
                             break;
                         case EVENT_OUTRO_HORDE_5:   // move
@@ -985,7 +985,7 @@ class spell_deathbringer_blood_link : public SpellScriptLoader
 
             void Register()
             {
-                OnEffect += SpellEffectFn(spell_deathbringer_blood_link_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+                OnEffectHitTarget += SpellEffectFn(spell_deathbringer_blood_link_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
             }
         };
 
@@ -1112,7 +1112,7 @@ class spell_deathbringer_rune_of_blood : public SpellScriptLoader
 
             void Register()
             {
-                OnEffect += SpellEffectFn(spell_deathbringer_rune_of_blood_SpellScript::HandleScript, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
+                OnEffectHitTarget += SpellEffectFn(spell_deathbringer_rune_of_blood_SpellScript::HandleScript, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
             }
         };
 
@@ -1147,7 +1147,7 @@ class spell_deathbringer_blood_nova : public SpellScriptLoader
 
             void Register()
             {
-                OnEffect += SpellEffectFn(spell_deathbringer_blood_nova_SpellScript::HandleScript, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
+                OnEffectHitTarget += SpellEffectFn(spell_deathbringer_blood_nova_SpellScript::HandleScript, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
             }
         };
 
@@ -1189,9 +1189,7 @@ class spell_deathbringer_blood_nova_targeting : public SpellScriptLoader
                 if (targetsAtRange < minTargets)
                     targetsAtRange = std::min<uint32>(unitList.size() - 1, minTargets);
 
-                std::list<Unit*>::iterator itr = unitList.begin();
-                std::advance(itr, urand(0, targetsAtRange));
-                target = *itr;
+                target = SelectRandomContainerElement(unitList);
                 unitList.clear();
                 unitList.push_back(target);
             }
@@ -1208,8 +1206,8 @@ class spell_deathbringer_blood_nova_targeting : public SpellScriptLoader
 
             void Register()
             {
-                OnUnitTargetSelect += SpellUnitTargetFn(spell_deathbringer_blood_nova_targeting_SpellScript::FilterTargetsInitial, EFFECT_0, TARGET_UNIT_AREA_ENEMY_SRC);
-                OnUnitTargetSelect += SpellUnitTargetFn(spell_deathbringer_blood_nova_targeting_SpellScript::FilterTargetsSubsequent, EFFECT_1, TARGET_UNIT_AREA_ENEMY_SRC);
+                OnUnitTargetSelect += SpellUnitTargetFn(spell_deathbringer_blood_nova_targeting_SpellScript::FilterTargetsInitial, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
+                OnUnitTargetSelect += SpellUnitTargetFn(spell_deathbringer_blood_nova_targeting_SpellScript::FilterTargetsSubsequent, EFFECT_1, TARGET_UNIT_SRC_AREA_ENEMY);
             }
 
             Unit* target;
@@ -1241,16 +1239,14 @@ class spell_deathbringer_boiling_blood : public SpellScriptLoader
                 if (unitList.empty())
                     return;
 
-                std::list<Unit*>::iterator itr = unitList.begin();
-                std::advance(itr, urand(0, unitList.size() - 1));
-                Unit* target = *itr;
+                Unit* target = SelectRandomContainerElement(unitList);
                 unitList.clear();
                 unitList.push_back(target);
             }
 
             void Register()
             {
-                OnUnitTargetSelect += SpellUnitTargetFn(spell_deathbringer_boiling_blood_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_AREA_ENEMY_SRC);
+                OnUnitTargetSelect += SpellUnitTargetFn(spell_deathbringer_boiling_blood_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
             }
         };
 

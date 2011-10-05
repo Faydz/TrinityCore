@@ -22,8 +22,9 @@
 
 static DoorData const doorData[] =
 {
-    { GO_LEVIATHAN_DOOR, BOSS_LEVIATHAN, DOOR_TYPE_ROOM, BOUNDARY_S    },
-    { 0,                 0,              DOOR_TYPE_ROOM, BOUNDARY_NONE },
+    {   GO_LEVIATHAN_DOOR, BOSS_LEVIATHAN,    DOOR_TYPE_ROOM, BOUNDARY_S      },
+    {   GO_XT_002_DOOR,    BOSS_XT002,        DOOR_TYPE_ROOM, BOUNDARY_S      },
+    {   0,                 0,                 DOOR_TYPE_ROOM, BOUNDARY_NONE   },
 };
 
 class instance_ulduar : public InstanceMapScript
@@ -49,8 +50,6 @@ class instance_ulduar : public InstanceMapScript
             uint64 XTToyPileGUIDs[4];
             uint64 AssemblyGUIDs[3];
             uint64 KologarnGUID;
-            uint64 LeftArmGUID;
-            uint64 RightArmGUID;
             uint64 AuriayaGUID;
             uint64 MimironGUID;
             uint64 HodirGUID;
@@ -78,8 +77,10 @@ class instance_ulduar : public InstanceMapScript
             // Miscellaneous
             uint32 TeamInInstance;
             uint32 HodirRareCacheData;
+            uint32 ColossusData;
             uint8 elderCount;
             bool conSpeedAtory;
+            bool Unbroken;
 
             std::set<uint64> mRubbleSpawns;
 
@@ -93,8 +94,6 @@ class instance_ulduar : public InstanceMapScript
                 ExpeditionCommanderGUID          = 0;
                 XT002GUID                        = 0;
                 KologarnGUID                     = 0;
-                LeftArmGUID                      = 0;
-                RightArmGUID                     = 0;
                 AuriayaGUID                      = 0;
                 MimironGUID                      = 0;
                 HodirGUID                        = 0;
@@ -117,8 +116,10 @@ class instance_ulduar : public InstanceMapScript
                 ArchivumDoorGUID                 = 0;
                 TeamInInstance                   = 0;
                 HodirRareCacheData               = 0;
+                ColossusData                     = 0;
                 elderCount                       = 0;
                 conSpeedAtory                    = false;
+                Unbroken                         = true;
 
                 memset(Encounter, 0, sizeof(Encounter));
                 memset(XTToyPileGUIDs, 0, sizeof(XTToyPileGUIDs));
@@ -314,6 +315,9 @@ class instance_ulduar : public InstanceMapScript
                         if (GetBossState(BOSS_LEVIATHAN) == DONE)
                             gameObject->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
                         break;
+                    case GO_XT_002_DOOR:
+                        AddDoor(gameObject, true);
+                        break;
                     case GO_VEZAX_DOOR:
                         VezaxDoorGUID = gameObject->GetGUID();
                         HandleGameObject(0, false, gameObject);
@@ -354,6 +358,8 @@ class instance_ulduar : public InstanceMapScript
                     case GO_LEVIATHAN_DOOR:
                         AddDoor(gameObject, false);
                         break;
+                    case GO_XT_002_DOOR:
+                        AddDoor(gameObject, false);
                     default:
                         break;
                 }
@@ -433,7 +439,10 @@ class instance_ulduar : public InstanceMapScript
                         if (state == DONE)
                         {
                             if (GameObject* gameObject = instance->GetGameObject(KologarnChestGUID))
+                            {
                                 gameObject->SetRespawnTime(gameObject->GetRespawnDelay());
+                                gameObject->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                            }
                             HandleGameObject(KologarnBridgeGUID, false);
                         }
                         if (state == IN_PROGRESS)
@@ -446,7 +455,7 @@ class instance_ulduar : public InstanceMapScript
                         {
                             if (GameObject* HodirRareCache = instance->GetGameObject(HodirRareCacheGUID))
                                 if (GetData(DATA_HODIR_RARE_CACHE))
-                                    HodirRareCache->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
+                                    HodirRareCache->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                             if (GameObject* HodirChest = instance->GetGameObject(HodirChestGUID))
                                 HodirChest->SetRespawnTime(HodirChest->GetRespawnDelay());
                             HandleGameObject(HodirDoorGUID, true);
@@ -473,7 +482,7 @@ class instance_ulduar : public InstanceMapScript
                 switch (type)
                 {
                     case DATA_COLOSSUS:
-                        Encounter[DATA_COLOSSUS] = data;
+                        ColossusData = data;
                         if (data == 2)
                         {
                             if (Creature* Leviathan = instance->GetCreature(LeviathanGUID))
@@ -492,22 +501,16 @@ class instance_ulduar : public InstanceMapScript
                                     Hodir->RemoveGameObject(gameObject, false);
                         }
                         break;
+                    case DATA_UNBROKEN:
+                        Unbroken = bool(data);
+                        break;
                     default:
                         break;
                 }
             }
 
-            void SetData64(uint32 type, uint64 data)
+            void SetData64(uint32 /*type*/, uint64 /*data*/)
             {
-                switch (type)
-                {
-                    case DATA_LEFT_ARM:
-                        LeftArmGUID = data;
-                        break;
-                    case DATA_RIGHT_ARM:
-                        RightArmGUID = data;
-                        break;
-                }
             }
 
             uint64 GetData64(uint32 data)
@@ -531,10 +534,6 @@ class instance_ulduar : public InstanceMapScript
                         return XTToyPileGUIDs[data - DATA_TOY_PILE_0];
                     case BOSS_KOLOGARN:
                         return KologarnGUID;
-                    case DATA_LEFT_ARM:
-                        return LeftArmGUID;
-                    case DATA_RIGHT_ARM:
-                        return RightArmGUID;
                     case BOSS_AURIAYA:
                         return AuriayaGUID;
                     case BOSS_MIMIRON:
@@ -589,9 +588,11 @@ class instance_ulduar : public InstanceMapScript
                 switch (type)
                 {
                     case DATA_COLOSSUS:
-                        return Encounter[type];
+                        return ColossusData;
                     case DATA_HODIR_RARE_CACHE:
                         return HodirRareCacheData;
+                    case DATA_UNBROKEN:
+                        return uint32(Unbroken);
                     default:
                         break;
                 }

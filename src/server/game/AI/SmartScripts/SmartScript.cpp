@@ -46,7 +46,7 @@ SmartScript::SmartScript()
     mLastTextID = 0;
     mTextGUID = 0;
     mUseTextTimer = false;
-    talker = NULL;
+    mTalkerEntry = 0;
     mTemplate = SMARTAI_TEMPLATE_BASIC;
     meOrigGUID = 0;
     goOrigGUID = 0;
@@ -138,7 +138,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                 return;
 
             ObjectList* targets = GetTargets(e, unit);
-            talker = me;
+            Creature* talker = me;
             if (targets)
             {
                 for (ObjectList::const_iterator itr = targets->begin(); itr != targets->end(); ++itr)
@@ -152,7 +152,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
 
                 delete targets;
             }
-
+            mTalkerEntry = talker->GetEntry();
             mLastTextID = e.action.talk.textGroupID;
             mTextTimer = e.action.talk.duration;
             mTextGUID = IsPlayer(GetLastInvoker()) ? GetLastInvoker()->GetGUID() : 0;//invoker, used for $vars in texts
@@ -210,10 +210,10 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
             {
                 for (ObjectList::const_iterator itr = targets->begin(); itr != targets->end(); ++itr)
                 {
-                    if (IsCreature(*itr))
+                    if (IsPlayer(*itr))
                     {
-                        sCreatureTextMgr->SendSound((*itr)->ToCreature(), e.action.sound.sound, CHAT_MSG_MONSTER_SAY, 0, TextRange(e.action.sound.range), Team(0), false);
-                        sLog->outDebug(LOG_FILTER_DATABASE_AI, "SmartScript::ProcessAction:: SMART_ACTION_SOUND: source: %s (GuidLow: %u), sound: %u, range: %u",
+                        (*itr)->SendPlaySound(e.action.sound.sound, e.action.sound.range > 0 ? true : false);
+                        sLog->outDebug(LOG_FILTER_DATABASE_AI, "SmartScript::ProcessAction:: SMART_ACTION_SOUND: target: %s (GuidLow: %u), sound: %u, onlyself: %u",
                             (*itr)->GetName(), (*itr)->GetGUIDLow(), e.action.sound.sound, e.action.sound.range);
                     }
                 }
@@ -460,7 +460,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                 if (IsPlayer(*itr))
                 {
                     (*itr)->ToPlayer()->CastedCreatureOrGO(e.action.castedCreatureOrGO.creature, GetBaseObject()->GetGUID(), e.action.castedCreatureOrGO.spell);
-                    sLog->outDebug(LOG_FILTER_DATABASE_AI, "SmartScript::ProcessAction:: SMART_ACTION_SEND_CASTCREATUREORGO: Player guidLow %u.org Creature: %u, BaseObject GUID: "UI64FMTD" , Spell: %u",
+                    sLog->outDebug(LOG_FILTER_DATABASE_AI, "SmartScript::ProcessAction:: SMART_ACTION_SEND_CASTCREATUREORGO: Player guidLow %u.org Creature: %u, BaseObject GUID: "UI64FMTD", Spell: %u",
                         (*itr)->GetGUIDLow(), e.action.castedCreatureOrGO.creature, GetBaseObject()->GetGUID(), e.action.castedCreatureOrGO.spell);
                 }
             }
@@ -692,6 +692,8 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                 return;
 
             me->DoFleeToGetAssistance();
+            if (e.action.flee.withEmote)
+                sCreatureTextMgr->SendChatString(me, sObjectMgr->GetTrinityStringForDBCLocale(LANG_FLEE), CHAT_MSG_MONSTER_EMOTE);
             sLog->outDebug(LOG_FILTER_DATABASE_AI, "SmartScript::ProcessAction:: SMART_ACTION_FLEE_FOR_ASSIST: Creature %u DoFleeToGetAssistance", me->GetGUIDLow());
             break;
         }
@@ -1212,12 +1214,12 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
             CAST_AI(SmartAI, me->AI())->SetRun(e.action.setRun.run ? true : false);
             break;
         }
-        case SMART_ACTION_SET_SWIMM:
+        case SMART_ACTION_SET_SWIM:
         {
             if (!IsSmart())
                 return;
 
-            CAST_AI(SmartAI, me->AI())->SetSwimm(e.action.setSwimm.swimm ? true : false);
+            CAST_AI(SmartAI, me->AI())->SetSwim(e.action.setSwim.swim ? true : false);
             break;
         }
         case SMART_ACTION_WP_START:
@@ -1307,7 +1309,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
 
             bool run = e.action.setRun.run ? true : false;
             CAST_AI(SmartAI, me->AI())->SetRun(run);
-            me->GetMotionMaster()->MovePoint(0, e.target.x, e.target.y , e.target.z);
+            me->GetMotionMaster()->MovePoint(0, e.target.x, e.target.y, e.target.z);
             break;
         }
         case SMART_ACTION_RESPAWN_TARGET:
@@ -1779,7 +1781,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
         }
         case SMART_ACTION_JUMP_TO_POS:
         {
-            me->GetMotionMaster()->MoveJump(e.target.x, e.target.y , e.target.z, (float)e.action.jump.speedxy, (float)e.action.jump.speedz);
+            me->GetMotionMaster()->MoveJump(e.target.x, e.target.y, e.target.z, (float)e.action.jump.speedxy, (float)e.action.jump.speedz);
             break;
         }
         default:
@@ -1946,9 +1948,9 @@ ObjectList* SmartScript::GetTargets(SmartScriptHolder const& e, Unit* invoker /*
             if (trigger)
             {
                 l->push_back(trigger);
-                if (Player* plr = trigger->ToPlayer())
-                    if (Group* pGroup = plr->GetGroup())
-                        for (GroupReference* groupRef = pGroup->GetFirstMember(); groupRef != NULL; groupRef = groupRef->next())
+                if (Player* player = trigger->ToPlayer())
+                    if (Group* group = player->GetGroup())
+                        for (GroupReference* groupRef = group->GetFirstMember(); groupRef != NULL; groupRef = groupRef->next())
                             if (Player* member = groupRef->getSource())
                                 l->push_back(member);
             }
@@ -2263,10 +2265,10 @@ void SmartScript::ProcessEvent(SmartScriptHolder& e, Unit* unit, uint32 var0, ui
             if (!me || !me->isInCombat())
                 return;
 
-            Unit* pUnit = DoSelectLowestHpFriendly((float)e.event.friendlyHealt.radius, e.event.friendlyHealt.hpDeficit);
-            if (!pUnit)
+            Unit* unit = DoSelectLowestHpFriendly((float)e.event.friendlyHealt.radius, e.event.friendlyHealt.hpDeficit);
+            if (!unit)
                 return;
-            ProcessAction(e, pUnit);
+            ProcessAction(e, unit);
             RecalcTimer(e, e.event.friendlyHealt.repeatMin, e.event.friendlyHealt.repeatMax);
             break;
         }
@@ -2703,13 +2705,13 @@ void SmartScript::OnUpdate(uint32 const diff)
     {
         if (mTextTimer < diff)
         {
-            uint32 temp = mLastTextID;
+            uint32 textID = mLastTextID;
             mLastTextID = 0;
+            uint32 entry = mTalkerEntry;
+            mTalkerEntry = 0;
             mTextTimer = 0;
             mUseTextTimer = false;
-            uint32 tempEntry = talker?talker->GetEntry():0;
-            talker = NULL;
-            ProcessEventsFor(SMART_EVENT_TEXT_OVER, NULL, temp, tempEntry);
+            ProcessEventsFor(SMART_EVENT_TEXT_OVER, NULL, textID, entry);
         } else mTextTimer -= diff;
     }
 }
@@ -2846,7 +2848,7 @@ void SmartScript::SetData(uint32 id, uint32 value)
 {
 }
 
-void SmartScript::SetGUID(const uint64 guid, int32 id)
+void SmartScript::SetGUID(uint64 guid, int32 id)
 {
 }
 
@@ -2881,15 +2883,15 @@ Unit* SmartScript::DoSelectLowestHpFriendly(float range, uint32 MinHPDiff)
     cell.data.Part.reserved = ALL_DISTRICT;
     cell.SetNoCreate();
 
-    Unit* pUnit = NULL;
+    Unit* unit = NULL;
 
     Trinity::MostHPMissingInRange u_check(me, range, MinHPDiff);
-    Trinity::UnitLastSearcher<Trinity::MostHPMissingInRange> searcher(me, pUnit, u_check);
+    Trinity::UnitLastSearcher<Trinity::MostHPMissingInRange> searcher(me, unit, u_check);
 
     TypeContainerVisitor<Trinity::UnitLastSearcher<Trinity::MostHPMissingInRange>, GridTypeMapContainer >  grid_unit_searcher(searcher);
 
     cell.Visit(p, grid_unit_searcher, *me->GetMap(), *me, range);
-    return pUnit;
+    return unit;
 }
 
 void SmartScript::DoFindFriendlyCC(std::list<Creature*>& _list, float range)

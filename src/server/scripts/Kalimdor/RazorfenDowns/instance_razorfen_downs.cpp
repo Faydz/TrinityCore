@@ -100,12 +100,12 @@ public:
 
         void OnGameObjectCreate(GameObject* go)
         {
-            switch(go->GetEntry())
+            switch (go->GetEntry())
             {
                 case GO_GONG:
                     uiGongGUID = go->GetGUID();
                     if (m_auiEncounter[0] == DONE)
-                        go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
+                        go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                     break;
                 default:
                     break;
@@ -118,12 +118,12 @@ public:
             {
                 uiGongWaves = uiData;
 
-                switch(uiGongWaves)
+                switch (uiGongWaves)
                 {
                     case 9:
                     case 14:
                         if (GameObject* go = instance->GetGameObject(uiGongGUID))
-                            go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
+                            go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                         break;
                     case 1:
                     case 10:
@@ -134,12 +134,12 @@ public:
                         if (!go)
                             return;
 
-                        go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
+                        go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
 
                         uint32 uiCreature = 0;
                         uint8 uiSummonTimes = 0;
 
-                        switch(uiGongWaves)
+                        switch (uiGongWaves)
                         {
                             case 1:
                                 uiCreature = CREATURE_TOMB_FIEND;
@@ -186,7 +186,7 @@ public:
 
         uint32 GetData(uint32 uiType)
         {
-            switch(uiType)
+            switch (uiType)
             {
                 case DATA_GONG_WAVES:
                     return uiGongWaves;
@@ -197,7 +197,7 @@ public:
 
         uint64 GetData64(uint32 uiType)
         {
-            switch(uiType)
+            switch (uiType)
             {
                 case DATA_GONG: return uiGongGUID;
             }
