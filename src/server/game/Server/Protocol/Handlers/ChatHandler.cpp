@@ -495,8 +495,8 @@ namespace Trinity
     class EmoteChatBuilder
     {
         public:
-            EmoteChatBuilder(Player const& pl, uint32 text_emote, uint32 emote_num, Unit const* target)
-                : i_player(pl), i_text_emote(text_emote), i_emote_num(emote_num), i_target(target) {}
+            EmoteChatBuilder(Player const& player, uint32 text_emote, uint32 emote_num, Unit const* target)
+                : i_player(player), i_text_emote(text_emote), i_emote_num(emote_num), i_target(target) {}
 
             void operator()(WorldPacket& data, LocaleConstant loc_idx)
             {
@@ -566,10 +566,9 @@ void WorldSession::HandleTextEmoteOpcode(WorldPacket & recv_data)
 
     Unit* unit = ObjectAccessor::GetUnit(*_player, guid);
 
-    CellPair p = Trinity::ComputeCellPair(GetPlayer()->GetPositionX(), GetPlayer()->GetPositionY());
+    CellCoord p = Trinity::ComputeCellCoord(GetPlayer()->GetPositionX(), GetPlayer()->GetPositionY());
 
     Cell cell(p);
-    cell.data.Part.reserved = ALL_DISTRICT;
     cell.SetNoCreate();
 
     Trinity::EmoteChatBuilder emote_builder(*GetPlayer(), text_emote, emoteNum, unit);

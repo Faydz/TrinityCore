@@ -146,12 +146,12 @@ inline float finiteAlways(float f) { return finite(f) ? f : 0.0f; }
 
 enum TimeConstants
 {
-    MINUTE = 60,
-    HOUR   = MINUTE*60,
-    DAY    = HOUR*24,
-    WEEK   = DAY*7,
-    MONTH  = DAY*30,
-    YEAR   = MONTH*12,
+    MINUTE          = 60,
+    HOUR            = MINUTE*60,
+    DAY             = HOUR*24,
+    WEEK            = DAY*7,
+    MONTH           = DAY*30,
+    YEAR            = MONTH*12,
     IN_MILLISECONDS = 1000
 };
 
@@ -203,4 +203,17 @@ typedef std::vector<std::string> StringVector;
 #endif
 
 #define MAX_QUERY_LEN 32*1024
+
+#define TRINITY_GUARD(MUTEX, LOCK) \
+  ACE_Guard< MUTEX > TRINITY_GUARD_OBJECT (LOCK); \
+    if (TRINITY_GUARD_OBJECT.locked() == 0) ASSERT(false);
+
+# define TRINITY_WRITE_GUARD(MUTEX, LOCK) \
+  ACE_Write_Guard< MUTEX > TRINITY_GUARD_OBJECT (LOCK); \
+    if (TRINITY_GUARD_OBJECT.locked() == 0) ASSERT(false);
+
+# define TRINITY_READ_GUARD(MUTEX, LOCK) \
+  ACE_Read_Guard< MUTEX > TRINITY_GUARD_OBJECT (LOCK); \
+    if (TRINITY_GUARD_OBJECT.locked() == 0) ASSERT(false);
+
 #endif

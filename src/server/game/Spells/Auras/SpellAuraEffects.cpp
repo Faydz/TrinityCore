@@ -719,7 +719,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
         case SPELL_AURA_MOD_THREAT:
         {
             uint8 level_diff = 0;
-            float multiplier = 0.0;
+            float multiplier = 0.0f;
             switch (GetId())
             {
                 // Arcane Shroud
@@ -1569,9 +1569,9 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
             target->RemoveAurasDueToSpell(spellId2);
 
         // Improved Barkskin - apply/remove armor bonus due to shapeshift
-        if (Player* pl=target->ToPlayer())
+        if (Player* player=target->ToPlayer())
         {
-            if (pl->HasSpell(63410) || pl->HasSpell(63411))
+            if (player->HasSpell(63410) || player->HasSpell(63411))
             {
                 target->RemoveAurasDueToSpell(66530);
                 target->CastSpell(target, 66530, true);
@@ -2847,7 +2847,7 @@ void AuraEffect::HandleAuraAllowFlight(AuraApplication const* aurApp, uint8 mode
     if (target->GetTypeId() == TYPEID_UNIT)
         target->SetFlying(apply);
 
-    if (Player* plr = target->m_movedPlayer)
+    if (Player* player = target->m_movedPlayer)
     {
         // allow flying
         WorldPacket data;
@@ -2864,7 +2864,7 @@ void AuraEffect::HandleAuraAllowFlight(AuraApplication const* aurApp, uint8 mode
         }
         data.append(target->GetPackGUID());
         data << uint32(0);                                      // unk
-        plr->SendDirectMessage(&data);
+        player->SendDirectMessage(&data);
     }
 }
 
@@ -3257,7 +3257,7 @@ void AuraEffect::HandleAuraModIncreaseFlightSpeed(AuraApplication const* aurApp,
         // do not remove unit flag if there are more than this auraEffect of that kind on unit on unit
         if (mode & AURA_EFFECT_HANDLE_SEND_FOR_CLIENT_MASK && (apply || (!target->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) && !target->HasAuraType(SPELL_AURA_FLY))))
         {
-            if (Player* plr = target->m_movedPlayer)
+            if (Player* player = target->m_movedPlayer)
             {
                 WorldPacket data;
                 if (apply)
@@ -3270,9 +3270,9 @@ void AuraEffect::HandleAuraModIncreaseFlightSpeed(AuraApplication const* aurApp,
                     data.Initialize(SMSG_MOVE_UNSET_CAN_FLY, 12);
                     static_cast<Player*>(target)->SetCanFly(false);
                 }
-                data.append(plr->GetPackGUID());
+                data.append(player->GetPackGUID());
                 data << uint32(0);                                      // unknown
-                plr->SendDirectMessage(&data);
+                player->SendDirectMessage(&data);
             }
         }
 
@@ -5411,9 +5411,9 @@ void AuraEffect::HandleAuraConvertRune(AuraApplication const* aurApp, uint8 mode
     if (target->GetTypeId() != TYPEID_PLAYER)
         return;
 
-    Player* plr = (Player*)target;
+    Player* player = (Player*)target;
 
-    if (plr->getClass() != CLASS_DEATH_KNIGHT)
+    if (player->getClass() != CLASS_DEATH_KNIGHT)
         return;
 
     uint32 runes = m_amount;
@@ -5422,17 +5422,17 @@ void AuraEffect::HandleAuraConvertRune(AuraApplication const* aurApp, uint8 mode
     {
         for (uint32 i = 0; i < MAX_RUNES && runes; ++i)
         {
-            if (GetMiscValue() != plr->GetCurrentRune(i))
+            if (GetMiscValue() != player->GetCurrentRune(i))
                 continue;
-            if (!plr->GetRuneCooldown(i))
+            if (!player->GetRuneCooldown(i))
             {
-                plr->AddRuneByAuraEffect(i, RuneType(GetMiscValueB()), this);
+                player->AddRuneByAuraEffect(i, RuneType(GetMiscValueB()), this);
                 --runes;
             }
         }
     }
     else
-        plr->RemoveRunesByAuraEffect(this);
+        player->RemoveRunesByAuraEffect(this);
 }
 
 void AuraEffect::HandleAuraLinked(AuraApplication const* aurApp, uint8 mode, bool apply) const
@@ -5616,6 +5616,9 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
                 case 66149: // Bullet Controller Periodic - 10 Man
                 case 68396: // Bullet Controller Periodic - 25 Man
                 {
+                    if (!caster)
+                        break;
+
                     caster->CastCustomSpell(66152, SPELLVALUE_MAX_TARGETS, urand(1, 6), target, true);
                     caster->CastCustomSpell(66153, SPELLVALUE_MAX_TARGETS, urand(1, 6), target, true);
                     break;
@@ -5728,9 +5731,8 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
                         // eff_radius == 0
                         float radius = GetSpellInfo()->GetMaxRange(false);
 
-                        CellPair p(Trinity::ComputeCellPair(target->GetPositionX(), target->GetPositionY()));
+                        CellCoord p(Trinity::ComputeCellCoord(target->GetPositionX(), target->GetPositionY()));
                         Cell cell(p);
-                        cell.data.Part.reserved = ALL_DISTRICT;
 
                         Trinity::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck u_check(target, radius);
                         Trinity::UnitListSearcher<Trinity::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck> checker(target, targets, u_check);

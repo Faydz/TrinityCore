@@ -61,7 +61,7 @@ namespace Trinity
 
     struct PlayerRelocationNotifier : public VisibleNotifier
     {
-        PlayerRelocationNotifier(Player &pl) : VisibleNotifier(pl) {}
+        PlayerRelocationNotifier(Player &player) : VisibleNotifier(player) {}
 
         template<class T> void Visit(GridRefManager<T> &m) { VisibleNotifier::Visit(m); }
         void Visit(CreatureMapType &);
@@ -81,9 +81,9 @@ namespace Trinity
     {
         Map &i_map;
         Cell &cell;
-        CellPair &p;
+        CellCoord &p;
         const float i_radius;
-        DelayedUnitRelocation(Cell &c, CellPair &pair, Map &map, float radius) :
+        DelayedUnitRelocation(Cell &c, CellCoord &pair, Map &map, float radius) :
             i_map(map), cell(c), p(pair), i_radius(radius) {}
         template<class T> void Visit(GridRefManager<T> &) {}
         void Visit(CreatureMapType &);
@@ -137,16 +137,16 @@ namespace Trinity
         void Visit(DynamicObjectMapType &m);
         template<class SKIP> void Visit(GridRefManager<SKIP> &) {}
 
-        void SendPacket(Player* plr)
+        void SendPacket(Player* player)
         {
             // never send packet to self
-            if (plr == i_source || (team && plr->GetTeam() != team) || skipped_receiver == plr)
+            if (player == i_source || (team && player->GetTeam() != team) || skipped_receiver == player)
                 return;
 
-            if (!plr->HaveAtClient(i_source))
+            if (!player->HaveAtClient(i_source))
                 return;
 
-            if (WorldSession* session = plr->GetSession())
+            if (WorldSession* session = player->GetSession())
                 session->SendPacket(i_message);
         }
     };

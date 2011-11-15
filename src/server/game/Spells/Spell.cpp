@@ -598,9 +598,8 @@ WorldObject* Spell::FindCorpseUsing()
     // non-standard target selection
     float max_range = m_spellInfo->GetMaxRange(false);
 
-    CellPair p(Trinity::ComputeCellPair(m_caster->GetPositionX(), m_caster->GetPositionY()));
+    CellCoord p(Trinity::ComputeCellCoord(m_caster->GetPositionX(), m_caster->GetPositionY()));
     Cell cell(p);
-    cell.data.Part.reserved = ALL_DISTRICT;
     cell.SetNoCreate();
 
     WorldObject* result = NULL;
@@ -1202,7 +1201,6 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
     m_spellAura = NULL; // Set aura to null for every target-make sure that pointer is not used for unit without aura applied
 
                             //Spells with this flag cannot trigger if effect is casted on self
-                            // Slice and Dice, relentless strikes, eviscerate
     bool canEffectTrigger = !(m_spellInfo->AttributesEx3 & SPELL_ATTR3_CANT_TRIGGER_PROC) && unitTarget->CanProc() && CanExecuteTriggersOnHit(mask);
     Unit* spellHitTarget = NULL;
 
@@ -1539,7 +1537,7 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit* unit, const uint32 effectMask, bool 
                     if (AuraApplication* aurApp = m_spellAura->GetApplicationOfTarget(m_originalCaster->GetGUID()))
                         positive = aurApp->IsPositive();
 
-                    duration = m_originalCaster->ModSpellDuration(aurSpellInfo, unit, duration, positive);
+                    duration = m_originalCaster->ModSpellDuration(aurSpellInfo, unit, duration, positive, effectMask);
 
                     // Haste modifies duration of channeled spells
                     if (m_spellInfo->IsChanneled())
@@ -1598,12 +1596,12 @@ void Spell::DoTriggersOnSpellHit(Unit* unit, uint8 effMask)
     // this is executed after spell proc spells on target hit
     // spells are triggered for each hit spell target
     // info confirmed with retail sniffs of permafrost and shadow weaving
-    if (!m_hitTriggerSpells.empty() && CanExecuteTriggersOnHit(effMask))
+    if (!m_hitTriggerSpells.empty())
     {
         int _duration = 0;
         for (HitTriggerSpells::const_iterator i = m_hitTriggerSpells.begin(); i != m_hitTriggerSpells.end(); ++i)
         {
-            if (roll_chance_i(i->second))
+            if (CanExecuteTriggersOnHit(effMask, i->first) && roll_chance_i(i->second))
             {
                 m_caster->CastSpell(unit, i->first, true);
                 sLog->outDebug(LOG_FILTER_SPELLS_AURAS, "Spell %d triggered spell %d by SPELL_AURA_ADD_TARGET_TRIGGER aura", m_spellInfo->Id, i->first->Id);
@@ -3836,19 +3834,23 @@ void Spell::SendSpellGo()
 
     if (castFlags & CAST_FLAG_RUNE_LIST)                   // rune cooldowns list
     {
-        Player* player = m_caster->ToPlayer();
-        uint8 runeMaskInitial = m_runesState;
-        uint8 runeMaskAfterCast = player->GetRunesState();
-        data << uint8(runeMaskInitial);                     // runes state before
-        data << uint8(runeMaskAfterCast);                   // runes state after
-        for (uint8 i = 0; i < MAX_RUNES; ++i)
+        //TODO: There is a crash caused by a spell with CAST_FLAG_RUNE_LIST casted by a creature
+        //The creature is the mover of a player, so HandleCastSpellOpcode uses it as the caster
+        if (Player* player = m_caster->ToPlayer())
         {
-            uint8 mask = (1 << i);
-            if (mask & runeMaskInitial && !(mask & runeMaskAfterCast))  // usable before andon cooldown now...
+            uint8 runeMaskInitial = m_runesState;
+            uint8 runeMaskAfterCast = player->GetRunesState();
+            data << uint8(runeMaskInitial);                     // runes state before
+            data << uint8(runeMaskAfterCast);                   // runes state after
+            for (uint8 i = 0; i < MAX_RUNES; ++i)
             {
-                // float casts ensure the division is performed on floats as we need float result
-                float baseCd = float(player->GetRuneBaseCooldown(i));
-                data << uint8((baseCd - float(player->GetRuneCooldown(i))) / baseCd * 255); // rune cooldown passed
+                uint8 mask = (1 << i);
+                if (mask & runeMaskInitial && !(mask & runeMaskAfterCast))  // usable before andon cooldown now...
+                {
+                    // float casts ensure the division is performed on floats as we need float result
+                    float baseCd = float(player->GetRuneBaseCooldown(i));
+                    data << uint8((baseCd - float(player->GetRuneCooldown(i))) / baseCd * 255); // rune cooldown passed
+                }
             }
         }
     }
@@ -4328,9 +4330,9 @@ SpellCastResult Spell::CheckRuneCost(uint32 runeCostID)
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
         return SPELL_CAST_OK;
 
-    Player* plr = (Player*)m_caster;
+    Player* player = (Player*)m_caster;
 
-    if (plr->getClass() != CLASS_DEATH_KNIGHT)
+    if (player->getClass() != CLASS_DEATH_KNIGHT)
         return SPELL_CAST_OK;
 
     SpellRuneCostEntry const* src = sSpellRuneCostStore.LookupEntry(runeCostID);
@@ -4354,8 +4356,8 @@ SpellCastResult Spell::CheckRuneCost(uint32 runeCostID)
 
     for (uint32 i = 0; i < MAX_RUNES; ++i)
     {
-        RuneType rune = plr->GetCurrentRune(i);
-        if ((plr->GetRuneCooldown(i) == 0) && (runeCost[rune] > 0))
+        RuneType rune = player->GetCurrentRune(i);
+        if ((player->GetRuneCooldown(i) == 0) && (runeCost[rune] > 0))
             runeCost[rune]--;
     }
 
@@ -5639,7 +5641,16 @@ SpellCastResult Spell::CheckRange(bool strict)
     if (!strict && m_casttime == 0)
         return SPELL_CAST_OK;
 
-    uint32 range_type = m_spellInfo->RangeEntry ? m_spellInfo->RangeEntry->type : 0;
+    uint32 range_type = 0;
+
+    if (m_spellInfo->RangeEntry)
+    {
+        // self cast is used for triggered spells, no range checking needed
+        if (m_spellInfo->RangeEntry->ID == 1)
+            return SPELL_CAST_OK;
+
+        range_type = m_spellInfo->RangeEntry->type;
+    }
 
     Unit* target = m_targets.GetUnitTarget();
     float max_range = m_caster->GetSpellMaxRangeForTarget(target, m_spellInfo);
@@ -5820,9 +5831,8 @@ SpellCastResult Spell::CheckItems()
     // check spell focus object
     if (m_spellInfo->RequiresSpellFocus)
     {
-        CellPair p(Trinity::ComputeCellPair(m_caster->GetPositionX(), m_caster->GetPositionY()));
+        CellCoord p(Trinity::ComputeCellCoord(m_caster->GetPositionX(), m_caster->GetPositionY()));
         Cell cell(p);
-        cell.data.Part.reserved = ALL_DISTRICT;
 
         GameObject* ok = NULL;
         Trinity::GameObjectFocusCheck go_check(m_caster, m_spellInfo->RequiresSpellFocus);
@@ -6409,7 +6419,8 @@ bool Spell::IsNextMeleeSwingSpell() const
 
 bool Spell::IsAutoActionResetSpell() const
 {
-    return !IsTriggered() && (m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_AUTOATTACK);
+    // TODO: changed SPELL_INTERRUPT_FLAG_AUTOATTACK -> SPELL_INTERRUPT_FLAG_INTERRUPT to fix compile - is this check correct at all?
+    return !IsTriggered() && (m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_INTERRUPT);
 }
 
 bool Spell::IsNeedSendToClient() const
@@ -7085,17 +7096,17 @@ void Spell::CallScriptAfterUnitTargetSelectHandlers(std::list<Unit*>& unitTarget
     }
 }
 
-bool Spell::CanExecuteTriggersOnHit(uint8 effMask) const
+bool Spell::CanExecuteTriggersOnHit(uint8 effMask, SpellInfo const* spellInfo) const
 {
-    // check which effects can trigger proc
-    // don't allow to proc for dummy-only spell target hits
-    // prevents triggering/procing effects twice from spells like Eviscerate
-    for (uint8 i = 0;effMask && i < MAX_SPELL_EFFECTS; ++i)
+    bool only_on_dummy = (spellInfo && (spellInfo->AttributesEx4 & SPELL_ATTR4_PROC_ONLY_ON_DUMMY));
+    // If triggered spell has SPELL_ATTR4_PROC_ONLY_ON_DUMMY then it can only proc on a casted spell with SPELL_EFFECT_DUMMY
+    // If triggered spell doesn't have SPELL_ATTR4_PROC_ONLY_ON_DUMMY then it can NOT proc on SPELL_EFFECT_DUMMY (needs confirmation)
+    for (uint8 i = 0;i < MAX_SPELL_EFFECTS; ++i)
     {
-        if (m_spellInfo->Effects[i].Effect == SPELL_EFFECT_DUMMY)
-            effMask &= ~(1<<i);
+        if ((effMask & (1 << i)) && (only_on_dummy == (m_spellInfo->Effects[i].Effect == SPELL_EFFECT_DUMMY)))
+            return true;
     }
-    return effMask;
+    return false;
 }
 
 void Spell::PrepareTriggersExecutedOnHit()

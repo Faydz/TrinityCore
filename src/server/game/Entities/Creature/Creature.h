@@ -156,7 +156,7 @@ struct CreatureTemplate
         else if (type_flags & CREATURE_TYPEFLAGS_MININGLOOT)
             return SKILL_MINING;
         else if (type_flags & CREATURE_TYPEFLAGS_ENGINEERLOOT)
-            return SKILL_ENGINERING;
+            return SKILL_ENGINEERING;
         else
             return SKILL_SKINNING;                          // normal case
     }
@@ -456,7 +456,7 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
         uint32 GetDBTableGUIDLow() const { return m_DBTableGuid; }
 
         void Update(uint32 time);                         // overwrited Unit::Update
-        void GetRespawnCoord(float &x, float &y, float &z, float* ori = NULL, float* dist =NULL) const;
+        void GetRespawnPosition(float &x, float &y, float &z, float* ori = NULL, float* dist =NULL) const;
         uint32 GetEquipmentId() const { return GetCreatureInfo()->equipmentId; }
 
         void SetCorpseDelay(uint32 delay) { m_corpseDelay = delay; }
@@ -607,7 +607,7 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
         CreatureSpellCooldowns m_CreatureCategoryCooldowns;
 
         bool canStartAttack(Unit const* u, bool force) const;
-        float GetAttackDistance(Unit const* pl) const;
+        float GetAttackDistance(Unit const* player) const;
 
         void SendAIReaction(AiReaction reactionType);
 

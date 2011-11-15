@@ -234,7 +234,7 @@ bool Player::Anti__CheatOccurred(const char* Reason,float Speed,uint16 Op,
     data << uint32(3);
     data << buff;
 
-    ACE_GUARD_RETURN(ACE_Thread_Mutex, guard, *HashMapHolder<Player>::GetLock(), true);
+    TRINITY_GUARD(HashMapHolder<Player>::LockType, *HashMapHolder<Player>::GetLock());
     HashMapHolder<Player>::MapType const& plist = sObjectAccessor->GetPlayers();
     for (HashMapHolder<Player>::MapType::const_iterator itr = plist.begin(); itr != plist.end(); ++itr)
         if (itr->second->GetAntiGMMsg())
@@ -280,7 +280,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     if (GetPlayer()->IsInWorld())
     {
         sLog->outCrash("Player (Name %s) is still in world when teleported from map %u to new map %u", GetPlayer()->GetName(), oldMap->GetId(), loc.GetMapId());
-        oldMap->RemoveFromMap(GetPlayer(), false);
+        oldMap->RemovePlayerFromMap(GetPlayer(), false);
     }
 
     // relocate the player to the teleport destination
@@ -300,7 +300,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     GetPlayer()->SetMap(newMap);
 
     GetPlayer()->SendInitialPacketsBeforeAddToMap();
-    if (!GetPlayer()->GetMap()->AddToMap(GetPlayer()))
+    if (!GetPlayer()->GetMap()->AddPlayerToMap(GetPlayer()))
     {
         sLog->outError("WORLD: failed to teleport player %s (%d) to map %d because of unknown reason!", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), loc.GetMapId());
         GetPlayer()->ResetMap();
@@ -722,7 +722,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
                 if (plMover->isAlive())
                 {
                     plMover->EnvironmentalDamage(DAMAGE_FALL_TO_VOID, GetPlayer()->GetMaxHealth());
-                    // pl can be alive if GM/etc
+                    // player can be alive if GM/etc
                     // change the death state to CORPSE to prevent the death timer from
                     // starting in the next player update
                     if (!plMover->isAlive())
