@@ -20,4 +20,6 @@ set(scripts_STAT_SRCS
   Custom/custom_dtevent.cpp
 )
 
+SOURCE_GROUP(Custom REGULAR_EXPRESSION .*/Custom/.*)
+
 message("  -> Prepared: Custom")
