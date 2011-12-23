@@ -205,6 +205,8 @@ set(scripts_STAT_SRCS
   EasternKingdoms/Karazhan/boss_moroes.cpp
   EasternKingdoms/Karazhan/boss_terestian_illhoof.cpp
   EasternKingdoms/Karazhan/karazhan.h
+  EasternKingdoms/DTPrison/dtprison.h
+  EasternKingdoms/DTPrison/instance_dtprison.cpp
 )
 
 SOURCE_GROUP(EasternKingdoms FILES
@@ -240,6 +242,7 @@ SOURCE_GROUP(EasternKingdoms\\BlackrockDepths REGULAR_EXPRESSION .*/EasternKingd
 SOURCE_GROUP(EasternKingdoms\\BlackrockSpire REGULAR_EXPRESSION .*/EasternKingdoms/BlackrockSpire/.*)
 SOURCE_GROUP(EasternKingdoms\\BlackwingLair REGULAR_EXPRESSION .*/EasternKingdoms/BlackwingLair/.*)
 SOURCE_GROUP(EasternKingdoms\\Deadmines REGULAR_EXPRESSION .*/EasternKingdoms/Deadmines/.*)
+SOURCE_GROUP(EasternKingdoms\\DTPrison REGULAR_EXPRESSION .*/EasternKingdoms/DTPrison/.*)
 SOURCE_GROUP(EasternKingdoms\\Gnomeregan REGULAR_EXPRESSION .*/EasternKingdoms/Gnomeregan/.*)
 SOURCE_GROUP(EasternKingdoms\\Karazhan REGULAR_EXPRESSION .*/EasternKingdoms/Karazhan/.*)
 SOURCE_GROUP(EasternKingdoms\\MagistersTerrace REGULAR_EXPRESSION .*/EasternKingdoms/MagistersTerrace/.*)
