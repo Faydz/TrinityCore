@@ -2824,6 +2824,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case 48689:
             case 48690:
             case 48691:
+            case 6785: // Ravage
+            case 6787:
+            case 9866:
+            case 9867:
+            case 27005:
+            case 48578:
+            case 48579:
             case 21987: // Lash of Pain
             case 23959: // Test Stab R50
             case 24825: // Test Backstab
@@ -2968,6 +2975,7 @@ void SpellMgr::LoadDbcDataCorrections()
             case 51904: // Summon Ghouls On Scarlet Crusade (this should use conditions table, script for this spell needs to be fixed)
             case 2895:  // Wrath of Air Totem rank 1 (Aura)
             case 68933: // Wrath of Air Totem rank 2 (Aura)
+            case 29200: // Purify Helboar Meat
                 spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_CASTER;
                 spellInfo->EffectImplicitTargetB[0] = 0;
                 break;
@@ -3218,6 +3226,10 @@ void SpellMgr::LoadDbcDataCorrections()
                         // SpellFamilyFlags[0] & 0x00000040 in SPELLFAMILY_DEATHKNIGHT is currently unused (3.3.5a)
                         // this needs research on modifier applying rules, does not seem to be in Attributes fields
                 spellInfo->EffectSpellClassMask[0] = flag96(0x00000040, 0x00000000, 0x00000000);
+                break;
+            case 63163: // Apply Enchanted Bridle (Argent Tournament)
+                spellInfo->EffectDieSides[0] = 0; // was 1, that should probably mean seat 0, but instead it's treated as spell 1
+                spellInfo->EffectBasePoints[0] = 52391; // Ride Vehicle (forces seat 0)
                 break;
             case 19970: // Entangling Roots (Rank 6) -- Nature's Grasp Proc
             case 19971: // Entangling Roots (Rank 5) -- Nature's Grasp Proc

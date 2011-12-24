@@ -26,6 +26,8 @@
 #include "SpellAuraEffects.h"
 #include "SkillDiscovery.h"
 #include "GridNotifiers.h"
+#include "Group.h"
+#include "LFGMgr.h"
 
 class spell_gen_absorb0_hitlimit1 : public SpellScriptLoader
 {
@@ -1373,9 +1375,9 @@ class spell_gen_damage_reduction_aura : public SpellScriptLoader
 public:
     spell_gen_damage_reduction_aura() : SpellScriptLoader("spell_gen_damage_reduction_aura") { }
 
-    class spell_gen_damage_reduction_auraScript : public AuraScript
+    class spell_gen_damage_reduction_AuraScript : public AuraScript
     {
-        PrepareAuraScript(spell_gen_damage_reduction_auraScript);
+        PrepareAuraScript(spell_gen_damage_reduction_AuraScript);
 
         bool Validate(SpellInfo const* /*SpellEntry*/)
         {
@@ -1387,19 +1389,16 @@ public:
         void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
             Unit* target = GetTarget();
-            if (!target || target->HasAura(SPELL_DAMAGE_REDUCTION_AURA))
-                return;
-
             target->CastSpell(target, SPELL_DAMAGE_REDUCTION_AURA, true);
         }
 
         void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
             Unit* target = GetTarget();
-            if (!target || !target->HasAura(SPELL_DAMAGE_REDUCTION_AURA))
+            if (!target->HasAura(SPELL_DAMAGE_REDUCTION_AURA))
                 return;
 
-            if (target->HasAura(SPELL_BLESSING_OF_SANCTUARY) || 
+            if (target->HasAura(SPELL_BLESSING_OF_SANCTUARY) ||
                 target->HasAura(SPELL_GREATER_BLESSING_OF_SANCTUARY) ||
                 target->HasAura(SPELL_RENEWED_HOPE) ||
                 target->HasAura(SPELL_VIGILANCE))
@@ -1410,16 +1409,63 @@ public:
 
         void Register()
         {
-            OnEffectApply += AuraEffectApplyFn(spell_gen_damage_reduction_auraScript::OnApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
-            OnEffectRemove += AuraEffectRemoveFn(spell_gen_damage_reduction_auraScript::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+            OnEffectApply += AuraEffectApplyFn(spell_gen_damage_reduction_AuraScript::OnApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            OnEffectRemove += AuraEffectRemoveFn(spell_gen_damage_reduction_AuraScript::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
         }
 
     };
 
     AuraScript* GetAuraScript() const
     {
-        return new spell_gen_damage_reduction_auraScript();
+        return new spell_gen_damage_reduction_AuraScript();
     }
+};
+
+class spell_gen_luck_of_the_draw : public SpellScriptLoader
+{
+    public:
+        spell_gen_luck_of_the_draw() : SpellScriptLoader("spell_gen_luck_of_the_draw") { }
+
+        class spell_gen_luck_of_the_draw_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_gen_luck_of_the_draw_AuraScript);
+
+            // cheap hax to make it have update calls
+            void CalcPeriodic(AuraEffect const* /*effect*/, bool& isPeriodic, int32& amplitude)
+            {
+                isPeriodic = true;
+                amplitude = 5 * IN_MILLISECONDS;
+            }
+
+            void Update(AuraEffect* /*effect*/)
+            {
+                if (GetUnitOwner()->GetTypeId() != TYPEID_PLAYER)
+                    return;
+
+                LFGDungeonEntry const* randomDungeon = sLFGDungeonStore.LookupEntry(*(sLFGMgr->GetSelectedDungeons(GetUnitOwner()->GetGUID()).begin()));
+                Group* group = GetUnitOwner()->ToPlayer()->GetGroup();
+                Map const* map = GetUnitOwner()->GetMap();
+                if (group && group->isLFGGroup())
+                    if (uint32 dungeonId = sLFGMgr->GetDungeon(group->GetGUID(), true))
+                        if (LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(dungeonId))
+                            if (dungeon->map == map->GetId() && dungeon->difficulty == map->GetDifficulty())
+                                if (randomDungeon && randomDungeon->type == LFG_TYPE_RANDOM)
+                                    return; // in correct dungeon
+
+                Remove(AURA_REMOVE_BY_DEFAULT);
+            }
+
+            void Register()
+            {
+                DoEffectCalcPeriodic += AuraEffectCalcPeriodicFn(spell_gen_luck_of_the_draw_AuraScript::CalcPeriodic, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
+                OnEffectUpdatePeriodic += AuraEffectUpdatePeriodicFn(spell_gen_luck_of_the_draw_AuraScript::Update, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_gen_luck_of_the_draw_AuraScript();
+        }
 };
 
 void AddSC_generic_spell_scripts()
@@ -1454,4 +1500,5 @@ void AddSC_generic_spell_scripts()
     new spell_gen_vehicle_scaling();
     new spell_gen_oracle_wolvar_reputation();
     new spell_gen_damage_reduction_aura();
+    new spell_gen_luck_of_the_draw();
 }
