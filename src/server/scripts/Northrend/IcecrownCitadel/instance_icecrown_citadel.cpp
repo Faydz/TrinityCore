@@ -825,13 +825,13 @@ class instance_icecrown_citadel : public InstanceMapScript
                         switch (data)
                         {
                             case 0:
-                                if (SpinestalkerTrashCount)
-                                {
-                                    --SpinestalkerTrashCount;
-                                    if (!SpinestalkerTrashCount)
+                                //if (SpinestalkerTrashCount)
+                                //{
+                                //    --SpinestalkerTrashCount;
+                                //    if (!SpinestalkerTrashCount)
                                         if (Creature* spinestalk = instance->GetCreature(SpinestalkerGUID))
                                             spinestalk->AI()->DoAction(ACTION_START_FROSTWYRM);
-                                }
+                                //}
                                 break;
                             case 1:
                                 ++SpinestalkerTrashCount;
@@ -850,13 +850,13 @@ class instance_icecrown_citadel : public InstanceMapScript
                         switch (data)
                         {
                             case 0:
-                                if (RimefangTrashCount)
-                                {
-                                    --RimefangTrashCount;
-                                    if (!RimefangTrashCount)
+                                //if (RimefangTrashCount)
+                                //{
+                                //    --RimefangTrashCount;
+                                //    if (!RimefangTrashCount)
                                         if (Creature* rime = instance->GetCreature(RimefangGUID))
                                             rime->AI()->DoAction(ACTION_START_FROSTWYRM);
-                                }
+                                //}
                                 break;
                             case 1:
                                 ++RimefangTrashCount;
