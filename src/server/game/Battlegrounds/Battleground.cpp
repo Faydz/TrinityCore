@@ -870,6 +870,10 @@ void Battleground::EndBattleground(uint32 winner)
                         if (player->GetQuestStatus(988093) == QUEST_STATUS_INCOMPLETE)
                             player->CompleteQuest(988093);
                         break;
+                    case BATTLEGROUND_SA:
+                        if (player->GetQuestStatus(988094) == QUEST_STATUS_INCOMPLETE)
+                            player->CompleteQuest(988094);
+                        break;
                 }
             }
 
