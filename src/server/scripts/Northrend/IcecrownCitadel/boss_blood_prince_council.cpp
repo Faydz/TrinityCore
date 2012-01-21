@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -1159,7 +1159,7 @@ class npc_ball_of_flame : public CreatureScript
 
             void MovementInform(uint32 type, uint32 id)
             {
-                if (type == TARGETED_MOTION_TYPE && id == GUID_LOPART(_chaseGUID) && _chaseGUID)
+                if (type == CHASE_MOTION_TYPE && id == GUID_LOPART(_chaseGUID) && _chaseGUID)
                 {
                     me->RemoveAurasDueToSpell(SPELL_BALL_OF_FLAMES_PERIODIC);
                     DoCast(me, SPELL_FLAMES);

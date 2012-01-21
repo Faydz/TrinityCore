@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -48,7 +48,8 @@ void BuildPartyLockDungeonBlock(WorldPacket& data, const LfgLockPartyMap& lockMa
 void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
 {
     if (!sWorld->getBoolConfig(CONFIG_DUNGEON_FINDER_ENABLE) ||
-        (GetPlayer()->GetGroup() && GetPlayer()->GetGroup()->GetLeaderGUID() != GetPlayer()->GetGUID()))
+        (GetPlayer()->GetGroup() && GetPlayer()->GetGroup()->GetLeaderGUID() != GetPlayer()->GetGUID() &&
+        (GetPlayer()->GetGroup()->GetMembersCount() == MAXGROUPSIZE || !GetPlayer()->GetGroup()->isLFGGroup())))
     {
         recv_data.rfinish();
         return;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -88,21 +88,6 @@ void LoadCreatureFormations()
         return;
     }
 
-    std::set<uint32> guidSet;
-
-    QueryResult guidResult = WorldDatabase.PQuery("SELECT guid FROM creature");
-    if (guidResult)
-    {
-        do
-        {
-            Field* fields = guidResult->Fetch();
-            uint32 guid = fields[0].GetUInt32();
-
-            guidSet.insert(guid);
-
-        } while (guidResult->NextRow());
-    }
-
     uint32 count = 0;
     Field* fields;
     FormationInfo* group_member;
@@ -114,8 +99,8 @@ void LoadCreatureFormations()
         //Load group member data
         group_member                        = new FormationInfo;
         group_member->leaderGUID            = fields[0].GetUInt32();
-        uint32 memberGUID = fields[1].GetUInt32();
-        group_member->groupAI                = fields[4].GetUInt8();
+        uint32 memberGUID                   = fields[1].GetUInt32();
+        group_member->groupAI               = fields[4].GetUInt8();
         //If creature is group leader we may skip loading of dist/angle
         if (group_member->leaderGUID != memberGUID)
         {
@@ -130,14 +115,14 @@ void LoadCreatureFormations()
 
         // check data correctness
         {
-            if (guidSet.find(group_member->leaderGUID) == guidSet.end())
+            if (!sObjectMgr->GetCreatureData(group_member->leaderGUID))
             {
                 sLog->outErrorDb("creature_formations table leader guid %u incorrect (not exist)", group_member->leaderGUID);
                 delete group_member;
                 continue;
             }
 
-            if (guidSet.find(memberGUID) == guidSet.end())
+            if (!sObjectMgr->GetCreatureData(memberGUID))
             {
                 sLog->outErrorDb("creature_formations table member guid %u incorrect (not exist)", memberGUID);
                 delete group_member;
@@ -218,7 +203,7 @@ void CreatureGroup::FormationReset(bool dismiss)
             if (dismiss)
                 itr->first->GetMotionMaster()->Initialize();
             else
-                itr->first->GetMotionMaster()->MoveIdle(MOTION_SLOT_IDLE);
+                itr->first->GetMotionMaster()->MoveIdle();
             sLog->outDebug(LOG_FILTER_UNITS, "Set %s movement for member GUID: %u", dismiss ? "default" : "idle", itr->first->GetGUIDLow());
         }
     }
@@ -227,10 +212,12 @@ void CreatureGroup::FormationReset(bool dismiss)
 
 void CreatureGroup::LeaderMoveTo(float x, float y, float z)
 {
+    //! To do: This should probably get its own movement generator or use WaypointMovementGenerator.
+    //! If the leader's path is known, member's path can be plotted as well using formation offsets.
     if (!m_leader)
         return;
 
-    float pathangle    = atan2(m_leader->GetPositionY() - y, m_leader->GetPositionX() - x);
+    float pathangle = atan2(m_leader->GetPositionY() - y, m_leader->GetPositionX() - x);
 
     for (CreatureGroupMemberType::iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
     {

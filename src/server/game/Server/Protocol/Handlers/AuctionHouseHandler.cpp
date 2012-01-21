@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -101,14 +101,14 @@ void WorldSession::SendAuctionBidderNotification(uint32 location, uint32 auction
 //this void causes on client to display: "Your auction sold"
 void WorldSession::SendAuctionOwnerNotification(AuctionEntry* auction)
 {
-    WorldPacket data(SMSG_AUCTION_OWNER_NOTIFICATION, (7*4));
-    data << auction->Id;
-    data << auction->bid;
-    data << (uint32) 0;                                     //unk
-    data << (uint32) 0;                                     //unk
-    data << (uint32) 0;                                     //unk
-    data << auction->item_template;
-    data << (uint32) 0;                                     //unk
+    WorldPacket data(SMSG_AUCTION_OWNER_NOTIFICATION, (8*4));
+    data << uint32(auction->Id);
+    data << uint32(auction->bid);
+    data << uint32(0);                                      //unk
+    data << uint64(0);                                      //unk (bidder guid?)
+    data << uint32(auction->item_template);
+    data << uint32(0);                                      //unk
+    data << float(0);                                       //unk (time?)
     SendPacket(&data);
 }
 

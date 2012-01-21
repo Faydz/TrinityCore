@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -63,7 +63,7 @@ bool Condition::Meets(Player* player, Unit* invoker)
         case CONDITION_REPUTATION_RANK:
         {
             if (FactionEntry const* faction = sFactionStore.LookupEntry(mConditionValue1))
-                condMeets = uint32(player->GetReputationMgr().GetRank(faction)) == mConditionValue2;
+                condMeets = (mConditionValue2 & (1 << player->GetReputationMgr().GetRank(faction)));
             break;
         }
         case CONDITION_ACHIEVEMENT:

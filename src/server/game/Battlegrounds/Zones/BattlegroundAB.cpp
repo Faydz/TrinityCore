@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -202,6 +202,9 @@ void BattlegroundAB::StartingEventOpenDoors()
     }
     DoorOpen(BG_AB_OBJECT_GATE_A);
     DoorOpen(BG_AB_OBJECT_GATE_H);
+
+    // Achievement: Let's Get This Done
+    StartTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, AB_EVENT_START_BATTLE);
 }
 
 void BattlegroundAB::AddPlayer(Player* player)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -1009,7 +1009,7 @@ public:
                         me->SetInFront(car);
                         me->SendMovementFlagUpdate();
                         car->Relocate(car->GetPositionX(), car->GetPositionY(), me->GetPositionZ() + 1);
-                        car->SendMonsterStop();
+                        car->StopMoving();
                         car->RemoveAura(SPELL_CART_DRAG);
                     }
                     me->MonsterSay(SAY_SCARLET_MINER2, LANG_UNIVERSAL, 0);

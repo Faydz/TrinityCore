@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -417,10 +417,9 @@ void PetAI::MovementInform(uint32 moveType, uint32 data)
                 me->GetMotionMaster()->Clear();
                 me->GetMotionMaster()->MoveIdle();
             }
+            break;
         }
-        break;
-
-        case TARGETED_MOTION_TYPE:
+        case FOLLOW_MOTION_TYPE:
         {
             // If data is owner's GUIDLow then we've reached follow point,
             // otherwise we're probably chasing a creature
@@ -430,11 +429,9 @@ void PetAI::MovementInform(uint32 moveType, uint32 data)
                 me->GetCharmInfo()->SetIsReturning(false);
                 me->GetCharmInfo()->SetIsFollowing(true);
                 me->GetCharmInfo()->SetIsCommandAttack(false);
-                me->AddUnitState(UNIT_STAT_FOLLOW);
             }
+            break;
         }
-        break;
-
         default:
             break;
     }
