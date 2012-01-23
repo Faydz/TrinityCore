@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -175,12 +175,11 @@ void MotionMaster::DelayedExpire()
         --i_top;
 }
 
-void MotionMaster::MoveIdle(MovementSlot slot)
+void MotionMaster::MoveIdle()
 {
-    //if (empty() || !isStatic(top()))
-    //    push(&si_idleMovement);
-    if (!isStatic(Impl[slot]))
-        Mutate(&si_idleMovement, slot);
+    //! Should be preceded by MovementExpired or Clear if there's an overlying movementgenerator active
+    if (empty() || !isStatic(top()))
+        Mutate(&si_idleMovement, MOTION_SLOT_IDLE);
 }
 
 void MotionMaster::MoveRandom(float spawndist)
