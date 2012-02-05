@@ -109,7 +109,7 @@ public:
             if (!pl)
                 return;
             Unit* attacker = pl->getAttackerForHelper();
-            if (attacker->ToPlayer() && !pl->duel)
+            if (attacker && attacker->ToPlayer() && !pl->duel)
                 AttackStart(attacker);
         }
 
