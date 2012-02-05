@@ -109,7 +109,7 @@ public:
             Unit* attacker = pl->getAttackerForHelper();
             if (attacker && attacker->ToPlayer() && !pl->duel)
             {
-                    me->SetFaction(7);
+                    me->setFaction(7);
                     AttackStart(attacker);
             }
         }
@@ -123,12 +123,12 @@ public:
             if (me->IsInRange(attacker, 0.0f, 30.0f, true) && attacker->isAlive())
                 if (di && di->opponent != attacker)
                 {
-                    me->SetFaction(7);
+                    me->setFaction(7);
                     AttackStart(attacker);
                 }
                 else if (!di)
                 {
-                    me->SetFaction(7);
+                    me->setFaction(7);
                     AttackStart(attacker);
                 }
         }
