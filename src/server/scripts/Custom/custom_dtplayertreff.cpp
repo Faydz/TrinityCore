@@ -1,5 +1,6 @@
 #include "ScriptPCH.h"
 #include "Player.h"
+#include "GuardAI.h"
 
 const Position allyPositions[10]         =
 {
@@ -85,7 +86,64 @@ public:
     }
 };
 
+class guard_pvp : public CreatureScript
+{
+public:
+    guard_pvp() : CreatureScript("guard_pvp") { }
+
+    struct guard_pvpAI : public GuardAI
+    {
+        guard_pvpAI(Creature* creature) : GuardAI(creature) {}
+
+        void Reset()
+        {
+        }
+
+        void EnterCombat(Unit* who)
+        {
+        }
+
+        void MoveInLineOfSight(Unit* unit)
+        {
+            Player* pl = unit->ToPlayer();
+            if (!pl)
+                return;
+            Unit* attacker = pl->getAttackerForHelper();
+            if (attacker->ToPlayer() && !pl->duel)
+                AttackStart(attacker);
+        }
+
+        void OnPvP(Player* attacker, Player* victim)
+        {
+            if (!attacker || !victim)
+                return;
+            DuelInfo* di = victim->duel;
+
+            if (me->IsInRange(attacker, 0.0f, 30.0f, true) && attacker->isAlive())
+                if (di && di->opponent != attacker)
+                    AttackStart(attacker);
+                else if (!di)
+                    AttackStart(attacker);
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            //Return since we have no target
+            if (!UpdateVictim())
+                return;
+
+            DoMeleeAttackIfReady();
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+       return new guard_pvpAI(creature);
+    }
+};
+
 void AddSC_custom_dtpvpevent()
 {
     new custom_dtplayertreff();
+    new guard_pvp();
 }

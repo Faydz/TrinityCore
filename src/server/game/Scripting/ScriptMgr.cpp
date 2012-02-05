@@ -1385,6 +1385,11 @@ void ScriptMgr::OnGroupDisband(Group* group)
     FOREACH_SCRIPT(GroupScript)->OnDisband(group);
 }
 
+void ScriptMgr::OnPvP(Player* attacker, Player* victim)
+{
+    FOREACH_SCRIPT(CreatureScript)->OnPvP(attacker, victim);
+}
+
 SpellScriptLoader::SpellScriptLoader(const char* name)
     : ScriptObject(name)
 {

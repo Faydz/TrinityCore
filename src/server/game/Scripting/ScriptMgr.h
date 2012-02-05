@@ -430,6 +430,9 @@ class CreatureScript : public ScriptObject, public UpdatableScript<Creature>
         // Called when the dialog status between a player and the creature is requested.
         virtual uint32 GetDialogStatus(Player* /*player*/, Creature* /*creature*/) { return 100; }
 
+        // Called on PvP Events (for guards)
+        virtual void OnPvP(Player* attacker, Player* victim) { }
+
         // Called when a CreatureAI object is needed for the creature.
         virtual CreatureAI* GetAI(Creature* /*creature*/) const { return NULL; }
 };
@@ -894,6 +897,7 @@ class ScriptMgr
         uint32 GetDialogStatus(Player* player, Creature* creature);
         CreatureAI* GetCreatureAI(Creature* creature);
         void OnCreatureUpdate(Creature* creature, uint32 diff);
+        void OnPvP(Player* attacker, Player* victim);
 
     public: /* GameObjectScript */
 
