@@ -97,7 +97,7 @@ public:
 
         void Reset()
         {
-            me->SetReactState(REACT_PASSIVE);
+            me->SetReactState(REACT_AGGRESSIVE);
         }
 
         void MoveInLineOfSight(Unit* unit)
@@ -120,7 +120,12 @@ public:
             DuelInfo* di = victim->duel;
 
             if (me->IsInRange(attacker, 0.0f, 30.0f, true) && attacker->isAlive())
-                if ((di && di->opponent != attacker) || !di)
+                if (di && di->opponent != attacker)
+                {
+                    me->SetReactState(REACT_AGGRESSIVE);
+                    AttackStart(attacker);
+                }
+                else if (!di)
                 {
                     me->SetReactState(REACT_AGGRESSIVE);
                     AttackStart(attacker);
