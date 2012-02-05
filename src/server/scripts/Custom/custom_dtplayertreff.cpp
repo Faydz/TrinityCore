@@ -101,20 +101,7 @@ public:
              me->setFaction(35);
         }
 
-        void MoveInLineOfSight(Unit* unit)
-        {
-            Player* pl = unit->ToPlayer();
-            if (!pl)
-                return;
-            Unit* attacker = pl->getAttackerForHelper();
-            if (attacker && attacker->ToPlayer() && !pl->duel)
-            {
-                    me->setFaction(7);
-                    AttackStart(attacker);
-            }
-        }
-
-        void OnPvP(Player* attacker, Player* victim)
+        void OnPvP(Player* victim, Player* attacker)
         {
             if (!attacker || !victim)
                 return;
