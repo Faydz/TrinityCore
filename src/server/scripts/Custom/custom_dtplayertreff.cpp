@@ -97,7 +97,8 @@ public:
 
         void Reset()
         {
-            me->SetReactState(REACT_AGGRESSIVE);
+             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+             me->setFaction(35);
         }
 
         void MoveInLineOfSight(Unit* unit)
@@ -108,7 +109,7 @@ public:
             Unit* attacker = pl->getAttackerForHelper();
             if (attacker && attacker->ToPlayer() && !pl->duel)
             {
-                    me->SetReactState(REACT_AGGRESSIVE);
+                    me->SetFaction(7);
                     AttackStart(attacker);
             }
         }
@@ -122,12 +123,12 @@ public:
             if (me->IsInRange(attacker, 0.0f, 30.0f, true) && attacker->isAlive())
                 if (di && di->opponent != attacker)
                 {
-                    me->SetReactState(REACT_AGGRESSIVE);
+                    me->SetFaction(7);
                     AttackStart(attacker);
                 }
                 else if (!di)
                 {
-                    me->SetReactState(REACT_AGGRESSIVE);
+                    me->SetFaction(7);
                     AttackStart(attacker);
                 }
         }
