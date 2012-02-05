@@ -91,16 +91,13 @@ class guard_pvp : public CreatureScript
 public:
     guard_pvp() : CreatureScript("guard_pvp") { }
 
-    struct guard_pvpAI : public GuardAI
+    struct guard_pvpAI : public ScriptedAI
     {
-        guard_pvpAI(Creature* creature) : GuardAI(creature) {}
+        guard_pvpAI(Creature* creature) : ScriptedAI(creature) {}
 
         void Reset()
         {
-        }
-
-        void EnterCombat(Unit* who)
-        {
+            me->SetReactState(REACT_PASSIVE);
         }
 
         void MoveInLineOfSight(Unit* unit)
@@ -120,19 +117,11 @@ public:
             DuelInfo* di = victim->duel;
 
             if (me->IsInRange(attacker, 0.0f, 30.0f, true) && attacker->isAlive())
-                if (di && di->opponent != attacker)
+                if ((di && di->opponent != attacker) || !di)
+                {
+                    me->SetReactState(REACT_AGGRESSIVE);
                     AttackStart(attacker);
-                else if (!di)
-                    AttackStart(attacker);
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
-            //Return since we have no target
-            if (!UpdateVictim())
-                return;
-
-            DoMeleeAttackIfReady();
+                }
         }
     };
 
