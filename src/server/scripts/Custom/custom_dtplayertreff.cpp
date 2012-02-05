@@ -91,9 +91,9 @@ class guard_pvp : public CreatureScript
 public:
     guard_pvp() : CreatureScript("guard_pvp") { }
 
-    struct guard_pvpAI : public ScriptedAI
+    struct guard_pvpAI : public GuardAI
     {
-        guard_pvpAI(Creature* creature) : ScriptedAI(creature) {}
+        guard_pvpAI(Creature* creature) : GuardAI(creature) {}
 
         void Reset()
         {
@@ -107,7 +107,10 @@ public:
                 return;
             Unit* attacker = pl->getAttackerForHelper();
             if (attacker && attacker->ToPlayer() && !pl->duel)
-                AttackStart(attacker);
+            {
+                    me->SetReactState(REACT_AGGRESSIVE);
+                    AttackStart(attacker);
+            }
         }
 
         void OnPvP(Player* attacker, Player* victim)
