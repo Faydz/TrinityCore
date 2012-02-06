@@ -431,7 +431,7 @@ class CreatureScript : public ScriptObject, public UpdatableScript<Creature>
         virtual uint32 GetDialogStatus(Player* /*player*/, Creature* /*creature*/) { return 100; }
 
         // Called on PvP Events (for guards)
-        virtual void OnPvP(Player* attacker, Player* victim) { }
+        virtual void OnPvP(Player* /*attacker*/, Player* /*victim*/) { }
 
         // Called when a CreatureAI object is needed for the creature.
         virtual CreatureAI* GetAI(Creature* /*creature*/) const { return NULL; }

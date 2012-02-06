@@ -91,9 +91,9 @@ class guard_pvp : public CreatureScript
 public:
     guard_pvp() : CreatureScript("guard_pvp") { }
 
-    struct guard_pvpAI : public GuardAI
+    struct guard_pvpAI : public ScriptedAI
     {
-        guard_pvpAI(Creature* creature) : GuardAI(creature) {}
+        guard_pvpAI(Creature* creature) : ScriptedAI(creature) {}
 
         void Reset()
         {
@@ -101,25 +101,29 @@ public:
              me->setFaction(35);
         }
 
-        void OnPvP(Player* victim, Player* attacker)
+        void OnPvP(Player* attacker, Player* victim)
         {
+            me->MonsterSay("OnPvP-Func",0,0);
             if (!attacker || !victim)
                 return;
             DuelInfo* di = victim->duel;
-
+            me->MonsterSay(attacker->GetName(), 0, 0);
+            me->MonsterSay(victim->GetName(), 0, 0);
             if (me->IsInRange(attacker, 0.0f, 30.0f, true) && attacker->isAlive())
-                if (di && di->opponent != attacker)
+                if ((di && di->opponent != attacker) || !di)
                 {
                     me->setFaction(7);
                     AttackStart(attacker);
                 }
-                else if (!di)
-                {
-                    me->setFaction(7);
-                    AttackStart(attacker);
-                }
+            
         }
     };
+
+    void OnPvP(Player* attacker, Player* victim)
+    {
+        if (me && me->isAlive())
+            CAST_AI(guard_pvp::guard_pvpAI, this->GetAI())->OnPvP(attacker, victim);
+    }
 
     CreatureAI* GetAI(Creature* creature) const
     {
