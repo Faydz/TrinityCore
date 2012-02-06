@@ -82,12 +82,11 @@ public:
 		    pPlayer->ADD_GOSSIP_ITEM( 5, "Teleport nach Dalaran", GOSSIP_SENDER_MAIN, 6210);
 
         if (ALLIANCE == pPlayer->GetTeam())
-		    pPlayer->ADD_GOSSIP_ITEM( 5, "Teleport zum Azshara Krater (Allianz)", GOSSIP_SENDER_MAIN, 6402);
+		    pPlayer->ADD_GOSSIP_ITEM( 5, "Teleport zum Allianz Playertreff", GOSSIP_SENDER_MAIN, 6402);
         else
-		    pPlayer->ADD_GOSSIP_ITEM( 5, "Teleport zum Azshara Krater (Horde)", GOSSIP_SENDER_MAIN, 6401);
+		    pPlayer->ADD_GOSSIP_ITEM( 5, "Teleport zum Horde Playertreff", GOSSIP_SENDER_MAIN, 6401);
 
-        pPlayer->ADD_GOSSIP_ITEM( 5, "Teleport zum Playertreff", GOSSIP_SENDER_MAIN, 6403);
-        pPlayer->ADD_GOSSIP_ITEM( 5, "Teleport zur Rennbahn", GOSSIP_SENDER_MAIN, 6550);
+        pPlayer->ADD_GOSSIP_ITEM( 5, "Teleport zum Rennen (PvP Verbot)", GOSSIP_SENDER_MAIN, 6550);
 
         pPlayer->PlayerTalkClass->SendGossipMenu(2713,pCreature->GetGUID());
         return true;
@@ -151,9 +150,8 @@ public:
 		    case 6215: custom_porter_port(1, -1790.17f, 3055.44f, 9.35831f, 1.06815f, pPlayer, pCreature); break; //pt horde
 		    case 6216: custom_porter_port(1, -11846.4f, -4756.91f, 6.25831f, 0.305114f, pPlayer, pCreature); break; //pt highrate
 
-            case 6401: custom_porter_port(37, -30.2515f, 952.13f, 348.4f, 5.49992f, pPlayer, pCreature); break; //krater horde
-            case 6402: custom_porter_port(37, 1100.61f, 298.099f, 338.7f, 3.11388f, pPlayer, pCreature); break; //krater ally
-            case 6403: custom_porter_port(0, -3964.02f, -1343.13f, 152.9f, 3.14183f, pPlayer, pCreature); break; //new pt
+            case 6401: custom_porter_port(37, -30.2515f, 952.13f, 348.4f, 5.49992f, pPlayer, pCreature); break; //new hordept
+            case 6402: custom_porter_port(37, 1100.61f, 298.099f, 338.7f, 3.11388f, pPlayer, pCreature); break; //new allypt
 
             case 6550: custom_porter_port(0, -7823.80f, -477.402f, 170.8f, 3.031973f, pPlayer, pCreature); break; //dt-renngebiet
 	    }

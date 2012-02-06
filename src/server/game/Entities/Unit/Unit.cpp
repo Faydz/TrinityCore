@@ -9488,9 +9488,6 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
     if (meleeAttack)
         SendMeleeAttackStart(victim);
 
-    if (ToPlayer() && victim->ToPlayer())
-        sScriptMgr->OnPvP(ToPlayer(), victim->ToPlayer());
-
     return true;
 }
 
