@@ -271,7 +271,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 
             Player* receiver = sObjectAccessor->FindPlayerByName(to.c_str());
             bool senderIsPlayer = !AccountMgr::IsGMAccount(GetSecurity());
-            bool receiverIsPlayer = !AccountMgr::IsGMAccount(receiver ? receiver->GetSession()->GetSecurity() : SEC_PLAYER);
+            bool receiverIsPlayer = !AccountMgr::IsModeratorAccount(receiver ? receiver->GetSession()->GetSecurity() : SEC_PLAYER);
             if (!receiver || (senderIsPlayer && !receiverIsPlayer && !receiver->isAcceptWhispers() && !receiver->IsInWhisperWhiteList(sender->GetGUID())))
             {
                 SendPlayerNotFoundNotice(to);
