@@ -276,7 +276,7 @@ public:
                 me->DealDamage(me, me->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
         }
 
-        void JustDied(Unit* killer)
+        void JustDied(Unit* /*killer*/)
         {
             summons.DespawnAll();
 
@@ -285,8 +285,8 @@ public:
 
             Talk(SAY_DEATH);
         }
-        
-        void SpellHitTarget(Unit* target, const SpellInfo* spell)
+
+        void SpellHitTarget(Unit* /*target*/, const SpellInfo* spell)
         {
             if (spell->Id == SPELL_RITUAL_STRIKE_EFF_1 && Phase != NORMAL && Phase != SVALADEAD)
             {
@@ -535,7 +535,7 @@ public:
         
         void UpdateAI(const uint32 diff)
         {
-            if (me->HasUnitState(UNIT_STAT_CASTING))
+            if (me->HasUnitState(UNIT_STATE_CASTING))
                 return;
 
             if (paralyzeTimer <= diff)
@@ -663,7 +663,7 @@ class npc_scourge_hulk : public CreatureScript
                 if (mightyBlow <= diff)
                 {
                     if (Unit* victim = me->getVictim())
-                        if (!victim->HasUnitState(UNIT_STAT_STUNNED))    // Prevent knocking back a ritual player
+                        if (!victim->HasUnitState(UNIT_STATE_STUNNED))    // Prevent knocking back a ritual player
                             DoCast(victim, SPELL_MIGHTY_BLOW);
                     mightyBlow = urand(12000, 17000);
                 }
