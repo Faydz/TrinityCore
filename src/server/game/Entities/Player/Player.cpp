@@ -5154,7 +5154,7 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
     //Characters level 20 and up suffer from ten minutes of sickness.
     int32 startLevel = sWorld->getIntConfig(CONFIG_DEATH_SICKNESS_LEVEL);
 
-    if (int32(getLevel()) >= startLevel)
+    if (int32(getLevel()) >= startLevel && GetAreaId() != 298)
     {
         // set resurrection sickness
         CastSpell(this, 15007, true);
