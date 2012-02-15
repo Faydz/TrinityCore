@@ -61,7 +61,7 @@ public:
             me->RemoveAurasDueToSpell(SPELL_ENRAGE);
             me->RestoreFaction();
             me->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.5f);
-            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNK_15);
         }
 
@@ -69,7 +69,7 @@ public:
         {
             me->setFaction(14);
             me->SetFloatValue(OBJECT_FIELD_SCALE_X, 2.7f);
-            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
+            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC);
             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNK_15);
             me->CastSpell(me, SPELL_ENRAGE, true);
 
