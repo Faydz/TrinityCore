@@ -520,8 +520,8 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
         void AI_SendMoveToPacket(float x, float y, float z, uint32 time, uint32 MovementFlags, uint8 type);
         CreatureAI* AI() const { return (CreatureAI*)i_AI; }
 
-        void SetWalk(bool enable);
-        void SetLevitate(bool enable);
+        bool SetWalk(bool enable);
+        bool SetLevitate(bool enable);
 
         uint32 GetShieldBlockValue() const                  //dunno mob block value
         {
@@ -721,7 +721,6 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
 
         static float _GetHealthMod(int32 Rank);
 
-        uint32 m_lootMoney;
         uint64 m_lootRecipient;
         uint32 m_lootRecipientGroup;
 

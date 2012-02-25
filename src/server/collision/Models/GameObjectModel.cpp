@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "VMapFactory.h"
 #include "VMapManager2.h"
 #include "VMapDefinitions.h"
@@ -33,10 +33,12 @@ using G3D::Vector3;
 using G3D::Ray;
 using G3D::AABox;
 
+#ifndef NO_CORE_FUNCS
+
 struct GameobjectModelData
 {
     GameobjectModelData(const std::string& name_, const AABox& box) :
-        name(name_), bound(box) {}
+        bound(box), name(name_) {}
 
     AABox bound;
     std::string name;
@@ -47,34 +49,42 @@ ModelList model_list;
 
 void LoadGameObjectModelList()
 {
+    uint32 oldMSTime = getMSTime();
     FILE* model_list_file = fopen((sWorld->GetDataPath() + "vmaps/" + VMAP::GAMEOBJECT_MODELS).c_str(), "rb");
     if (!model_list_file)
+    {
+        sLog->outError("Unable to open '%s' file.", VMAP::GAMEOBJECT_MODELS);
         return;
+    }
 
     uint32 name_length, displayId;
     char buff[500];
-    while (!feof(model_list_file))
+    while (true)
     {
-        fread(&displayId,sizeof(uint32),1,model_list_file);
-        fread(&name_length,sizeof(uint32),1,model_list_file);
+        Vector3 v1, v2;
+        if (fread(&displayId, sizeof(uint32), 1, model_list_file) != 1)
+            if (feof(model_list_file))  // EOF flag is only set after failed reading attempt
+                break;
 
-        if (name_length >= sizeof(buff))
+        if (fread(&name_length, sizeof(uint32), 1, model_list_file) != 1
+            || name_length >= sizeof(buff)
+            || fread(&buff, sizeof(char), name_length, model_list_file) != name_length
+            || fread(&v1, sizeof(Vector3), 1, model_list_file) != 1
+            || fread(&v2, sizeof(Vector3), 1, model_list_file) != 1)
         {
-            printf("\nFile '%s' seems to be corrupted", VMAP::GAMEOBJECT_MODELS);
+            sLog->outError("File '%s' seems to be corrupted!", VMAP::GAMEOBJECT_MODELS);
             break;
         }
-
-        fread(&buff, sizeof(char), name_length,model_list_file);
-        Vector3 v1, v2;
-        fread(&v1, sizeof(Vector3), 1, model_list_file);
-        fread(&v2, sizeof(Vector3), 1, model_list_file);
 
         model_list.insert
         (
             ModelList::value_type( displayId, GameobjectModelData(std::string(buff,name_length),AABox(v1,v2)) )
         );
     }
+
     fclose(model_list_file);
+    sLog->outString(">> Loaded %u GameObject models in %u ms", model_list.size(), GetMSTimeDiffToNow(oldMSTime));
+    sLog->outString();
 }
 
 GameObjectModel::~GameObjectModel()
@@ -93,7 +103,7 @@ bool GameObjectModel::initialize(const GameObject& go, const GameObjectDisplayIn
     // ignore models with no bounds
     if (mdl_box == G3D::AABox::zero())
     {
-        std::cout << "Model " << it->second.name << " has zero bounds, loading skipped" << std::endl;
+        sLog->outError("GameObject model %s has zero bounds, loading skipped", it->second.name.c_str());
         return false;
     }
 
@@ -173,3 +183,5 @@ bool GameObjectModel::intersectRay(const G3D::Ray& ray, float& MaxDist, bool Sto
     }
     return hit;
 }
+
+#endif

@@ -373,10 +373,10 @@ pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS]=
 };
 
 AuraEffect::AuraEffect(Aura* base, uint8 effIndex, int32 *baseAmount, Unit* caster):
-m_base(base), m_spellInfo(base->GetSpellInfo()), m_effIndex(effIndex),
-m_baseAmount(baseAmount ? *baseAmount : m_spellInfo->Effects[m_effIndex].BasePoints),
-m_canBeRecalculated(true), m_spellmod(NULL), m_isPeriodic(false),
-m_periodicTimer(0), m_tickNumber(0)
+m_base(base), m_spellInfo(base->GetSpellInfo()),
+m_baseAmount(baseAmount ? *baseAmount : m_spellInfo->Effects[effIndex].BasePoints),
+m_spellmod(NULL), m_periodicTimer(0), m_tickNumber(0), m_effIndex(effIndex),
+m_canBeRecalculated(true), m_isPeriodic(false)
 {
     CalculatePeriodic(caster, true, false);
 
@@ -4686,11 +4686,11 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                     if (owner_aura)
                     {
                         owner_aura->SetStackAmount(owner_aura->GetSpellInfo()->StackAmount);
-                    }
-                    if (pet_aura)
-                    {
-                        pet_aura->SetCharges(0);
-                        pet_aura->SetStackAmount(owner_aura->GetSpellInfo()->StackAmount);
+                        if (pet_aura)
+                        {
+                            pet_aura->SetCharges(0);
+                            pet_aura->SetStackAmount(owner_aura->GetSpellInfo()->StackAmount);
+                        }
                     }
                     break;
                 }

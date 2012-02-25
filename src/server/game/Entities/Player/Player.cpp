@@ -434,9 +434,9 @@ void TradeData::SetAccepted(bool state, bool crosssend /*= false*/)
 // 5. Credit instance encounter.
 KillRewarder::KillRewarder(Player* killer, Unit* victim, bool isBattleGround) :
     // 1. Initialize internal variables to default values.
-    _killer(killer), _victim(victim), _isBattleGround(isBattleGround),
-    _isPvP(false), _group(killer->GetGroup()), _groupRate(1.0f),
-    _maxLevel(0), _maxNotGrayMember(NULL), _count(0), _sumLevel(0), _isFullXP(false), _xp(0)
+    _killer(killer), _victim(victim), _group(killer->GetGroup()),
+    _groupRate(1.0f), _maxNotGrayMember(NULL), _count(0), _sumLevel(0), _xp(0),
+    _isFullXP(false), _maxLevel(0), _isBattleGround(isBattleGround), _isPvP(false)
 {
     // mark the credit as pvp if victim is player
     if (victim->GetTypeId() == TYPEID_PLAYER)
@@ -7944,14 +7944,12 @@ void Player::_ApplyItemBonuses(ItemTemplate const* proto, uint8 slot, bool apply
         _ApplyWeaponDamage(slot, proto, ssv, apply);
 
    // Apply feral bonus from ScalingStatValue if set
-    if (ssv)
-        if (int32 feral_bonus = ssv->getFeralBonus(proto->ScalingStatValue))
+    if (ssv && getClass() == CLASS_DRUID)
+    {
+        int32 feral_bonus = ssv->getFeralBonus(proto->ScalingStatValue) + proto->getFeralBonus(ssv->getDPSMod(proto->ScalingStatValue));
+        if (feral_bonus)
             ApplyFeralAPBonus(feral_bonus, apply);
-
-    // Druids get feral AP bonus from weapon dps (lso use DPS from ScalingStatValue)
-    if (getClass() == CLASS_DRUID)
-        if (int32 feral_bonus = proto->getFeralBonus(ssv->getDPSMod(proto->ScalingStatValue)))
-            ApplyFeralAPBonus(feral_bonus, apply);
+    }
 }
 
 void Player::_ApplyWeaponDamage(uint8 slot, ItemTemplate const* proto, ScalingStatValuesEntry const* ssv, bool apply)
@@ -11830,7 +11828,7 @@ InventoryResult Player::CanRollForItemInLFG(ItemTemplate const* proto, WorldObje
     Map const* map = lootedObject->GetMap();
     if (uint32 dungeonId = sLFGMgr->GetDungeon(GetGroup()->GetGUID(), true))
         if (LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(dungeonId))
-            if (dungeon->map == map->GetId() && dungeon->difficulty == map->GetDifficulty())
+            if (uint32(dungeon->map) == map->GetId() && dungeon->difficulty == map->GetDifficulty())
                 lootedObjectInDungeon = true;
 
     if (!lootedObjectInDungeon)
@@ -12024,7 +12022,6 @@ Item* Player::StoreItem(ItemPosCountVec const& dest, Item* pItem, bool update)
         return NULL;
 
     Item* lastItem = pItem;
-    uint32 entry = pItem->GetEntry();
     for (ItemPosCountVec::const_iterator itr = dest.begin(); itr != dest.end();)
     {
         uint16 pos = itr->pos;
@@ -14072,12 +14069,10 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId /*= 0*/, bool 
         menuItemBounds = sObjectMgr->GetGossipMenuItemsMapBounds(0);
 
     uint32 npcflags = 0;
-    Creature* creature = NULL;
 
     if (source->GetTypeId() == TYPEID_UNIT)
     {
-        creature = source->ToCreature();
-        npcflags = creature->GetUInt32Value(UNIT_NPC_FLAGS);
+        npcflags = source->GetUInt32Value(UNIT_NPC_FLAGS);
         if (npcflags & UNIT_NPC_FLAG_QUESTGIVER && showQuests)
             PrepareQuestMenu(source->GetGUID());
     }
@@ -14089,10 +14084,10 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId /*= 0*/, bool 
     for (GossipMenuItemsContainer::const_iterator itr = menuItemBounds.first; itr != menuItemBounds.second; ++itr)
     {
         bool canTalk = true;
-        if (!sConditionMgr->IsObjectMeetToConditions(this, itr->second.Conditions))
+        if (!sConditionMgr->IsObjectMeetToConditions(this, source, itr->second.Conditions))
             continue;
 
-        if (source->GetTypeId() == TYPEID_UNIT)
+        if (Creature* creature = source->ToCreature())
         {
             if (!(itr->second.OptionNpcflag & npcflags))
                 continue;
@@ -14165,10 +14160,8 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId /*= 0*/, bool 
                     break;
             }
         }
-        else if (source->GetTypeId() == TYPEID_GAMEOBJECT)
+        else if (GameObject* go = source->ToGameObject())
         {
-            GameObject* go = source->ToGameObject();
-
             switch (itr->second.OptionType)
             {
                 case GOSSIP_OPTION_GOSSIP:
@@ -14233,7 +14226,7 @@ void Player::SendPreparedGossip(WorldObject* source)
     uint32 textId = GetGossipTextId(source);
 
     if (uint32 menuId = PlayerTalkClass->GetGossipMenu().GetMenuId())
-        textId = GetGossipTextId(menuId);
+        textId = GetGossipTextId(menuId, source);
 
     PlayerTalkClass->SendGossipMenu(textId, source->GetGUID());
 }
@@ -14378,10 +14371,10 @@ uint32 Player::GetGossipTextId(WorldObject* source)
     if (!source)
         return DEFAULT_GOSSIP_MESSAGE;
 
-    return GetGossipTextId(GetDefaultGossipMenuForSource(source));
+    return GetGossipTextId(GetDefaultGossipMenuForSource(source), source);
 }
 
-uint32 Player::GetGossipTextId(uint32 menuId)
+uint32 Player::GetGossipTextId(uint32 menuId, WorldObject* source)
 {
     uint32 textId = DEFAULT_GOSSIP_MESSAGE;
 
@@ -14391,8 +14384,10 @@ uint32 Player::GetGossipTextId(uint32 menuId)
     GossipMenusMapBounds menuBounds = sObjectMgr->GetGossipMenusMapBounds(menuId);
 
     for (GossipMenusContainer::const_iterator itr = menuBounds.first; itr != menuBounds.second; ++itr)
-        if (sConditionMgr->IsObjectMeetToConditions(this, itr->second.conditions))
+    {
+        if (sConditionMgr->IsObjectMeetToConditions(this, source, itr->second.conditions))
             textId = itr->second.text_id;
+    }
 
     return textId;
 }
@@ -14827,7 +14822,7 @@ void Player::AddQuest(Quest const* quest, Object* questGiver)
     uint16 log_slot = FindQuestSlot(0);
 
     if (log_slot >= MAX_QUEST_LOG_SIZE) // Player does not have any free slot in the quest log
-        return; 
+        return;
 
     uint32 quest_id = quest->GetQuestId();
 
@@ -16001,9 +15996,9 @@ void Player::CastedCreatureOrGO(uint32 entry, uint64 guid, uint32 spell_id)
                             if (reqTarget != entry) // if entry doesn't match, check for killcredits referenced in template
                             {
                                 CreatureTemplate const* cinfo = sObjectMgr->GetCreatureTemplate(entry);
-                                for (uint8 j = 0; j < MAX_KILL_CREDIT; ++j)
-                                    if (cinfo->KillCredit[j] == reqTarget)
-                                        entry = cinfo->KillCredit[j];
+                                for (uint8 k = 0; k < MAX_KILL_CREDIT; ++k)
+                                    if (cinfo->KillCredit[k] == reqTarget)
+                                        entry = cinfo->KillCredit[k];
                             }
                          }
                     }
@@ -17648,7 +17643,7 @@ void Player::_LoadMailedItems(Mail* mail)
         {
             sLog->outError("Player %u has unknown item_template (ProtoType) in mailed items(GUID: %u template: %u) in mail (%u), deleted.", GetGUIDLow(), itemGuid, itemTemplate, mail->messageID);
 
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_INVALID_MAIL_ITEM);
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_INVALID_MAIL_ITEM);
             stmt->setUInt32(0, itemGuid);
             CharacterDatabase.Execute(stmt);
 
@@ -17664,10 +17659,8 @@ void Player::_LoadMailedItems(Mail* mail)
         {
             sLog->outError("Player::_LoadMailedItems - Item in mail (%u) doesn't exist !!!! - item guid: %u, deleted from mail", mail->messageID, itemGuid);
 
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_MAIL_ITEM);
-
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_MAIL_ITEM);
             stmt->setUInt32(0, itemGuid);
-
             CharacterDatabase.Execute(stmt);
 
             item->FSetState(ITEM_REMOVED);
@@ -18124,6 +18117,9 @@ void Player::UnbindInstance(BoundInstancesMap::iterator &itr, Difficulty difficu
         }
 
         itr->second.save->RemovePlayer(this);               // save can become invalid
+        if (itr->second.perm)
+            GetSession()->SendCalendarRaidLockout(itr->second.save, false);
+
         m_boundInstances[difficulty].erase(itr++);
     }
 }
@@ -18192,6 +18188,8 @@ void Player::BindToInstance()
     data << uint32(0);
     GetSession()->SendPacket(&data);
     BindToInstance(mapSave, true);
+
+    GetSession()->SendCalendarRaidLockout(mapSave, true);
 }
 
 void Player::SendRaidInfo()
@@ -19043,20 +19041,22 @@ void Player::_SaveDailyQuestStatus(SQLTransaction& trans)
     stmt->setUInt32(0, GetGUIDLow());
     trans->Append(stmt);
     for (uint32 quest_daily_idx = 0; quest_daily_idx < PLAYER_MAX_DAILY_QUESTS; ++quest_daily_idx)
+    {
         if (GetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1+quest_daily_idx))
         {
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_DAILYQUESTSTATUS);
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_DAILYQUESTSTATUS);
             stmt->setUInt32(0, GetGUIDLow());
             stmt->setUInt32(1, GetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1+quest_daily_idx));
             stmt->setUInt64(2, uint64(m_lastDailyQuestTime));
             trans->Append(stmt);
         }
+    }
 
     if (!m_DFQuests.empty())
     {
         for (DFQuestsDoneList::iterator itr = m_DFQuests.begin(); itr != m_DFQuests.end(); ++itr)
         {
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_DAILYQUESTSTATUS);
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_DAILYQUESTSTATUS);
             stmt->setUInt32(0, GetGUIDLow());
             stmt->setUInt32(1, (*itr));
             stmt->setUInt64(2, uint64(m_lastDailyQuestTime));
@@ -19079,7 +19079,7 @@ void Player::_SaveWeeklyQuestStatus(SQLTransaction& trans)
     {
         uint32 quest_id  = *iter;
 
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_WEEKLYQUESTSTATUS);
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_WEEKLYQUESTSTATUS);
         stmt->setUInt32(0, GetGUIDLow());
         stmt->setUInt32(1, quest_id);
         trans->Append(stmt);
@@ -19105,7 +19105,7 @@ void Player::_SaveSeasonalQuestStatus(SQLTransaction& trans)
         {
             uint32 quest_id = (*itr);
 
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_SEASONALQUESTSTATUS);
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_SEASONALQUESTSTATUS);
             stmt->setUInt32(0, GetGUIDLow());
             stmt->setUInt32(1, quest_id);
             stmt->setUInt32(2, event_id);
@@ -19862,7 +19862,7 @@ void Player::VehicleSpellInitialize()
         }
 
         ConditionList conditions = sConditionMgr->GetConditionsForVehicleSpell(veh->GetEntry(), spellId);
-        if (!sConditionMgr->IsObjectMeetToConditions(this, conditions))
+        if (!sConditionMgr->IsObjectMeetToConditions(this, veh, conditions))
         {
             sLog->outDebug(LOG_FILTER_CONDITIONSYS, "VehicleSpellInitialize: conditions not met for Vehicle entry %u spell %u", veh->ToCreature()->GetEntry(), spellId);
             data << uint16(0) << uint8(0) << uint8(i+8);
@@ -20268,9 +20268,7 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     // not let cheating with start flight in time of logout process || while in combat || has type state: stunned || has type state: root
     if (GetSession()->isLogingOut() || isInCombat() || HasUnitState(UNIT_STATE_STUNNED) || HasUnitState(UNIT_STATE_ROOT))
     {
-        WorldPacket data(SMSG_ACTIVATETAXIREPLY, 4);
-        data << uint32(ERR_TAXIPLAYERBUSY);
-        GetSession()->SendPacket(&data);
+        GetSession()->SendActivateTaxiReply(ERR_TAXIPLAYERBUSY);
         return false;
     }
 
@@ -20283,26 +20281,20 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
         // not let cheating with start flight mounted
         if (IsMounted())
         {
-            WorldPacket data(SMSG_ACTIVATETAXIREPLY, 4);
-            data << uint32(ERR_TAXIPLAYERALREADYMOUNTED);
-            GetSession()->SendPacket(&data);
+            GetSession()->SendActivateTaxiReply(ERR_TAXIPLAYERALREADYMOUNTED);
             return false;
         }
 
         if (IsInDisallowedMountForm())
         {
-            WorldPacket data(SMSG_ACTIVATETAXIREPLY, 4);
-            data << uint32(ERR_TAXIPLAYERSHAPESHIFTED);
-            GetSession()->SendPacket(&data);
+            GetSession()->SendActivateTaxiReply(ERR_TAXIPLAYERSHAPESHIFTED);
             return false;
         }
 
         // not let cheating with start flight in time of logout process || if casting not finished || while in combat || if not use Spell's with EffectSendTaxi
         if (IsNonMeleeSpellCasted(false))
         {
-            WorldPacket data(SMSG_ACTIVATETAXIREPLY, 4);
-            data << uint32(ERR_TAXIPLAYERBUSY);
-            GetSession()->SendPacket(&data);
+            GetSession()->SendActivateTaxiReply(ERR_TAXIPLAYERBUSY);
             return false;
         }
     }
@@ -20331,9 +20323,7 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     TaxiNodesEntry const* node = sTaxiNodesStore.LookupEntry(sourcenode);
     if (!node)
     {
-        WorldPacket data(SMSG_ACTIVATETAXIREPLY, 4);
-        data << uint32(ERR_TAXINOSUCHPATH);
-        GetSession()->SendPacket(&data);
+        GetSession()->SendActivateTaxiReply(ERR_TAXINOSUCHPATH);
         return false;
     }
 
@@ -20346,18 +20336,14 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
             (node->z - GetPositionZ())*(node->z - GetPositionZ()) >
             (2*INTERACTION_DISTANCE)*(2*INTERACTION_DISTANCE)*(2*INTERACTION_DISTANCE))
         {
-            WorldPacket data(SMSG_ACTIVATETAXIREPLY, 4);
-            data << uint32(ERR_TAXITOOFARAWAY);
-            GetSession()->SendPacket(&data);
+            GetSession()->SendActivateTaxiReply(ERR_TAXITOOFARAWAY);
             return false;
         }
     }
     // node must have pos if taxi master case (npc != NULL)
     else if (npc)
     {
-        WorldPacket data(SMSG_ACTIVATETAXIREPLY, 4);
-        data << uint32(ERR_TAXIUNSPECIFIEDSERVERERROR);
-        GetSession()->SendPacket(&data);
+        GetSession()->SendActivateTaxiReply(ERR_TAXIUNSPECIFIEDSERVERERROR);
         return false;
     }
 
@@ -20420,9 +20406,7 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     // in spell case allow 0 model
     if ((mount_display_id == 0 && spellid == 0) || sourcepath == 0)
     {
-        WorldPacket data(SMSG_ACTIVATETAXIREPLY, 4);
-        data << uint32(ERR_TAXIUNSPECIFIEDSERVERERROR);
-        GetSession()->SendPacket(&data);
+        GetSession()->SendActivateTaxiReply(ERR_TAXIUNSPECIFIEDSERVERERROR);
         m_taxi.ClearTaxiDestinations();
         return false;
     }
@@ -20434,9 +20418,7 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
 
     if (money < totalcost)
     {
-        WorldPacket data(SMSG_ACTIVATETAXIREPLY, 4);
-        data << uint32(ERR_TAXINOTENOUGHMONEY);
-        GetSession()->SendPacket(&data);
+        GetSession()->SendActivateTaxiReply(ERR_TAXINOTENOUGHMONEY);
         m_taxi.ClearTaxiDestinations();
         return false;
     }
@@ -20458,10 +20440,7 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     }
     else
     {
-        WorldPacket data(SMSG_ACTIVATETAXIREPLY, 4);
-        data << uint32(ERR_TAXIOK);
-        GetSession()->SendPacket(&data);
-        sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: Sent SMSG_ACTIVATETAXIREPLY");
+        GetSession()->SendActivateTaxiReply(ERR_TAXIOK);
         GetSession()->SendDoFlight(mount_display_id, sourcepath);
     }
     return true;
@@ -22385,11 +22364,21 @@ void Player::UpdateForQuestWorldObjects()
 
             SpellClickInfoMapBounds clickPair = sObjectMgr->GetSpellClickInfoMapBounds(obj->GetEntry());
             for (SpellClickInfoContainer::const_iterator _itr = clickPair.first; _itr != clickPair.second; ++_itr)
-                if (_itr->second.questStart || _itr->second.questEnd)
+            {
+                //! This code doesn't look right, but it was logically converted to condition system to do the exact
+                //! same thing it did before. It definitely needs to be overlooked for intended functionality.
+                ConditionList conds = sConditionMgr->GetConditionsForSpellClickEvent(obj->GetEntry(), _itr->second.spellId);
+                bool buildUpdateBlock = false;
+                for (ConditionList::const_iterator jtr = conds.begin(); jtr != conds.end() && !buildUpdateBlock; ++jtr)
+                    if ((*jtr)->ConditionType == CONDITION_QUESTREWARDED || (*jtr)->ConditionType == CONDITION_QUESTTAKEN)
+                        buildUpdateBlock = true;
+
+                if (buildUpdateBlock)
                 {
                     obj->BuildCreateUpdateBlockForPlayer(&udata, this);
                     break;
                 }
+            }
         }
     }
     udata.BuildPacket(&packet);
@@ -24162,10 +24151,17 @@ bool Player::canSeeSpellClickOn(Creature const* c) const
         return true;
 
     for (SpellClickInfoContainer::const_iterator itr = clickPair.first; itr != clickPair.second; ++itr)
-        if (itr->second.IsFitToRequirements(this, c))
-            return true;
+    {
+        if (!itr->second.IsFitToRequirements(this, c))
+            return false;
 
-    return false;
+        ConditionList conds = sConditionMgr->GetConditionsForSpellClickEvent(c->GetEntry(), itr->second.spellId);
+        ConditionSourceInfo info = ConditionSourceInfo(const_cast<Player*>(this), const_cast<Creature*>(c));
+        if (!sConditionMgr->IsObjectMeetToConditions(info, conds))
+            return false;
+    }
+
+    return true;
 }
 
 void Player::BuildPlayerTalentsInfoData(WorldPacket* data)
