@@ -10,7 +10,6 @@
 
 set(scripts_STAT_SRCS
   ${scripts_STAT_SRCS}
-  Custom/custom_dt_cs_anticheat.cpp
   Custom/custom_dtinireset.cpp
   Custom/custom_dtlostskills.cpp
   Custom/custom_dtporter.cpp
