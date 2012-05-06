@@ -526,6 +526,7 @@ struct GraveYardData
     uint32 safeLocId;
     uint32 team;
 };
+
 typedef std::multimap<uint32, GraveYardData> GraveYardContainer;
 
 typedef UNORDERED_MAP<uint32, VendorItemData> CacheVendorItemContainer;
@@ -640,7 +641,7 @@ class ObjectMgr
             return NULL;
         }
 
-        InstanceTemplate const* GetInstanceTemplate(uint32 mapID);
+        InstanceTemplate const* GetInstanceTemplate(uint32 mapId);
 
         PetLevelInfo const* GetPetLevelInfo(uint32 creature_id, uint8 level) const;
 
@@ -1024,15 +1025,6 @@ class ObjectMgr
             return &itr->second;
         }
 
-        bool IsGoOfSpecificEntrySpawned(uint32 entry) const
-        {
-            for (GameObjectDataContainer::const_iterator it = _gameObjectDataStore.begin(); it != _gameObjectDataStore.end(); ++it)
-                if (it->second.id == entry)
-                    return true;
-
-            return false;
-        }
-
         GameObjectData const* GetGOData(uint32 guid) const
         {
             GameObjectDataContainer::const_iterator itr = _gameObjectDataStore.find(guid);
@@ -1333,7 +1325,6 @@ class ObjectMgr
             GO_TO_GO,
             GO_TO_CREATURE,         // GO is dependant on creature
         };
-
 };
 
 #define sObjectMgr ACE_Singleton<ObjectMgr, ACE_Null_Mutex>::instance()
