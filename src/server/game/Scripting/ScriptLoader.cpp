@@ -1233,6 +1233,8 @@ void AddBattlegroundScripts()
     void AddSC_custom_dtrace();
     void AddSC_custom_dtpvpevent();
     void AddSC_custom_dtevent();
+
+    void AddSC_instance_dtprison();
 #endif
 
 void AddCustomScripts()
@@ -1246,5 +1248,7 @@ void AddCustomScripts()
     AddSC_custom_dtrace();
     AddSC_custom_dtpvpevent();
     AddSC_custom_dtevent();
+
+    AddSC_instance_dtprison();
 #endif
 }

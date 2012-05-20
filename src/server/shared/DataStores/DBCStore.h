@@ -268,6 +268,10 @@ class DBCStorage
             }
             nCount = 0;
         }
+        T* GetEntry(uint32 id)
+        { 
+            return (id >= nCount) ? NULL : indexTable.asT[id];
+        }
 
     private:
         char const* fmt;

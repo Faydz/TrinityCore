@@ -26,9 +26,7 @@ class instance_dtprison : public InstanceMapScript
             instance_dtprison_InstanceMapScript(Map* map) : InstanceScript(map) {}
 
             uint64 uiBossDoorGUID;
-
             uint32 State;
-
             uint64 uiChakalakaGUID;
 
             void Initialize()

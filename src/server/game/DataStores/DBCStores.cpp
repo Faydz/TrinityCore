@@ -369,6 +369,12 @@ void LoadDBCStores(const std::string& dataPath)
             sMapDifficultyMap[MAKE_PAIR32(entry->MapId, entry->Difficulty)] = MapDifficulty(entry->resetTime, entry->maxPlayers, entry->areaTriggerText[0] != '\0');
     sMapDifficultyStore.Clear();
 
+    //Add DT-Instance
+    MapEntry* dtini = sMapStore.GetEntry(35);
+    dtini->map_type = MAP_RAID;
+    sMapDifficultyMap[MAKE_PAIR32(35, 0)] = MapDifficulty(604800, 10, true); //10er
+    sMapDifficultyMap[MAKE_PAIR32(35, 2)] = MapDifficulty(604800, 10, true); //10er hero
+
     LoadDBC(availableDbcLocales, bad_dbc_files, sMovieStore,                  dbcPath, "Movie.dbc");
 
     LoadDBC(availableDbcLocales, bad_dbc_files, sOverrideSpellDataStore,      dbcPath, "OverrideSpellData.dbc");
