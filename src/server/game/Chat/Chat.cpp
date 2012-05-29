@@ -699,7 +699,7 @@ bool ChatHandler::ExecuteCommandInTable(ChatCommand* table, const char* text, co
         // table[i].Name == "" is special case: send original command to handler
         if ((table[i].Handler)(this, table[i].Name[0] != '\0' ? text : oldtext))
         {
-            if (!AccountMgr::IsModeratorAccount(table[i].SecurityLevel))
+            if (AccountMgr::IsGMAccount(table[i].SecurityLevel))
             {
                 // chat case
                 if (m_session)
