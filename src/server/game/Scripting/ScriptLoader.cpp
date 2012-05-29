@@ -1234,6 +1234,10 @@ void AddBattlegroundScripts()
     void AddSC_custom_dtpvpevent();
     void AddSC_custom_dtevent();
 
+    void AddSC_Morph_NPC();
+    void AddSC_DuelCD_Reset();
+    void AddSC_AV_NPC();
+
     void AddSC_instance_dtprison();
 #endif
 
@@ -1248,6 +1252,10 @@ void AddCustomScripts()
     AddSC_custom_dtrace();
     AddSC_custom_dtpvpevent();
     AddSC_custom_dtevent();
+
+    AddSC_Morph_NPC();
+    AddSC_DuelCD_Reset();
+    AddSC_AV_NPC();
 
     AddSC_instance_dtprison();
 #endif
