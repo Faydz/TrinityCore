@@ -333,7 +333,7 @@ bool Creature::InitEntry(uint32 Entry, uint32 /*team*/, const CreatureData* data
     SetSpeed(MOVE_SWIM, 1.0f);      // using 1.0 rate
     SetSpeed(MOVE_FLIGHT, 1.0f);    // using 1.0 rate
 
-    SetFloatValue(OBJECT_FIELD_SCALE_X, cinfo->scale);
+    SetObjectScale(cinfo->scale);
 
     SetFloatValue(UNIT_FIELD_HOVERHEIGHT, cinfo->HoverHeight);
 
@@ -468,9 +468,9 @@ void Creature::Update(uint32 diff)
 
     switch (m_deathState)
     {
-        case JUST_ALIVED:
-            // Must not be called, see Creature::setDeathState JUST_ALIVED -> ALIVE promoting.
-            sLog->outError("Creature (GUID: %u Entry: %u) in wrong state: JUST_ALIVED (4)", GetGUIDLow(), GetEntry());
+        case JUST_RESPAWNED:
+            // Must not be called, see Creature::setDeathState JUST_RESPAWNED -> ALIVE promoting.
+            sLog->outError("Creature (GUID: %u Entry: %u) in wrong state: JUST_RESPAWNED (4)", GetGUIDLow(), GetEntry());
             break;
         case JUST_DIED:
             // Must not be called, see Creature::setDeathState JUST_DIED -> CORPSE promoting.
@@ -1555,7 +1555,7 @@ void Creature::setDeathState(DeathState s)
 
         Unit::setDeathState(CORPSE);
     }
-    else if (s == JUST_ALIVED)
+    else if (s == JUST_RESPAWNED)
     {
         //if (isPet())
         //    setActive(true);
@@ -1611,7 +1611,7 @@ void Creature::Respawn(bool force)
         CreatureTemplate const* cinfo = GetCreatureTemplate();
         SelectLevel(cinfo);
 
-        setDeathState(JUST_ALIVED);
+        setDeathState(JUST_RESPAWNED);
 
         uint32 displayID = GetNativeDisplayId();
         CreatureModelInfo const* minfo = sObjectMgr->GetCreatureModelRandomGender(&displayID);
@@ -1668,8 +1668,8 @@ bool Creature::IsImmunedToSpell(SpellInfo const* spellInfo)
     if (!spellInfo)
         return false;
 
-    // Spells that don't have effectMechanics.
-    if (!spellInfo->HasAnyEffectMechanic() && GetCreatureTemplate()->MechanicImmuneMask & (1 << (spellInfo->Mechanic - 1)))
+    // Creature is immune to main mechanic of the spell
+    if (GetCreatureTemplate()->MechanicImmuneMask & (1 << (spellInfo->Mechanic - 1)))
         return true;
 
     // This check must be done instead of 'if (GetCreatureTemplate()->MechanicImmuneMask & (1 << (spellInfo->Mechanic - 1)))' for not break
