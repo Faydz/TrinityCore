@@ -424,50 +424,6 @@ void Unit::DisableSpline()
     movespline->_Interrupt();
 }
 
-void Unit::SendMonsterMoveExitVehicle(Position const* newPos)
-{
-    WorldPacket data(SMSG_MONSTER_MOVE, 1+12+4+1+4+4+4+12+GetPackGUID().size());
-    data.append(GetPackGUID());
-
-    data << uint8(GetTypeId() == TYPEID_PLAYER ? 1 : 0);    // sets/unsets MOVEMENTFLAG2_UNK7 (0x40)
-    data << GetPositionX() << GetPositionY() << GetPositionZ();
-    data << getMSTime();
-
-    data << uint8(SPLINETYPE_FACING_ANGLE);
-    data << float(GetOrientation());                        // guess
-    data << uint32(SPLINEFLAG_TRANSPORT_EXIT);
-    data << uint32(0);                                      // Time in between points
-    data << uint32(1);                                      // 1 single waypoint
-    data << newPos->GetPositionX();
-    data << newPos->GetPositionY();
-    data << newPos->GetPositionZ();
-
-    SendMessageToSet(&data, true);
-}
-
-void Unit::SendMonsterMoveTransport(Unit* vehicleOwner)
-{
-    // TODO: Turn into BuildMonsterMoveTransport packet and allow certain variables (for npc movement aboard vehicles)
-    WorldPacket data(SMSG_MONSTER_MOVE_TRANSPORT, GetPackGUID().size()+vehicleOwner->GetPackGUID().size() + 47);
-    data.append(GetPackGUID());
-    data.append(vehicleOwner->GetPackGUID());
-    data << int8(GetTransSeat());
-    data << uint8(0);                                       // sets/unsets MOVEMENTFLAG2_UNK7 (0x40)
-    data << GetPositionX() - vehicleOwner->GetPositionX();
-    data << GetPositionY() - vehicleOwner->GetPositionY();
-    data << GetPositionZ() - vehicleOwner->GetPositionZ();
-    data << uint32(getMSTime());            // should be an increasing constant that indicates movement packet count
-    data << uint8(SPLINETYPE_FACING_ANGLE);
-    data << GetTransOffsetO();              // facing angle?
-    data << uint32(SPLINEFLAG_TRANSPORT);
-    data << uint32(GetTransTime());         // move time
-    data << uint32(1);                      // amount of waypoints
-    data << uint32(0);                      // waypoint X
-    data << uint32(0);                      // waypoint Y
-    data << uint32(0);                      // waypoint Z
-    SendMessageToSet(&data, true);
-}
-
 void Unit::resetAttackTimer(WeaponAttackType type)
 {
     m_attackTimer[type] = uint32(GetAttackTime(type) * m_modAttackSpeedPct[type]);
@@ -2509,12 +2465,12 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit* victim, SpellInfo const* spell)
     // Chance resist debuff
     if (!spell->IsPositive())
     {
-        bool bNegativeAura = false;
+        bool bNegativeAura = true;
         for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
         {
-            if (spell->Effects[i].ApplyAuraName != 0)
+            if (spell->Effects[i].ApplyAuraName == 0)
             {
-                bNegativeAura = true;
+                bNegativeAura = false;
                 break;
             }
         }
@@ -2937,9 +2893,11 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
                     InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
                 m_AutoRepeatFirstCast = true;
             }
-            AddUnitState(UNIT_STATE_CASTING);
-        } break;
+            if (pSpell->m_spellInfo->CalcCastTime(this) > 0)
+                AddUnitState(UNIT_STATE_CASTING);
 
+            break;
+        }
         case CURRENT_CHANNELED_SPELL:
         {
             // channel spells always break generic non-delayed and any channeled spells
@@ -2951,8 +2909,9 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
                 m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo->Id != 75)
                 InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
             AddUnitState(UNIT_STATE_CASTING);
-        } break;
 
+            break;
+        }
         case CURRENT_AUTOREPEAT_SPELL:
         {
             // only Auto Shoot does not break anything
@@ -2964,12 +2923,11 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
             }
             // special action: set first cast flag
             m_AutoRepeatFirstCast = true;
-        } break;
 
+            break;
+        }
         default:
-        {
-            // other spell types don't break anything now
-        } break;
+            break; // other spell types don't break anything now
     }
 
     // current spell (if it is still here) may be safely deleted now
@@ -3644,87 +3602,6 @@ void Unit::RemoveAurasDueToSpellByDispel(uint32 spellId, uint32 dispellerSpellId
             // Call AfterDispel hook on AuraScript
             aura->CallScriptAfterDispel(&dispelInfo);
 
-            switch (aura->GetSpellInfo()->SpellFamilyName)
-            {
-                case SPELLFAMILY_WARLOCK:
-                {
-                    // Unstable Affliction (crash if before removeaura?)
-                    if (aura->GetSpellInfo()->SpellFamilyFlags[1] & 0x0100)
-                    {
-                        Unit* caster = aura->GetCaster();
-                        if (!caster)
-                            break;
-                        if (AuraEffect const* aurEff = aura->GetEffect(EFFECT_0))
-                        {
-                            int32 damage = aurEff->GetAmount() * 9;
-                            // backfire damage and silence
-                            caster->CastCustomSpell(dispeller, 31117, &damage, NULL, NULL, true, NULL, aurEff);
-                        }
-                    }
-                    break;
-                }
-                case SPELLFAMILY_DRUID:
-                {
-                    // Lifebloom
-                    if (aura->GetSpellInfo()->SpellFamilyFlags[1] & 0x10)
-                    {
-                        if (AuraEffect const* aurEff = aura->GetEffect(EFFECT_1))
-                        {
-                            // final heal
-                            int32 healAmount = aurEff->GetAmount();
-                            if (Unit* caster = aura->GetCaster())
-                            {
-                                healAmount = caster->SpellHealingBonusDone(this, aura->GetSpellInfo(), healAmount, HEAL, dispelInfo.GetRemovedCharges());
-                                healAmount = this->SpellHealingBonusTaken(caster, aura->GetSpellInfo(), healAmount, HEAL, dispelInfo.GetRemovedCharges());
-                            }
-                            CastCustomSpell(this, 33778, &healAmount, NULL, NULL, true, NULL, NULL, aura->GetCasterGUID());
-
-                            // mana
-                            if (Unit* caster = aura->GetCaster())
-                            {
-                                int32 mana = CalculatePctU(caster->GetCreateMana(), aura->GetSpellInfo()->ManaCostPercentage) * chargesRemoved / 2;
-                                caster->CastCustomSpell(caster, 64372, &mana, NULL, NULL, true, NULL, NULL, aura->GetCasterGUID());
-                            }
-                        }
-                    }
-                    break;
-                }
-                case SPELLFAMILY_SHAMAN:
-                {
-                    // Flame Shock
-                    if (aura->GetSpellInfo()->SpellFamilyFlags[0] & 0x10000000)
-                    {
-                        if (Unit* caster = aura->GetCaster())
-                        {
-                            uint32 triggeredSpellId = 0;
-                            // Lava Flows
-                            if (AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 3087, 0))
-                            {
-                                switch (aurEff->GetId())
-                                {
-                                    case 51482: // Rank 3
-                                        triggeredSpellId = 65264;
-                                        break;
-                                    case 51481: // Rank 2
-                                        triggeredSpellId = 65263;
-                                        break;
-                                    case 51480: // Rank 1
-                                        triggeredSpellId = 64694;
-                                        break;
-                                    default:
-                                        sLog->outError("Unit::RemoveAurasDueToSpellByDispel: Unknown rank of Lava Flows (%d) found", aurEff->GetId());
-                                }
-                            }
-
-                            if (triggeredSpellId)
-                                caster->CastSpell(caster, triggeredSpellId, true);
-                        }
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
             return;
         }
         else
@@ -8988,12 +8865,6 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 CastSpell(this, 70721, true);
             break;
         }
-        // Bloodthirst (($m/100)% of max health)
-        case 23880:
-        {
-            basepoints0 = int32(CountPctFromMaxHealth(triggerAmount));
-            break;
-        }
         // Shamanistic Rage triggered spell
         case 30824:
         {
@@ -11580,6 +11451,8 @@ bool Unit::IsImmunedToSpell(SpellInfo const* spellInfo)
     {
         // State/effect immunities applied by aura expect full spell immunity
         // Ignore effects with mechanic, they are supposed to be checked separately
+        if (!spellInfo->Effects[i].IsEffect())
+            continue;
         if (!IsImmunedToSpellEffect(spellInfo, i))
         {
             immuneToAllEffects = false;
@@ -13081,7 +12954,7 @@ Unit* Creature::SelectVictim()
     else
         return NULL;
 
-    if (target && _IsTargetAcceptable(target))
+    if (target && _IsTargetAcceptable(target) && canCreatureAttack(target))
     {
         SetInFront(target);
         return target;
@@ -13107,7 +12980,7 @@ Unit* Creature::SelectVictim()
     {
         target = SelectNearestTargetInAttackDistance(m_CombatDistance ? m_CombatDistance : ATTACK_DISTANCE);
 
-        if (target && _IsTargetAcceptable(target))
+        if (target && _IsTargetAcceptable(target) && canCreatureAttack(target))
             return target;
     }
 
@@ -14565,6 +14438,11 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
                     case SPELL_AURA_REFLECT_SPELLS_SCHOOL:
                         // Skip Melee hits and spells ws wrong school
                         if (procSpell && (triggeredByAura->GetMiscValue() & procSpell->SchoolMask))         // School check
+                            takeCharges = true;
+                        break;
+                    case SPELL_AURA_SPELL_MAGNET:
+                        // Skip Melee hits and targets with magnet aura
+                        if (procSpell && (triggeredByAura->GetBase()->GetUnitOwner()->ToUnit() == ToUnit()))         // Magnet
                             takeCharges = true;
                         break;
                     case SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT:
@@ -16308,7 +16186,7 @@ Creature* Unit::GetVehicleCreatureBase() const
 uint64 Unit::GetTransGUID() const
 {
     if (GetVehicle())
-        return GetVehicle()->GetBase()->GetGUID();
+        return GetVehicleBase()->GetGUID();
     if (GetTransport())
         return GetTransport()->GetGUID();
 
@@ -17051,7 +16929,7 @@ bool Unit::HandleSpellClick(Unit* clicker, int8 seatId)
 
     Creature* creature = ToCreature();
     if (creature && creature->IsAIEnabled)
-        creature->AI()->DoAction(EVENT_SPELLCLICK);
+        creature->AI()->OnSpellClick(clicker);
 
     return true;
 }
@@ -17171,11 +17049,12 @@ void Unit::_ExitVehicle(Position const* exitPosition)
     Vehicle* vehicle = m_vehicle;
     m_vehicle = NULL;
 
-    SetControlled(false, UNIT_STATE_ROOT);       // SMSG_MOVE_FORCE_UNROOT, ~MOVEMENTFLAG_ROOT
+    SetControlled(false, UNIT_STATE_ROOT);      // SMSG_MOVE_FORCE_UNROOT, ~MOVEMENTFLAG_ROOT
 
     Position pos;
-    if (!exitPosition)                           // Exit position not specified
-        vehicle->GetBase()->GetPosition(&pos);
+    if (!exitPosition)                          // Exit position not specified
+        vehicle->GetBase()->GetPosition(&pos);  // This should use passenger's current position, leaving it as it is now
+                                                // because we calculate positions incorrect (sometimes under map)
     else
         pos = *exitPosition;
 
@@ -17190,13 +17069,16 @@ void Unit::_ExitVehicle(Position const* exitPosition)
         SendMessageToSet(&data, false);
     }
 
-    SendMonsterMoveExitVehicle(&pos);
-    Relocate(&pos);
+    Movement::MoveSplineInit init(*this);
+    init.MoveTo(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ());
+    init.SetFacing(GetOrientation());
+    init.SetTransportExit();
+    init.Launch();
+
+    //GetMotionMaster()->MoveFall();            // Enable this once passenger positions are calculater properly (see above)
 
     if (Player* player = ToPlayer())
         player->ResummonPetTemporaryUnSummonedIfAny();
-
-    SendMovementFlagUpdate();
 
     if (vehicle->GetBase()->HasUnitTypeMask(UNIT_MASK_MINION))
         if (((Minion*)vehicle->GetBase())->GetOwner() == this)
@@ -17593,6 +17475,7 @@ void Unit::SetInFront(Unit const* target)
 void Unit::SetFacingTo(float ori)
 {
     Movement::MoveSplineInit init(*this);
+    init.MoveTo(GetPositionX(), GetPositionY(), GetPositionZMinusOffset());
     init.SetFacing(ori);
     init.Launch();
 }

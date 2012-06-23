@@ -200,7 +200,7 @@ class boss_sindragosa : public CreatureScript
 
         struct boss_sindragosaAI : public BossAI
         {
-            boss_sindragosaAI(Creature* creature) : BossAI(creature, DATA_SINDRAGOSA)
+            boss_sindragosaAI(Creature* creature) : BossAI(creature, DATA_SINDRAGOSA), _summoned(false)
             {
             }
 
@@ -220,7 +220,7 @@ class boss_sindragosa : public CreatureScript
                 _isInAirPhase = false;
                 _isThirdPhase = false;
 
-                if (instance->GetData(DATA_SINDRAGOSA_FROSTWYRMS) != 255)
+                if (!_summoned)
                 {
                     me->SetCanFly(true);
                     me->SetDisableGravity(true);
@@ -266,10 +266,13 @@ class boss_sindragosa : public CreatureScript
             {
                 if (action == ACTION_START_FROSTWYRM)
                 {
+                    if (_summoned)
+                        return;
+
+                    _summoned = true;
                     if (TempSummon* summon = me->ToTempSummon())
                         summon->SetTempSummonType(TEMPSUMMON_DEAD_DESPAWN);
 
-                    instance->SetData(DATA_SINDRAGOSA_FROSTWYRMS, 255);
                     if (me->isDead())
                         return;
 
@@ -550,6 +553,7 @@ class boss_sindragosa : public CreatureScript
             uint8 _mysticBuffetStack;
             bool _isInAirPhase;
             bool _isThirdPhase;
+            bool _summoned;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -642,7 +646,7 @@ class npc_spinestalker : public CreatureScript
 
         struct npc_spinestalkerAI : public ScriptedAI
         {
-            npc_spinestalkerAI(Creature* creature) : ScriptedAI(creature), _instance(creature->GetInstanceScript())
+            npc_spinestalkerAI(Creature* creature) : ScriptedAI(creature), _instance(creature->GetInstanceScript()), _summoned(false)
             {
             }
 
@@ -651,7 +655,7 @@ class npc_spinestalker : public CreatureScript
                 // Increase add count
                 if (!me->isDead())
                 {
-                    _instance->SetData(DATA_SINDRAGOSA_FROSTWYRMS, 1);  // this cannot be in Reset because reset also happens on evade
+                    _instance->SetData(DATA_SINDRAGOSA_FROSTWYRMS, me->GetDBTableGUIDLow());  // this cannot be in Reset because reset also happens on evade
                     Reset();
                 }
             }
@@ -664,7 +668,7 @@ class npc_spinestalker : public CreatureScript
                 _events.ScheduleEvent(EVENT_TAIL_SWEEP, urand(8000, 12000));
                 me->SetReactState(REACT_DEFENSIVE);
 
-                if (_instance->GetData(DATA_SPINESTALKER) != 255)
+                if (!_summoned)
                 {
                     me->SetCanFly(true);
                     me->SetDisableGravity(true);
@@ -674,20 +678,22 @@ class npc_spinestalker : public CreatureScript
             void JustRespawned()
             {
                 ScriptedAI::JustRespawned();
-                _instance->SetData(DATA_SINDRAGOSA_FROSTWYRMS, 1);  // this cannot be in Reset because reset also happens on evade
+                _instance->SetData(DATA_SINDRAGOSA_FROSTWYRMS, me->GetDBTableGUIDLow());  // this cannot be in Reset because reset also happens on evade
             }
 
             void JustDied(Unit* /*killer*/)
             {
                 _events.Reset();
-                _instance->SetData(DATA_SINDRAGOSA_FROSTWYRMS, 0);
             }
 
             void DoAction(int32 const action)
             {
                 if (action == ACTION_START_FROSTWYRM)
                 {
-                    _instance->SetData(DATA_SPINESTALKER, 255);
+                    if (_summoned)
+                        return;
+
+                    _summoned = true;
                     if (me->isDead())
                         return;
 
@@ -754,6 +760,7 @@ class npc_spinestalker : public CreatureScript
         private:
             EventMap _events;
             InstanceScript* _instance;
+            bool _summoned;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -769,7 +776,7 @@ class npc_rimefang : public CreatureScript
 
         struct npc_rimefangAI : public ScriptedAI
         {
-            npc_rimefangAI(Creature* creature) : ScriptedAI(creature), _instance(creature->GetInstanceScript())
+            npc_rimefangAI(Creature* creature) : ScriptedAI(creature), _instance(creature->GetInstanceScript()), _summoned(false)
             {
             }
 
@@ -778,7 +785,7 @@ class npc_rimefang : public CreatureScript
                 // Increase add count
                 if (!me->isDead())
                 {
-                    _instance->SetData(DATA_SINDRAGOSA_FROSTWYRMS, 1);  // this cannot be in Reset because reset also happens on evade
+                    _instance->SetData(DATA_SINDRAGOSA_FROSTWYRMS, me->GetDBTableGUIDLow());  // this cannot be in Reset because reset also happens on evade
                     Reset();
                 }
             }
@@ -791,7 +798,7 @@ class npc_rimefang : public CreatureScript
                 me->SetReactState(REACT_DEFENSIVE);
                 _icyBlastCounter = 0;
 
-                if (_instance->GetData(DATA_RIMEFANG) != 255)
+                if (!_summoned)
                 {
                     me->SetCanFly(true);
                     me->SetDisableGravity(true);
@@ -801,20 +808,22 @@ class npc_rimefang : public CreatureScript
             void JustRespawned()
             {
                 ScriptedAI::JustRespawned();
-                _instance->SetData(DATA_SINDRAGOSA_FROSTWYRMS, 1);  // this cannot be in Reset because reset also happens on evade
+                _instance->SetData(DATA_SINDRAGOSA_FROSTWYRMS, me->GetDBTableGUIDLow());  // this cannot be in Reset because reset also happens on evade
             }
 
             void JustDied(Unit* /*killer*/)
             {
                 _events.Reset();
-                _instance->SetData(DATA_SINDRAGOSA_FROSTWYRMS, 0);
             }
 
             void DoAction(int32 const action)
             {
                 if (action == ACTION_START_FROSTWYRM)
                 {
-                    _instance->SetData(DATA_RIMEFANG, 255);
+                    if (_summoned)
+                        return;
+
+                    _summoned = true;
                     if (me->isDead())
                         return;
 
@@ -908,6 +917,7 @@ class npc_rimefang : public CreatureScript
             EventMap _events;
             InstanceScript* _instance;
             uint8 _icyBlastCounter;
+            bool _summoned;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -934,7 +944,8 @@ class npc_sindragosa_trash : public CreatureScript
                 // Increase add count
                 if (!me->isDead())
                 {
-                    _instance->SetData(_frostwyrmId, 1);  // this cannot be in Reset because reset also happens on evade
+                    if (me->GetEntry() == NPC_FROSTWING_WHELP)
+                        _instance->SetData(_frostwyrmId, me->GetDBTableGUIDLow());  // this cannot be in Reset because reset also happens on evade
                     Reset();
                 }
             }
@@ -956,13 +967,8 @@ class npc_sindragosa_trash : public CreatureScript
                 ScriptedAI::JustRespawned();
 
                 // Increase add count
-                _instance->SetData(_frostwyrmId, 1);  // this cannot be in Reset because reset also happens on evade
-            }
-
-            void JustDied(Unit* /*killer*/)
-            {
-                // Decrease add count
-                _instance->SetData(_frostwyrmId, 0);
+                if (me->GetEntry() == NPC_FROSTWING_WHELP)
+                    _instance->SetData(_frostwyrmId, me->GetDBTableGUIDLow());  // this cannot be in Reset because reset also happens on evade
             }
 
             void SetData(uint32 type, uint32 data)
@@ -1509,7 +1515,7 @@ class at_sindragosa_lair : public AreaTriggerScript
                     if (Creature* rimefang = ObjectAccessor::GetCreature(*player, instance->GetData64(DATA_RIMEFANG)))
                         rimefang->AI()->DoAction(ACTION_START_FROSTWYRM);
 
-                if (!instance->GetData(DATA_SINDRAGOSA_FROSTWYRMS) && instance->GetBossState(DATA_SINDRAGOSA) != DONE)
+                if (!instance->GetData(DATA_SINDRAGOSA_FROSTWYRMS) && !instance->GetData64(DATA_SINDRAGOSA) && instance->GetBossState(DATA_SINDRAGOSA) != DONE)
                 {
                     if (player->GetMap()->IsHeroic() && !instance->GetData(DATA_HEROIC_ATTEMPTS))
                         return true;
