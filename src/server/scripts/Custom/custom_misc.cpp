@@ -87,10 +87,6 @@ public:
 		{
 			winner->RemoveArenaSpellCooldowns();
 			looser->RemoveArenaSpellCooldowns();
-			winner->SetHealth(winner->GetMaxHealth());
-			winner->SetPower(POWER_MANA, winner->GetMaxPower(POWER_MANA));
-			looser->SetHealth(looser->GetMaxHealth());
-			looser->SetPower(POWER_MANA, looser->GetMaxPower(POWER_MANA));
 		}
 	}
 };
@@ -100,9 +96,8 @@ void AddSC_DuelCD_Reset()
 	new DuelCD_Reset();
 }
 
-/* Author: Roca | WoW-Studio.net
-Modified by: Thainification
-Demorph all: UPDATE characters SET knownCurrencies = '0';  */
+// Author: Roca | WoW-Studio.net
+// Modified by: Thainification
 
 class Morph_NPC : public CreatureScript
 {
@@ -285,6 +280,10 @@ public:
 				player->PlayerTalkClass->SendGossipMenu(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
 			};
 		}
+
+        if (action > 9 && action != 900)
+        player->RemoveAura(16595);
+        player->RemoveAura(16591);
 
 		if (action == 100)
 		{
