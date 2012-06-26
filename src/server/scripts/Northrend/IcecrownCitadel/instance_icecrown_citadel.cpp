@@ -362,14 +362,14 @@ class instance_icecrown_citadel : public InstanceMapScript
                         if (creature->AI()->GetData(1/*DATA_FROSTWYRM_OWNER*/) == DATA_SPINESTALKER)
                         {
                             SpinestalkerTrash.erase(creature->GetDBTableGUIDLow());
-                            if (SpinestalkerTrash.empty())
+//                            if (SpinestalkerTrash.empty())
                                 if (Creature* spinestalk = instance->GetCreature(SpinestalkerGUID))
                                     spinestalk->AI()->DoAction(ACTION_START_FROSTWYRM);
                         }
                         else
                         {
                             RimefangTrash.erase(creature->GetDBTableGUIDLow());
-                            if (RimefangTrash.empty())
+//                            if (RimefangTrash.empty())
                                 if (Creature* spinestalk = instance->GetCreature(RimefangGUID))
                                     spinestalk->AI()->DoAction(ACTION_START_FROSTWYRM);
                         }
