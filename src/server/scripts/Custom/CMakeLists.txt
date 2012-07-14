@@ -18,7 +18,6 @@ set(scripts_STAT_SRCS
   Custom/custom_dtplayertreff.cpp
   Custom/custom_dtevent.cpp
   Custom/custom_misc.cpp
-  Custom/custom_dt_ini.cpp
 )
 
 SOURCE_GROUP(Custom REGULAR_EXPRESSION .*/Custom/.*)

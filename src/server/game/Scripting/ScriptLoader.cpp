@@ -1251,11 +1251,10 @@ void AddBattlegroundScripts()
     void AddSC_Morph_NPC();
     void AddSC_DuelCD_Reset();
     void AddSC_AV_NPC();
-    
-    void AddSC_trash_verseuchterkrieger();
-    void AddSC_boss_derschwarzedoktor();
 
     void AddSC_instance_dtprison();
+    void AddSC_dtprison();
+    void AddSC_boss_der_schwarzedoktor();
 #endif
 
 void AddCustomScripts()
@@ -1274,9 +1273,8 @@ void AddCustomScripts()
     AddSC_DuelCD_Reset();
     AddSC_AV_NPC();
     
-    AddSC_trash_verseuchterkrieger();
-    AddSC_boss_derschwarzedoktor();
-
     AddSC_instance_dtprison();
+    AddSC_dtprison();
+    AddSC_boss_der_schwarzedoktor();
 #endif
 }

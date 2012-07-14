@@ -205,6 +205,8 @@ set(scripts_STAT_SRCS
   EasternKingdoms/Karazhan/karazhan.h
   EasternKingdoms/DTPrison/dtprison.h
   EasternKingdoms/DTPrison/instance_dtprison.cpp
+  EasternKingdoms/DTPrison/boss_der_schwarzedoktor.cpp
+  EasternKingdoms/DTPrison/dtprison.cpp
 )
 
 SOURCE_GROUP(EasternKingdoms FILES
