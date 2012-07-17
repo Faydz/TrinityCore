@@ -139,41 +139,12 @@ class ChatHandler
         bool HandleGMAnnounceCommand(const char* args);
         bool HandleGMNotifyCommand(const char* args);
 
-        bool HandleBanAccountCommand(const char* args);
-        bool HandleBanAccountByCharCommand(const char* args);
-        bool HandleBanCharacterCommand(const char* args);
-        bool HandleBanIPCommand(const char* args);
-        bool HandleBanInfoAccountCommand(const char* args);
-        bool HandleBanInfoCharacterCommand(const char* args);
-        bool HandleBanInfoIPCommand(const char* args);
-        bool HandleBanListAccountCommand(const char* args);
-        bool HandleBanListCharacterCommand(const char* args);
-        bool HandleBanListIPCommand(const char* args);
-
         bool HandleChannelSetOwnership(const char *args);
 
         bool HandlePossessCommand(const char* args);
         bool HandleUnPossessCommand(const char* args);
         bool HandleBindSightCommand(const char* args);
         bool HandleUnbindSightCommand(const char* args);
-
-        bool HandleLookupAreaCommand(const char* args);
-        bool HandleLookupCreatureCommand(const char* args);
-        bool HandleLookupEventCommand(const char* args);
-        bool HandleLookupFactionCommand(const char * args);
-        bool HandleLookupItemCommand(const char * args);
-        bool HandleLookupItemSetCommand(const char * args);
-        bool HandleLookupObjectCommand(const char* args);
-        bool HandleLookupPlayerIpCommand(const char* args);
-        bool HandleLookupPlayerAccountCommand(const char* args);
-        bool HandleLookupPlayerEmailCommand(const char* args);
-        bool HandleLookupQuestCommand(const char* args);
-        bool HandleLookupSkillCommand(const char* args);
-        bool HandleLookupSpellCommand(const char* args);
-        bool HandleLookupTaxiNodeCommand(const char * args);
-        bool HandleLookupTeleCommand(const char * args);
-        bool HandleLookupMapCommand(const char* args);
-        bool HandleLookupTitleCommand(const char * args);
 
         bool HandlePDumpLoadCommand(const char *args);
         bool HandlePDumpWriteCommand(const char *args);
@@ -182,11 +153,6 @@ class ChatHandler
         bool HandleSendMailCommand(const char* args);
         bool HandleSendMessageCommand(const char * args);
         bool HandleSendMoneyCommand(const char* args);
-
-        bool HandleUnBanAccountCommand(const char* args);
-        bool HandleUnBanAccountByCharCommand(const char* args);
-        bool HandleUnBanCharacterCommand(const char* args);
-        bool HandleUnBanIPCommand(const char* args);
 
         bool HandleHelpCommand(const char* args);
         bool HandleCommandsCommand(const char* args);
@@ -290,11 +256,6 @@ class ChatHandler
         bool HandleSaveAllCommand(const char* args);
 
         // Utility methods for commands
-        bool LookupPlayerSearchCommand(PreparedQueryResult result, int32 limit);
-        bool HandleBanListHelper(PreparedQueryResult result);
-        bool HandleBanHelper(BanMode mode, char const* args);
-        bool HandleBanInfoHelper(uint32 accountid, char const* accountname);
-        bool HandleUnBanHelper(BanMode mode, char const* args);
         void HandleLearnSkillRecipesHelper(Player* player, uint32 skill_id);
 
     private:
