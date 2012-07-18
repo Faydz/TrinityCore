@@ -1251,6 +1251,7 @@ void AddBattlegroundScripts()
     void AddSC_custom_dtrace();
     void AddSC_custom_dtpvpevent();
     void AddSC_custom_dtevent();
+    void AddSC_LEVEL_NPC();
 
     void AddSC_Morph_NPC();
     void AddSC_DuelCD_Reset();
@@ -1272,6 +1273,7 @@ void AddCustomScripts()
     AddSC_custom_dtrace();
     AddSC_custom_dtpvpevent();
     AddSC_custom_dtevent();
+    AddSC_LEVEL_NPC();
 
     AddSC_Morph_NPC();
     AddSC_DuelCD_Reset();
