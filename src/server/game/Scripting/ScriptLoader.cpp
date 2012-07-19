@@ -1260,6 +1260,7 @@ void AddBattlegroundScripts()
     void AddSC_instance_dtprison();
     void AddSC_dtprison();
     void AddSC_boss_der_schwarzedoktor();
+    void AddSC_boss_2_Kla_thruun();
 #endif
 
 void AddCustomScripts()
@@ -1282,5 +1283,6 @@ void AddCustomScripts()
     AddSC_instance_dtprison();
     AddSC_dtprison();
     AddSC_boss_der_schwarzedoktor();
+    AddSC_boss_2_Kla_thruun();
 #endif
 }

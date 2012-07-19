@@ -206,6 +206,7 @@ set(scripts_STAT_SRCS
   EasternKingdoms/DTPrison/dtprison.h
   EasternKingdoms/DTPrison/instance_dtprison.cpp
   EasternKingdoms/DTPrison/boss_der_schwarzedoktor.cpp
+  EasternKingdoms/DTPrison/boss_Kla_thruun.cpp
   EasternKingdoms/DTPrison/dtprison.cpp
 )
 
