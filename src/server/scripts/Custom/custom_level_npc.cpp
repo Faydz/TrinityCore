@@ -21,7 +21,7 @@ class LEVEL_NPC : public CreatureScript
     }
 
     bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 action)
-   {
+    {
         player->PlayerTalkClass->ClearMenus();  
          
         if (action == 2)

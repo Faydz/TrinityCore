@@ -291,7 +291,7 @@ public:
 		}
 		if (action == 102)
 		{
-			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(134); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 2.0f);
+			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(134); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 103)
 		{
@@ -303,7 +303,7 @@ public:
 		}
 		if (action == 105)
 		{
-			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(10973); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.2f);
+			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(10973); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 106)
 		{
@@ -311,7 +311,7 @@ public:
 		}
 		if (action == 107)
 		{
-			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(10993); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 2.0f);
+			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(10993); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.1f);
 		}
 		if (action == 108)
 		{
@@ -319,7 +319,7 @@ public:
 		}
 		if (action == 200)
 		{
-			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(175); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.2f);
+			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(175); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.1f);
 		}
 		if (action == 201)
 		{
@@ -355,7 +355,7 @@ public:
 		}
 		if (action == 209)
 		{
-			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(31165); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.3f);
+			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(31165); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.4f);
 		}
 		if (action == 210)
 		{
@@ -586,7 +586,7 @@ public:
 		}
 		if (action == 422)
 		{
-			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(1405); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.2f);
+			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(1405); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 
 		return true;
