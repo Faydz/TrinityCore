@@ -58,8 +58,8 @@ class boss_2_Kla_thruun : public CreatureScript
                 events.SetPhase(1);
                 events.Reset();
                 events.ScheduleEvent(EVENT_ENRAGE, 800000);
-                events.ScheduleEvent(EVENT_HASSERFUELLTERSTOSS, urand(3000, 5000), 0, 1);
-                events.ScheduleEvent(EVENT_ALTEWUNDEN, 3000, 0, 1);
+                events.ScheduleEvent(EVENT_HASSERFUELLTERSTOSS, 3000, 0, 1);
+                events.ScheduleEvent(EVENT_ALTEWUNDEN, urand(20000, 25000), 0, 1);
                 events.ScheduleEvent(EVENT_PHASE_ZWEI, 50000, 0, 1);                
             }
         
@@ -100,8 +100,8 @@ class boss_2_Kla_thruun : public CreatureScript
                         case EVENT_PHASE_EINS:
                         {                            
                             events.SetPhase(1);
-                            events.ScheduleEvent(EVENT_HASSERFUELLTERSTOSS, urand(3000, 5000), 0, 1);
-                            events.ScheduleEvent(EVENT_ALTEWUNDEN, 3000, 0, 1);
+                            events.ScheduleEvent(EVENT_HASSERFUELLTERSTOSS, 3000, 0, 1);
+                            events.ScheduleEvent(EVENT_ALTEWUNDEN, urand(20000, 25000), 0, 1);
                             events.ScheduleEvent(EVENT_PHASE_ZWEI, 50000, 0, 1);
                             break;
                         }   
@@ -114,14 +114,14 @@ class boss_2_Kla_thruun : public CreatureScript
                         {
                             if (Unit *pTarget = SelectTarget(SELECT_TARGET_TOPAGGRO,2))
                                 DoCast(pTarget, SPELL_HASSERFUELLTERSTOSS);
-                            events.ScheduleEvent(EVENT_HASSERFUELLTERSTOSS, urand(30000, 45000), 0, 1);
+                            events.ScheduleEvent(EVENT_HASSERFUELLTERSTOSS, 3000, 0, 1);
                             break;    
                         }     
                         case EVENT_ALTEWUNDEN:
                         {
                             if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM))
                                 DoCast(pTarget, SPELL_ALTEWUNDEN);
-                            events.ScheduleEvent(EVENT_ALTEWUNDEN, urand(30000, 45000), 0, 1);
+                            events.ScheduleEvent(EVENT_ALTEWUNDEN, urand(20000, 25000), 0, 1);
                             break;    
                         }   
                         case EVENT_FAEUSTEAUSSTEIN:
