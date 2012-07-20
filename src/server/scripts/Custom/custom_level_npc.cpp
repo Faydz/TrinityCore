@@ -40,7 +40,7 @@ class LEVEL_NPC : public CreatureScript
                     count = fields[0].GetUInt32();
                 }                  
                 
-                if(count = 0 && player->getLevel() >= 15 && player->getLevel() !=80)
+                if(count == 0 && player->getLevel() >= 15 && player->getLevel() !=80)
                 {
                     player->ModifyMoney(+250000000);
                     player->SetLevel(80);
