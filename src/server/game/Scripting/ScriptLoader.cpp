@@ -1261,6 +1261,7 @@ void AddBattlegroundScripts()
     void AddSC_dtprison();
     void AddSC_boss_der_schwarzedoktor();
     void AddSC_boss_2_Kla_thruun();
+    void AddSC_boss_sprixz_wunderling();
 #endif
 
 void AddCustomScripts()
@@ -1284,5 +1285,6 @@ void AddCustomScripts()
     AddSC_dtprison();
     AddSC_boss_der_schwarzedoktor();
     AddSC_boss_2_Kla_thruun();
+    AddSC_boss_sprixz_wunderling();
 #endif
 }
