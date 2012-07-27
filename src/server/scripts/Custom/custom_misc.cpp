@@ -83,7 +83,7 @@ public:
 
 	void OnDuelEnd(Player *winner, Player *looser, DuelCompleteType type)
 	{
-		if (winner->GetAreaId() == 11) 
+		if (winner->GetAreaId() == 11 && type != DUEL_INTERRUPTED) 
 		{
 			winner->RemoveArenaSpellCooldowns();
 			looser->RemoveArenaSpellCooldowns();
