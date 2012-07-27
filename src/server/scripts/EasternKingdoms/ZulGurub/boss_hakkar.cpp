@@ -33,7 +33,7 @@ EndScriptData */
 
 #define SPELL_BLOODSIPHON            24322
 #define SPELL_CORRUPTEDBLOOD         24328
-#define SPELL_CAUSEINSANITY          24327                  //Not working disabled.
+//#define SPELL_CAUSEINSANITY          24327                  //Not working disabled.
 #define SPELL_WILLOFHAKKAR           24178
 #define SPELL_ENRAGE                 24318
 
@@ -64,7 +64,7 @@ class boss_hakkar : public CreatureScript
 
             uint32 BloodSiphon_Timer;
             uint32 CorruptedBlood_Timer;
-            uint32 CauseInsanity_Timer;
+ //           uint32 CauseInsanity_Timer;
             uint32 WillOfHakkar_Timer;
             uint32 Enrage_Timer;
 
@@ -86,7 +86,7 @@ class boss_hakkar : public CreatureScript
             {
                 BloodSiphon_Timer = 90000;
                 CorruptedBlood_Timer = 25000;
-                CauseInsanity_Timer = 17000;
+//                CauseInsanity_Timer = 17000;
                 WillOfHakkar_Timer = 17000;
                 Enrage_Timer = 600000;
 
