@@ -9,13 +9,23 @@
 
 #include "ScriptPCH.h"
 
-enum DoktorSpells
+enum Texts
+{
+	SAY_INTRO				= 0,
+	SAY_ADDS				= 1,
+	SAY_KILL				= 2,
+	SAY_ENRAGE				= 3,
+	SAY_DEATH				= 4,
+	SAY_PHASE2				= 5
+};
+
+enum Spells
 {
     SPELL_ENRAGE			= 47008,
-    SPELL_ANTIAGGRO			= 29232,
-    SPELL_BENOMMEN		    = 38767,
-    SPELL_SAURESALVE		= 70273,
-    SPELL_GIFTPFUETZE		= 70274
+	SPELL_ANTIAGGRO			= 29232,
+	SPELL_BENOMMEN			= 38767,
+	SPELL_SAURESALVE		= 70273,
+	SPELL_GIFTPFUETZE		= 70274	
 };
 
 enum Adds
@@ -23,153 +33,131 @@ enum Adds
 	ADD_WURM				= 200016
 };
 
+enum Events
+{
+	EVENT_SAURESALVE,
+	EVENT_BENOMMEN,
+	EVENT_ANTIAGGRO,
+	EVENT_ADDS,
+	
+	EVENT_GIFTPFUETZE,
+	
+	EVENT_ENRAGE	
+};
+
 class boss_der_schwarzedoktor : public CreatureScript
 {
-public:
-    boss_der_schwarzedoktor() : CreatureScript("boss_der_schwarzedoktor") { }
+    public:
+        boss_der_schwarzedoktor() : CreatureScript("boss_der_schwarzedoktor") { }
 
-    CreatureAI* GetAI(Creature* pCreature) const
-    {
-        return new boss_der_schwarzedoktorAI (pCreature);
-    }
-
-    struct boss_der_schwarzedoktorAI : public ScriptedAI
-    {
-        boss_der_schwarzedoktorAI (Creature *c) : ScriptedAI(c)
-        { }
-		
-		uint32 t_antiaggro;
-		uint32 t_benommen;
-		uint32 t_sauresalve;
-		uint32 t_giftpfuetze;
-		uint32 t_enrage;
-
-		uint32 t_add;
-
-		uint32 Phase;
-		
-        void Reset()
+        CreatureAI* GetAI(Creature* pCreature) const
         {
-			t_antiaggro = 3000;
-	        t_benommen = 15000;
-			t_sauresalve = 10000;
-			t_giftpfuetze = 0;
-			t_enrage = 240000;
-			t_add = 30000;
-
-			Phase = 1;
+            return new boss_der_schwarzedoktorAI (pCreature);
         }
 
-        void EnterCombat(Unit* /*who*/)
+        struct boss_der_schwarzedoktorAI : public ScriptedAI
         {
-           me->MonsterYell("tttteeeessssttttt", 0, 0);
-           me->MonsterYell("So spuert meinen Zorn", 0, 0);
-        }
+            boss_der_schwarzedoktorAI (Creature *c) : ScriptedAI(c) { }
+            
+            EventMap events;
+            uint8 _phase;
+                        
+            void Reset()
+            {
+                events.Reset();
+                me->RemoveAllAuras();
+                _phase = 1;
+                events.SetPhase(1);			
+                events.ScheduleEvent(EVENT_ENRAGE, 800000);
+                events.ScheduleEvent(EVENT_ANTIAGGRO, 3000,0,1);
+                events.ScheduleEvent(EVENT_BENOMMEN, 30000,0,1);
+                events.ScheduleEvent(EVENT_SAURESALVE, 15000,0,1);
+                events.ScheduleEvent(EVENT_ADDS, 30000,0,1);				
+            }
 
-        void JustDied(Unit* /*killer*/)
-        {
-          me->MonsterSay("Ich habe versagt...",0,0);
-        }
-      
-        void KilledUnit(Unit *)
-        {
-             switch (urand(1,3))
-             {
-                   case 1:
-                        me->MonsterYell("testest", 0, 0);
-                   break;
-                   case 2:
-                       me->MonsterYell("Ihr seid zu schwach!", 0, 0);
-                   break;
-                   case 3:
-                       me->MonsterYell("Schon muede?", 0, 0);
-                  break;
-             }
-        }
-        
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
+            void EnterCombat(Unit* /*who*/)
+            {
+                me->setActive(true);
+                Talk(SAY_INTRO);
+            }
 
-			if (((me->GetHealth()*100 / me->GetMaxHealth()) < 55) && (Phase == 1))
-			{
-				Phase = 2;
-			}
+            void JustDied(Unit* /*killer*/)
+            {
+                Talk(SAY_DEATH);
+            }
+          
+            void KilledUnit(Unit *)
+            {
+                Talk(SAY_KILL);
+            }
+            
+            void UpdateAI(const uint32 diff)
+            {
+                if (_phase == 1 && HealthBelowPct(55))
+                {
+                    _phase = 2; 
+                    events.SetPhase(2); 
+                    Talk(SAY_PHASE2);
+                    events.ScheduleEvent(EVENT_BENOMMEN, 10000,0,2);
+                    events.ScheduleEvent(EVENT_SAURESALVE, 5000,0,2);
+                    events.ScheduleEvent(EVENT_GIFTPFUETZE, 7000,0,2);
+                }
+                if (!UpdateVictim())
+                        return;  
+                    events.Update(diff);
 
-			if (Phase ==1)
-			{
-				if (t_antiaggro <= diff)
-				{
-					DoCast(me->getVictim(), SPELL_ANTIAGGRO);
-				} else t_antiaggro -= diff;
-			  
-				if (t_benommen <= diff)
-				{
-					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, true))
-					DoCast(pTarget, SPELL_BENOMMEN);
-					t_benommen = 30000;
-				} else t_benommen -= diff;
-			           						         
-				if (t_sauresalve <= diff)
-				{
-					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, true))
-					DoCast(pTarget, SPELL_SAURESALVE);
-					t_sauresalve = 20000;
-				} else t_sauresalve -= diff;
-
-				if (t_enrage <= diff)
-				{
-					DoCast(me->getVictim(), SPELL_ENRAGE);
-				} else t_enrage -= diff;
-
-				if (t_add <= diff)
-				{
-					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, true))
-					me->SummonCreature (ADD_WURM, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ());
-					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, true))
-					me->SummonCreature (ADD_WURM, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ());
-					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, true))
-					me->SummonCreature (ADD_WURM, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ());
-					t_add = 25000;
-				} else t_add -= diff;
-					
-				
-				DoMeleeAttackIfReady();
-			}
-
-			if (Phase == 2)
-			{
-				if (t_giftpfuetze <= diff)			
-				{
-					DoCast(me->getVictim(), SPELL_GIFTPFUETZE);
-					t_giftpfuetze = 7000;
-				} else t_giftpfuetze -= diff;
-
-				if (t_enrage <= diff)
-				{
-					DoCast(me->getVictim(), SPELL_ENRAGE);
-				} else t_enrage -= diff;
-
-				if (t_benommen <= diff)
-				{
-					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, true))
-					DoCast(pTarget, SPELL_BENOMMEN);
-					t_benommen = 15000;
-				} else t_benommen -= diff;
-			           						         
-				if (t_sauresalve <= diff)
-				{
-					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, true))
-					DoCast(pTarget, SPELL_SAURESALVE);
-					t_sauresalve = 10000;
-				} else t_sauresalve -= diff;
-
-				DoMeleeAttackIfReady();
-			}
-        }
-    };
-
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case EVENT_ANTIAGGRO:
+                        {
+                            DoCast(me->getVictim(), SPELL_ANTIAGGRO);
+                            break;    
+                        } 
+                        case EVENT_SAURESALVE:
+                        {
+                            if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM))
+                                DoCast(pTarget, SPELL_SAURESALVE);
+                            events.ScheduleEvent(EVENT_SAURESALVE,10000, 0, 1);
+                            events.ScheduleEvent(EVENT_SAURESALVE,5000, 0, 2);
+                            break;
+                        }
+                        case EVENT_BENOMMEN:
+                        {
+                            if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM))
+                                DoCast(pTarget, SPELL_BENOMMEN);
+                            events.ScheduleEvent(EVENT_BENOMMEN, 15000, 0, 1);
+                            events.ScheduleEvent(EVENT_BENOMMEN, 10000, 0, 2);
+                            break;
+                        }
+                        case EVENT_ADDS:
+                        {
+                            if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM))
+                                me->SummonCreature (ADD_WURM, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ());
+                            if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM))
+                                me->SummonCreature (ADD_WURM, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ());
+                            if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM))
+                                me->SummonCreature (ADD_WURM, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ());
+                            events.ScheduleEvent(EVENT_ADDS, 25000, 0, 1);
+                            break;
+                        }
+                        case EVENT_GIFTPFUETZE:
+                        {
+                            DoCast(me->getVictim(), SPELL_GIFTPFUETZE);
+                            events.ScheduleEvent(EVENT_GIFTPFUETZE, urand(5000, 7000), 0, 2);
+                            break;    
+                        } 
+                        case EVENT_ENRAGE:
+                        {
+                            DoCast(me, SPELL_ENRAGE);
+                            break;
+                        }
+                    }
+                }
+                DoMeleeAttackIfReady();
+            }
+        };
 };
 
 void AddSC_boss_der_schwarzedoktor()
