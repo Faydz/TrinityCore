@@ -3545,6 +3545,9 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->manaCost = 0;
                 spellInfo->manaPerSecond = 0;
                 break;
+			case 45524: // Chains of Ice
+                spellInfo->EffectImplicitTargetA[2] = TARGET_UNIT_TARGET_ENEMY;
+				break;
             default:
                 break;
         }
