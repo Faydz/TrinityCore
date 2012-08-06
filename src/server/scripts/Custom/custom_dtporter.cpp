@@ -1,4 +1,6 @@
-#include "ScriptPCH.h"
+#include "ScriptMgr.h"
+#include "ScriptedCreature.h"
+#include "ScriptedGossip.h"
 #include "WorldPacket.h"
 
 class npc_dtporter : public CreatureScript
@@ -49,9 +51,9 @@ public:
         uint8 PlayerKlasse = pPlayer->getClass();
         std::string kosten = (PlayerLevel <= 70) ? (PlayerLevel) + " Silber" : (PlayerLevel*10) + " Silber";
 
-		pPlayer->ADD_GOSSIP_ITEM( 10, "Teleportkosten:", GOSSIP_SENDER_MAIN, 6111);
- 		pPlayer->ADD_GOSSIP_ITEM( 10, "Level 1-70 -> Level*1 Silber", GOSSIP_SENDER_MAIN, 6111);
-   		pPlayer->ADD_GOSSIP_ITEM( 10, "Level 71-80 -> Level*10 Silber", GOSSIP_SENDER_MAIN, 6111);
+		pPlayer->ADD_GOSSIP_ITEM( 10, "Teleportpunkte:", GOSSIP_SENDER_MAIN, 6111);
+ 		//pPlayer->ADD_GOSSIP_ITEM( 10, "Level 1-70 -> Level*1 Silber", GOSSIP_SENDER_MAIN, 6111);
+   		//pPlayer->ADD_GOSSIP_ITEM( 10, "Level 71-80 -> Level*10 Silber", GOSSIP_SENDER_MAIN, 6111);
 		pPlayer->ADD_GOSSIP_ITEM( 10, " ", GOSSIP_SENDER_MAIN, 6111);
 
         if (ALLIANCE == pPlayer->GetTeam())
@@ -163,7 +165,7 @@ public:
     }
     void custom_porter_port(uint32 a, float b, float c, float d, float e, Player* pPlayer, Creature* pCreature)
     {
-        uint8 PlayerLevel = pPlayer->getLevel();
+        /*uint8 PlayerLevel = pPlayer->getLevel();
         uint32 kosten = (PlayerLevel <= 70) ? (PlayerLevel*100) : (PlayerLevel*1000);
 
         if (pPlayer->GetMoney() < kosten)
@@ -172,7 +174,7 @@ public:
             return;
         }
 
-	    pPlayer->ModifyMoney((kosten*(-1)));
+	    pPlayer->ModifyMoney((kosten*(-1)));*/
 
         char* temp = "";
         switch (urand(1,5)) {
