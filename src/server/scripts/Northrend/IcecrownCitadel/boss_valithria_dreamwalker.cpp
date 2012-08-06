@@ -296,7 +296,7 @@ class boss_valithria_dreamwalker : public CreatureScript
 
             void Reset()
             {
-				_events.Reset();
+                _events.Reset();
                 me->SetHealth(_spawnHealth);
                 me->SetReactState(REACT_PASSIVE);
                 me->LoadCreaturesAddon(true);
