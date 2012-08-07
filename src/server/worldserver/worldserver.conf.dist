@@ -2135,16 +2135,22 @@ Rate.Drop.Item.ReferencedAmount = 1
 
 #
 #    Rate.XP.Kill
+#    Rate.XP.Kill.Vip
 #    Rate.XP.Quest
+#    Rate.XP.Quest.Vip
 #    Rate.XP.Explore
+#    Rate.XP.Explore.Vip
 #        Description: Experience rates.
 #        Default:     1 - (Rate.XP.Kill)
 #                     1 - (Rate.XP.Quest)
 #                     1 - (Rate.XP.Explore)
 
-Rate.XP.Kill    = 1
-Rate.XP.Quest   = 1
-Rate.XP.Explore = 1
+Rate.XP.Kill        = 1
+Rate.XP.Kill.Vip    = 1
+Rate.XP.Quest       = 1
+Rate.XP.Quest.Vip   = 1
+Rate.XP.Explore     = 1
+Rate.XP.Explore.Vip = 1
 
 #
 #    Rate.RepairCost

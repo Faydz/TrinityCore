@@ -6854,6 +6854,9 @@ void Player::CheckAreaExploreAndOutdoor()
                     XP = uint32(sObjectMgr->GetBaseXP(areaEntry->area_level)*sWorld->getRate(RATE_XP_EXPLORE));
                 }
 
+                if (GetSession()->GetSecurity() > SEC_PLAYER)
+                    XP *= sWorld->getRate(RATE_XP_EXPLORE_VIP);
+
                 GiveXP(XP, NULL);
                 SendExplorationExperience(area, XP);
             }
@@ -15101,6 +15104,9 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
     Unit::AuraEffectList const& ModXPPctAuras = GetAuraEffectsByType(SPELL_AURA_MOD_XP_QUEST_PCT);
     for (Unit::AuraEffectList::const_iterator i = ModXPPctAuras.begin(); i != ModXPPctAuras.end(); ++i)
         AddPctN(XP, (*i)->GetAmount());
+
+    if (GetSession()->GetSecurity() > SEC_PLAYER)
+        XP *= sWorld->getRate(RATE_XP_QUEST_VIP);
 
     int32 moneyRew = 0;
     if (getLevel() < sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
