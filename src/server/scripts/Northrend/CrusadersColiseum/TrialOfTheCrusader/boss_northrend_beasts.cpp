@@ -66,6 +66,7 @@ enum Model
 enum Summons
 {
     NPC_SNOBOLD_VASSAL   = 34800,
+    NPC_FIRE_BOMB        = 34854,
     NPC_SLIME_POOL       = 35176,
 };
 
@@ -99,6 +100,16 @@ enum BossSpells
     SPELL_SUBMERGE_0        = 66948,
     SPELL_ENRAGE            = 68335,
     SPELL_SLIME_POOL_EFFECT = 66882, //In 60s it diameter grows from 10y to 40y (r=r+0.25 per second)
+    
+    
+    STAGE_MOBILE = 0,
+    STAGE_SUBMERGE_1 = 1,
+    STAGE_WAIT_EMERGE_1 = 2,
+    STAGE_EMERGE_1 = 3,
+    STAGE_STATIONARY = 4,
+    STAGE_SUBMERGE_2 = 5,
+    STAGE_WAIT_EMERGE_2 = 6,
+    STAGE_EMERGE_2 = 7,
 
     //Icehowl
     SPELL_FEROCIOUS_BUTT    = 66770,
@@ -323,6 +334,12 @@ public:
                     break;
             }
         }
+        
+        void SpellHitTarget(Unit* target, const SpellInfo* spell)
+        {
+            if (spell->Id == SPELL_FIRE_BOMB)
+                me->SummonCreature(NPC_FIRE_BOMB, target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 30000);
+        }
 
         void JustDied(Unit* /*killer*/)
         {
@@ -383,11 +400,48 @@ public:
                 m_uiHeadCrackTimer = 35000;
             }
             else m_uiHeadCrackTimer -= diff;
+            
+            if (instance->GetData(TYPE_NORTHREND_BEASTS) != GORMOK_IN_PROGRESS)
+                me->DespawnOrUnsummon();
 
             DoMeleeAttackIfReady();
         }
     };
 
+};
+
+class npc_firebomb : public CreatureScript
+{
+public:
+    npc_firebomb() : CreatureScript("npc_firebomb") { }
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_firebombAI(creature);
+    }
+
+    struct npc_firebombAI : public ScriptedAI
+    {
+        npc_firebombAI(Creature* creature) : ScriptedAI(creature)
+        {
+            instanceScript = creature->GetInstanceScript();
+        }
+
+        InstanceScript* instanceScript;
+
+        void Reset()
+        {
+            DoCast(me, SPELL_FIRE_BOMB_DOT, true);
+            SetCombatMovement(false);
+            me->SetReactState(REACT_PASSIVE);
+        }
+
+        void UpdateAI(uint32 const /*diff*/)
+        {
+            if (instanceScript->GetData(TYPE_NORTHREND_BEASTS) != GORMOK_IN_PROGRESS)
+                me->DespawnOrUnsummon();
+        }
+    };
 };
 
 struct boss_jormungarAI : public ScriptedAI
@@ -430,9 +484,8 @@ struct boss_jormungarAI : public ScriptedAI
     void JustReachedHome()
     {
         if (instanceScript && instanceScript->GetData(TYPE_NORTHREND_BEASTS) != FAIL)
-        {
             instanceScript->SetData(TYPE_NORTHREND_BEASTS, FAIL);
-        }
+
 
         me->DespawnOrUnsummon();
     }
@@ -468,20 +521,20 @@ struct boss_jormungarAI : public ScriptedAI
             DoScriptText(SAY_BERSERK, me);
             switch (stage)
             {
-                case 0:
+                case STAGE_MOBILE:
                     break;
-                case 4:
-                    stage = 5;
+                case STAGE_STATIONARY:
+                    stage = STAGE_SUBMERGE_2;
                     submergeTimer = 5*IN_MILLISECONDS;
                     break;
                 default:
-                    stage = 7;
+                    stage = STAGE_EMERGE_2;
             }
         }
 
         switch (stage)
         {
-            case 0: // Mobile
+            case STAGE_MOBILE:
                 if (biteTimer <= diff)
                 {
                     DoCastVictim(biteSpell);
@@ -503,26 +556,31 @@ struct boss_jormungarAI : public ScriptedAI
 
                 if (submergeTimer <= diff && !enraged)
                 {
-                    stage = 1;
+                    stage = STAGE_SUBMERGE_1;
                     submergeTimer = 5*IN_MILLISECONDS;
                 } else submergeTimer -= diff;
 
                 DoMeleeAttackIfReady();
                 break;
-            case 1: // Submerge
+                
+            case STAGE_SUBMERGE_1:
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                 DoCast(me, SPELL_SUBMERGE_0);
                 DoScriptText(SAY_SUBMERGE, me);
                 me->GetMotionMaster()->MovePoint(0, ToCCommonLoc[1].GetPositionX()+ frand(-40.0f, 40.0f), ToCCommonLoc[1].GetPositionY() + frand(-40.0f, 40.0f), ToCCommonLoc[1].GetPositionZ());
-                stage = 2;
-            case 2: // Wait til emerge
+
+                stage = STAGE_WAIT_EMERGE_1;
+                break;
+                
+            case STAGE_WAIT_EMERGE_1:
                 if (submergeTimer <= diff)
                 {
-                    stage = 3;
+                    stage = STAGE_EMERGE_1;
                     submergeTimer = 50*IN_MILLISECONDS;
                 } else submergeTimer -= diff;
                 break;
-            case 3: // Emerge
+                
+            case STAGE_EMERGE_1:
                 me->SetDisplayId(modelStationary);
                 DoScriptText(SAY_EMERGE, me);
                 me->RemoveAurasDueToSpell(SPELL_SUBMERGE_0);
@@ -531,9 +589,10 @@ struct boss_jormungarAI : public ScriptedAI
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
                 SetCombatMovement(false);
                 me->GetMotionMaster()->MoveIdle();
-                stage = 4;
+                stage = STAGE_STATIONARY;
                 break;
-            case 4: // Stationary
+                
+            case STAGE_STATIONARY:
                 if (sprayTimer <= diff)
                 {
                     if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0))
@@ -549,26 +608,33 @@ struct boss_jormungarAI : public ScriptedAI
 
                 if (submergeTimer <= diff)
                 {
-                    stage = 5;
+                    stage = STAGE_SUBMERGE_2;
                     submergeTimer = 10*IN_MILLISECONDS;
                 } else submergeTimer -= diff;
 
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+                me->GetMotionMaster()->MoveIdle();
+                me->GetMotionMaster()->Clear();
                 DoSpellAttackIfReady(spitSpell);
                 break;
-            case 5: // Submerge
+                
+            case STAGE_SUBMERGE_2:
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                 DoCast(me, SPELL_SUBMERGE_0);
                 DoScriptText(SAY_SUBMERGE, me);
                 me->GetMotionMaster()->MovePoint(0, ToCCommonLoc[1].GetPositionX() + frand(-40.0f, 40.0f), ToCCommonLoc[1].GetPositionY() + frand(-40.0f, 40.0f), ToCCommonLoc[1].GetPositionZ());
-                stage = 6;
-            case 6: // Wait til emerge
+                stage = STAGE_WAIT_EMERGE_2;
+                break;
+                
+            case STAGE_WAIT_EMERGE_2:
                 if (submergeTimer <= diff)
                 {
-                    stage = 7;
+                    stage = STAGE_EMERGE_2;
                     submergeTimer = 45*IN_MILLISECONDS;
                 } else submergeTimer -= diff;
                 break;
-            case 7: // Emerge
+            
+            case STAGE_EMERGE_2:
                 me->SetDisplayId(modelMobile);
                 DoScriptText(SAY_EMERGE, me);
                 me->RemoveAurasDueToSpell(SPELL_SUBMERGE_0);
@@ -577,7 +643,7 @@ struct boss_jormungarAI : public ScriptedAI
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
                 SetCombatMovement(true);
                 me->GetMotionMaster()->MoveChase(me->getVictim());
-                stage = 0;
+                stage = STAGE_MOBILE;
                 break;
         }
     }
@@ -627,7 +693,7 @@ class boss_acidmaw : public CreatureScript
 
             submergeTimer = 500;
             DoCast(me, SPELL_SUBMERGE_0);
-            stage = 2;
+            stage = STAGE_WAIT_EMERGE_1;
         }
     };
 
@@ -663,7 +729,7 @@ public:
             otherWormEntry = NPC_ACIDMAW;
 
             submergeTimer = 45 * IN_MILLISECONDS;
-            stage = 0;
+            stage = STAGE_MOBILE;
         }
 
         void MovementInform(uint32 type, uint32 pointId)
@@ -724,8 +790,11 @@ public:
     {
         mob_slime_poolAI(Creature* creature) : ScriptedAI(creature)
         {
+            instanceScript = creature->GetInstanceScript();
         }
-
+        
+        InstanceScript* instanceScript;
+        
         bool casted;
         void Reset()
         {
@@ -740,6 +809,9 @@ public:
                 casted = true;
                 DoCast(me, SPELL_SLIME_POOL_EFFECT);
             }
+            
+            if (instanceScript->GetData(TYPE_NORTHREND_BEASTS) != SNAKES_IN_PROGRESS)
+                me->DespawnOrUnsummon();
         }
     };
 
@@ -855,10 +927,8 @@ public:
         void KilledUnit(Unit* who)
         {
             if (who->GetTypeId() == TYPEID_PLAYER)
-            {
                 if (instance)
                     instance->SetData(DATA_TRIBUTE_TO_IMMORTALITY_ELEGIBLE, 0);
-            }
         }
 
         void EnterCombat(Unit* /*who*/)
@@ -961,7 +1031,8 @@ public:
                 case 5:
                     if (m_bMovementFinish)
                     {
-                        if (m_uiTrampleTimer <= diff) DoCastAOE(SPELL_TRAMPLE);
+                        if (m_uiTrampleTimer <= diff)
+                            DoCastAOE(SPELL_TRAMPLE);
                         m_bMovementFinish = false;
                         m_uiStage = 6;
                         return;
@@ -1004,6 +1075,7 @@ void AddSC_boss_northrend_beasts()
 {
     new boss_gormok();
     new mob_snobold_vassal();
+    new npc_firebomb();
     new boss_acidmaw();
     new boss_dreadscale();
     new mob_slime_pool();
