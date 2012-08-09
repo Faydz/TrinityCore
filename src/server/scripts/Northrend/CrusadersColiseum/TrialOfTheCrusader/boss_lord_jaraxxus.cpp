@@ -181,6 +181,9 @@ public:
         {
             if (!UpdateVictim())
                 return;
+                
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
 
             if (m_uiSummonInfernalEruptionTimer <= uiDiff)
             {
