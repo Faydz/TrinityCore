@@ -729,7 +729,11 @@ class npc_volatile_ooze : public CreatureScript
             void UpdateAI(uint32 const diff)
             {
                 if (!UpdateVictim() && !_newTargetSelectTimer)
+                {
+                    if (!me->HasUnitState(UNIT_STATE_CASTING))
+                        _newTargetSelectTimer = 1000;
                     return;
+                }
 
                 if (!_newTargetSelectTimer)
                     return;
@@ -783,7 +787,11 @@ class npc_gas_cloud : public CreatureScript
             void UpdateAI(uint32 const diff)
             {
                 if (!UpdateVictim() && !_newTargetSelectTimer)
+                {
+                    if (!me->HasUnitState(UNIT_STATE_CASTING))
+                        _newTargetSelectTimer = 1000;
                     return;
+                }
 
                 DoMeleeAttackIfReady();
 
