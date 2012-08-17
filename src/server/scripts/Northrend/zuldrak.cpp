@@ -764,13 +764,13 @@ public:
 
         void EnterEvadeMode()
         {
-            if (Creature *pWhisker = me->GetCreature(*me, uiWhisker))
+            if (Creature* pWhisker = me->GetCreature(*me, uiWhisker))
                 pWhisker->RemoveFromWorld();
         }
 
-        void MovementInform(uint32 uiType, uint32 /*uiId*/)
+        void MovementInform(uint32 type, uint32 /*pointId*/)
         {
-            if (uiType != POINT_MOTION_TYPE)
+            if (type != POINT_MOTION_TYPE)
                 return;
 
             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC);
@@ -779,9 +779,9 @@ public:
             uiBattleShoutTimer  = 7000;
         }
 
-        void EnterCombat(Unit* pWho)
+        void EnterCombat(Unit* who)
         {
-            DoCast(pWho, SPELL_IMPALE);
+            DoCast(who, SPELL_IMPALE);
         }
 
         void UpdateAI(const uint32 uiDiff)
@@ -835,14 +835,14 @@ public:
             }
         }
 
-        void JustDied(Unit* pKiller)
+        void JustDied(Unit* killer)
         {
             if (uiWhisker)
-                if (Creature *pWhisker = me->GetCreature(*me, uiWhisker))
+                if (Creature* pWhisker = me->GetCreature(*me, uiWhisker))
                     pWhisker->RemoveFromWorld();
 
-            if (pKiller->GetTypeId() == TYPEID_PLAYER)
-                pKiller->GetCharmerOrOwnerPlayerOrPlayerItself()->GroupEventHappens(QUEST_AMPHITHEATER_ANGUISH_VLADOF, pKiller);
+            if (killer->GetTypeId() == TYPEID_PLAYER)
+                killer->GetCharmerOrOwnerPlayerOrPlayerItself()->GroupEventHappens(QUEST_AMPHITHEATER_ANGUISH_VLADOF, killer);
 
         }
     };
