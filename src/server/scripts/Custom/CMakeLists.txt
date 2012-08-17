@@ -19,6 +19,8 @@ set(scripts_STAT_SRCS
   Custom/custom_dtevent.cpp
   Custom/custom_misc.cpp
   Custom/custom_level_npc.cpp
+  Custom/Transmogrification.cpp
+  Custom/Transmogrification.h
 )
 
 SOURCE_GROUP(Custom REGULAR_EXPRESSION .*/Custom/.*)
