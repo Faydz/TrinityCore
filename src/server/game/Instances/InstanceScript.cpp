@@ -320,6 +320,18 @@ void InstanceScript::DoSendNotifyToInstance(char const* format, ...)
     }
 }
 
+// Complete Achievement for all players in instance
+void InstanceScript::DoCompleteAchievement(uint32 achievement)
+{
+    AchievementEntry const* pAchievement = sAchievementStore.LookupEntry(achievement);
+    Map::PlayerList const &PlayerList = instance->GetPlayers();
+
+    if (!PlayerList.isEmpty())
+        for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+            if (Player *player = i->getSource())
+                player->CompletedAchievement(pAchievement);
+}
+
 // Update Achievement Criteria for all players in instance
 void InstanceScript::DoUpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscValue1 /*= 0*/, uint32 miscValue2 /*= 0*/, Unit* unit /*= NULL*/)
 {
