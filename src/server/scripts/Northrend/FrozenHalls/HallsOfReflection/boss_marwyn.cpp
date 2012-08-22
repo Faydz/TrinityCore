@@ -15,35 +15,37 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+ /* ScriptData
+SDName: boss_Marwyn
+SDComment: new script for tc implementation.
+SDCategory: Halls of Reflection
+EndScriptData */
+
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "halls_of_reflection.h"
 
 enum Yells
 {
-    SAY_AGGRO                                     = -1668060,
-    SAY_SLAY_1                                    = -1668061,
-    SAY_SLAY_2                                    = -1668062,
-    SAY_DEATH                                     = -1668063,
-    SAY_CORRUPTED_FLESH_1                         = -1668064,
-    SAY_CORRUPTED_FLESH_2                         = -1668065,
+    SAY_MARWYN_INTRO            = -1594506,
+    SAY_MARWYN_AGGRO            = -1668060,
+    SAY_MARWYN_DEATH            = -1668063,
+    SAY_MARWYN_SLAY01           = -1668061,
+    SAY_MARWYN_SLAY02           = -1668062,
+    SAY_MARWYN_SP01             = -1668064,
+    SAY_MARWYN_SP02             = -1668065,
 };
 
 enum Spells
 {
-    SPELL_OBLITERATE                              = 72360,
-    SPELL_WELL_OF_CORRUPTION                      = 72362,
-    SPELL_CORRUPTED_FLESH                         = 72363,
-    SPELL_SHARED_SUFFERING                        = 72368,
-};
-
-enum Events
-{
-    EVENT_NONE,
-    EVENT_OBLITERATE,
-    EVENT_WELL_OF_CORRUPTION,
-    EVENT_CORRUPTED_FLESH,
-    EVENT_SHARED_SUFFERING,
+    SPELL_OBLITERATE_N          = 72360,
+    SPELL_OBLITERATE_H          = 72434,
+    SPELL_SHARED_SUFFERING_N    = 72368,
+    SPELL_SHARED_SUFFERING_H    = 72369,
+    SPELL_WELL_OF_CORRUPTION    = 72362,
+    SPELL_CORRUPTED_FLESH_N     = 72363,
+    SPELL_CORRUPTED_FLESH_H     = 72436,
+    SPELL_BERSERK               = 47008,
 };
 
 class boss_marwyn : public CreatureScript
@@ -51,84 +53,249 @@ class boss_marwyn : public CreatureScript
 public:
     boss_marwyn() : CreatureScript("boss_marwyn") { }
 
-    CreatureAI* GetAI(Creature* creature) const
+    struct boss_marwynAI : public ScriptedAI
     {
-        return new boss_marwynAI(creature);
-    }
+       boss_marwynAI(Creature *pCreature) : ScriptedAI(pCreature)
+       {
+            m_pInstance = (InstanceScript*)pCreature->GetInstanceScript();
+            Regular = pCreature->GetMap()->IsRegularDifficulty();
+            Reset();
+       }
 
-    struct boss_marwynAI : public boss_horAI
-    {
-        boss_marwynAI(Creature* creature) : boss_horAI(creature) {}
+       InstanceScript* m_pInstance;
+       bool Regular;
+       bool m_bIsCall;
 
-        void Reset()
-        {
-            boss_horAI::Reset();
+       //FUNCTIONS
+       uint32 BerserkTimer;
+       uint32 SharedSufferingTimer;
+       uint32 WellTimer;
+       uint32 TouchTimer;
+       uint32 FleshTimer;
+       uint32 ObliterateTimer;
+       uint32 SummonTimer;
 
-            if (instance)
-                instance->SetData(DATA_MARWYN_EVENT, NOT_STARTED);
+       uint32 LocNo;
+       uint64 SummonGUID[16];
+       uint32 CheckSummon;
+
+       uint8 SummonCount;
+       uint8 SummonCountMarwyn;
+
+       uint64 pSummon;
+
+       void Reset()
+       {
+          BerserkTimer = 180000;
+          SharedSufferingTimer = 4000;
+          WellTimer = 12000;
+          TouchTimer = 8000;
+          FleshTimer = 21000;
+          ObliterateTimer = 5000;
+          SummonCount = 0;
+          SummonCountMarwyn = 5;
+          m_bIsCall = false;
+          SummonTimer = 10000;
+          me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+          me->SetVisible(false);
         }
 
-        void EnterCombat(Unit* /*who*/)
+        void Summon()
         {
-            DoScriptText(SAY_AGGRO, me);
-            if (instance)
-                instance->SetData(DATA_MARWYN_EVENT, IN_PROGRESS);
+             LocNo = 14;
 
-            events.ScheduleEvent(EVENT_OBLITERATE, 30000);          // TODO Check timer
-            events.ScheduleEvent(EVENT_WELL_OF_CORRUPTION, 13000);
-            events.ScheduleEvent(EVENT_CORRUPTED_FLESH, 20000);
-            events.ScheduleEvent(EVENT_SHARED_SUFFERING, 20000);    // TODO Check timer
+             for(uint8 i = 0; i < 14; i++)
+             {
+                switch(urand(0,3))
+                {
+                   case 0:
+                       switch(urand(1, 3))
+                       {
+                         case 1: pSummon = NPC_DARK_1; break;
+                         case 2: pSummon = NPC_DARK_3; break;
+                         case 3: pSummon = NPC_DARK_6; break;
+                       }
+                       break;
+                   case 1:
+                       switch(urand(1, 3))
+                       {
+                         case 1: pSummon = NPC_DARK_2; break;
+                         case 2: pSummon = NPC_DARK_3; break;
+                         case 3: pSummon = NPC_DARK_4; break;
+                       }
+                       break;
+                   case 2:
+                       switch(urand(1, 3))
+                       {
+                         case 1: pSummon = NPC_DARK_2; break;
+                         case 2: pSummon = NPC_DARK_5; break;
+                         case 3: pSummon = NPC_DARK_6; break;
+                       }
+                       break;
+                   case 3:
+                       switch(urand(1, 3))
+                       {
+                         case 1: pSummon = NPC_DARK_1; break;
+                         case 2: pSummon = NPC_DARK_5; break;
+                         case 3: pSummon = NPC_DARK_4; break;
+                       }
+                       break;
+                 }
+
+                 CheckSummon = 0;
+
+                 if(Creature* Summon = me->SummonCreature(pSummon, SpawnLoc[LocNo].x, SpawnLoc[LocNo].y, SpawnLoc[LocNo].z, SpawnLoc[LocNo].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 30000))
+                 {
+                    SummonGUID[i] = Summon->GetGUID();
+                    Summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    Summon->SetReactState(REACT_PASSIVE);
+                    Summon->setFaction(974);
+                 }
+                 LocNo++;
+             }
         }
 
-        void JustDied(Unit* /*killer*/)
+        void CallFallSoldier()
         {
-            DoScriptText(SAY_DEATH, me);
-
-            if (instance)
-                instance->SetData(DATA_MARWYN_EVENT, DONE);
+             for(uint8 i = 0; i < 4; i++)
+             {
+                if(Creature* Summon = m_pInstance->instance->GetCreature(SummonGUID[CheckSummon]))
+                {
+                   Summon->setFaction(14);
+                   Summon->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                   Summon->SetReactState(REACT_AGGRESSIVE);
+                   Summon->SetInCombatWithZone();
+                }
+                CheckSummon++;
+             }
         }
 
-        void KilledUnit(Unit* /*victim*/)
+        void JustDied(Unit* pKiller)
         {
-            DoScriptText(RAND(SAY_SLAY_1, SAY_SLAY_2), me);
+          if(m_pInstance)
+          {
+              m_pInstance->SetData(DATA_MARWYN_EVENT, DONE);
+              m_pInstance->SetData(DATA_PHASE, 3);
+          }
+
+          DoScriptText(SAY_MARWYN_DEATH, me);
         }
 
-        void UpdateAI(const uint32 diff)
+        void KilledUnit(Unit* pVictim)
         {
-            // Return since we have no target
-            if (!UpdateVictim())
-                return;
-
-            events.Update(diff);
-
-            if (me->HasUnitState(UNIT_STATE_CASTING))
-                return;
-
-            switch (events.ExecuteEvent())
+            switch(urand(0,1))
             {
-                case EVENT_OBLITERATE:
-                    DoCast(SPELL_OBLITERATE);
-                    events.ScheduleEvent(EVENT_OBLITERATE, 30000);
-                    break;
-                case EVENT_WELL_OF_CORRUPTION:
-                    DoCast(SPELL_WELL_OF_CORRUPTION);
-                    events.ScheduleEvent(EVENT_WELL_OF_CORRUPTION, 13000);
-                    break;
-                case EVENT_CORRUPTED_FLESH:
-                    DoScriptText(RAND(SAY_CORRUPTED_FLESH_1, SAY_CORRUPTED_FLESH_2), me);
-                    DoCast(SPELL_CORRUPTED_FLESH);
-                    events.ScheduleEvent(EVENT_CORRUPTED_FLESH, 20000);
-                    break;
-                case EVENT_SHARED_SUFFERING:
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
-                        DoCast(target, SPELL_SHARED_SUFFERING);
-                    events.ScheduleEvent(EVENT_SHARED_SUFFERING, 20000);
-                    break;
+                case 0: DoScriptText(SAY_MARWYN_SLAY01, me); break;
+                case 1: DoScriptText(SAY_MARWYN_SLAY02, me); break;
+            }
+        }
+
+        void EnterCombat(Unit* pVictim)
+        {
+            if (!m_pInstance) return;
+          //me->RemoveFlag(MOVEFLAG_WALK, MOVEMENTFLAG_WALK_MODE);
+          DoScriptText(SAY_MARWYN_AGGRO, me);
+        }
+
+        void AttackStart(Unit* who)
+        {
+            if (!m_pInstance) return;
+
+               if (m_pInstance->GetData(DATA_MARWYN_EVENT) != IN_PROGRESS)
+                 return;
+
+             ScriptedAI::AttackStart(who);
+        }
+
+        void AddWave()
+        {
+            m_pInstance->DoUpdateWorldState(WORLD_STATE_HOR, 1);
+            m_pInstance->DoUpdateWorldState(WORLD_STATE_HOR_WAVE_COUNT, SummonCountMarwyn);
+        }
+
+       void UpdateAI(const uint32 uiDiff)
+        {
+            if(!m_pInstance) return;
+
+            if (m_pInstance->GetData(DATA_FALRIC_EVENT) == SPECIAL)
+            {
+                if(!m_bIsCall)
+                {
+                   m_bIsCall = true;
+                   ++SummonCountMarwyn;
+                   Summon();
+                }
             }
 
+            if(m_pInstance->GetData(DATA_MARWYN_EVENT) == SPECIAL)
+            {
+               if(SummonTimer < uiDiff)
+               {
+                       AddWave();
+                       ++SummonCount;
+                       ++SummonCountMarwyn;
+                       if(SummonCount == 1)
+                          DoScriptText(SAY_MARWYN_INTRO, me);
+
+                       if(SummonCount > 4)
+                       {
+                            m_pInstance->SetData(DATA_MARWYN_EVENT, IN_PROGRESS);
+                            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                            me->SetInCombatWithZone();
+                       }
+                       else CallFallSoldier();
+                       SummonTimer = 60000;
+               } else SummonTimer -= uiDiff;
+            }
+
+            if(!UpdateVictim())
+                return;
+
+            if(ObliterateTimer < uiDiff)
+            {
+                DoCast(me->getVictim(), Regular ? SPELL_OBLITERATE_N : SPELL_OBLITERATE_H);
+                ObliterateTimer = urand(8000, 12000);
+            } else ObliterateTimer -= uiDiff;
+
+            if (WellTimer < uiDiff)
+            {
+                DoScriptText(SAY_MARWYN_SP02, me);
+                if(Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM))
+                   DoCast(pTarget, SPELL_WELL_OF_CORRUPTION);
+                WellTimer= urand(25000, 30000);
+            } else WellTimer -= uiDiff;
+
+            if (SharedSufferingTimer < uiDiff)
+            {
+                if(Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM))
+                   DoCast(pTarget, Regular ? SPELL_SHARED_SUFFERING_N : SPELL_SHARED_SUFFERING_H);
+                SharedSufferingTimer = urand(15000, 20000);
+            } else SharedSufferingTimer -= uiDiff;
+
+            if (FleshTimer < uiDiff)
+            {
+                DoScriptText(SAY_MARWYN_SP01, me);
+                if(Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM))
+                    DoCast(pTarget, Regular ? SPELL_CORRUPTED_FLESH_N : SPELL_CORRUPTED_FLESH_H);
+                FleshTimer = urand(10000, 16000);
+            } else FleshTimer -= uiDiff;
+
+            if(BerserkTimer < uiDiff)
+            {
+                DoCast(me, SPELL_BERSERK);
+                BerserkTimer = 180000;
+            } else BerserkTimer -= uiDiff;
+
             DoMeleeAttackIfReady();
+
+            return;
         }
     };
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new boss_marwynAI(pCreature);
+    }
 
 };
 
