@@ -413,6 +413,7 @@ void LFGMgr::InitializeLockedDungeons(Player* player)
     uint64 guid = player->GetGUID();
     uint8 level = player->getLevel();
     uint8 expansion = player->GetSession()->Expansion();
+    float averageItemLevel = player->GetAverageItemLevel();
     LfgDungeonSet dungeons = GetDungeonsByRandom(0);
     LfgLockMap lock;
 
@@ -462,6 +463,31 @@ void LFGMgr::InitializeLockedDungeons(Player* player)
             locktype = LFG_LOCKSTATUS_ATTUNEMENT_TOO_HIGH_LEVEL;
             locktype = LFG_LOCKSTATUS_NOT_IN_SEASON; // Need list of instances and needed season to open
         */
+
+        float requiredItemLevel = 0.0f;
+        if (dungeon->expansion == 2 && dungeon->difficulty == DUNGEON_DIFFICULTY_HEROIC)
+            requiredItemLevel = 160.0f;
+
+        switch (dungeon->ID)
+        {
+            case 245: // Trial of the Champion
+            case 251: // The Forge of Souls
+            case 253: // Pit of Saron
+            case 255: // Halls of Reflection
+                requiredItemLevel = 180;
+                break;
+            case 249: // Heroic: Trial of the Champion
+            case 252: // Heroic: The Forge of Souls
+            case 254: // Heroic: Pit of Saron
+                requiredItemLevel = 200;
+                break;
+            case 256: // Heroic: Halls of Reflection
+                requiredItemLevel = 219;
+                break;
+        }
+
+        if (averageItemLevel < requiredItemLevel)
+            locktype = LFG_LOCKSTATUS_TOO_LOW_GEAR_SCORE;
 
         if (locktype != LFG_LOCKSTATUS_OK)
             lock[dungeon->Entry()] = locktype;
