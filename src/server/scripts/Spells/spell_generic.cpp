@@ -3076,72 +3076,93 @@ class spell_gen_mount : public SpellScriptLoader
         uint32 _mount310;
 };
 
-enum RibbonPoleData
+enum FoamSword
 {
-    SPELL_HAS_FULL_MIDSUMMER_SET = 58933,
-    SPELL_BURNING_HOT_POLE_DANCE = 58934,
-    SPELL_RIBBON_DANCE = 29175,
-    GO_RIBBON_POLE = 181605,
+    ITEM_FOAM_SWORD_GREEN   = 45061,
+    ITEM_FOAM_SWORD_PINK    = 45176,
+    ITEM_FOAM_SWORD_BLUE    = 45177,
+    ITEM_FOAM_SWORD_RED     = 45178,
+    ITEM_FOAM_SWORD_YELLOW  = 45179,
+
+    SPELL_BONKED            = 62991,
+    SPELL_FOAM_SWORD_DEFEAT = 62994,
+    SPELL_ON_GUARD          = 62972,
 };
 
-class spell_gen_ribbon_pole_dancer_check : public SpellScriptLoader
+class spell_gen_upper_deck_create_foam_sword : public SpellScriptLoader
 {
     public:
-        spell_gen_ribbon_pole_dancer_check() : SpellScriptLoader("spell_gen_ribbon_pole_dancer_check") { }
+        spell_gen_upper_deck_create_foam_sword() : SpellScriptLoader("spell_gen_upper_deck_create_foam_sword") { }
 
-        class spell_gen_ribbon_pole_dancer_check_AuraScript : public AuraScript
+        class spell_gen_upper_deck_create_foam_sword_SpellScript : public SpellScript
         {
-            PrepareAuraScript(spell_gen_ribbon_pole_dancer_check_AuraScript);
+            PrepareSpellScript(spell_gen_upper_deck_create_foam_sword_SpellScript);
 
-            bool Validate(SpellEntry const* /*spell*/)
+            void HandleScript(SpellEffIndex effIndex)
             {
-                if (!sSpellStore.LookupEntry(SPELL_HAS_FULL_MIDSUMMER_SET))
-                    return false;
-                if (!sSpellStore.LookupEntry(SPELL_BURNING_HOT_POLE_DANCE))
-                    return false;
-                if (!sSpellStore.LookupEntry(SPELL_RIBBON_DANCE))
-                    return false;
-                return true;
-            }
-
-            void PeriodicTick(AuraEffect const* /*aurEff*/)
-            {
-                Unit* target = GetTarget();
-
-                if (!target)
-                    return;
-
-                // check if aura needs to be removed
-                if (!target->FindNearestGameObject(GO_RIBBON_POLE, 20.0f) || !target->HasUnitState(UNIT_STATE_CASTING))
+                if (Player* player = GetHitPlayer())
                 {
-                    target->InterruptNonMeleeSpells(false);
-                    target->RemoveAurasDueToSpell(GetId());
-                    return;
-                }
+                    static uint32 const itemId[5] = { ITEM_FOAM_SWORD_GREEN, ITEM_FOAM_SWORD_PINK, ITEM_FOAM_SWORD_BLUE, ITEM_FOAM_SWORD_RED, ITEM_FOAM_SWORD_YELLOW };
+                    // player can only have one of these items
+                    for (uint8 i = 0; i < 5; ++i)
+                    {
+                        if (player->HasItemCount(itemId[i], 1, true))
+                            return;
+                    }
 
-                // set xp buff duration
-                if (Aura* aur = target->GetAura(SPELL_RIBBON_DANCE))
-                {
-                    aur->SetMaxDuration(aur->GetMaxDuration() >= 3600000 ? 3600000 : aur->GetMaxDuration() + 180000);
-                    aur->RefreshDuration();
-
-                    // reward achievement criteria
-                    if (aur->GetMaxDuration() == 3600000 && target->HasAura(SPELL_HAS_FULL_MIDSUMMER_SET))
-                        target->CastSpell(target, SPELL_BURNING_HOT_POLE_DANCE, true);
+                    CreateItem(effIndex, itemId[urand(0, 4)]);
                 }
-                else
-                    target->AddAura(SPELL_RIBBON_DANCE, target);
             }
 
             void Register()
             {
-                OnEffectPeriodic += AuraEffectPeriodicFn(spell_gen_ribbon_pole_dancer_check_AuraScript::PeriodicTick, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+                OnEffectHitTarget += SpellEffectFn(spell_gen_upper_deck_create_foam_sword_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
             }
         };
 
-        AuraScript* GetAuraScript() const
+        SpellScript* GetSpellScript() const
         {
-            return new spell_gen_ribbon_pole_dancer_check_AuraScript();
+            return new spell_gen_upper_deck_create_foam_sword_SpellScript();
+        }
+};
+
+class spell_gen_bonked : public SpellScriptLoader
+{
+    public:
+        spell_gen_bonked() : SpellScriptLoader("spell_gen_bonked") { }
+
+        class spell_gen_bonked_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_gen_bonked_SpellScript);
+
+            void HandleScript(SpellEffIndex /*effIndex*/)
+            {
+                if (Player* target = GetHitPlayer())
+                {
+                    Aura const* aura = GetHitAura();
+                    if (!(aura && aura->GetStackAmount() == 3))
+                        return;
+
+                    target->CastSpell(target, SPELL_FOAM_SWORD_DEFEAT, true);
+                    target->RemoveAurasDueToSpell(SPELL_BONKED);
+
+                    if (Aura const* aura = target->GetAura(SPELL_ON_GUARD))
+                    {
+                        if (Item* item = target->GetItemByGuid(aura->GetCastItemGUID()))
+                            target->DestroyItemCount(item->GetEntry(), 1, true);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_gen_bonked_SpellScript::HandleScript, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_gen_bonked_SpellScript();
         }
 };
 
@@ -3172,7 +3193,6 @@ void AddSC_generic_spell_scripts()
     new spell_gen_turkey_marker();
     new spell_gen_lifeblood();
     new spell_gen_magic_rooster();
-	new spell_gen_ribbon_pole_dancer_check();
     new spell_gen_allow_cast_from_item_only();
     new spell_gen_launch();
     new spell_gen_vehicle_scaling();
@@ -3218,4 +3238,6 @@ void AddSC_generic_spell_scripts()
     new spell_gen_mount("spell_blazing_hippogryph", 0, 0, 0, SPELL_BLAZING_HIPPOGRYPH_150, SPELL_BLAZING_HIPPOGRYPH_280);
     new spell_gen_mount("spell_celestial_steed", 0, SPELL_CELESTIAL_STEED_60, SPELL_CELESTIAL_STEED_100, SPELL_CELESTIAL_STEED_150, SPELL_CELESTIAL_STEED_280, SPELL_CELESTIAL_STEED_310);
     new spell_gen_mount("spell_x53_touring_rocket", 0, 0, 0, SPELL_X53_TOURING_ROCKET_150, SPELL_X53_TOURING_ROCKET_280, SPELL_X53_TOURING_ROCKET_310);
+    new spell_gen_upper_deck_create_foam_sword();
+    new spell_gen_bonked();
 }
