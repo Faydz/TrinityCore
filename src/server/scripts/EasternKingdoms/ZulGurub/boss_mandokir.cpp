@@ -47,9 +47,6 @@ EndScriptData */
 
 #define NPC_SPEAKER             11391
 
-    NPC_SPEAKER                 = 11391
-};
-
 class boss_mandokir : public CreatureScript
 {
     public:
