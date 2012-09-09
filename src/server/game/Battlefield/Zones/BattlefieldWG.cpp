@@ -25,12 +25,6 @@
 #include "SpellAuras.h"
 #include "Vehicle.h"
 
-enum WintergrastData
-{
-    BATTLEFIELD_WG_ZONEID                        = 4197,             // Wintergrasp
-    BATTLEFIELD_WG_MAPID                         = 571,              // Northrend
-};
-
 enum WGVehicles
 {
     NPC_WG_SEIGE_ENGINE_ALLIANCE        = 28312,
@@ -42,6 +36,9 @@ enum WGVehicles
 BattlefieldWG::~BattlefieldWG()
 {
     for (Workshop::const_iterator itr = WorkshopsList.begin(); itr != WorkshopsList.end(); ++itr)
+        delete *itr;
+
+    for (GameObjectBuilding::const_iterator itr = BuildingsInZone.begin(); itr != BuildingsInZone.end(); ++itr)
         delete *itr;
 }
 
@@ -178,7 +175,7 @@ bool BattlefieldWG::SetupBattlefield()
         GameObject* go = SpawnGameObject(WGGameObjectBuilding[i].entry, WGGameObjectBuilding[i].x, WGGameObjectBuilding[i].y, WGGameObjectBuilding[i].z, WGGameObjectBuilding[i].o);
         BfWGGameObjectBuilding* b = new BfWGGameObjectBuilding(this);
         b->Init(go, WGGameObjectBuilding[i].type, WGGameObjectBuilding[i].WorldState, WGGameObjectBuilding[i].nameId);
-        if (!m_IsEnabled && go->GetGOInfo()->entry == GO_WINTERGRASP_VAULT_GATE)
+        if (!IsEnabled() && go->GetEntry() == GO_WINTERGRASP_VAULT_GATE)
             go->SetDestructibleState(GO_DESTRUCTIBLE_DESTROYED);
         BuildingsInZone.insert(b);
     }
@@ -1090,10 +1087,12 @@ WintergraspCapturePoint::WintergraspCapturePoint(BattlefieldWG* battlefield, Tea
 {
     m_Bf = battlefield;
     m_team = teamInControl;
+    m_Workshop = NULL;
 }
 
 void WintergraspCapturePoint::ChangeTeam(TeamId /*oldTeam*/)
 {
+    ASSERT(m_Workshop);
     m_Workshop->GiveControlTo(m_team, false);
 }
 
