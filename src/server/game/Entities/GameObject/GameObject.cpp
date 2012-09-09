@@ -1956,8 +1956,6 @@ void GameObject::SetGoState(GOState state)
             collision = !collision;
 
         EnableCollision(collision);
-        else if (state == GO_STATE_READY)
-            EnableCollision(!startOpen);
     }
 }
 
