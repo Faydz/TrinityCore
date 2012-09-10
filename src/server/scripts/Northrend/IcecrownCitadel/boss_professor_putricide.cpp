@@ -801,9 +801,6 @@ class npc_gas_cloud : public CreatureScript
 {
     public:
         npc_gas_cloud() : CreatureScript("npc_gas_cloud") { }
-                    if (!me->HasUnitState(UNIT_STATE_CASTING))
-                        _newTargetSelectTimer = 1000;
-                }
 
         struct npc_gas_cloudAI : public npc_putricide_oozeAI
         {
