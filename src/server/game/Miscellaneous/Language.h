@@ -338,7 +338,13 @@ enum TrinityStrings
     LANG_TITLE_REMOVE_RES               = 354,
     LANG_TITLE_CURRENT_RES              = 355,
     LANG_CURRENT_TITLE_RESET            = 356,
-    // Room for more level 2              357-399 not used
+    LANG_COMMAND_CHEAT_STATUS           = 357,
+    LANG_COMMAND_CHEAT_GOD              = 358,
+    LANG_COMMAND_CHEAT_CT               = 359,
+    LANG_COMMAND_CHEAT_CD               = 360,
+    LANG_COMMAND_CHEAT_POWER            = 361,
+    LANG_COMMAND_CHEAT_WW               = 362,
+    // Room for more level 2              363-399 not used
 
     // level 3 chat
     LANG_SCRIPTS_RELOADED               = 400,
@@ -944,8 +950,8 @@ enum TrinityStrings
     LANG_BATTLEGROUND                   = 5015,
     LANG_ARENA                          = 5016,
     LANG_RAID                           = 5017,
-    LANG_HEROIC                         = 5018,
-    LANG_MOUNTABLE                      = 5019,
+                                        //= 5018,
+                                        //= 5019,
     LANG_NPCINFO_PHASEMASK              = 5020,
     LANG_NPCINFO_ARMOR                  = 5021,
     LANG_CHANNEL_ENABLE_OWNERSHIP       = 5022,
@@ -983,6 +989,27 @@ enum TrinityStrings
 
     LANG_WORLD_CLOSED                    = 7523,
     LANG_WORLD_OPENED                    = 7524,
+
+    LANG_LFG_PLAYER_INFO                = 9980,
+    LANG_LFG_GROUP_INFO                 = 9981,
+    LANG_LFG_NOT_IN_GROUP               = 9982,
+    LANG_LFG_CLEAN                      = 9983,
+    LANG_LFG_OPTIONS                    = 9984,
+    LANG_LFG_OPTIONS_CHANGED            = 9985,
+    LANG_LFG_STATE_NONE                 = 9986,
+    LANG_LFG_STATE_ROLECHECK            = 9987,
+    LANG_LFG_STATE_QUEUED               = 9988,
+    LANG_LFG_STATE_PROPOSAL             = 9989,
+    LANG_LFG_STATE_BOOT                 = 9990,
+    LANG_LFG_STATE_DUNGEON              = 9991,
+    LANG_LFG_STATE_FINISHED_DUNGEON     = 9992,
+    LANG_LFG_STATE_RAIDBROWSER          = 9993,
+    LANG_LFG_ROLE_TANK                  = 9994,
+    LANG_LFG_ROLE_HEALER                = 9995,
+    LANG_LFG_ROLE_DAMAGE                = 9996,
+    LANG_LFG_ROLE_LEADER                = 9997,
+    LANG_LFG_ROLE_NONE                  = 9998,
+    LANG_LFG_ERROR                      = 9999,
 
     // Use for not-in-offcial-sources patches
     //                                    10000-10999
@@ -1111,4 +1138,3 @@ enum TrinityStrings
     // For other tables maybe             2000010000-2147483647 (max index)
 };
 #endif
-

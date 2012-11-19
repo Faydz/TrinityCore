@@ -91,6 +91,7 @@ enum WorldBoolConfigs
     CONFIG_GRID_UNLOAD,
     CONFIG_STATS_SAVE_ONLY_ON_LOGOUT,
     CONFIG_ALLOW_TWO_SIDE_ACCOUNTS,
+    CONFIG_ALLOW_TWO_SIDE_INTERACTION_CALENDAR,
     CONFIG_ALLOW_TWO_SIDE_INTERACTION_CHAT,
     CONFIG_ALLOW_TWO_SIDE_INTERACTION_CHANNEL,
     CONFIG_ALLOW_TWO_SIDE_INTERACTION_GROUP,
@@ -154,7 +155,6 @@ enum WorldBoolConfigs
     CONFIG_CHATLOG_PUBLIC,
     CONFIG_CHATLOG_ADDON,
     CONFIG_CHATLOG_BGROUND,
-    CONFIG_DUNGEON_FINDER_ENABLE,
     CONFIG_AUTOBROADCAST,
     CONFIG_ALLOW_TICKETS,
     CONFIG_DBC_ENFORCE_ITEM_ATTRIBUTES,
@@ -303,6 +303,7 @@ enum WorldIntConfigs
     CONFIG_GUILD_BANK_EVENT_LOG_COUNT,
     CONFIG_MIN_LEVEL_STAT_SAVE,
     CONFIG_RANDOM_BG_RESET_HOUR,
+    CONFIG_GUILD_RESET_HOUR,
     CONFIG_CHARDELETE_KEEP_DAYS,
     CONFIG_CHARDELETE_METHOD,
     CONFIG_CHARDELETE_MIN_LEVEL,
@@ -312,6 +313,7 @@ enum WorldIntConfigs
     CONFIG_DB_PING_INTERVAL,
     CONFIG_PRESERVE_CUSTOM_CHANNEL_DURATION,
     CONFIG_PERSISTENT_CHARACTER_CLEAN_FLAGS,
+    CONFIG_LFG_OPTIONSMASK,
     CONFIG_MAX_INSTANCES_PER_HOUR,
     CONFIG_WARDEN_CLIENT_RESPONSE_DELAY,
     CONFIG_WARDEN_CLIENT_CHECK_HOLDOFF,
@@ -491,8 +493,9 @@ enum RealmZone
 
 enum WorldStates
 {
-    WS_WEEKLY_QUEST_RESET_TIME = 20002,                      // Next weekly reset time
-    WS_BG_DAILY_RESET_TIME     = 20003                       // Next daily BG reset time
+    WS_WEEKLY_QUEST_RESET_TIME = 20002,                     // Next weekly reset time
+    WS_BG_DAILY_RESET_TIME     = 20003,                     // Next daily BG reset time
+    WS_GUILD_DAILY_RESET_TIME  = 20006,                     // Next guild cap reset time
 };
 
 // DB scripting commands
@@ -561,6 +564,7 @@ struct CharacterNameData
     uint8 m_class;
     uint8 m_race;
     uint8 m_gender;
+    uint8 m_level;
 };
 
 /// The World
@@ -627,19 +631,19 @@ class World
         void SetAllowMovement(bool allow) { m_allowMovement = allow; }
 
         /// Set a new Message of the Day
-        void SetMotd(const std::string& motd);
+        void SetMotd(std::string const& motd);
         /// Get the current Message of the Day
         const char* GetMotd() const;
 
         /// Set the string for new characters (first login)
-        void SetNewCharString(std::string str) { m_newCharString = str; }
+        void SetNewCharString(std::string const& str) { m_newCharString = str; }
         /// Get the string for new characters (first login)
-        const std::string& GetNewCharString() const { return m_newCharString; }
+        std::string const& GetNewCharString() const { return m_newCharString; }
 
         LocaleConstant GetDefaultDbcLocale() const { return m_defaultDbcLocale; }
 
         /// Get the path where data (dbc, maps) are stored on disk
-        std::string GetDataPath() const { return m_dataPath; }
+        std::string const& GetDataPath() const { return m_dataPath; }
 
         /// When server started?
         time_t const& GetStartTime() const { return m_startTime; }
@@ -744,10 +748,10 @@ class World
 
         void KickAll();
         void KickAllLess(AccountTypes sec);
-        BanReturn BanAccount(BanMode mode, std::string nameOrIP, std::string duration, std::string reason, std::string author);
-        bool RemoveBanAccount(BanMode mode, std::string nameOrIP);
-        BanReturn BanCharacter(std::string name, std::string duration, std::string reason, std::string author);
-        bool RemoveBanCharacter(std::string name);
+        BanReturn BanAccount(BanMode mode, std::string const& nameOrIP, std::string const& duration, std::string const& reason, std::string const& author);
+        bool RemoveBanAccount(BanMode mode, std::string const& nameOrIP);
+        BanReturn BanCharacter(std::string const& name, std::string const& duration, std::string const& reason, std::string const& author);
+        bool RemoveBanCharacter(std::string const& name);
 
         // for max speed access
         static float GetMaxVisibleDistanceOnContinents()    { return m_MaxVisibleDistanceOnContinents; }
@@ -784,8 +788,9 @@ class World
         bool isEventKillStart;
 
         CharacterNameData const* GetCharacterNameData(uint32 guid) const;
-        void AddCharacterNameData(uint32 guid, std::string const& name, uint8 gender, uint8 race, uint8 playerClass);
+        void AddCharacterNameData(uint32 guid, std::string const& name, uint8 gender, uint8 race, uint8 playerClass, uint8 level);
         void UpdateCharacterNameData(uint32 guid, std::string const& name, uint8 gender = GENDER_NONE, uint8 race = RACE_NONE);
+        void UpdateCharacterNameDataLevel(uint32 guid, uint8 level);
         void DeleteCharaceterNameData(uint32 guid) { _characterNameDataMap.erase(guid); }
 
         uint32 GetCleaningFlags() const { return m_CleaningFlags; }
@@ -799,9 +804,11 @@ class World
         void InitDailyQuestResetTime();
         void InitWeeklyQuestResetTime();
         void InitRandomBGResetTime();
+        void InitGuildResetTime();
         void ResetDailyQuests();
         void ResetWeeklyQuests();
         void ResetRandomBG();
+        void ResetGuildCap();
     private:
         static ACE_Atomic_Op<ACE_Thread_Mutex, bool> m_stopEvent;
         static uint8 m_ExitCode;
@@ -862,6 +869,7 @@ class World
         time_t m_NextDailyQuestReset;
         time_t m_NextWeeklyQuestReset;
         time_t m_NextRandomBGReset;
+        time_t m_NextGuildReset;
 
         //Player Queue
         Queue m_QueuedPlayer;

@@ -21,6 +21,7 @@
  * Scriptnames of files in this file should be prefixed with "spell_pri_".
  */
 
+#include "Player.h"
 #include "ScriptMgr.h"
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
@@ -278,7 +279,7 @@ class spell_pri_reflective_shield_trigger : public SpellScriptLoader
                 if (GetCaster())
                     if (AuraEffect* talentAurEff = target->GetAuraEffectOfRankedSpell(PRIEST_SPELL_REFLECTIVE_SHIELD_R1, EFFECT_0))
                     {
-                        int32 bp = CalculatePctN(absorbAmount, talentAurEff->GetAmount());
+                        int32 bp = CalculatePct(absorbAmount, talentAurEff->GetAmount());
                         target->CastCustomSpell(dmgInfo.GetAttacker(), PRIEST_SPELL_REFLECTIVE_SHIELD_TRIGGERED, &bp, NULL, NULL, true, NULL, aurEff);
                     }
             }
@@ -316,7 +317,7 @@ public:
                 if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_T9_HEALING_2_PIECE, EFFECT_0))
                 {
                     int32 heal = GetHitHeal();
-                    AddPctN(heal, aurEff->GetAmount());
+                    AddPct(heal, aurEff->GetAmount());
                     SetHitHeal(heal);
                 }
             }
@@ -432,7 +433,7 @@ class spell_pri_shadow_word_death : public SpellScriptLoader
 
                 // Pain and Suffering reduces damage
                 if (AuraEffect* aurEff = GetCaster()->GetDummyAuraEffect(SPELLFAMILY_PRIEST, PRIEST_ICON_ID_PAIN_AND_SUFFERING, EFFECT_1))
-                    AddPctN(damage, aurEff->GetAmount());
+                    AddPct(damage, aurEff->GetAmount());
 
                 GetCaster()->CastCustomSpell(GetCaster(), PRIEST_SHADOW_WORD_DEATH, &damage, 0, 0, true);
             }

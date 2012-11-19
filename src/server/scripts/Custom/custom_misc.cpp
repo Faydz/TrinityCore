@@ -44,7 +44,7 @@ public:
 		}										
 		if (action == 2)
 		{
-			if (player->GetAchievementMgr().HasAchieved(1792) && player->GetAchievementMgr().HasAchieved(1789) && player->GetAchievementMgr().HasAchieved(1788) && player->GetAchievementMgr().HasAchieved(1790) && player->GetAchievementMgr().HasAchieved(1791))
+			if (player->HasAchieved(1792) && player->HasAchieved(1789) && player->HasAchieved(1788) && player->HasAchieved(1790) && player->HasAchieved(1791))
 			{
 				AchievementEntry const* Erfolg = sAchievementStore.LookupEntry(1786);
 				player->CompletedAchievement(Erfolg);

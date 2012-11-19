@@ -25,6 +25,7 @@ EndScriptData */
 #include "ScriptMgr.h"
 #include "ObjectMgr.h"
 #include "Chat.h"
+#include "Player.h"
 
 class cheat_commandscript : public CommandScript
 {
@@ -41,6 +42,7 @@ public:
             { "cooldown",       SEC_GAMEMASTER,     false, &HandleCoolDownCheatCommand,        "", NULL },
             { "power",          SEC_GAMEMASTER,     false, &HandlePowerCheatCommand,           "", NULL },
             { "waterwalk",      SEC_GAMEMASTER,     false, &HandleWaterWalkCheatCommand,       "", NULL },
+            { "status",         SEC_GAMEMASTER,     false, &HandleCheatStatusCommand,          "", NULL },
             { "taxi",           SEC_GAMEMASTER,     false, &HandleTaxiCheatCommand,            "", NULL },
             { "explore",        SEC_GAMEMASTER,     false, &HandleExploreCheatCommand,         "", NULL },
             { NULL,             0,                  false, NULL,                               "", NULL }
@@ -159,6 +161,22 @@ public:
         return false;
     }
 
+    static bool HandleCheatStatusCommand(ChatHandler* handler, const char* /*args*/)
+    {
+        Player* player = handler->GetSession()->GetPlayer();
+
+        const char* enabled = "enabled";
+        const char* disabled = "disabled";
+
+        handler->SendSysMessage(LANG_COMMAND_CHEAT_STATUS);
+        handler->PSendSysMessage(LANG_COMMAND_CHEAT_GOD, player->GetCommandStatus(CHEAT_GOD) ? enabled : disabled);
+        handler->PSendSysMessage(LANG_COMMAND_CHEAT_CD, player->GetCommandStatus(CHEAT_COOLDOWN) ? enabled : disabled);
+        handler->PSendSysMessage(LANG_COMMAND_CHEAT_CT, player->GetCommandStatus(CHEAT_CASTTIME) ? enabled : disabled);
+        handler->PSendSysMessage(LANG_COMMAND_CHEAT_POWER, player->GetCommandStatus(CHEAT_POWER) ? enabled : disabled);
+        handler->PSendSysMessage(LANG_COMMAND_CHEAT_WW, player->GetCommandStatus(CHEAT_WATERWALK) ? enabled : disabled);
+        return true;
+    }
+
     static bool HandleWaterWalkCheatCommand(ChatHandler* handler, const char* args)
     {
         if (!handler->GetSession() && !handler->GetSession()->GetPlayer())
@@ -216,7 +234,7 @@ public:
             chr->SetTaxiCheater(true);
             handler->PSendSysMessage(LANG_YOU_GIVE_TAXIS, handler->GetNameLink(chr).c_str());
             if (handler->needReportToTarget(chr))
-                ChatHandler(chr).PSendSysMessage(LANG_YOURS_TAXIS_ADDED, handler->GetNameLink().c_str());
+                ChatHandler(chr->GetSession()).PSendSysMessage(LANG_YOURS_TAXIS_ADDED, handler->GetNameLink().c_str());
             return true;
         }
 
@@ -225,7 +243,7 @@ public:
             chr->SetTaxiCheater(false);
             handler->PSendSysMessage(LANG_YOU_REMOVE_TAXIS, handler->GetNameLink(chr).c_str());
             if (handler->needReportToTarget(chr))
-                ChatHandler(chr).PSendSysMessage(LANG_YOURS_TAXIS_REMOVED, handler->GetNameLink().c_str());
+                ChatHandler(chr->GetSession()).PSendSysMessage(LANG_YOURS_TAXIS_REMOVED, handler->GetNameLink().c_str());
 
             return true;
         }
@@ -254,13 +272,13 @@ public:
         {
             handler->PSendSysMessage(LANG_YOU_SET_EXPLORE_ALL, handler->GetNameLink(chr).c_str());
             if (handler->needReportToTarget(chr))
-            ChatHandler(chr).PSendSysMessage(LANG_YOURS_EXPLORE_SET_ALL, handler->GetNameLink().c_str());
+            ChatHandler(chr->GetSession()).PSendSysMessage(LANG_YOURS_EXPLORE_SET_ALL, handler->GetNameLink().c_str());
         }
         else
         {
             handler->PSendSysMessage(LANG_YOU_SET_EXPLORE_NOTHING, handler->GetNameLink(chr).c_str());
             if (handler->needReportToTarget(chr))
-                ChatHandler(chr).PSendSysMessage(LANG_YOURS_EXPLORE_SET_NOTHING, handler->GetNameLink().c_str());
+                ChatHandler(chr->GetSession()).PSendSysMessage(LANG_YOURS_EXPLORE_SET_NOTHING, handler->GetNameLink().c_str());
         }
 
         for (uint8 i = 0; i < PLAYER_EXPLORED_ZONES_SIZE; ++i)

@@ -34,6 +34,7 @@ EndContentData */
 #include "SpellAuraEffects.h"
 #include "ScriptedEscortAI.h"
 #include "shadowfang_keep.h"
+#include "Player.h"
 
 /*######
 ## npc_shadowfang_prisoner
@@ -168,7 +169,7 @@ public:
 
         void Reset()
         {
-            uiDarkOffering = urand(290, 10);
+            uiDarkOffering = urand(200, 1000);
         }
 
         void UpdateAI(uint32 const uiDiff)

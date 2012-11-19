@@ -47,6 +47,12 @@ ObjectAccessor::~ObjectAccessor()
 {
 }
 
+Player* ObjectAccessor::GetObjectInWorld(uint64 guid, Player* /*typeSpecifier*/)
+{
+    Player* player = HashMapHolder<Player>::Find(guid);
+    return player && player->IsInWorld() ? player : NULL;
+}
+
 WorldObject* ObjectAccessor::GetWorldObject(WorldObject const& p, uint64 guid)
 {
     switch (GUID_HIPART(guid))
@@ -163,7 +169,7 @@ Unit* ObjectAccessor::FindUnit(uint64 guid)
     return GetObjectInWorld(guid, (Unit*)NULL);
 }
 
-Player* ObjectAccessor::FindPlayerByName(const char* name)
+Player* ObjectAccessor::FindPlayerByName(std::string const& name)
 {
     TRINITY_READ_GUARD(HashMapHolder<Player>::LockType, *HashMapHolder<Player>::GetLock());
     std::string nameStr = name;

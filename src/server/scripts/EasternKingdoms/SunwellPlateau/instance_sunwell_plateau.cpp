@@ -26,6 +26,7 @@ EndScriptData */
 #include "ScriptMgr.h"
 #include "InstanceScript.h"
 #include "sunwell_plateau.h"
+#include "Player.h"
 
 #define MAX_ENCOUNTER 6
 
@@ -134,8 +135,9 @@ public:
                             return player;
                 }
             }
+            else
+                sLog->outDebug(LOG_FILTER_TSCR, "Instance Sunwell Plateau: GetPlayerInMap, but PlayerList is empty!");
 
-            sLog->outDebug(LOG_FILTER_TSCR, "Instance Sunwell Plateau: GetPlayerInMap, but PlayerList is empty!");
             return NULL;
         }
 
@@ -281,7 +283,7 @@ public:
             return stream.str();
         }
 
-        void Load(const char* in)
+        void Load(char const* in)
         {
             if (!in)
             {
@@ -299,7 +301,6 @@ public:
             OUT_LOAD_INST_DATA_COMPLETE;
         }
     };
-
 };
 
 void AddSC_instance_sunwell_plateau()
