@@ -298,26 +298,33 @@ public:
                 {
                     StopRace();
                     uiWinner = uiGUID;
+					char* winnername;
 
                     switch (uiEntry) //creature_template entries
                     {
                         case 801002: // Gypsi
                             uiWinnerIdx = 1;
+							winnername = "Gypsi";
                             break;
                         case 801003: // Schnakentöter
                             uiWinnerIdx = 2;
+							winnername = "Schnakent\303\266ter 6000";
                             break;
                         case 801004: // Ornulf Flinkpaddel
                             uiWinnerIdx = 3;
+							winnername = "Ornulf Flinkpaddel";
                             break;
                         case 801005: // Spyro
                             uiWinnerIdx = 4;
+							winnername = "Spyro";
                             break;
                         case 801006: // Mmmrrrggglll
                             uiWinnerIdx = 5;
+							winnername = "Mmmrrrggglll";
                             break;
                         case 801007: // Tyrael
                             uiWinnerIdx = 6;
+							winnername = "Tyrael";
                             break;
                         default:
                             uiWinnerIdx = 0;
@@ -327,7 +334,7 @@ public:
                     (*itr)->CastSpell((*itr), SPELL_FIREWORK, true);
 
                     char buff[2048];
-                    sprintf(buff, "Wir haben einen Gewinner! %s hat das Rennen gewonnen!", (*itr)->GetName());
+                    sprintf(buff, "Wir haben einen Gewinner! %s hat das Rennen gewonnen!", winnername);
                     me->MonsterSay(buff, LANG_UNIVERSAL, NULL);
 
                     ProcessWetten(uiWinnerIdx);

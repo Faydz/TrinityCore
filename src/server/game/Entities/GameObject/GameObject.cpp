@@ -139,7 +139,8 @@ void GameObject::AddToWorld()
             GetMap()->InsertGameObjectModel(*m_model);
 
         EnableCollision(toggledState);
-            EnableCollision(false);
+		//if (toggledState)        
+		//	EnableCollision(false);
         WorldObject::AddToWorld();
     }
 }
