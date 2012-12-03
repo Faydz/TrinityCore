@@ -21,24 +21,24 @@
      
             void SendMessage(Player* player)
             {
-                    player->GetSession()->SendNotification("Du benötigst mindestens ein Berufe Token!");
+                    player->GetSession()->SendNotification("Du benoetigst mindestens 75 Embleme von DarkThunder!");
             }
      
             bool OnGossipHello(Player* player, Creature* creature)
             {
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Ingeneurskunst 450(1 Beruf Token)", GOSSIP_SENDER_MAIN, 1);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Schmiedekunst 450(1 Beruf Token)", GOSSIP_SENDER_MAIN, 2);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Alchemie 450(1 Beruf Token)", GOSSIP_SENDER_MAIN, 3);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Lederverarbeitung 450(1 Beruf Token)", GOSSIP_SENDER_MAIN, 4);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Schneiderei 450(1 Beruf Token)", GOSSIP_SENDER_MAIN, 5);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Kürschnerei 450(1 Beruf Token)", GOSSIP_SENDER_MAIN, 6);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Bergbau 450(1 Beruf Token)", GOSSIP_SENDER_MAIN, 7);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Max my Jewelcrafting(1 Beruf Token)", GOSSIP_SENDER_MAIN, 8);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Max my Inscriptions(1 Beruf Token)", GOSSIP_SENDER_MAIN, 9);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Kräuterkunde 450(1 Beruf Token)", GOSSIP_SENDER_MAIN, 10);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Kochkunst 450(1 Beruf Token)", GOSSIP_SENDER_MAIN, 11);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Erste Hilfe 450(1 Beruf Token)", GOSSIP_SENDER_MAIN, 12);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Angeln 450(1 Beruf Token)", GOSSIP_SENDER_MAIN, 13);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Ingeneurskunst 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 1);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Schmiedekunst 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 2);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Alchemie 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 3);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Lederverarbeitung 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 4);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Schneiderei 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 5);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Kuerschnerei 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 6);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Bergbau 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 7);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Juwelenschleifen 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 8);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Inschriftenkunde 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 9);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Kraeuterkunde 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 10);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Kochkunst 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 11);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Erste Hilfe 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 12);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Angeln 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 13);
                     player->ADD_GOSSIP_ITEM(5, "Auf Wiedersehen!", GOSSIP_SENDER_MAIN, 1000);
                     player->SEND_GOSSIP_MENU(NPC_TEXT, creature->GetGUID());
                     return true;
@@ -60,7 +60,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_ENGINEERING) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_ENGINEERING) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
@@ -83,7 +83,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_BLACKSMITHING) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_BLACKSMITHING) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
@@ -106,7 +106,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_ALCHEMY) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_ALCHEMY) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
@@ -129,7 +129,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_LEATHERWORKING) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_LEATHERWORKING) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
@@ -152,7 +152,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_TAILORING) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_TAILORING) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
@@ -175,7 +175,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_SKINNING) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_SKINNING) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
@@ -198,7 +198,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_MINING) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_MINING) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
@@ -221,7 +221,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_JEWELCRAFTING) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_JEWELCRAFTING) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
@@ -244,7 +244,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_INSCRIPTION) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_INSCRIPTION) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
@@ -267,7 +267,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_HERBALISM) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_HERBALISM) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
@@ -290,7 +290,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_COOKING) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_COOKING) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
@@ -313,7 +313,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_FIRST_AID) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_FIRST_AID) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
@@ -336,7 +336,7 @@
                             {      
                                     if (player->GetSkillValue(SKILL_FISHING) == MAX_SKILL_LEVEL)
                                     {
-                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der höchsten Stufe!");
+                                            player->GetSession()->SendNotification("Dieser Beruf ist bereits auf der hoechsten Stufe!");
                                     }
                                     else if (player->HasSkill(SKILL_FISHING) && player->HasItemCount(DONOR_TOKEN, DONOR_TOKEN_COUNT, false))
                                     {
