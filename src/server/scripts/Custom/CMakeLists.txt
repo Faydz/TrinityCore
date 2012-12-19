@@ -22,6 +22,7 @@ set(scripts_STAT_SRCS
   Custom/Transmogrification.cpp
   Custom/Transmogrification.h
   Custom/Pro_Max.cpp
+  Custom/boss_arkton.cpp
 )
 
 SOURCE_GROUP(Custom REGULAR_EXPRESSION .*/Custom/.*)
