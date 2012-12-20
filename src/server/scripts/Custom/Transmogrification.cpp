@@ -5,6 +5,8 @@ By Rochet2
 
 #include "ScriptPCH.h"
 #include "Transmogrification.h"
+#include "Player.h"
+#include "Language.h"
 
 class NPC_Transmogrify : public CreatureScript
 {
