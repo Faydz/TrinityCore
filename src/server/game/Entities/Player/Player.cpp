@@ -13739,7 +13739,7 @@ void Player::ApplyReforgeEnchantment(Item* item, bool apply)
             HandleBaseModValue(SHIELD_BLOCK_VALUE, FLAT_MOD, -removeValue, apply);
             break;
         case ITEM_MOD_MASTERY_RATING:
-            ApplyRatingMod(CR_MASTERY, int32(removeValue), apply);
+            ApplyRatingMod(CR_MASTERY, -int32(removeValue), apply);
             break;
     }
 
