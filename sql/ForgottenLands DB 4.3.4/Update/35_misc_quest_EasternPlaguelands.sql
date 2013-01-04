@@ -86,22 +86,22 @@ INSERT INTO `smart_scripts` VALUES (45475, 0, 0, 1, 8, 0, 100, 0, 84973, 0, 0, 0
 DELETE FROM `creature_questrelation` WHERE (`id`='16135') AND (`quest`='27421');
 
 -- fix chain http://www.wowhead.com/npc=45417
-UPDATE `quest_template` SET `NextQuestId`='27455', `NextQuestIdChain`='0' WHERE (`Id`='27448');
-UPDATE `quest_template` SET `NextQuestId`='27463', `NextQuestIdChain`='0' WHERE (`Id`='27455');
-UPDATE `quest_template` SET `NextQuestId`='27464', `NextQuestIdChain`='0' WHERE (`Id`='27463');
-UPDATE `quest_template` SET `NextQuestId`='27465', `NextQuestIdChain`='0' WHERE (`Id`='27464');
-UPDATE `quest_template` SET `NextQuestId`='27373', `NextQuestIdChain`='0' WHERE (`Id`='27369');
-UPDATE `quest_template` SET `NextQuestId`='27371', `NextQuestIdChain`='0' WHERE (`Id`='27370');
-UPDATE `quest_template` SET `NextQuestId`='27372', `NextQuestIdChain`='0' WHERE (`Id`='27371');
-UPDATE `quest_template` SET `NextQuestId`='27373', `NextQuestIdChain`='0' WHERE (`Id`='27372');
-UPDATE `quest_template` SET `NextQuestId`='27489', `NextQuestIdChain`='0' WHERE (`Id`='27488');
-UPDATE `quest_template` SET `NextQuestId`='27522', `NextQuestIdChain`='0' WHERE (`Id`='27489');
-UPDATE `quest_template` SET `NextQuestId`='27524', `NextQuestIdChain`='0' WHERE (`Id`='27522');
-UPDATE `quest_template` SET `NextQuestId`='27525', `NextQuestIdChain`='0' WHERE (`Id`='27524');
-UPDATE `quest_template` SET `NextQuestId`='27368', `NextQuestIdChain`='0' WHERE (`Id`='27367');
+UPDATE `quest_template` SET `NextQuestId`=27455, `NextQuestIdChain`=0 WHERE (`Id`=27448);
+UPDATE `quest_template` SET `NextQuestId`=27463, `NextQuestIdChain`=0 WHERE (`Id`=27455);
+UPDATE `quest_template` SET `NextQuestId`=27464, `NextQuestIdChain`=0 WHERE (`Id`=27463);
+UPDATE `quest_template` SET `NextQuestId`=27465, `NextQuestIdChain`=0 WHERE (`Id`=27464);
+UPDATE `quest_template` SET `NextQuestId`=27373, `NextQuestIdChain`=0 WHERE (`Id`=27369);
+UPDATE `quest_template` SET `NextQuestId`=27371, `NextQuestIdChain`=0 WHERE (`Id`=27370);
+UPDATE `quest_template` SET `NextQuestId`=27372, `NextQuestIdChain`=0 WHERE (`Id`=27371);
+UPDATE `quest_template` SET `NextQuestId`=27373, `NextQuestIdChain`=0 WHERE (`Id`=27372);
+UPDATE `quest_template` SET `NextQuestId`=27489, `NextQuestIdChain`=0 WHERE (`Id`=27488);
+UPDATE `quest_template` SET `NextQuestId`=27522, `NextQuestIdChain`=0 WHERE (`Id`=27489);
+UPDATE `quest_template` SET `NextQuestId`=27524, `NextQuestIdChain`=0 WHERE (`Id`=27522);
+UPDATE `quest_template` SET `NextQuestId`=27525, `NextQuestIdChain`=0 WHERE (`Id`=27524);
+UPDATE `quest_template` SET `NextQuestId`=27368, `NextQuestIdChain`=0 WHERE (`Id`=27367);
 
 -- fix flag 
-UPDATE `quest_template` SET `Flags`='8' WHERE (`Id`='27371');
+UPDATE `quest_template` SET `Flags`=8 WHERE (`Id`=27371);
 
 
 DELETE FROM `creature_loot_template` WHERE `entry`=8596 AND item=60986;
@@ -127,12 +127,12 @@ UPDATE `creature_template` SET `lootid`=8555 WHERE (`entry`=8555);
 
 
 -- delete quest mezzi
-DELETE FROM `creature_questrelation` WHERE (`id`='45417') AND (`quest`='27448');
-DELETE FROM `creature_questrelation` WHERE (`id`='45429') AND (`quest`='27381');
-DELETE FROM `creature_questrelation` WHERE (`id`='45417') AND (`quest`='27373');
+DELETE FROM `creature_questrelation` WHERE (`id`=45417) AND (`quest`=27448);
+DELETE FROM `creature_questrelation` WHERE (`id`=45429) AND (`quest`=27381);
+DELETE FROM `creature_questrelation` WHERE (`id`=45417) AND (`quest`=27373);
 
 -- fix chain npc Rimblat Earthshatter <The Earthen Ring>
-UPDATE `quest_template` SET `PrevQuestId`='27456' WHERE (`Id`='27457');
+UPDATE `quest_template` SET `PrevQuestId`=27456 WHERE (`Id`=27457);
 
 -- fix smokey and the bandage 
 DELETE FROM `creature_loot_template` WHERE `entry`=46167 AND item=62028;
@@ -150,7 +150,7 @@ INSERT INTO `creature_loot_template` (`entry`, `item`, `ChanceOrQuestChance`) VA
 UPDATE `creature_template` SET `lootid`=8603 WHERE (`entry`=8603);
 
 -- fix gob mancanti
-DELETE FROM `gameobject` WHERE (`id`='205560');
+DELETE FROM `gameobject` WHERE (`id`=205560);
 INSERT INTO `gameobject` VALUES (255851, 205560, 0, 1, 65535, 3148.01, -3160.91, 165.487, 2.16319, 0, 0, 0.882709, 0.46992, 300, 0, 1);
 INSERT INTO `gameobject` VALUES (255852, 205560, 0, 1, 65535, 3143.56, -3119.34, 167.698, 1.95716, 0, 0, 0.829706, 0.558201, 300, 0, 1);
 INSERT INTO `gameobject` VALUES (255853, 205560, 0, 1, 65535, 3182.48, -3090.15, 155.087, 0.89291, 0, 0, 0.431771, 0.901983, 300, 0, 1);
@@ -172,7 +172,7 @@ INSERT INTO `gameobject` VALUES (255868, 205560, 0, 1, 65535, 2972.11, -3145.3, 
 INSERT INTO `gameobject` VALUES (255869, 205560, 0, 1, 65535, 2992.23, -3147.96, 114.089, 6.15783, 0, 0, 0.0626382, -0.998036, 300, 0, 1);
 INSERT INTO `gameobject` VALUES (255870, 205560, 0, 1, 65535, 3035.39, -3180.29, 141.011, 5.82258, 0, 0, 0.228274, -0.973597, 300, 0, 1);
 
-DELETE FROM `gameobject` WHERE (`id`='205559');
+DELETE FROM `gameobject` WHERE (`id`=205559);
 INSERT INTO `gameobject` VALUES (255822, 205559, 0, 1, 65535, 3079.96, -3209.17, 143.709, 5.60301, 0, 0, 0.33357, -0.942725, 300, 0, 1);
 INSERT INTO `gameobject` VALUES (255823, 205559, 0, 1, 65535, 3053.45, -3195.43, 146.062, 2.70838, 0, 0, 0.976633, 0.214915, 300, 0, 1);
 INSERT INTO `gameobject` VALUES (255824, 205559, 0, 1, 65535, 3063.24, -3143.52, 134.365, 1.92201, 0, 0, 0.819767, 0.572697, 300, 0, 1);
@@ -221,14 +221,14 @@ DELETE FROM `creature_loot_template` WHERE `entry`=12261 AND item=61313;
 INSERT INTO `creature_loot_template` (`entry`, `item`, `ChanceOrQuestChance`) VALUES (12261, 61313, -70);
 UPDATE `creature_template` SET `lootid`=12261 WHERE (`entry`=12261);
 
-DELETE FROM `creature_questrelation` WHERE (`id`='16115') AND (`quest`='27612');
+DELETE FROM `creature_questrelation` WHERE (`id`=16115) AND (`quest`=27612);
 
 -- fix chain crusade commander eligor dawnbringer ERRATO da rivedere http://www.wowhead.com/quest=27612
--- UPDATE `quest_template` SET `PrevQuestId`='27612' WHERE (`Id`='27613');
--- UPDATE `quest_template` SET `PrevQuestId`='27613' WHERE (`Id`='27614');
--- UPDATE `quest_template` SET `PrevQuestId`='27614' WHERE (`Id`='27615');
--- UPDATE `quest_template` SET `PrevQuestId`='27615' WHERE (`Id`='27616');
--- UPDATE `quest_template` SET `PrevQuestId`='27616' WHERE (`Id`='27619');
--- UPDATE `quest_template` SET `PrevQuestId`='27619' WHERE (`Id`='27617');
--- UPDATE `quest_template` SET `PrevQuestId`='27617' WHERE (`Id`='27618');
--- UPDATE `quest_template` SET `PrevQuestId`='27618' WHERE (`Id`='27620');
+-- UPDATE `quest_template` SET `PrevQuestId`=27612 WHERE (`Id`=27613);
+-- UPDATE `quest_template` SET `PrevQuestId`=27613 WHERE (`Id`=27614);
+-- UPDATE `quest_template` SET `PrevQuestId`=27614 WHERE (`Id`=27615);
+-- UPDATE `quest_template` SET `PrevQuestId`=27615 WHERE (`Id`=27616);
+-- UPDATE `quest_template` SET `PrevQuestId`=27616 WHERE (`Id`=27619);
+-- UPDATE `quest_template` SET `PrevQuestId`=27619 WHERE (`Id`=27617);
+-- UPDATE `quest_template` SET `PrevQuestId`=27617 WHERE (`Id`=27618);
+-- UPDATE `quest_template` SET `PrevQuestId`=27618 WHERE (`Id`=27620);
