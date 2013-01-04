@@ -82,6 +82,7 @@ UPDATE `creature_template` SET `unit_flags`=131076 WHERE (`entry`=44820);   -- T
 UPDATE `gameobject_template` SET `data1`=205076 WHERE (`entry`=205076); -- Trainig Dummy (Echo Isles)
 UPDATE `creature_template` SET `npcflag`=0 WHERE (`entry`=39317); 
 UPDATE `creature_template` SET `npcflag`=0 WHERE (`entry`=3102);
+-- Porco dio sti cazzo di delete dio cane
 INSERT INTO `gameobject_loot_template` (`entry`,`item`) VALUES (205076,60732);
 UPDATE `quest_template` SET `Flags`=524288,`SpecialFlags`=4,`RequiredSpellCast1`=19938 WHERE (`Id`=25134);  -- Lazy Peons
 INSERT INTO `gameobject_loot_template` (`entry`,`item`) VALUES (202648,52558);

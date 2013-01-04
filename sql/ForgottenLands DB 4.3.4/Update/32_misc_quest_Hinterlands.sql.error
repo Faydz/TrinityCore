@@ -24,6 +24,7 @@ UPDATE `creature_template` SET `lootid`=14748 WHERE (`entry`=14748);
 
 --
 DELETE FROM `item_template` WHERE (`entry`=579200);
+-- Cazzo di lesi Error Code: 1062 - Duplicate entry '630790' for key 'PRIMARY'
 INSERT INTO `item_template` VALUES (630790, 12, 0, -1, 'Titanium Shackles', 73232, 1, 65600, 8192, 1, 1, 1, 0, 0, 0, -1, -1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000, 0, 88797, 0, 0, -1, 0, 1500, 0, 0, 0, -1, 0, -1, 0, 0, 0, -1, 0, -1, 0, 0, 0, -1, 0, -1, 0, 0, 0, -1, 0, -1, 4, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
 DELETE FROM `spell_scripts` WHERE (`datalong`=42597); 
 INSERT INTO `spell_scripts` (`id`, `command`, `datalong`) VALUES (79402, 8, 42597);

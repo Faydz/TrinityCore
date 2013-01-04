@@ -10,4 +10,5 @@ UPDATE `quest_template` SET `RequiredSpellCast1`=2061 WHERE (`Id`=26970);
 UPDATE `creature_template` SET `unit_flags`=0 WHERE (`entry`=16971);
 UPDATE `quest_template` SET `RequiredNpcOrGo1`=44548, `RequiredSpellCast1`=73899 WHERE (`Id`=26969);
 UPDATE `quest_template` SET `RequiredNpcOrGo1`=44548, `RequiredSpellCast1`=5143 WHERE (`Id`=26968);
+-- che cazzo è sta roba ? 164324 è l'id o il guid ? cristo maiale
 INSERT INTO `gameobject` VALUES (164324, 181746, 530, 1, 1, -1200.6, -11401.2, 0.789987, 5.98932, 0, 0, 0.146406, -0.989225, 300, 0, 1);

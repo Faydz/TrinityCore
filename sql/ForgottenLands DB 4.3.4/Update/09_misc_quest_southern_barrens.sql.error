@@ -758,7 +758,7 @@ update smart_scripts set event_flags = 0 WHERE entryorguid IN (37167) AND source
 insert into `creature_text` (`entry`, `groupid`, `id`, `text`, `type`, `language`, `probability`, `emote`, `duration`, `sound`, `comment`) values
 ('37167','1','0','From up here I got the perfect view of the havoc you just caused, $n . Our lost brothers reclaimed some of their dignity, and the Alliance dogs were sent scrambling. Sharp work, my friend! ','12','0','100','0','0','0','Life party');
 
-
+-- Sti cazzo di delete dio caneeeeeeeeeeeeeeeeeeee
 INSERT INTO `gameobject_template` VALUES (201707, 10, 7538, 'Coiled Rope', '', 'Using', '', 0, 0, 1.5, 0, 0, 0, 0, 0, 0, 43, 0, 22710, 3, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 19700, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 15595);
 INSERT INTO `gameobject` VALUES (null, 201708, 1, 1, 1, -559.282, -1409.92, 92.3829, 5.86707, 0, 0, 0.206562, -0.978433, 300, 0, 1);
 INSERT INTO `gameobject` VALUES (null, 201707, 1, 1, 1, -614.553, -1416.15, 157.533, 5.71392, 0, 0, 0.280805, -0.959765, 300, 0, 1);

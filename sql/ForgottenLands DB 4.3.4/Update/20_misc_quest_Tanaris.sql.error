@@ -11,6 +11,7 @@ UPDATE `quest_template` SET `PrevQuestId`='25095' WHERE (`Id`='25513');
 
 
 -- Quest 25067 Thunderdrome: The Ginormus!
+-- asd Error Code: 1054 - Unknown column 'StartScript' in 'field list'
 UPDATE `quest_template` SET `RequiredNpcOrGo1`='39075', `RequiredNpcOrGoCount1`='1', `StartScript`='25067' WHERE (`Id`='25067');
 DELETE FROM `quest_start_scripts` WHERE (`id`='25067');
 INSERT INTO `quest_start_scripts` (`id`, `command`, `datalong`, `datalong2`, `x`, `y`, `z`, `o`) VALUES ('25067', '10', '39075', '120000', '-7139.56', '-3786.39', '8.99354', '5.97151');

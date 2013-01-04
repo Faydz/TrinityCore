@@ -374,6 +374,7 @@ INSERT INTO `creature_questrelation` (`id`, `quest`) VALUES ('3698', '13985');
 UPDATE `creature` SET `id`='34604' WHERE (`id`='34608');
 
 -- Quest 13982 In a Bind
+-- dio porco dio Error Code: 1054 - Unknown column 'StartScript' in 'field list'
 UPDATE `quest_template` SET `StartScript`='13982' WHERE (`Id`='13982');
 DELETE FROM `quest_start_scripts` WHERE (`id`='13982');
 INSERT INTO `quest_start_scripts` (`id`, `command`, `datalong`, `datalong2`, `x`, `y`, `z`, `o`) VALUES ('13982', '10', '34602', '120000', '2383.63', '639.579', '148.897', '2.11285');

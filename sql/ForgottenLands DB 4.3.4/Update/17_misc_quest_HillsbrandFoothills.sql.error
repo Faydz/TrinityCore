@@ -93,6 +93,7 @@ UPDATE `quest_template` SET `PrevQuestId`='28566' WHERE (`Id`='28604');
 -- fix flag 48545
 UPDATE `quest_template` SET `Flags`='8' WHERE (`Id`='28616');
 
+-- Nabbi Error Code: 1146 - Table '434_world.quest_start_scripts' doesn't exist
 DELETE FROM `quest_start_scripts` WHERE (`id`='28600');
 INSERT INTO `quest_start_scripts` (`id`, `command`, `datalong`, `datalong2`, `x`, `y`, `z`, `o`) VALUES ('28600', '10', '48969', '120000', '374.658', '-1001.56', '109.681', '1.84566');
 UPDATE `quest_template` SET `StartScript`=28600 WHERE (`Id`='28600');

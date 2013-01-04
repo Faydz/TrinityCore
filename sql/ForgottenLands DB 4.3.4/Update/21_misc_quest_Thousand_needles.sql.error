@@ -2321,6 +2321,8 @@ DELETE FROM `creature` WHERE (`id`='45278');
 INSERT INTO `creature` VALUES (null, 45278, 1, 1, 1, 0, 0, -5408.62, -2288.32, 89.6637, 6.03846, 300, 0, 0, 84, 0, 0, 0, 0, 0);
 
 -- Quest 27311 No Weapons For You!
+-- Non solo mettete lo stesso cazzo di file due volte, ma ci fate pure gli stessi errori dio cane
+-- Error Code: 1146 - Table 434_world.quest_start_scripts doesn t exist
 DELETE FROM `quest_start_scripts` WHERE (`id`='27311');
 INSERT INTO `quest_start_scripts` VALUES (27311, 0, 15, 84658, 3, 0, 0, 0, 0, 0);
 UPDATE `quest_template` SET `StartScript`='27311' WHERE (`Id`='27311');
