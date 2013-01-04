@@ -567,23 +567,40 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                     break;
                 case SPELLFAMILY_PRIEST:
                     // Power Word: Shield
-                    if (GetSpellInfo()->SpellFamilyFlags[0] & 0x1)
+                    if (GetId() == 17)
                     {
-                        // +80.68% from sp bonus
-                        DoneActualBenefit += caster->SpellBaseHealingBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
-                        DoneActualBenefit *= caster->CalculateLevelPenalty(GetSpellInfo());
+                        //+80.68% from sp bonus
+                        float bonus = 0.8068f;
 
+                        DoneActualBenefit += caster->SpellBaseHealingBonusDone(m_spellInfo->GetSchoolMask()) * bonus;
+                        DoneActualBenefit *= caster->CalculateLevelPenalty(GetSpellInfo());
                         amount += int32(DoneActualBenefit);
 
-                        // Twin Disciplines
-                        if (AuraEffect const* pAurEff = caster->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_PRIEST, 2292, 0))
+                        // Improved PW: Shield
+                        if (AuraEffect const* pAurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 566, 1))
                             AddPct(amount, pAurEff->GetAmount());
 
-                        // Reuse variable, not sure if this code below can be moved before Twin Disciplines
+                        // Spiritual Healing
+                        if (AuraEffect const* pAurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_PRIEST, 3131, 0))
+                            AddPct(amount, pAurEff->GetAmount());
+
+                        // Twin Disciplines
                         DoneActualBenefit = float(amount);
                         DoneActualBenefit *= caster->GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_DONE_PERCENT);
                         amount = int32(DoneActualBenefit);
 
+                        // Mastery: Shield Discipline
+                        if (caster->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY))
+                        {
+                            if (caster->ToPlayer()->getClass() == CLASS_PRIEST)
+                            {
+                                if (caster->ToPlayer()->GetPrimaryTalentTree(caster->ToPlayer()->GetActiveSpec()) == BS_PRIEST_DISCIPLINE)
+                                {
+                                    int32 bp = int32(amount * (0.2f + (0.025f * caster->ToPlayer()->GetMasteryPoints())));
+                                    amount += bp;
+                                }
+                            }
+                        }
                         return amount;
                     }
                     break;
