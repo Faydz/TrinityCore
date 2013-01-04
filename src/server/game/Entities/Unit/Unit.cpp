@@ -6087,6 +6087,29 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         basepoints0 = int32(CalculatePct(damage, triggerAmount) / (blessHealing->GetMaxDuration() / blessHealing->Effects[0].Amplitude));
                     }
                     break;
+                // Echo of light
+                case 77485:
+                    if (!ToPlayer())
+                        return false;
+
+                    if (triggerAmount == 0)
+                        return false;
+
+                    if (getClass() == CLASS_PRIEST)
+                    {
+                        if (HasAuraType(SPELL_AURA_MASTERY))
+                        {
+                            if (ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) == BS_PRIEST_HOLY)
+                            {
+                                int32 bp0 = int32(damage * ((triggerAmount / 100 * ToPlayer()->GetMasteryPoints())) / 100);
+                                bp0 = bp0 / 6;
+                                if (target->HasAura(77489, GetGUID())) 
+                                    bp0 +=	target->GetAura(77489, GetGUID())->GetEffect(0)->GetAmount();
+                                CastCustomSpell(target, 77489, &bp0, NULL, NULL, true);
+                            }
+                        }
+                    }
+                    break;
             }
             break;
         }

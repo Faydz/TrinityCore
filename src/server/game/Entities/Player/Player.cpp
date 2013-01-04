@@ -8116,6 +8116,10 @@ void Player::RemoveOrAddMasterySpells()
         if (GetPrimaryTalentTree(GetActiveSpec()) == BS_SHAMAN_ELEMENTAL)
             if (!HasAura(77222))
                 AddAura(77222, this);
+
+        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PRIEST_HOLY)
+            if (!HasAura(77485))
+                AddAura(77485, this);
     }
 }
 
