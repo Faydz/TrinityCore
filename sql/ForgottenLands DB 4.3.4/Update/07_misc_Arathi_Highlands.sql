@@ -127,4 +127,4 @@ DELETE FROM `creature_questrelation` WHERE (`id`=2789) AND (`quest`=26049);
 DELETE FROM `creature_questrelation` WHERE (`id`=2787) AND (`quest`=26912);
 
 -- sunken treasure RIMOSSA
-DELETE FROM `creature_questrelation` WHERE (`id`=2774) AND (`quest`=26051) 
+DELETE FROM `creature_questrelation` WHERE (`id`=2774) AND (`quest`=26051);
