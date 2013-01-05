@@ -6133,6 +6133,13 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Harmony
+                case 77495:
+                    if (procSpell->Id != 5185 && procSpell->Id != 8936 && procSpell->Id != 18562 && procSpell->Id != 50464)
+                        return false;
+
+                    CastSpell(this, 100977, true);
+                    break;
                 // Glyph of Innervate
                 case 54832:
                 {

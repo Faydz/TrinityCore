@@ -904,6 +904,78 @@ class spell_dru_eclipse : public SpellScriptLoader
         }
 };
 
+
+class spell_dru_harmony_periodic : public SpellScriptLoader
+{
+    public:
+        spell_dru_harmony_periodic() : SpellScriptLoader("spell_dru_harmony_periodic") { }
+
+        class spell_dru_harmony_periodic_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dru_harmony_periodic_AuraScript);
+
+            void CalculateBonus(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = true;
+
+                if (!GetCaster())
+                    return;
+
+                // Harmony (Druid Restoration Mastery)
+                if (Player* caster = GetCaster()->ToPlayer())
+                    if (caster->HasAuraType(SPELL_AURA_MASTERY))
+                        if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_DRUID_RESTORATION)
+                            amount += int32(1.25f * caster->GetMasteryPoints());
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dru_harmony_periodic_AuraScript::CalculateBonus, EFFECT_0, SPELL_AURA_ADD_PCT_MODIFIER);
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dru_harmony_periodic_AuraScript::CalculateBonus, EFFECT_1, SPELL_AURA_ADD_PCT_MODIFIER);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dru_harmony_periodic_AuraScript();
+        }
+};
+
+class spell_dru_harmony : public SpellScriptLoader
+{
+    public:
+        spell_dru_harmony() : SpellScriptLoader("spell_dru_harmony") { }
+
+        class spell_dru_harmony_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dru_harmony_AuraScript);
+
+            void CalculateBonus(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = true;
+
+                if (!GetCaster())
+                    return;
+
+                // Harmony (Druid Restoration Mastery)
+                if (Player* caster = GetCaster()->ToPlayer())
+                    if (caster->HasAuraType(SPELL_AURA_MASTERY))
+                        if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_DRUID_RESTORATION)
+                            amount += int32(1.25f * caster->GetMasteryPoints());
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dru_harmony_AuraScript::CalculateBonus, EFFECT_0, SPELL_AURA_ADD_PCT_MODIFIER);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dru_harmony_AuraScript();
+        }
+};
+
 void AddSC_druid_spell_scripts()
 {
     new spell_dru_enrage();
@@ -922,6 +994,8 @@ void AddSC_druid_spell_scripts()
     new spell_dru_tiger_s_fury();
     new spell_dru_t10_restoration_4p_bonus();
     new spell_dru_eclipse_energize();
-	new spell_dru_ferocious_bite();
+    new spell_dru_ferocious_bite();
     new spell_dru_eclipse();
+    new spell_dru_harmony_periodic();
+    new spell_dru_harmony();
 }
