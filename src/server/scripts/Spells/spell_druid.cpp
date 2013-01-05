@@ -869,6 +869,41 @@ public:
         }
 };
 
+class spell_dru_eclipse : public SpellScriptLoader
+{
+    public:
+        spell_dru_eclipse() : SpellScriptLoader("spell_dru_eclipse") { }
+
+        class spell_dru_eclipse_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dru_eclipse_AuraScript);
+
+            void CalculateBonus(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = true;
+
+                if (!GetCaster())
+                    return;
+
+                // Total Eclipse (Druid Balance Mastery)
+                if (Player* caster = GetCaster()->ToPlayer())
+                    if (caster->HasAuraType(SPELL_AURA_MASTERY))
+                        if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_DRUID_BALANCE)
+                            amount += int32(2.0f * caster->GetMasteryPoints());
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dru_eclipse_AuraScript::CalculateBonus, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dru_eclipse_AuraScript();
+        }
+};
+
 void AddSC_druid_spell_scripts()
 {
     new spell_dru_enrage();
@@ -888,4 +923,5 @@ void AddSC_druid_spell_scripts()
     new spell_dru_t10_restoration_4p_bonus();
     new spell_dru_eclipse_energize();
 	new spell_dru_ferocious_bite();
+    new spell_dru_eclipse();
 }
