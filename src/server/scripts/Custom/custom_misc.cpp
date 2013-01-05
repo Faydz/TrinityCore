@@ -287,186 +287,233 @@ public:
 
 		if (action == 100)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(1060); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 102)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(134); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 103)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(856); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
+
 		}
 		if (action == 104)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(441); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 105)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(10973); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 106)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(10728); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.7f);
 		}
 		if (action == 107)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(10993); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.1f);
 		}
 		if (action == 108)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(24978); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.1f);
 		}
 		if (action == 200)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(175); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.1f);
 		}
 		if (action == 201)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(21252); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.2f);
 		}		
 		if (action == 202)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(27571); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.4f);
 		}                                                             
 		if (action == 203)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(28641); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.2f);
 		}
 		if (action == 204)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(30721); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.4f);
 		}
 		if (action == 205)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(15945); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.2f);
 		}
 		if (action == 206)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(20023); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.3f);
 		}
 		if (action == 207)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(21443); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.3f);
 		}
 		if (action == 208)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(21576); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.7f);
 		}
 		if (action == 209)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(31165); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.4f);
 		}
 		if (action == 210)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(30790); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.8f);
 		}
 		if (action == 300)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(24949); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.8f);
 		}
 		if (action == 301)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(4527); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.8f);
 		}
 		if (action == 302)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(28213); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.9f);
 		}
 		if (action == 303)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(28127); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.8f);
 		}
 		if (action == 304)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(3597); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 305)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(30865); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.9f);
 		}
 		if (action == 306)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(28227); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.7f);
 		}
 		if (action == 307)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(30821); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.6f);
 		}
 		if (action == 350)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51551, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 351)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51542, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 352)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51541, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 353)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51537, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 354)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51538, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 355)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51550, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 356)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51549, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 357)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51539, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 358)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51540, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 359)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51534, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 360)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51520, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 361)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51536, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 362)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51535, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 363)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51543, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 364)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51544, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 365)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51547, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 366)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51548, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 367)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51546, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 368)
 		{
+			player->DeMorph(); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->AddAura(51545, player); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 600)
@@ -498,94 +545,117 @@ public:
 		}
 		if (action == 400)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(903); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 401)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(3027); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 402)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(368); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 403)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(598); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 404)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(2437); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 405)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(845); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 406)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(11317); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 407)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(10986); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 408)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(1536); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 409)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(7344); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 410)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(4418); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 411)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(5927); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 412)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(9409); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 413)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(1122); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 414)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(7247); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 415)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(11180); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 416)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(18859); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 417)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(11255); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 418)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(726); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 419)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(5562); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 420)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(9587); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 		if (action == 421)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(14503); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.8f);
 		}
 		if (action == 422)
 		{
+			player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 			player->CLOSE_GOSSIP_MENU(); player->SetDisplayId(1405); player->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
 		}
 
