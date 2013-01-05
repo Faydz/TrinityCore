@@ -9712,6 +9712,18 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                        DoneTotalMod *= 1.0f + 2.5f * owner->ToPlayer()->GetMasteryPoints() / 100;
             }
             break;
+        case SPELLFAMILY_SHAMAN:
+            // Enhanced Elements (Enhanchment Mastery)
+            if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && (spellProto->SchoolMask == SPELL_SCHOOL_MASK_FIRE ||
+                spellProto->SchoolMask == SPELL_SCHOOL_MASK_FROST || spellProto->SchoolMask == SPELL_SCHOOL_MASK_NATURE))
+            {
+               if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_SHAMAN_ENCHANCEMENT)
+               {
+                   float pct = uint32(0.025f * owner->ToPlayer()->GetMasteryPoints());
+                   DoneTotalMod *= 1 + pct;
+               }
+            }
+            break;
     }
 
     // Done fixed damage bonus auras
