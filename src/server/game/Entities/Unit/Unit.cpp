@@ -10314,6 +10314,22 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
             return healamount;
     }
 
+    // Custom scripted healing
+    switch (spellProto->SpellFamilyName)
+    {
+        case SPELLFAMILY_SHAMAN:
+               if (ToPlayer() && HasAuraType(SPELL_AURA_MASTERY))
+               {
+                   if (ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) == BS_SHAMAN_RESTORATION)
+                   {
+                       // % Heal bonus = (1 - 0.hp)*%masery
+                       float healtPct = victim->GetHealthPct()/100;
+                       DoneTotalMod *= 1.0f + ((1-healtPct) * (3.0f * ToPlayer()->GetMasteryPoints())) / 100;
+                   }
+               }
+            break;
+    }
+
     // Default calculation
     if (DoneAdvertisedBenefit)
     {
