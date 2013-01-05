@@ -9549,6 +9549,19 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                }
             }
 
+            // Frostburn Frost Mastery
+            if (owner->getClass() == CLASS_MAGE && (victim->HasAura(82691) || victim->HasAura(44572) 
+                   || victim->HasAura(22645) || victim->HasAura(83302) || victim->HasAura(83301)))
+            {
+               if (owner->HasAuraType(SPELL_AURA_MASTERY))
+               {
+                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FROST)
+                   {
+                       DoneTotalMod *= 1 + (owner->ToPlayer()->GetMasteryPoints() * 0.025f);
+                   }
+               }
+            }
+
             // Torment the weak
             if (spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_ARCANE)
             {
