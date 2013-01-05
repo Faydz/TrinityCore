@@ -6110,6 +6110,22 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         }
                     }
                     break;
+                // Shadow Orbs
+                case 95740:
+                    if (!procSpell)
+                        return false;
+                    
+                    if (procSpell->Id != 15407 && procSpell->Id != 589)
+                        return false;
+
+                    int chance = 10;
+                    // Harnessed Shadows
+                    if (AuraEffect* aurEff = this->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_PRIEST, 554, 0))
+                        chance += aurEff->GetAmount();
+
+                    if (!roll_chance_i(chance))
+                        return false;
+                    break;
             }
             break;
         }
