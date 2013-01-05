@@ -8066,6 +8066,12 @@ void Player::RemoveOrAddMasterySpells()
 
         if (HasAura(76838))
             RemoveAurasDueToSpell(76838);
+
+        if (HasAura(77485))
+            RemoveAurasDueToSpell(77485);
+
+        if (HasAura(76669))
+            RemoveAurasDueToSpell(76669);      
 	} 
     else if (HasAuraType(SPELL_AURA_MASTERY)) 
     {
@@ -8120,6 +8126,10 @@ void Player::RemoveOrAddMasterySpells()
         if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PRIEST_HOLY)
             if (!HasAura(77485))
                 AddAura(77485, this);
+
+        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PALADIN_HOLY)
+            if (!HasAura(76669))
+                AddAura(76669, this);
     }
 }
 

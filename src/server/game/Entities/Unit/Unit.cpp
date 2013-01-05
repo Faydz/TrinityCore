@@ -6483,8 +6483,33 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
-               // Hand of light (Paladin Retribution Mastery)
-               case 76672:
+                // Illuminated Healing (Holy Paladin Mastery)
+                case 76669:
+                    if (triggerAmount == 0)
+                        return false;
+
+                    if (getClass() == CLASS_PALADIN)
+                    {
+                       if (HasAuraType(SPELL_AURA_MASTERY))
+                       {
+                           if (ToPlayer() && ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) == BS_PALADIN_HOLY)
+                           {
+                               int32 bp0 = int32(damage	* 1.5f * ToPlayer()->GetMasteryPoints() / 100);
+
+                               if (target->HasAura(86273))
+                                   bp0 += target->GetAura(86273, GetGUID())->GetEffect(0)->GetAmount();
+
+                               if (bp0 > int32(GetMaxHealth() / 3))
+                                   bp0 = int32(GetMaxHealth() / 3);
+
+                               CastCustomSpell(target, 86273, &bp0, NULL, NULL, true);
+                               return true;
+                           }
+                       }
+                    }
+                    break;
+                // Hand of light (Paladin Retribution Mastery)
+                case 76672:
                    if (procSpell->Id != 35395 && procSpell->Id != 53385 && procSpell->Id != 85256)
                        return false;
 
