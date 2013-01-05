@@ -859,7 +859,6 @@ public:
 
             void Register() 
             {
-                sLog->outError(LOG_FILTER_GENERAL, "caccola");
                 OnHit += SpellHitFn(spell_dru_ferocious_bite_SpellScript::BloodInTheWater);
             }
         };

@@ -9535,6 +9535,20 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 if (victim->HasAuraState(AURA_STATE_FROZEN, spellProto, this))
                     DoneTotalMod *= 2.0f;
 
+            // Mana Adept - Arcane Mastery
+            if (owner->getClass() == CLASS_MAGE)
+            {
+               if (owner->HasAuraType(SPELL_AURA_MASTERY))
+               {
+                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_ARCANE)
+                   {
+                       // [1 + (0.12 + 0.015*M)*(mana atm)/(max mana)]*100%
+                       float manaPct = 100.f * owner->GetPower(POWER_MANA) / owner->GetMaxPower(POWER_MANA);
+                       DoneTotalMod *= (1+ (((owner->ToPlayer()->GetMasteryPoints() * 0.015f)) * manaPct/100));
+                   }
+               }
+            }
+
             // Torment the weak
             if (spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_ARCANE)
             {
