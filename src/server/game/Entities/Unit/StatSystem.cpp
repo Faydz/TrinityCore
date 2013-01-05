@@ -740,7 +740,13 @@ void Player::UpdateMastery()
     if (HasAuraType(SPELL_AURA_MASTERY))
     {
 		if(HasAura(76671))
-			GetAura(76671)->RecalculateAmountOfEffects();
+			GetAura(76671)->RecalculateAmountOfEffects();//Paladin Protection Mastery
+		if(HasAura(77514))
+			GetAura(77514)->RecalculateAmountOfEffects();//DK Frost Mastery
+        if(HasAura(48517))
+            GetAura(48517)->RecalculateAmountOfEffects();// Druid Balance Mastery
+        if(HasAura(48518))
+            GetAura(48518)->RecalculateAmountOfEffects();// Druid Balance Mastery
         SetInt32Value(PLAYER_FIELD_COMBAT_RATING_1 + CR_MASTERY, m_baseRatingValue[CR_MASTERY]);
         SetFloatValue(PLAYER_MASTERY, GetMasteryPoints());
     }
