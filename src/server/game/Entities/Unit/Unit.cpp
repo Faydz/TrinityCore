@@ -6483,6 +6483,17 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
+               // Hand of light (Paladin Retribution Mastery)
+               case 76672:
+                   if (procSpell->Id != 35395 && procSpell->Id != 53385 && procSpell->Id != 85256)
+                       return false;
+
+                   if (Player* caster = ToPlayer())
+                   {
+                       int32 bp0 = int32(damage * (2.1f *  caster->GetMasteryPoints()) / 100);
+                       caster->CastCustomSpell(target, 96172, &bp0, 0, 0, true, 0, 0, 0);
+                   }
+                   break;
                 // Sacred Shield
                 case 53601:
                 {
