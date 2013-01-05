@@ -6709,6 +6709,35 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Elemental Overload (Shaman Elemental mastery)
+                case 77222:
+                   if (Player* caster = ToPlayer())
+                   {
+                       if (procSpell->Id == 403 || procSpell->Id == 51505 || procSpell->Id == 421)
+                       {
+                           int32 chance = 0;
+                           chance += int32(caster->GetMasteryPoints() * 2);
+                           if (procSpell->Id == 421)
+                               chance = chance / 3;
+                           triggered_spell_id = 0;
+                           if (roll_chance_i(chance))
+                           {
+                               switch (procSpell->Id)
+                               {
+                                   case 403: // Lightning bolt
+                                       triggered_spell_id = 45284;
+                                       break;
+                                   case 51505: // Lava burst
+                                       triggered_spell_id = 77451;
+                                       break;
+                                   case 421: // Chain of lightning
+                                       triggered_spell_id = 45297;
+                                       break;
+                               }
+                           }
+                       }
+                   }
+                   break;
                 // Totemic Power (The Earthshatterer set)
                 case 28823:
                 {
