@@ -9676,8 +9676,18 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 if (uint8 count = victim->GetDoTsByCaster(GetOwnerGUID()))
                     AddPct(DoneTotalMod, 30 * count);
 
+            // Master Demonologist (Demonology Mastery)
+            if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
+            {
+               if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DEMONOLOGY)
+               {
+                   float pct = uint32(0.023f * owner->ToPlayer()->GetMasteryPoints());
+                   DoneTotalMod *= 1 +  pct;
+               }
+            }
+
             // Fiery Apocalypse (Warlock Destrucion Mastery)
-            if (owner->HasAuraType(SPELL_AURA_MASTERY) && spellProto->SchoolMask == SPELL_SCHOOL_MASK_FIRE)
+            if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && spellProto->SchoolMask == SPELL_SCHOOL_MASK_FIRE)
             {
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DESTRUCTION)
                {
