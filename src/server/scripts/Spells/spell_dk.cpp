@@ -716,15 +716,33 @@ class spell_dk_death_strike : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /* effIndex */)
             {
-                Unit* caster = GetCaster();
-                if (Unit* target = GetHitUnit())
+                if (Unit* caster = GetCaster())
                 {
-                    uint32 count = target->GetDiseasesByCaster(caster->GetGUID());
-                    int32 bp = int32(count * caster->CountPctFromMaxHealth(int32(GetSpellInfo()->Effects[EFFECT_0].DamageMultiplier)));
-                    // Improved Death Strike
-                    if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, ICON_ID_IMPROVED_DEATH_STRIKE, 0))
-                        AddPct(bp, caster->CalculateSpellDamage(caster, aurEff->GetSpellInfo(), 2));
-                    caster->CastCustomSpell(caster, SPELL_DEATH_STRIKE_HEAL, &bp, NULL, NULL, false);
+                    if (Unit* target = GetHitUnit())
+                    {
+                        int32 bp = int32(0.2f * caster->GetDamageTakenInPastSecs(5));
+
+                        // Improved Death Strike
+                        if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, ICON_ID_IMPROVED_DEATH_STRIKE, 0))
+                            AddPct(bp, caster->CalculateSpellDamage(caster, aurEff->GetSpellInfo(), 2));
+
+                        if (bp < int32(caster->CountPctFromMaxHealth(7)))
+                            return;
+
+                        if (Player* player = caster->ToPlayer())
+                        {
+                            if (player->HasAuraType(SPELL_AURA_MASTERY))
+                            {
+                                if (player->GetPrimaryTalentTree(player->GetActiveSpec()) == BS_DEATH_KNIGHT_BLOOD)
+                                {
+                                    int32 shieldAmount = 0;
+                                    shieldAmount = bp * (6.25f * player->GetMasteryPoints()) / 100;
+                                    player->CastCustomSpell(player, 77535, &shieldAmount, NULL, NULL, true);
+                                }
+                            }
+                        }
+                        caster->CastCustomSpell(caster, SPELL_DEATH_STRIKE_HEAL, &bp, NULL, NULL, false);
+                    }
                 }
             }
 

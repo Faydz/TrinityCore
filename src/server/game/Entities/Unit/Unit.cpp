@@ -185,6 +185,7 @@ Unit::Unit(bool isWorldObject): WorldObject(isWorldObject)
 
     m_updateFlag = UPDATEFLAG_LIVING;
 
+    DmgandHealDoneTimer = 0;
     m_attackTimer[BASE_ATTACK] = 0;
     m_attackTimer[OFF_ATTACK] = 0;
     m_attackTimer[RANGED_ATTACK] = 0;
@@ -268,6 +269,15 @@ Unit::Unit(bool isWorldObject): WorldObject(isWorldObject)
 
     m_serverSideVisibility.SetValue(SERVERSIDE_VISIBILITY_GHOST, GHOST_VISIBILITY_ALIVE);
 
+    for (uint32 i = 0; i < 120; ++i)
+        m_damage_done [i] = 0;
+
+    for (uint32 i = 0; i < 120; ++i)
+        m_heal_done [i] = 0;
+
+    for (uint32 i = 0; i < 120; ++i)
+        m_damage_taken [i] = 0;
+
     _focusSpell = NULL;
     _lastLiquid = NULL;
     _isWalkingBeforeCharm = false;
@@ -329,6 +339,32 @@ void Unit::Update(uint32 p_time)
 
     if (!IsInWorld())
         return;
+
+    // This is required for GetHealingDoneInPastSecs(), GetDamageDoneInPastSecs() and GetDamageTakenInPastSecs()!
+    DmgandHealDoneTimer -= p_time;
+
+    if (DmgandHealDoneTimer <= 0)
+    {
+        for (uint32 i = 119; i > 0; i--)
+        {
+            m_damage_done [i] = m_damage_done [i - 1];
+        }
+        m_damage_done [0] = 0;
+
+        for (uint32 i = 119; i > 0; i--)
+        {
+            m_heal_done [i] = m_heal_done [i - 1];
+        }
+        m_heal_done [0] = 0;
+
+        for (uint32 i = 119; i > 0; i--)
+        {
+            m_damage_taken [i] = m_damage_taken [i - 1];
+        }
+        m_damage_taken [0] = 0;
+
+        DmgandHealDoneTimer = 1000;
+    }
 
     _UpdateSpells(p_time);
 
@@ -559,6 +595,12 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
 
     if (IsAIEnabled)
         GetAI()->DamageDealt(victim, damage, damagetype);
+
+    if (damagetype == DIRECT_DAMAGE || damagetype == SPELL_DIRECT_DAMAGE)
+    {
+        m_damage_done[0] += damage;
+        victim->m_damage_taken [0] += damage;
+    }
 
     if (victim->GetTypeId() == TYPEID_PLAYER && this != victim)
     {
@@ -9216,6 +9258,8 @@ int32 Unit::DealHeal(Unit* victim, uint32 addhealth)
         gain = victim->ModifyHealth(int32(addhealth));
 
     Unit* unit = this;
+
+    m_heal_done[0] += addhealth;
 
     if (GetTypeId() == TYPEID_UNIT && ToCreature()->isTotem())
         unit = GetOwner();
@@ -18028,4 +18072,70 @@ void Unit::ReleaseFocus(Spell const* focusSpell)
 
     if (focusSpell->GetSpellInfo()->AttributesEx5 & SPELL_ATTR5_DONT_TURN_DURING_CAST)
         ClearUnitState(UNIT_STATE_ROTATING);
+}
+
+uint32 Unit::GetHealingDoneInPastSecs(uint32 secs)
+{
+    uint32 heal = 0;
+
+    if (secs > 120) 
+        secs = 120;
+
+    for (uint32 i = 0; i < secs; i++)
+        heal += m_heal_done[i];
+
+    if (heal < 0) 
+        return 0;
+
+    return heal;
+}
+
+uint32 Unit::GetDamageDoneInPastSecs(uint32 secs)
+{
+    uint32 damage = 0;
+
+    if (secs > 120)
+        secs = 120;
+
+    for (uint32 i = 0; i < secs; i++)
+        damage += m_damage_done[i];
+
+    if (damage < 0) 
+        return 0;
+
+    return damage;
+}
+
+uint32 Unit::GetDamageTakenInPastSecs(uint32 secs)
+{
+    uint32 tdamage = 0;
+
+    if (secs > 120) 
+        secs = 120;
+
+    for (uint32 i = 0; i < secs; i++)
+        tdamage += m_damage_taken[i];
+
+    if (tdamage < 0)
+        return 0;
+
+    return tdamage;
+}
+
+void Unit::ResetDamageDoneInPastSecs(uint32 secs)
+{
+    if (secs > 120) 
+        secs = 120;
+
+    for (uint32 i = 0; i < secs; i++)
+        m_damage_done[i] = 0;
+}
+
+void Unit::ResetHealingDoneInPastSecs(uint32 secs)
+{
+    if (secs > 120)
+        secs = 120;
+
+    for (uint32 i = 0; i < secs; i++)
+        m_heal_done[i] = 0;
 }

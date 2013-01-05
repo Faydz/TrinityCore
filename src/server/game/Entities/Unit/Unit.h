@@ -2220,6 +2220,16 @@ class Unit : public WorldObject
         time_t GetLastDamagedTime() const { return _lastDamagedTime; }
         void SetLastDamagedTime(time_t val) { _lastDamagedTime = val; }
 
+        uint32 m_heal_done[120];
+        uint32 m_damage_done[120];
+        uint32 m_damage_taken[120];
+        int32 DmgandHealDoneTimer;
+        uint32 GetHealingDoneInPastSecs(uint32 secs);
+        uint32 GetDamageDoneInPastSecs(uint32 secs);
+        uint32 GetDamageTakenInPastSecs(uint32 secs);
+        void ResetDamageDoneInPastSecs(uint32 secs);
+        void ResetHealingDoneInPastSecs(uint32 secs);
+
     protected:
         explicit Unit (bool isWorldObject);
 
