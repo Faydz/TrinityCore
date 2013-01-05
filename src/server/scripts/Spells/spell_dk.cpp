@@ -848,6 +848,76 @@ class spell_dk_death_grip : public SpellScriptLoader
         }
 };
 
+class spell_dk_frozen_heart : public SpellScriptLoader
+{
+    public:
+        spell_dk_frozen_heart() : SpellScriptLoader("spell_dk_frozen_heart") { }
+
+        class spell_dk_frozen_heart_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dk_frozen_heart_AuraScript);
+
+            void CalculateBonus(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = true;
+
+                if (!GetCaster())
+                    return;
+
+                // Frozen Heart (DK Frost Mastery)
+                if (Player* caster = GetCaster()->ToPlayer())
+                    if (caster->HasAuraType(SPELL_AURA_MASTERY))
+                        if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_DEATH_KNIGHT_FROST)
+                            amount += int32(2.0f * caster->GetMasteryPoints());
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dk_frozen_heart_AuraScript::CalculateBonus, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dk_frozen_heart_AuraScript();
+        }
+};
+
+class spell_dk_dreadblade : public SpellScriptLoader
+{
+    public:
+        spell_dk_dreadblade() : SpellScriptLoader("spell_dk_dreadblade") { }
+
+        class spell_dk_dreadblade_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dk_dreadblade_AuraScript);
+
+            void CalculateBonus(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = true;
+
+                if (!GetCaster())
+                    return;
+
+                // Dreadblade (DK Unholy Mastery)
+                if (Player* caster = GetCaster()->ToPlayer())
+                    if (caster->HasAuraType(SPELL_AURA_MASTERY))
+                        if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_DEATH_KNIGHT_UNHOLY)
+                            amount += int32(2.5f * caster->GetMasteryPoints());
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dk_dreadblade_AuraScript::CalculateBonus, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dk_dreadblade_AuraScript();
+        }
+};
+
 void AddSC_deathknight_spell_scripts()
 {
     new spell_dk_anti_magic_shell_raid();
@@ -866,4 +936,6 @@ void AddSC_deathknight_spell_scripts()
     new spell_dk_death_strike();
     new spell_dk_death_coil();
     new spell_dk_death_grip();
+    new spell_dk_frozen_heart();
+    new spell_dk_dreadblade();
 }

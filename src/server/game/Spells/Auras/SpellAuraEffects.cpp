@@ -596,7 +596,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                             {
                                 if (caster->ToPlayer()->GetPrimaryTalentTree(caster->ToPlayer()->GetActiveSpec()) == BS_PRIEST_DISCIPLINE)
                                 {
-                                    int32 bp = int32(amount * (0.2f + (0.025f * caster->ToPlayer()->GetMasteryPoints())));
+                                    int32 bp = int32(amount * ((0.025f * caster->ToPlayer()->GetMasteryPoints())));
                                     amount += bp;
                                 }
                             }

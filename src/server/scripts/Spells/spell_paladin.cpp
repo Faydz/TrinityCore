@@ -701,6 +701,47 @@ class spell_pal_sacred_shield : public SpellScriptLoader
         }
 };
 
+class spell_pal_divine_bulwark : public SpellScriptLoader
+{
+    public:
+        spell_pal_divine_bulwark() : SpellScriptLoader("spell_pal_divine_bulwark") { }
+
+        class spell_pal_divine_bulwark_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_pal_divine_bulwark_AuraScript);
+
+            void CalculateBonus(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = true;
+
+                if (!GetCaster())
+                    return;
+
+                // Divine Bulwark (Pally Prote mastery)
+                if (Player* caster = GetCaster()->ToPlayer())
+                    if (caster->HasAuraType(SPELL_AURA_MASTERY))
+                        if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_PALADIN_PROTECTION)
+						{
+							sLog->outError(LOG_FILTER_GENERAL,"mod");
+							amount += int32(2.25f * caster->GetMasteryPoints());
+						}
+							
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_pal_divine_bulwark_AuraScript::CalculateBonus, EFFECT_0, SPELL_AURA_MOD_BLOCK_PERCENT);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_pal_divine_bulwark_AuraScript();
+        }
+};
+
+
+
 void AddSC_paladin_spell_scripts()
 {
     //new spell_pal_ardent_defender();
@@ -717,4 +758,5 @@ void AddSC_paladin_spell_scripts()
     new spell_pal_lay_on_hands();
     new spell_pal_righteous_defense();
     new spell_pal_sacred_shield();
+	new spell_pal_divine_bulwark();
 }

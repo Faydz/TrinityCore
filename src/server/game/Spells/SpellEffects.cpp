@@ -419,20 +419,50 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             }
             case SPELLFAMILY_PRIEST:
             {
-                // Improved Mind Blast (Mind Blast in shadow form bonus)
-                if (m_caster->GetShapeshiftForm() == FORM_SHADOW && (m_spellInfo->SpellFamilyFlags[0] & 0x00002000))
+                // Mind blast and Mind Spike
+                if (m_spellInfo->SpellFamilyFlags[0] & 0x00002000 || m_spellInfo->Id == 73510)
                 {
-                    Unit::AuraEffectList const& ImprMindBlast = m_caster->GetAuraEffectsByType(SPELL_AURA_ADD_FLAT_MODIFIER);
-                    for (Unit::AuraEffectList::const_iterator i = ImprMindBlast.begin(); i != ImprMindBlast.end(); ++i)
+                    // Shadow Orbs
+                    if (AuraEffect* aurEff = GetCaster()->GetAuraEffect(77487, 0, 0))
                     {
-                        if ((*i)->GetSpellInfo()->SpellFamilyName == SPELLFAMILY_PRIEST &&
-                            ((*i)->GetSpellInfo()->SpellIconID == 95))
+                        float pct = aurEff->GetAmount();
+                        
+                        // Mastery Shadow Orb Power
+                        if (GetCaster()->HasAuraType(SPELL_AURA_MASTERY))
+                            if (GetCaster()->ToPlayer() && GetCaster()->ToPlayer()->GetPrimaryTalentTree(GetCaster()->ToPlayer()->GetActiveSpec()) == BS_PRIEST_SHADOW)
+                                pct += 1.45 * GetCaster()->ToPlayer()->GetMasteryPoints();
+
+                        AddPct(damage, pct);
+                        GetCaster()->RemoveAurasDueToSpell(77487);
+                        GetCaster()->CastSpell(GetCaster(), 95799, true);
+                    }
+
+                    // Remove dots
+                    if (m_spellInfo->Id == 73510)
+                    {
+                        unitTarget->RemoveAurasDueToSpell(589, GetCaster()->GetGUID());
+                        unitTarget->RemoveAurasDueToSpell(2944, GetCaster()->GetGUID());
+                        unitTarget->RemoveAurasDueToSpell(34914, GetCaster()->GetGUID());
+                    }
+                }
+                // Mind Blast
+                if (m_spellInfo->SpellFamilyFlags[0] & 0x00002000)
+                {
+                    // Improved Mind Blast (Mind Blast in shadow form bonus)
+                    if (m_caster->GetShapeshiftForm() == FORM_SHADOW)
+                    {
+                        Unit::AuraEffectList const& ImprMindBlast = m_caster->GetAuraEffectsByType(SPELL_AURA_ADD_FLAT_MODIFIER);
+                        for (Unit::AuraEffectList::const_iterator i = ImprMindBlast.begin(); i != ImprMindBlast.end(); ++i)
                         {
-                            int chance = (*i)->GetSpellInfo()->Effects[EFFECT_1].CalcValue(m_caster);
-                            if (roll_chance_i(chance))
-                                // Mind Trauma
-                                m_caster->CastSpell(unitTarget, 48301, true, 0);
-                            break;
+                            if ((*i)->GetSpellInfo()->SpellFamilyName == SPELLFAMILY_PRIEST &&
+                                ((*i)->GetSpellInfo()->SpellIconID == 95))
+                            {
+                                int chance = (*i)->GetSpellInfo()->Effects[EFFECT_1].CalcValue(m_caster);
+                                if (roll_chance_i(chance))
+                                    // Mind Trauma
+                                    m_caster->CastSpell(unitTarget, 48301, true, 0);
+                                break;
+                            }
                         }
                     }
                 }

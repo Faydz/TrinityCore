@@ -6087,6 +6087,45 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         basepoints0 = int32(CalculatePct(damage, triggerAmount) / (blessHealing->GetMaxDuration() / blessHealing->Effects[0].Amplitude));
                     }
                     break;
+                // Echo of light
+                case 77485:
+                    if (!ToPlayer())
+                        return false;
+
+                    if (triggerAmount == 0)
+                        return false;
+
+                    if (getClass() == CLASS_PRIEST)
+                    {
+                        if (HasAuraType(SPELL_AURA_MASTERY))
+                        {
+                            if (ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) == BS_PRIEST_HOLY)
+                            {
+                                int32 bp0 = int32(damage * ((triggerAmount / 100 * ToPlayer()->GetMasteryPoints())) / 100);
+                                bp0 = bp0 / 6;
+                                if (target->HasAura(77489, GetGUID())) 
+                                    bp0 +=	target->GetAura(77489, GetGUID())->GetEffect(0)->GetAmount();
+                                CastCustomSpell(target, 77489, &bp0, NULL, NULL, true);
+                            }
+                        }
+                    }
+                    break;
+                // Shadow Orbs
+                case 95740:
+                    if (!procSpell)
+                        return false;
+                    
+                    if (procSpell->Id != 15407 && procSpell->Id != 589)
+                        return false;
+
+                    int chance = 10;
+                    // Harnessed Shadows
+                    if (AuraEffect* aurEff = this->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_PRIEST, 554, 0))
+                        chance += aurEff->GetAmount();
+
+                    if (!roll_chance_i(chance))
+                        return false;
+                    break;
             }
             break;
         }
@@ -6094,6 +6133,13 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Harmony
+                case 77495:
+                    if (procSpell->Id != 5185 && procSpell->Id != 8936 && procSpell->Id != 18562 && procSpell->Id != 50464)
+                        return false;
+
+                    CastSpell(this, 100977, true);
+                    break;
                 // Glyph of Innervate
                 case 54832:
                 {
@@ -6310,6 +6356,16 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->SpellIconID)
             {
+                // Wild Quiver Hunter Marksmanship Mastery 
+                case 76659:
+                    if (Player* caster = ToPlayer())
+                    {
+                       int32 chance = int32(2.1f * caster->GetMasteryPoints());
+                       if (roll_chance_i(chance))
+                           caster->CastSpell(target, 53254, true);
+                    }
+                    return true;
+                    break;
                 case 267: // Improved Mend Pet
                 {
                     if (!roll_chance_i(triggerAmount))
@@ -6444,6 +6500,42 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
+                // Illuminated Healing (Holy Paladin Mastery)
+                case 76669:
+                    if (triggerAmount == 0)
+                        return false;
+
+                    if (getClass() == CLASS_PALADIN)
+                    {
+                       if (HasAuraType(SPELL_AURA_MASTERY))
+                       {
+                           if (ToPlayer() && ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) == BS_PALADIN_HOLY)
+                           {
+                               int32 bp0 = int32(damage	* 1.5f * ToPlayer()->GetMasteryPoints() / 100);
+
+                               if (target->HasAura(86273))
+                                   bp0 += target->GetAura(86273, GetGUID())->GetEffect(0)->GetAmount();
+
+                               if (bp0 > int32(GetMaxHealth() / 3))
+                                   bp0 = int32(GetMaxHealth() / 3);
+
+                               CastCustomSpell(target, 86273, &bp0, NULL, NULL, true);
+                               return true;
+                           }
+                       }
+                    }
+                    break;
+                // Hand of light (Paladin Retribution Mastery)
+                case 76672:
+                   if (procSpell->Id != 35395 && procSpell->Id != 53385 && procSpell->Id != 85256)
+                       return false;
+
+                   if (Player* caster = ToPlayer())
+                   {
+                       int32 bp0 = int32(damage * (2.1f *  caster->GetMasteryPoints()) / 100);
+                       caster->CastCustomSpell(target, 96172, &bp0, 0, 0, true, 0, 0, 0);
+                   }
+                   break;
                 // Sacred Shield
                 case 53601:
                 {
@@ -6634,6 +6726,35 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Elemental Overload (Shaman Elemental mastery)
+                case 77222:
+                   if (Player* caster = ToPlayer())
+                   {
+                       if (procSpell->Id == 403 || procSpell->Id == 51505 || procSpell->Id == 421)
+                       {
+                           int32 chance = 0;
+                           chance += int32(caster->GetMasteryPoints() * 2);
+                           if (procSpell->Id == 421)
+                               chance = chance / 3;
+                           triggered_spell_id = 0;
+                           if (roll_chance_i(chance))
+                           {
+                               switch (procSpell->Id)
+                               {
+                                   case 403: // Lightning bolt
+                                       triggered_spell_id = 45284;
+                                       break;
+                                   case 51505: // Lava burst
+                                       triggered_spell_id = 77451;
+                                       break;
+                                   case 421: // Chain of lightning
+                                       triggered_spell_id = 45297;
+                                       break;
+                               }
+                           }
+                       }
+                   }
+                   break;
                 // Totemic Power (The Earthshatterer set)
                 case 28823:
                 {
@@ -9496,6 +9617,33 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 if (victim->HasAuraState(AURA_STATE_FROZEN, spellProto, this))
                     DoneTotalMod *= 2.0f;
 
+            // Mana Adept - Arcane Mastery
+            if (owner->getClass() == CLASS_MAGE)
+            {
+               if (owner->HasAuraType(SPELL_AURA_MASTERY))
+               {
+                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_ARCANE)
+                   {
+                       // [1 + (0.12 + 0.015*M)*(mana atm)/(max mana)]*100%
+                       float manaPct = 100.f * owner->GetPower(POWER_MANA) / owner->GetMaxPower(POWER_MANA);
+                       DoneTotalMod *= (1+ (((owner->ToPlayer()->GetMasteryPoints() * 0.015f)) * manaPct/100));
+                   }
+               }
+            }
+
+            // Frostburn Frost Mastery
+            if (owner->getClass() == CLASS_MAGE && (victim->HasAura(82691) || victim->HasAura(44572) 
+                   || victim->HasAura(22645) || victim->HasAura(83302) || victim->HasAura(83301)))
+            {
+               if (owner->HasAuraType(SPELL_AURA_MASTERY))
+               {
+                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FROST)
+                   {
+                       DoneTotalMod *= 1 + (owner->ToPlayer()->GetMasteryPoints() * 0.025f);
+                   }
+               }
+            }
+
             // Torment the weak
             if (spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_ARCANE)
             {
@@ -9544,12 +9692,70 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             if (spellProto->SpellFamilyFlags[1] & 0x00400000 && isPet())
                 if (uint8 count = victim->GetDoTsByCaster(GetOwnerGUID()))
                     AddPct(DoneTotalMod, 30 * count);
+
+            // Master Demonologist (Demonology Mastery)
+            if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
+            {
+               if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DEMONOLOGY)
+               {
+                   float pct = uint32(0.023f * owner->ToPlayer()->GetMasteryPoints());
+                   DoneTotalMod *= 1 +  pct;
+               }
+            }
+
+            // Fiery Apocalypse (Warlock Destrucion Mastery)
+            if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && spellProto->SchoolMask == SPELL_SCHOOL_MASK_FIRE)
+            {
+               if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DESTRUCTION)
+               {
+                   // Increase fire damage by 1.35*Mastery points
+                   float pct = uint32(0.0135f * owner->ToPlayer()->GetMasteryPoints());
+                   DoneTotalMod *= 1 +  pct;
+               }
+            }
             break;
         case SPELLFAMILY_DEATHKNIGHT:
             // Sigil of the Vengeful Heart
             if (spellProto->SpellFamilyFlags[0] & 0x2000)
                 if (AuraEffect* aurEff = GetAuraEffect(64962, EFFECT_1))
                     DoneTotal += aurEff->GetAmount();
+            break;
+        case SPELLFAMILY_ROGUE:
+            if (spellProto->Id == 2098 || spellProto->Id == 32645)
+            {
+                // Revealing Strike
+                if (victim->HasAura(84617))
+                {
+                    // Revealing strike effect
+                    if (AuraEffect* aurEff = owner->GetDummyAuraEffect(SPELLFAMILY_ROGUE, 4531, 2))
+                       DoneTotalMod *= 1.0f + aurEff->GetAmount() / 100; 
+
+                    victim->RemoveAura(84617);
+                }
+                
+               // Mastery Subtlety Executione
+               if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
+                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_ROGUE_SUBTLETY)
+                       DoneTotalMod *= 1.0f + 2.5f * owner->ToPlayer()->GetMasteryPoints() / 100;
+            }
+            break;
+        case SPELLFAMILY_SHAMAN:
+            // Enhanced Elements (Enhanchment Mastery)
+            if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && (spellProto->SchoolMask == SPELL_SCHOOL_MASK_FIRE ||
+                spellProto->SchoolMask == SPELL_SCHOOL_MASK_FROST || spellProto->SchoolMask == SPELL_SCHOOL_MASK_NATURE))
+            {
+               if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_SHAMAN_ENCHANCEMENT)
+               {
+                   float pct = uint32(0.025f * owner->ToPlayer()->GetMasteryPoints());
+                   DoneTotalMod *= 1 + pct;
+               }
+            }
+            break;
+        case SPELLFAMILY_HUNTER:
+            // Essence of the Viper (Survival Mastery)
+            if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
+               if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_SURVIVAL)
+                   DoneTotalMod *= 1.0f + 0.01f * owner->ToPlayer()->GetMasteryPoints();
             break;
     }
 
@@ -10106,6 +10312,22 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
         // No bonus healing for SPELL_DAMAGE_CLASS_NONE class spells by default
         if (spellProto->DmgClass == SPELL_DAMAGE_CLASS_NONE)
             return healamount;
+    }
+
+    // Custom scripted healing
+    switch (spellProto->SpellFamilyName)
+    {
+        case SPELLFAMILY_SHAMAN:
+               if (ToPlayer() && HasAuraType(SPELL_AURA_MASTERY))
+               {
+                   if (ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) == BS_SHAMAN_RESTORATION)
+                   {
+                       // % Heal bonus = (1 - 0.hp)*%masery
+                       float healtPct = victim->GetHealthPct()/100;
+                       DoneTotalMod *= 1.0f + ((1-healtPct) * (3.0f * ToPlayer()->GetMasteryPoints())) / 100;
+                   }
+               }
+            break;
     }
 
     // Default calculation
