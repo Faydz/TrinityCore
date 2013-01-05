@@ -747,6 +747,8 @@ void Player::UpdateMastery()
             GetAura(48517)->RecalculateAmountOfEffects();// Druid Balance Mastery
         if(HasAura(48518))
             GetAura(48518)->RecalculateAmountOfEffects();// Druid Balance Mastery
+        if(HasAura(76857))
+            GetAura(76857)->RecalculateAmountOfEffects();// Warrior Protection Mastery
         SetInt32Value(PLAYER_FIELD_COMBAT_RATING_1 + CR_MASTERY, m_baseRatingValue[CR_MASTERY]);
         SetFloatValue(PLAYER_MASTERY, GetMasteryPoints());
     }
