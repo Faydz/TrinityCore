@@ -829,39 +829,39 @@ class spell_dru_t10_restoration_4p_bonus : public SpellScriptLoader
 class spell_dru_ferocious_bite: public SpellScriptLoader
 {
 public:
-	spell_dru_ferocious_bite() : SpellScriptLoader("spell_dru_ferocious_bite")
-	{ }
+    spell_dru_ferocious_bite() : SpellScriptLoader("spell_dru_ferocious_bite")
+    { }
 
-	class spell_dru_ferocious_bite_SpellScript: public SpellScript
-	{
-		PrepareSpellScript(spell_dru_ferocious_bite_SpellScript)
+    class spell_dru_ferocious_bite_SpellScript: public SpellScript
+    {
+        PrepareSpellScript(spell_dru_ferocious_bite_SpellScript)
 
             void BloodInTheWater()
             {
-				if (Unit* caster=GetCaster())
-				{
-					if (Unit* target=GetHitUnit())
-					{
-						if (caster->GetAuraEffect(SPELL_AURA_DUMMY,SPELLFAMILY_DRUID, 4399, EFFECT_0))
-						//if (caster->HasAura(80319) || caster->HasAura(80319))
-						{
-							if (target->HealthBelowPct(25))
-							{
-								if (AuraEffect const *aurEff = target->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DRUID, 0x0080000, 0x00000000, 0x00200000, caster->GetGUID()))
-								{
-									aurEff->GetBase()->RefreshDuration();
-								}
-							}
-						}
-					}
-				}
-			}
+                if (Unit* caster=GetCaster())
+                {
+                    if (Unit* target=GetHitUnit())
+                    {
+                        if (caster->GetAuraEffect(SPELL_AURA_DUMMY,SPELLFAMILY_DRUID, 4399, EFFECT_0))
+                        //if (caster->HasAura(80319) || caster->HasAura(80319))
+                        {
+                            if (target->HealthBelowPct(25))
+                            {
+                                if (AuraEffect const *aurEff = target->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DRUID, 0x0080000, 0x00000000, 0x00200000, caster->GetGUID()))
+                                {
+                                    aurEff->GetBase()->RefreshDuration();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
-			void Register() 
-			{
-				sLog->outError(LOG_FILTER_GENERAL, "caccola");
-				OnHit += SpellHitFn(spell_dru_ferocious_bite_SpellScript::BloodInTheWater);
-			}
+            void Register() 
+            {
+                sLog->outError(LOG_FILTER_GENERAL, "caccola");
+                OnHit += SpellHitFn(spell_dru_ferocious_bite_SpellScript::BloodInTheWater);
+            }
         };
 
         SpellScript* GetSpellScript() const
