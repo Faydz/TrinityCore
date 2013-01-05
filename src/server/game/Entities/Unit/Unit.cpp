@@ -9734,6 +9734,12 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                }
             }
             break;
+        case SPELLFAMILY_HUNTER:
+            // Essence of the Viper (Survival Mastery)
+            if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
+               if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_SURVIVAL)
+                   DoneTotalMod *= 1.0f + 0.01f * owner->ToPlayer()->GetMasteryPoints();
+            break;
     }
 
     // Done fixed damage bonus auras
