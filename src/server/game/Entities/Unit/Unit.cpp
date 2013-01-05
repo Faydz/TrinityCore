@@ -9628,6 +9628,25 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 if (AuraEffect* aurEff = GetAuraEffect(64962, EFFECT_1))
                     DoneTotal += aurEff->GetAmount();
             break;
+        case SPELLFAMILY_ROGUE:
+            if (spellProto->Id == 2098 || spellProto->Id == 32645)
+            {
+                // Revealing Strike
+                if (victim->HasAura(84617))
+                {
+                    // Revealing strike effect
+                    if (AuraEffect* aurEff = owner->GetDummyAuraEffect(SPELLFAMILY_ROGUE, 4531, 2))
+                       DoneTotalMod *= 1.0f + aurEff->GetAmount() / 100; 
+
+                    victim->RemoveAura(84617);
+                }
+                
+               // Mastery Subtlety Executione
+               if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
+                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_ROGUE_SUBTLETY)
+                       DoneTotalMod *= 1.0f + 2.5f * owner->ToPlayer()->GetMasteryPoints() / 100;
+            }
+            break;
     }
 
     // Done fixed damage bonus auras
