@@ -6349,6 +6349,16 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->SpellIconID)
             {
+                // Wild Quiver Hunter Marksmanship Mastery 
+                case 76659:
+                    if (Player* caster = ToPlayer())
+                    {
+                       int32 chance = int32(2.1f * caster->GetMasteryPoints());
+                       if (roll_chance_i(chance))
+                           caster->CastSpell(target, 53254, true);
+                    }
+                    return true;
+                    break;
                 case 267: // Improved Mend Pet
                 {
                     if (!roll_chance_i(triggerAmount))
