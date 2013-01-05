@@ -9610,6 +9610,17 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             if (spellProto->SpellFamilyFlags[1] & 0x00400000 && isPet())
                 if (uint8 count = victim->GetDoTsByCaster(GetOwnerGUID()))
                     AddPct(DoneTotalMod, 30 * count);
+
+            // Fiery Apocalypse (Warlock Destrucion Mastery)
+            if (owner->HasAuraType(SPELL_AURA_MASTERY) && spellProto->SchoolMask == SPELL_SCHOOL_MASK_FIRE)
+            {
+               if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DESTRUCTION)
+               {
+                   // Increase fire damage by 1.35*Mastery points
+                   float pct = uint32(0.0135f * owner->ToPlayer()->GetMasteryPoints());
+                   DoneTotalMod *= 1 +  pct;
+               }
+            }
             break;
         case SPELLFAMILY_DEATHKNIGHT:
             // Sigil of the Vengeful Heart
