@@ -602,6 +602,44 @@ class spell_pri_inner_focus : public SpellScriptLoader
         }
 };
 
+class spell_pri_dispel_magic : public SpellScriptLoader
+{
+    public:
+        spell_pri_dispel_magic() : SpellScriptLoader("spell_pri_dispel_magic") { }
+
+        class spell_pri_dispel_magic_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_pri_dispel_magic_SpellScript);
+
+            void HandleDummy(SpellEffIndex /*effIndex*/)
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if (Unit* target = GetHitUnit())
+                    {
+                        if (caster->GetGUID() == target->GetGUID())
+                            caster->CastSpell(target, 97690, true);
+                        else if (target->IsFriendlyTo(caster) && caster->HasAura(33167))
+                            caster->CastSpell(target, 97690, true);
+                        else if (!target->IsFriendlyTo(caster))
+                            caster->CastSpell(target, 97691, true);
+                    }
+                }
+                PreventHitDefaultEffect(EFFECT_0);
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_pri_dispel_magic_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pri_dispel_magic_SpellScript();
+        }
+};
+
 void AddSC_priest_spell_scripts()
 {
     new spell_pri_guardian_spirit();
@@ -618,4 +656,5 @@ void AddSC_priest_spell_scripts()
     new spell_pri_shadowform();
     new spell_pri_inner_fire();
     new spell_pri_inner_focus();
+    new spell_pri_dispel_magic();
 }
