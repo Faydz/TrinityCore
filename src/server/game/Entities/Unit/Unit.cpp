@@ -10139,11 +10139,6 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                             if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, spellProto, this))
                                 crit_chance+=(*i)->GetAmount();
                             break;
-                        case 7997: // Renewed Hope
-                        case 7998:
-                            if (victim->HasAura(6788))
-                                crit_chance+=(*i)->GetAmount();
-                            break;
                         default:
                             break;
                     }
@@ -10208,6 +10203,15 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                             break;
                         }
                     break;
+                    case SPELLFAMILY_PRIEST:
+                        // Renewed Hope
+                        if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_PRIEST, 329, 0))
+                        {
+                            if (victim->HasAura(6788) || victim->HasAura(47930) || victim->HasAura(77613))
+                                if (spellProto->Id == 2061 || spellProto->Id == 2060 || spellProto->Id == 2050 || spellProto->Id == 47750)
+                                    crit_chance += aurEff->GetAmount();
+                        }
+                        break;
                 }
             }
             break;
