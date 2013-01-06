@@ -6173,6 +6173,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     break;
                 // Shadow Orbs
                 case 95740:
+                {
                     if (!procSpell)
                         return false;
                     
@@ -6186,6 +6187,26 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
                     if (!roll_chance_i(chance))
                         return false;
+                    break;
+                }
+                // Evangelism
+                case 81659:
+                case 81662:
+                    switch (procSpell->Id)
+                    {
+                        case 585:
+                        case 14914:
+                            CastSpell(this, dummySpell->Id == 81659 ? 81660 : 81661, true);
+                            AddAura(87154, this);
+                            break;
+                        case 15407:
+                            CastSpell(this, dummySpell->Id == 81659 ? 87117 : 87118, true);
+                            AddAura(87154, this);
+                            break;
+                        default:
+                            break;
+                    }
+                    return true;
                     break;
             }
             break;
