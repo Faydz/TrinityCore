@@ -457,6 +457,17 @@ struct MailLevelReward
 typedef std::list<MailLevelReward> MailLevelRewardList;
 typedef UNORDERED_MAP<uint8, MailLevelRewardList> MailLevelRewardContainer;
 
+struct ResearchSiteInfo 
+{
+    uint32 id;
+    uint32 entry;
+    uint32 map;
+    uint32 minSkill;
+    uint32 minLevel;
+};
+
+typedef UNORDERED_MAP<uint32, ResearchSiteInfo> ResearchSiteInfoMap;
+
 // We assume the rate is in general the same for all three types below, but chose to keep three for scalability and customization
 struct RepRewardRate
 {
@@ -915,6 +926,7 @@ class ObjectMgr
         void LoadPetNumber();
         void LoadCorpses();
         void LoadFishingBaseSkillLevel();
+        void LoadResearchSitesInfo();
 
         void LoadReputationRewardRate();
         void LoadReputationOnKill();
@@ -949,6 +961,10 @@ class ObjectMgr
             FishingBaseSkillContainer::const_iterator itr = _fishingBaseForAreaStore.find(entry);
             return itr != _fishingBaseForAreaStore.end() ? itr->second : 0;
         }
+
+        // Archaeology sites info
+        ResearchSiteInfo const* GetResearchSiteInfo(uint32 siteEntry) const;
+        std::list<uint32> GetResearchSiteList(uint32 mapId, uint32 skill, uint8 level) const;
 
         void ReturnOrDeleteOldMails(bool serverUp);
 
@@ -1287,6 +1303,9 @@ class ObjectMgr
 
         typedef std::map<uint32, int32> FishingBaseSkillContainer; // [areaId][base skill level]
         FishingBaseSkillContainer _fishingBaseForAreaStore;
+
+        // Archaeology
+        ResearchSiteInfoMap m_ReasearchSiteInfoMap;
 
         typedef std::map<uint32, StringVector> HalfNameContainer;
         HalfNameContainer _petHalfName0;

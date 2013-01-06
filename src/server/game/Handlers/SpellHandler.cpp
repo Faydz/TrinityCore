@@ -359,6 +359,16 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
         // not have spell in spellbook or spell passive and not casted by client
         if (!mover->ToPlayer()->HasActiveSpell(spellId) || spellInfo->IsPassive())
         {
+            // Archeology craft artifacts
+            if (mover->ToPlayer()->HasSkill(SKILL_ARCHAEOLOGY))
+               for (uint32 i = 9; i < sResearchProjectStore.GetNumRows(); i++)
+                   if (ResearchProjectEntry* rp = sResearchProjectStore.LookupRow(i))
+                       if (rp->spellId == spellId)
+                       {
+                           mover->ToPlayer()->CompleteArtifact(rp->id, rp->spellId, recvPacket);
+                           recvPacket.rfinish();
+                           return;
+                       }
             //cheater? kick? ban?
             recvPacket.rfinish(); // prevent spam at ignore packet
             return;

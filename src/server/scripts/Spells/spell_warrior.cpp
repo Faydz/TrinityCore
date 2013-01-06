@@ -355,6 +355,60 @@ class spell_warr_bloodthirst_heal : public SpellScriptLoader
         }
 };
 
+class spell_warr_critical_block : public SpellScriptLoader
+{
+    public:
+        spell_warr_critical_block() : SpellScriptLoader("spell_warr_critical_block") { }
+
+        class spell_warr_critical_block_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warr_critical_block_AuraScript);
+
+            void CalculateBonus(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = true;
+
+                if (!GetCaster())
+                    return;
+
+                // critical Block (War protection mastery)
+                if (Player* caster = GetCaster()->ToPlayer())
+                    if (caster->HasAuraType(SPELL_AURA_MASTERY))
+                        if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_WARRIOR_PROTECTION)
+						{
+                            sLog->outError(LOG_FILTER_GENERAL, "Modded war");
+							amount += int32(1.5f * caster->GetMasteryPoints());
+						}
+							
+            }
+
+            void CalculateBonusCrit(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = true;
+
+                if (!GetCaster())
+                    return;
+
+                // critical Block (War protection mastery Crit Block)
+                if (Player* caster = GetCaster()->ToPlayer())
+                    if (caster->HasAuraType(SPELL_AURA_MASTERY))
+                        if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_WARRIOR_PROTECTION)
+							amount += int32(1.5f * caster->GetMasteryPoints());							
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_critical_block_AuraScript::CalculateBonus, EFFECT_1, SPELL_AURA_MOD_BLOCK_PERCENT);
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_critical_block_AuraScript::CalculateBonusCrit, EFFECT_0, SPELL_AURA_MOD_BLOCK_CRIT_CHANCE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_warr_critical_block_AuraScript();
+        }
+};
+
 void AddSC_warrior_spell_scripts()
 {
     new spell_warr_last_stand();
@@ -365,4 +419,5 @@ void AddSC_warrior_spell_scripts()
     new spell_warr_concussion_blow();
     new spell_warr_bloodthirst();
     new spell_warr_bloodthirst_heal();
+    new spell_warr_critical_block();
 }
