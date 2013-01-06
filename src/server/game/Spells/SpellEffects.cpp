@@ -3181,6 +3181,10 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
                         if (item->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER)
                             totalDamagePercentMod *= 1.5f;
             }
+            //Glyph of sinister strike
+            else if (m_spellInfo->Id == 1752)
+            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_caster->ToPlayer()->HasAura(56821) && roll_chance_i(20) )
+                 m_caster->ToPlayer()->AddComboPoints(unitTarget, 1, this);
             break;
         }
         case SPELLFAMILY_SHAMAN:
