@@ -8250,6 +8250,15 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // dummy basepoints or other customs
     switch (trigger_spell_id)
     {
+        // Focused Will 
+        case 45242:
+        case 45241:
+            if (damage < (GetMaxHealth() * 10 / 100))
+            {
+                if (procEx & PROC_EX_NORMAL_HIT)
+                    return false;
+            }
+            break;
         // Strength of Soul
         case 89490:
             if (procSpell->Id == 2050 || procSpell->Id == 2060 || procSpell->Id == 2061)
