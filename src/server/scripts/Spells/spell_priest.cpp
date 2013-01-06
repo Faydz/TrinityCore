@@ -574,6 +574,34 @@ class spell_pri_inner_fire : public SpellScriptLoader
         }
 };
 
+class spell_pri_inner_focus : public SpellScriptLoader
+{
+    public:
+        spell_pri_inner_focus() : SpellScriptLoader("spell_pri_inner_focus") { }
+
+        class spell_pri_inner_focus_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_pri_inner_focus_AuraScript);
+
+            void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if (AuraEffect* aurEff = GetCaster()->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_PRIEST, 177, 0))
+                {
+                    GetCaster()->CastSpell(GetCaster(), 96267, true);
+                }
+            }
+            void Register()
+            {
+                AfterEffectApply += AuraEffectApplyFn(spell_pri_inner_focus_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_ADD_PCT_MODIFIER, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_pri_inner_focus_AuraScript();
+        }
+};
+
 void AddSC_priest_spell_scripts()
 {
     new spell_pri_guardian_spirit();
@@ -589,4 +617,5 @@ void AddSC_priest_spell_scripts()
     new spell_pri_shadow_word_death();
     new spell_pri_shadowform();
     new spell_pri_inner_fire();
+    new spell_pri_inner_focus();
 }

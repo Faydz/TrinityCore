@@ -8204,6 +8204,22 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // dummy basepoints or other customs
     switch (trigger_spell_id)
     {
+        // Strength of Soul
+        case 89490:
+            if (procSpell->Id == 2050 || procSpell->Id == 2060 || procSpell->Id == 2061)
+            {
+               if (victim && victim->HasAura(6788))
+               {
+                   uint32 newCooldownDelay = victim->GetAura(6788)->GetDuration();
+                   if (newCooldownDelay <= uint32((triggeredByAura->GetSpellInfo()->Effects[0].BasePoints)*1000))
+	                    newCooldownDelay = 0;
+                    else
+	                    newCooldownDelay -= ((triggeredByAura->GetSpellInfo()->Effects[0].BasePoints)*1000);
+
+                   victim->GetAura(6788)->SetDuration(newCooldownDelay, true);
+               }
+            }
+        break;
         // Auras which should proc on area aura source (caster in this case):
         // Cast positive spell on enemy target
         case 7099:  // Curse of Mending
