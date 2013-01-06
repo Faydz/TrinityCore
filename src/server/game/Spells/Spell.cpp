@@ -1284,6 +1284,11 @@ void Spell::SelectImplicitAreaTargets(SpellEffIndex effIndex, SpellImplicitTarge
                     maxSize = 3;
                     power = POWER_MANA;
                 }
+                else if (m_spellInfo->Id == 81751) // Atonement
+                {
+                   maxSize = 1;
+                   power = POWER_HEALTH;
+                }
                 else
                     break;
 

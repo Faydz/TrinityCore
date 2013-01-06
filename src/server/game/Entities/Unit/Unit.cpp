@@ -6049,6 +6049,14 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
+                // Atonement
+                case 14523:
+                case 81749:
+                {
+                    basepoints0 = int32(CalculatePct(damage, triggerAmount));
+                    triggered_spell_id = 81751;
+                    break;
+                }
                 // Vampiric Embrace
                 case 15286:
                 {
