@@ -8091,6 +8091,9 @@ void Player::RemoveOrAddMasterySpells()
 
         if (HasAura(77495))
             RemoveAurasDueToSpell(77495);  
+
+        if (HasAura(76806))
+            RemoveAurasDueToSpell(76806);  
 	} 
     else if (HasAuraType(SPELL_AURA_MASTERY)) 
     {
@@ -8153,6 +8156,10 @@ void Player::RemoveOrAddMasterySpells()
         if (GetPrimaryTalentTree(GetActiveSpec()) == BS_DRUID_RESTORATION)
             if (!HasAura(77495))
                 AddAura(77495, this);
+
+        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_ROGUE_COMBAT)
+            if (!HasAura(76806))
+                AddAura(76806, this);
     }
 }
 
