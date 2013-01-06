@@ -8093,7 +8093,10 @@ void Player::RemoveOrAddMasterySpells()
             RemoveAurasDueToSpell(77495);  
 
         if (HasAura(76806))
-            RemoveAurasDueToSpell(76806);  
+            RemoveAurasDueToSpell(76806); 
+
+        if (HasAura(76838))
+            RemoveAurasDueToSpell(76838);
 	} 
     else if (HasAuraType(SPELL_AURA_MASTERY)) 
     {
@@ -8160,6 +8163,10 @@ void Player::RemoveOrAddMasterySpells()
         if (GetPrimaryTalentTree(GetActiveSpec()) == BS_ROGUE_COMBAT)
             if (!HasAura(76806))
                 AddAura(76806, this);
+
+        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_WARRIOR_ARMS)
+            if (!HasAura(76838))
+                AddAura(76838, this);
     }
 }
 

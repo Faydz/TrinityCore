@@ -2930,6 +2930,9 @@ void SpellMgr::LoadSpellCustomAttr()
             case 72293: // Mark of the Fallen Champion (Deathbringer Saurfang)
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_NEGATIVE_EFF0;
                 break;
+            case 76838: //Warrior - Arms mastery
+			    spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
+			break;
             default:
                 break;
         }
