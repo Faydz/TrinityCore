@@ -1637,6 +1637,86 @@ void Spell::EffectCreateItem(SpellEffIndex effIndex)
     if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
         return;
 
+    if (m_caster->ToPlayer() && m_caster->ToPlayer()->HasSkill(SKILL_ARCHAEOLOGY))
+    {
+        for (uint8 i = 1; i < 28; ++i)
+        {
+            if (i == 9)
+                i = 27;
+
+            ResearchProjectEntry* rp = sResearchProjectStore.LookupRow(m_caster->ToPlayer()->m_researchProject[i]);
+            if (!rp)
+                continue;
+
+            if (rp->spellId == m_spellInfo->Id)
+            {
+                int32 reqFragments = int32(rp->req_fragments);
+                uint32 currencyId = 0;
+                uint32 stone = 0;
+                switch (rp->branchId)
+                {
+                    // Dwarf
+                    case 1: currencyId = 384;  stone = 52843; break;
+                    // Draenei
+                    case 2: currencyId = 398;  stone = 64394; break;
+                    // Fossil
+                    case 3: currencyId = 393;  stone = 0;     break;
+                    // Nerubian
+                    case 5: currencyId = 400;  stone = 64396; break;
+                    // Night Elf
+                    case 4: currencyId = 394;  stone = 63127; break;
+                    // Orc
+                    case 6: currencyId = 397;  stone = 64392; break;
+                    // Tol'vir
+                    case 7: currencyId = 401;  stone = 64397; break;
+                    // Troll
+                    case 8: currencyId = 385;  stone = 63128; break;
+                    // Vrykul
+                    case 27: currencyId = 399; stone = 64395; break;
+                }
+
+                if (damage > 0)
+                {
+                    if (m_caster->ToPlayer()->HasItemCount(stone, damage, false))
+                    {
+                        if (Item* pStone = m_caster->ToPlayer()->GetItemByEntry(stone))
+                        {
+                            if (pStone->GetCount() > uint32(damage))
+                                pStone->SetCount(pStone->GetCount() - damage);
+                            else if (pStone->GetCount() == uint32(damage))
+                                m_caster->ToPlayer()->DestroyItem(pStone->GetBagSlot(), pStone->GetSlot(), true);
+                            else
+                            {
+                                for (int x = 0; x < damage;)
+                                {
+                                    if (x > 0)
+                                    {
+                                        pStone = m_caster->ToPlayer()->GetItemByEntry(stone);
+                                        if (pStone && pStone->GetCount() > uint32(damage) - x)
+                                        {
+                                            pStone->SetCount(pStone->GetCount() - damage + x);
+                                            break;
+                                        }
+                                    }
+                                    if (pStone)
+                                        m_caster->ToPlayer()->DestroyItem(pStone->GetBagSlot(), pStone->GetSlot(), true);
+                                    x += pStone->GetCount();
+                                }
+                            }
+
+                            reqFragments -= 12 * damage;
+                        }
+                    }
+                }
+
+                m_caster->ToPlayer()->ModifyCurrency(currencyId, -(reqFragments));
+                m_caster->ToPlayer()->GenerateResearchProject(rp->branchId, true, rp->spellId);
+                damage = 0;
+                break;
+            }
+        }
+    }
+
     DoCreateItem(effIndex, m_spellInfo->Effects[effIndex].ItemType);
     ExecuteLogEffectCreateItem(effIndex, m_spellInfo->Effects[effIndex].ItemType);
 }
@@ -4545,6 +4625,20 @@ void Spell::EffectSummonObject(SpellEffIndex effIndex)
 {
     if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT)
         return;
+
+    if (m_spellInfo->Id == 80451)
+    {
+        uint32 go_id = m_spellInfo->Effects[effIndex].MiscValue;
+
+        Player* caster = m_caster->ToPlayer();
+
+        if (!caster)
+           return;
+
+        caster->SetActualDigSitePosition();
+        caster->SpawnArchaeologyScope();
+        return;
+    }
 
     uint32 go_id = m_spellInfo->Effects[effIndex].MiscValue;
 
