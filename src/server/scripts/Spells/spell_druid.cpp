@@ -52,10 +52,18 @@ class spell_dru_enrage : public SpellScriptLoader
 
             void OnHit()
             {
-                if (AuraEffect const* aurEff = GetHitUnit()->GetAuraEffectOfRankedSpell(SPELL_KING_OF_THE_JUNGLE, EFFECT_0))
-                    GetHitUnit()->CastCustomSpell(SPELL_ENRAGE_MOD_DAMAGE, SPELLVALUE_BASE_POINT0, aurEff->GetAmount(), GetHitUnit(), true);
+                if (Unit* caster=GetCaster())
+                {
+                    if (caster->GetShapeshiftForm() == FORM_BEAR)
+                    {
+                        if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2850, 0))
+                        {
+                            int32 bp0 = aurEff->GetAmount();
+                            caster->CastCustomSpell(caster, 51185, &bp0, 0, 0, true); // King of the Jungle
+                        }
+                    }
+                }
             }
-
             void Register()
             {
                 AfterHit += SpellHitFn(spell_dru_enrage_SpellScript::OnHit);
@@ -756,8 +764,14 @@ class spell_dru_tiger_s_fury : public SpellScriptLoader
 
             void OnHit()
             {
-                if (AuraEffect const* aurEff = GetHitUnit()->GetAuraEffectOfRankedSpell(SPELL_KING_OF_THE_JUNGLE, EFFECT_1))
-                    GetHitUnit()->CastCustomSpell(SPELL_TIGER_S_FURY_ENERGIZE, SPELLVALUE_BASE_POINT0, aurEff->GetAmount(), GetHitUnit(), true);
+                if (Unit* caster=GetCaster())
+                {
+                    if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2850, 1))
+                    {
+                        int32 bp0 = aurEff->GetAmount();
+                        caster->CastCustomSpell(caster, 51178, &bp0, 0, 0, true); // King of the Jungle
+                    }
+                }
             }
 
             void Register()
