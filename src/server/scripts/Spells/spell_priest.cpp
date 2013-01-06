@@ -537,6 +537,43 @@ class spell_pri_shadowform : public SpellScriptLoader
         }
 };
 
+class spell_pri_inner_fire : public SpellScriptLoader
+{
+    public:
+        spell_pri_inner_fire() : SpellScriptLoader("spell_pri_inner_fire") { }
+
+        class spell_pri_inner_fire_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_pri_inner_fire_AuraScript);
+
+            void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if (AuraEffect* aurEff = GetTarget()->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 51, 0))
+                {
+                    int32 bp0 = -aurEff->GetAmount();
+                    GetTarget()->CastCustomSpell(GetTarget(), 91724, &bp0, NULL, NULL, true);
+                }
+           }
+
+            void HandleEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if (GetTarget()->HasAura(91724))
+                    GetTarget()->RemoveAurasDueToSpell(91724);
+            }
+
+            void Register()
+            {
+                AfterEffectApply += AuraEffectApplyFn(spell_pri_inner_fire_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_MOD_RESISTANCE_PCT, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+                AfterEffectRemove += AuraEffectRemoveFn(spell_pri_inner_fire_AuraScript::HandleEffectRemove, EFFECT_0, SPELL_AURA_MOD_RESISTANCE_PCT, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_pri_inner_fire_AuraScript();
+        }
+};
+
 void AddSC_priest_spell_scripts()
 {
     new spell_pri_guardian_spirit();
@@ -551,4 +588,5 @@ void AddSC_priest_spell_scripts()
     new spell_pri_renew();
     new spell_pri_shadow_word_death();
     new spell_pri_shadowform();
+    new spell_pri_inner_fire();
 }
