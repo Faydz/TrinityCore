@@ -213,7 +213,7 @@ public: SmsgListInventory(uint64 vendor_guid, WorldSession* player_session, Vend
                         items_to_send.push_back(packet);
                     }
 
-            WorldPacket packet(m_opcode, 8 + 1 + (m_itemCount > 0 ? m_itemCount * 8 * 4 : 1));
+            WorldPacket packet(m_opcode, 8 + 1 + (m_itemCount > 0 ? m_itemCount * 8 *        items_6.AddItem(4(4 : 1));
             packet << m_vendorGuid;
             packet << item_count;
             for(int i = 0; i < items_to_send.size(); i++)
@@ -247,8 +247,8 @@ public:
 
         Vendor vendor_1(700000, GOSSIP_ICON_VENDOR, "Look at all the weapons I have");
         ItemList items_1(&vendor_1);
-        items_1.AddItem(18582); // Azzinoth
-        items_1.AddItem(13262); // Ashbringer
+        items_1.AddItem(18582, 2); // Azzinoth
+        items_1.AddItem(13262, 2); // Ashbringer
         itemlists.push_back(items_1);
         
         * Die erste Zeile erstellt ein "Vendor" Objekt mit:
@@ -272,240 +272,240 @@ public:
 
         Vendor vendor_1(700000, GOSSIP_ICON_VENDOR, "Tier 7 Set-Teile");
         ItemList items_1(&vendor_1);
-        items_1.AddItem(40415); // 
-        items_1.AddItem(40416); // 
-		items_1.AddItem(40417); // 
-		items_1.AddItem(40418); // 
-		items_1.AddItem(40419); // 
-		items_1.AddItem(40420); // 
-		items_1.AddItem(40421); // 
-		items_1.AddItem(40422); // 
-		items_1.AddItem(40423); // 
-		items_1.AddItem(40424); // 
-		items_1.AddItem(40445); // 
-		items_1.AddItem(40447); // 
-		items_1.AddItem(40448); // 
-		items_1.AddItem(40449); // 
-		items_1.AddItem(40450); // 
-		items_1.AddItem(40454); // 
-		items_1.AddItem(40456); // 
-		items_1.AddItem(40457); // 
-		items_1.AddItem(40458); // 
-		items_1.AddItem(40459); // 
-		items_1.AddItem(40460); // 
-		items_1.AddItem(40461); // 
-		items_1.AddItem(40462); // 
-		items_1.AddItem(40463); // 
-		items_1.AddItem(40465); // 
-		items_1.AddItem(40466); // 
-		items_1.AddItem(40467); // 
-		items_1.AddItem(40468); // 
-		items_1.AddItem(40469); // 
-		items_1.AddItem(40470); // 
-		items_1.AddItem(40471); // 
-		items_1.AddItem(40472); // 
-		items_1.AddItem(40473); // 
-		items_1.AddItem(40493); // 
-		items_1.AddItem(40494); // 
-		items_1.AddItem(40495); // 
-		items_1.AddItem(40496); // 
-		items_1.AddItem(40499); // 
-		items_1.AddItem(40500); // 
-		items_1.AddItem(40502); // 
-		items_1.AddItem(40503); // 
-		items_1.AddItem(40504); // 
-		items_1.AddItem(40505); // 
-		items_1.AddItem(40506); // 
-		items_1.AddItem(40507); // 
-		items_1.AddItem(40508); // 
-		items_1.AddItem(40509); // 
-		items_1.AddItem(40510); // 
-		items_1.AddItem(40512); // 
-		items_1.AddItem(40513); // 
-		items_1.AddItem(40514); // 
-		items_1.AddItem(40515); // 
-		items_1.AddItem(40516); // 
-		items_1.AddItem(40517); // 
-		items_1.AddItem(40518); // 
-		items_1.AddItem(40520); // 
-		items_1.AddItem(40521); // 
-		items_1.AddItem(40522); // 
-		items_1.AddItem(40523); // 
-		items_1.AddItem(40524); // 
-		items_1.AddItem(40525); // 
-		items_1.AddItem(40527); // 
-		items_1.AddItem(40528); // 
-		items_1.AddItem(40529); // 
-		items_1.AddItem(40530); // 
-		items_1.AddItem(40544); // 
-		items_1.AddItem(40545); // 
-		items_1.AddItem(40546); // 
-		items_1.AddItem(40547); // 
-		items_1.AddItem(40548); // 
-		items_1.AddItem(40550); // 
-		items_1.AddItem(40552); // 
-		items_1.AddItem(40554); // 
-		items_1.AddItem(40556); // 
-		items_1.AddItem(40557); // 
-		items_1.AddItem(40559); // 
-		items_1.AddItem(40563); // 
-		items_1.AddItem(40565); // 
-		items_1.AddItem(40567); // 
-		items_1.AddItem(40568); // 
-		items_1.AddItem(40569); // 
-		items_1.AddItem(40570); // 
-		items_1.AddItem(40571); // 
-		items_1.AddItem(40572); // 
-		items_1.AddItem(40573); // 
-		items_1.AddItem(40574); // 
-		items_1.AddItem(40575); // 
-		items_1.AddItem(40576); // 
-		items_1.AddItem(40577); // 
-		items_1.AddItem(40578); // 
-		items_1.AddItem(40579); // 
-		items_1.AddItem(40580); // 
-		items_1.AddItem(40581); // 
-		items_1.AddItem(40583); // 
-		items_1.AddItem(40584); // 
+        items_1.AddItem(40415, 2); // 
+        items_1.AddItem(40416, 2); // 
+		items_1.AddItem(40417, 2); // 
+		items_1.AddItem(40418, 2); // 
+		items_1.AddItem(40419, 2); // 
+		items_1.AddItem(40420, 2); // 
+		items_1.AddItem(40421, 2); // 
+		items_1.AddItem(40422, 2); // 
+		items_1.AddItem(40423, 2); // 
+		items_1.AddItem(40424, 2); // 
+		items_1.AddItem(40445, 2); // 
+		items_1.AddItem(40447, 2); // 
+		items_1.AddItem(40448, 2); // 
+		items_1.AddItem(40449, 2); // 
+		items_1.AddItem(40450, 2); // 
+		items_1.AddItem(40454, 2); // 
+		items_1.AddItem(40456, 2); // 
+		items_1.AddItem(40457, 2); // 
+		items_1.AddItem(40458, 2); // 
+		items_1.AddItem(40459, 2); // 
+		items_1.AddItem(40460, 2); // 
+		items_1.AddItem(40461, 2); // 
+		items_1.AddItem(40462, 2); // 
+		items_1.AddItem(40463, 2); // 
+		items_1.AddItem(40465, 2); // 
+		items_1.AddItem(40466, 2); // 
+		items_1.AddItem(40467, 2); // 
+		items_1.AddItem(40468, 2); // 
+		items_1.AddItem(40469, 2); // 
+		items_1.AddItem(40470, 2); // 
+		items_1.AddItem(40471, 2); // 
+		items_1.AddItem(40472, 2); // 
+		items_1.AddItem(40473, 2); // 
+		items_1.AddItem(40493, 2); // 
+		items_1.AddItem(40494, 2); // 
+		items_1.AddItem(40495, 2); // 
+		items_1.AddItem(40496, 2); // 
+		items_1.AddItem(40499, 2); // 
+		items_1.AddItem(40500, 2); // 
+		items_1.AddItem(40502, 2); // 
+		items_1.AddItem(40503, 2); // 
+		items_1.AddItem(40504, 2); // 
+		items_1.AddItem(40505, 2); // 
+		items_1.AddItem(40506, 2); // 
+		items_1.AddItem(40507, 2); // 
+		items_1.AddItem(40508, 2); // 
+		items_1.AddItem(40509, 2); // 
+		items_1.AddItem(40510, 2); // 
+		items_1.AddItem(40512, 2); // 
+		items_1.AddItem(40513, 2); // 
+		items_1.AddItem(40514, 2); // 
+		items_1.AddItem(40515, 2); // 
+		items_1.AddItem(40516, 2); // 
+		items_1.AddItem(40517, 2); // 
+		items_1.AddItem(40518, 2); // 
+		items_1.AddItem(40520, 2); // 
+		items_1.AddItem(40521, 2); // 
+		items_1.AddItem(40522, 2); // 
+		items_1.AddItem(40523, 2); // 
+		items_1.AddItem(40524, 2); // 
+		items_1.AddItem(40525, 2); // 
+		items_1.AddItem(40527, 2); // 
+		items_1.AddItem(40528, 2); // 
+		items_1.AddItem(40529, 2); // 
+		items_1.AddItem(40530, 2); // 
+		items_1.AddItem(40544, 2); // 
+		items_1.AddItem(40545, 2); // 
+		items_1.AddItem(40546, 2); // 
+		items_1.AddItem(40547, 2); // 
+		items_1.AddItem(40548, 2); // 
+		items_1.AddItem(40550, 2); // 
+		items_1.AddItem(40552, 2); // 
+		items_1.AddItem(40554, 2); // 
+		items_1.AddItem(40556, 2); // 
+		items_1.AddItem(40557, 2); // 
+		items_1.AddItem(40559, 2); // 
+		items_1.AddItem(40563, 2); // 
+		items_1.AddItem(40565, 2); // 
+		items_1.AddItem(40567, 2); // 
+		items_1.AddItem(40568, 2); // 
+		items_1.AddItem(40569, 2); // 
+		items_1.AddItem(40570, 2); // 
+		items_1.AddItem(40571, 2); // 
+		items_1.AddItem(40572, 2); // 
+		items_1.AddItem(40573, 2); // 
+		items_1.AddItem(40574, 2); // 
+		items_1.AddItem(40575, 2); // 
+		items_1.AddItem(40576, 2); // 
+		items_1.AddItem(40577, 2); // 
+		items_1.AddItem(40578, 2); // 
+		items_1.AddItem(40579, 2); // 
+		items_1.AddItem(40580, 2); // 
+		items_1.AddItem(40581, 2); // 
+		items_1.AddItem(40583, 2); // 
+		items_1.AddItem(40584, 2); // 
         itemlists.push_back(items_1);
 
         Vendor vendor_2(700001, GOSSIP_ICON_VENDOR, "Tier 7 NonSets");
         ItemList items_2(&vendor_2);
-        items_2.AddItem(39421); // 
-        items_2.AddItem(39425); // 
-		items_2.AddItem(39701); // 
-		items_2.AddItem(39702); // 
-		items_2.AddItem(39706); // 
-		items_2.AddItem(39717); // 
-		items_2.AddItem(39721); // 
-		items_2.AddItem(39722); // 
-		items_2.AddItem(39728); // 
-		items_2.AddItem(39729); // 
-		items_2.AddItem(39731); // 
-		items_2.AddItem(39734); // 
-		items_2.AddItem(39735); // 
-		items_2.AddItem(39757); // 
-		items_2.AddItem(39759); // 
-		items_2.AddItem(39762); // 
-		items_2.AddItem(39764); // 
-		items_2.AddItem(39765); // 
-		items_2.AddItem(40064); // 
-		items_2.AddItem(40065); // 
-		items_2.AddItem(40069); // 
-		items_2.AddItem(40071); // 
-		items_2.AddItem(40074); // 
-		items_2.AddItem(40075); // 
-		items_2.AddItem(40080); // 
-		items_2.AddItem(40107); // 
-		items_2.AddItem(40108); // 
-		items_2.AddItem(40184); // 
-		items_2.AddItem(40186); // 
-		items_2.AddItem(40187); // 
-		items_2.AddItem(40191); // 
-		items_2.AddItem(40198); // 
-		items_2.AddItem(40200); // 
-		items_2.AddItem(40205); // 
-		items_2.AddItem(40206); // 
-		items_2.AddItem(40207); // 
-		items_2.AddItem(40209); // 
-		items_2.AddItem(40236); // 
-		items_2.AddItem(40237); // 
-		items_2.AddItem(40241); // 
-		items_2.AddItem(40243); // 
-		items_2.AddItem(40246); // 
-		items_2.AddItem(40250); // 
-		items_2.AddItem(40251); // 
-		items_2.AddItem(40252); // 
-		items_2.AddItem(40253); // 
-		items_2.AddItem(40254); // 
-		items_2.AddItem(40255); // 
-		items_2.AddItem(40256); // 
-		items_2.AddItem(40257); // 
-		items_2.AddItem(40258); // 
-		items_2.AddItem(40259); //
-		items_2.AddItem(40260); //
-		items_2.AddItem(40263); //
-		items_2.AddItem(40267); //
-		items_2.AddItem(40268); //
-		items_2.AddItem(40269); //
-		items_2.AddItem(40270); //
-		items_2.AddItem(40271); //
-		items_2.AddItem(40272); //
-		items_2.AddItem(40274); //
-		items_2.AddItem(40275); //
-		items_2.AddItem(40278); //
-		items_2.AddItem(40282); //
-		items_2.AddItem(40297); //
-		items_2.AddItem(40301); //
-		items_2.AddItem(40306); //
-		items_2.AddItem(40317); //
-		items_2.AddItem(40320); //
-		items_2.AddItem(40321); //
-		items_2.AddItem(40322); //
-		items_2.AddItem(40323); //
-		items_2.AddItem(40324); //
-		items_2.AddItem(40325); //
-		items_2.AddItem(40326); //
-		items_2.AddItem(40327); //
-		items_2.AddItem(40330); //
-		items_2.AddItem(40332); //
-		items_2.AddItem(40337); //
-		items_2.AddItem(40338); //
-		items_2.AddItem(40341); //
-		items_2.AddItem(40342); //
-		items_2.AddItem(40367); //
-		items_2.AddItem(40369); //
-		items_2.AddItem(40370); //
-		items_2.AddItem(40371); //
-		items_2.AddItem(40372); //
-		items_2.AddItem(40373); //
-		items_2.AddItem(40374); //
-		items_2.AddItem(40375); //
-		items_2.AddItem(40378); //
-		items_2.AddItem(40382); //
-		items_2.AddItem(40409); //
-		items_2.AddItem(40410); //
-		items_2.AddItem(40412); //
+        items_2.AddItem(39421, 2); // 
+        items_2.AddItem(39425, 2); // 
+		items_2.AddItem(39701, 2); // 
+		items_2.AddItem(39702, 2); // 
+		items_2.AddItem(39706, 2); // 
+		items_2.AddItem(39717, 2); // 
+		items_2.AddItem(39721, 2); // 
+		items_2.AddItem(39722, 2); // 
+		items_2.AddItem(39728, 2); // 
+		items_2.AddItem(39729, 2); // 
+		items_2.AddItem(39731, 2); // 
+		items_2.AddItem(39734, 2); // 
+		items_2.AddItem(39735, 2); // 
+		items_2.AddItem(39757, 2); // 
+		items_2.AddItem(39759, 2); // 
+		items_2.AddItem(39762, 2); // 
+		items_2.AddItem(39764, 2); // 
+		items_2.AddItem(39765, 2); // 
+		items_2.AddItem(40064, 2); // 
+		items_2.AddItem(40065, 2); // 
+		items_2.AddItem(40069, 2); // 
+		items_2.AddItem(40071, 2); // 
+		items_2.AddItem(40074, 2); // 
+		items_2.AddItem(40075, 2); // 
+		items_2.AddItem(40080, 2); // 
+		items_2.AddItem(40107, 2); // 
+		items_2.AddItem(40108, 2); // 
+		items_2.AddItem(40184, 2); // 
+		items_2.AddItem(40186, 2); // 
+		items_2.AddItem(40187, 2); // 
+		items_2.AddItem(40191, 2); // 
+		items_2.AddItem(40198, 2); // 
+		items_2.AddItem(40200, 2); // 
+		items_2.AddItem(40205, 2); // 
+		items_2.AddItem(40206, 2); // 
+		items_2.AddItem(40207, 2); // 
+		items_2.AddItem(40209, 2); // 
+		items_2.AddItem(40236, 2); // 
+		items_2.AddItem(40237, 2); // 
+		items_2.AddItem(40241, 2); // 
+		items_2.AddItem(40243, 2); // 
+		items_2.AddItem(40246, 2); // 
+		items_2.AddItem(40250, 2); // 
+		items_2.AddItem(40251, 2); // 
+		items_2.AddItem(40252, 2); // 
+		items_2.AddItem(40253, 2); // 
+		items_2.AddItem(40254, 2); // 
+		items_2.AddItem(40255, 2); // 
+		items_2.AddItem(40256, 2); // 
+		items_2.AddItem(40257, 2); // 
+		items_2.AddItem(40258, 2); // 
+		items_2.AddItem(40259, 2); // 
+		items_2.AddItem(40260, 2); // 
+		items_2.AddItem(40263, 2); // 
+		items_2.AddItem(40267, 2); // 
+		items_2.AddItem(40268, 2); // 
+		items_2.AddItem(40269, 2); // 
+		items_2.AddItem(40270, 2); // 
+		items_2.AddItem(40271, 2); // 
+		items_2.AddItem(40272, 2); // 
+		items_2.AddItem(40274, 2); // 
+		items_2.AddItem(40275, 2); // 
+		items_2.AddItem(40278, 2); // 
+		items_2.AddItem(40282, 2); // 
+		items_2.AddItem(40297, 2); // 
+		items_2.AddItem(40301, 2); // 
+		items_2.AddItem(40306, 2); // 
+		items_2.AddItem(40317, 2); // 
+		items_2.AddItem(40320, 2); // 
+		items_2.AddItem(40321, 2); // 
+		items_2.AddItem(40322, 2); // 
+		items_2.AddItem(40323, 2); // 
+		items_2.AddItem(40324, 2); // 
+		items_2.AddItem(40325, 2); // 
+		items_2.AddItem(40326, 2); // 
+		items_2.AddItem(40327, 2); // 
+		items_2.AddItem(40330, 2); // 
+		items_2.AddItem(40332, 2); // 
+		items_2.AddItem(40337, 2); // 
+		items_2.AddItem(40338, 2); // 
+		items_2.AddItem(40341, 2); // 
+		items_2.AddItem(40342, 2); // 
+		items_2.AddItem(40367, 2); // 
+		items_2.AddItem(40369, 2); // 
+		items_2.AddItem(40370, 2); // 
+		items_2.AddItem(40371, 2); // 
+		items_2.AddItem(40372, 2); // 
+		items_2.AddItem(40373, 2); // 
+		items_2.AddItem(40374, 2); // 
+		items_2.AddItem(40375, 2); // 
+		items_2.AddItem(40378, 2); // 
+		items_2.AddItem(40382, 2); // 
+		items_2.AddItem(40409, 2); // 
+		items_2.AddItem(40410, 2); // 
+		items_2.AddItem(40412, 2); // 
         itemlists.push_back(items_2);
 
 		Vendor vendor_3(700002, GOSSIP_ICON_VENDOR, "Tier 7 Waffen");
         ItemList items_3(&vendor_3);
-        items_3.AddItem(39712); //
-        items_3.AddItem(39714); //
-		items_3.AddItem(39730); //
-		items_3.AddItem(39758); //
-		items_3.AddItem(39763); //
-		items_3.AddItem(39766); //
-		items_3.AddItem(40192); //
-		items_3.AddItem(40208); //
-		items_3.AddItem(40233); //
-		items_3.AddItem(40239); //
-		items_3.AddItem(40244); //
-		items_3.AddItem(40245); //
-		items_3.AddItem(40264); //
-		items_3.AddItem(40273); //
-		items_3.AddItem(40280); //
-		items_3.AddItem(40281); //
-		items_3.AddItem(40284); //
-		items_3.AddItem(40300); //
-		items_3.AddItem(40335); //
-		items_3.AddItem(40336); //
-		items_3.AddItem(40343); //
-		items_3.AddItem(40345); //
-		items_3.AddItem(40346); //
-		items_3.AddItem(40348); //
-		items_3.AddItem(40350); //
-		items_3.AddItem(40368); //
-		items_3.AddItem(40369); //
-		items_3.AddItem(40383); //
-		items_3.AddItem(40384); //
-		items_3.AddItem(40385); //
-		items_3.AddItem(40386); //
-		items_3.AddItem(40388); //
-		items_3.AddItem(40395); //
-		items_3.AddItem(40400); //
-		items_3.AddItem(40401); //
-		items_3.AddItem(40402); //
+        items_3.AddItem(39712, 2); // 
+        items_3.AddItem(39714, 2); // 
+		items_3.AddItem(39730, 2); // 
+		items_3.AddItem(39758, 2); // 
+		items_3.AddItem(39763, 2); // 
+		items_3.AddItem(39766, 2); // 
+		items_3.AddItem(40192, 2); // 
+		items_3.AddItem(40208, 2); // 
+		items_3.AddItem(40233, 2); // 
+		items_3.AddItem(40239, 2); // 
+		items_3.AddItem(40244, 2); // 
+		items_3.AddItem(40245, 2); // 
+		items_3.AddItem(40264, 2); // 
+		items_3.AddItem(40273, 2); // 
+		items_3.AddItem(40280, 2); // 
+		items_3.AddItem(40281, 2); // 
+		items_3.AddItem(40284, 2); // 
+		items_3.AddItem(40300, 2); // 
+		items_3.AddItem(40335, 2); // 
+		items_3.AddItem(40336, 2); // 
+		items_3.AddItem(40343, 2); // 
+		items_3.AddItem(40345, 2); // 
+		items_3.AddItem(40346, 2); // 
+		items_3.AddItem(40348, 2); // 
+		items_3.AddItem(40350, 2); // 
+		items_3.AddItem(40368, 2); // 
+		items_3.AddItem(40369, 2); // 
+		items_3.AddItem(40383, 2); // 
+		items_3.AddItem(40384, 2); // 
+		items_3.AddItem(40385, 2); // 
+		items_3.AddItem(40386, 2); // 
+		items_3.AddItem(40388, 2); // 
+		items_3.AddItem(40395, 2); // 
+		items_3.AddItem(40400, 2); // 
+		items_3.AddItem(40401, 2); // 
+		items_3.AddItem(40402, 2); // 
         itemlists.push_back(items_3);
 
         /* Verändere nicht was hier drunter steht
@@ -567,7 +567,498 @@ public:
     }
 };
 
+class npc_multivendor_season : public CreatureScript
+{
+public:
+    npc_multivendor_season() : CreatureScript("npc_multivendor_season"){ }
+
+    std::vector<ItemList> GetVendorList()
+    {
+        std::vector<ItemList> itemlists;
+        
+        /* Nur Daten nach diesem Commentblock editieren!
+         * Nicht anderes verändern!
+         *
+         * Example vendor:
+
+        Vendor vendor_1(700000, GOSSIP_ICON_VENDOR, "Look at all the weapons I have");
+        ItemList items_1(&vendor_1);
+        items_1.AddItem(18582, 2); // Azzinoth
+        items_1.AddItem(13262, 2); // Ashbringer
+        itemlists.push_back(items_1);
+        
+        * Die erste Zeile erstellt ein "Vendor" Objekt mit:
+        *     GUID 700000 (Muss verschieden zu allen anderen Vendoren sein)
+        *     Zeigt das Händler Icon an
+        *     Zeigt den Text "Look at all the weapons I have" an
+        * 
+        *Die zweite Zeile erstell eine Instanz vom ItemList Objekt mit Namen items_1
+        *    
+        * 
+        * Die dritte und vierte Zeile sind Beispiele wie man Items zum Vendor hinzufügt(named items_1).
+        *     Man kann ItemExtendedCost als zweiten Parameter hinzufügen
+        *     Das Script unterstützt keine Zeitlimitierten oder respawnenden Items
+        * 
+        * Die letzte Zeile ist die wichtigste. Diese Zeile fügt deinen Vendor zur Liste der Vendoren hinzu.
+        * 
+        *
+        * Ende der Erklärung
+        * 
+        */
+
+        Vendor vendor_4(700003, GOSSIP_ICON_VENDOR, "Season 5 Set-Teile");
+        ItemList items_4(&vendor_4);
+        items_4.AddItem(37864, 0); // 
+		items_4.AddItem(37865, 0); // 
+		items_4.AddItem(40784, 0); // 
+		items_4.AddItem(40785, 0); // 
+		items_4.AddItem(40786, 0); // 
+		items_4.AddItem(40804, 0); // 
+		items_4.AddItem(40805, 0); // 
+		items_4.AddItem(40806, 0); // 
+		items_4.AddItem(40823, 0); // 
+		items_4.AddItem(40824, 0); // 
+		items_4.AddItem(40825, 0); // 
+		items_4.AddItem(40844, 0); // 
+		items_4.AddItem(40845, 0); // 
+		items_4.AddItem(40846, 0); // 
+		items_4.AddItem(40862, 0); // 
+		items_4.AddItem(40863, 0); // 
+		items_4.AddItem(40864, 0); // 
+		items_4.AddItem(40905, 0); // 
+		items_4.AddItem(40926, 0); // 
+		items_4.AddItem(40932, 0); // 
+		items_4.AddItem(40938, 0); // 
+		items_4.AddItem(40962, 0); // 
+		items_4.AddItem(40990, 0); // 
+		items_4.AddItem(40991, 0); // 
+		items_4.AddItem(41000, 0); // 
+		items_4.AddItem(41006, 0); // 
+		items_4.AddItem(41012, 0); // 
+		items_4.AddItem(41018, 0); // 
+		items_4.AddItem(41026, 0); // 
+		items_4.AddItem(41032, 0); //
+		items_4.AddItem(41037, 0); //
+		items_4.AddItem(41043, 0); //
+		items_4.AddItem(41080, 0); //
+		items_4.AddItem(41086, 0); //
+		items_4.AddItem(41136, 0); //
+		items_4.AddItem(41142, 0); //
+		items_4.AddItem(41150, 0); //
+		items_4.AddItem(41156, 0); //
+		items_4.AddItem(41198, 0); //
+		items_4.AddItem(41204, 0); //
+		items_4.AddItem(41210, 0); //
+		items_4.AddItem(41216, 0); //
+		items_4.AddItem(41274, 0); //
+		items_4.AddItem(41280, 0); //
+		items_4.AddItem(41286, 0); //
+		items_4.AddItem(41292, 0); //
+		items_4.AddItem(41297, 0); //
+		items_4.AddItem(41303, 0); //
+		items_4.AddItem(41309, 0); //
+		items_4.AddItem(41315, 0); //
+		items_4.AddItem(41320, 0); //
+		items_4.AddItem(41326, 0); //
+		items_4.AddItem(41649, 0); //
+		items_4.AddItem(41654, 0); //
+		items_4.AddItem(41660, 0); //
+		items_4.AddItem(41666, 0); //
+		items_4.AddItem(41671, 0); //
+		items_4.AddItem(41677, 0); //
+		items_4.AddItem(41682, 0); //
+		items_4.AddItem(41714, 0); //
+		items_4.AddItem(41766, 0); //
+		items_4.AddItem(41772, 0); //
+		items_4.AddItem(41853, 0); //
+		items_4.AddItem(41858, 0); //
+		items_4.AddItem(41863, 0); //
+		items_4.AddItem(41868, 0); //
+		items_4.AddItem(41873, 0); //
+		items_4.AddItem(41914, 0); //
+		items_4.AddItem(41920, 0); //
+		items_4.AddItem(41926, 0); //
+		items_4.AddItem(41933, 0); //
+		items_4.AddItem(41939, 0); //
+		items_4.AddItem(41945, 0); //
+		items_4.AddItem(41951, 0); //
+		items_4.AddItem(41958, 0); //
+		items_4.AddItem(41964, 0); //
+		items_4.AddItem(41970, 0); //
+		items_4.AddItem(41992, 0); //
+		items_4.AddItem(41997, 0); //
+		items_4.AddItem(42004, 0); //
+		items_4.AddItem(42010, 0); //
+		items_4.AddItem(42016, 0); //
+        itemlists.push_back(items_4);
+
+        Vendor vendor_5(700004, GOSSIP_ICON_VENDOR, "Season 5 NonSets");
+        ItemList items_5(&vendor_5);
+        items_5.AddItem(40879, 0); // 
+		items_5.AddItem(40880, 0); // 
+		items_5.AddItem(40888, 0); // 
+		items_5.AddItem(40974, 0); // 
+		items_5.AddItem(40975, 0); // 
+		items_5.AddItem(40982, 0); // 
+		items_5.AddItem(41048, 0); // 
+		items_5.AddItem(41054, 0); // 
+		items_5.AddItem(41059, 0); // 
+		items_5.AddItem(41064, 0); // 
+		items_5.AddItem(41069, 0); // 
+		items_5.AddItem(41074, 0); // 
+		items_5.AddItem(41224, 0); // 
+		items_5.AddItem(41229, 0); // 
+		items_5.AddItem(41234, 0); // 
+		items_5.AddItem(41616, 0); // 
+		items_5.AddItem(41624, 0); // 
+		items_5.AddItem(41629, 0); // 
+		items_5.AddItem(41634, 0); // 
+		items_5.AddItem(41639, 0); // 
+		items_5.AddItem(41831, 0); // 
+		items_5.AddItem(41835, 0); // 
+		items_5.AddItem(41839, 0); // 
+		items_5.AddItem(41880, 0); // 
+		items_5.AddItem(41884, 0); // 
+		items_5.AddItem(41892, 0); // 
+		items_5.AddItem(41897, 0); // 
+		items_5.AddItem(41902, 0); // 
+		items_5.AddItem(41908, 0); // 
+		items_5.AddItem(42027, 0); // 
+		items_5.AddItem(42028, 0); //
+		items_5.AddItem(42029, 0); //
+		items_5.AddItem(42030, 0); //
+		items_5.AddItem(42031, 0); //
+		items_5.AddItem(42032, 0); //
+		items_5.AddItem(42033, 0); //
+		items_5.AddItem(42062, 0); //
+		items_5.AddItem(42063, 0); //
+		items_5.AddItem(42064, 0); //
+		items_5.AddItem(42065, 0); //
+		items_5.AddItem(42066, 0); //
+		items_5.AddItem(42067, 0); //
+		items_5.AddItem(42068, 0); //
+		items_5.AddItem(42114, 0); //
+		items_5.AddItem(42115, 0); //
+		items_5.AddItem(42208, 0); //
+		items_5.AddItem(42227, 0); //
+		items_5.AddItem(42232, 0); //
+		items_5.AddItem(42237, 0); //
+		items_5.AddItem(42242, 0); //
+		items_5.AddItem(42248, 0); //
+		items_5.AddItem(42255, 0); //
+		items_5.AddItem(42260, 0); //
+		items_5.AddItem(42265, 0); //
+		items_5.AddItem(42270, 0); //
+		items_5.AddItem(42275, 0); //
+		items_5.AddItem(42280, 0); //
+		items_5.AddItem(42285, 0); //
+		items_5.AddItem(42290, 0); //
+		items_5.AddItem(42317, 0); //
+		items_5.AddItem(42322, 0); //
+		items_5.AddItem(42327, 0); //
+		items_5.AddItem(42332, 0); //
+		items_5.AddItem(42346, 0); //
+		items_5.AddItem(42352, 0); //
+		items_5.AddItem(42362, 0); //
+		items_5.AddItem(42384, 0); //
+		items_5.AddItem(42390, 0); //
+		items_5.AddItem(42450, 0); //
+		items_5.AddItem(42485, 0); //
+		items_5.AddItem(42490, 0); //
+		items_5.AddItem(42495, 0); //
+		items_5.AddItem(42502, 0); //
+		items_5.AddItem(42513, 0); //
+		items_5.AddItem(42519, 0); //
+		items_5.AddItem(42525, 0); //
+		items_5.AddItem(42531, 0); //
+		items_5.AddItem(42537, 0); //
+		items_5.AddItem(42559, 0); //
+		items_5.AddItem(42564, 0); //
+		items_5.AddItem(42570, 0); //
+		items_5.AddItem(42578, 0); //
+		items_5.AddItem(42583, 0); //
+		items_5.AddItem(42588, 0); //
+		items_5.AddItem(42597, 0); //
+		items_5.AddItem(42602, 0); //
+		items_5.AddItem(42607, 0); //
+		items_5.AddItem(42614, 0); //
+		items_5.AddItem(42620, 0); //
+		items_5.AddItem(42852, 0); //
+		items_5.AddItem(44419, 0); //
+		items_5.AddItem(44420, 0); //
+        itemlists.push_back(items_5);
+
+		Vendor vendor_6(700005, GOSSIP_ICON_VENDOR, "Season 6 Set-Teile");
+        ItemList items_6(&vendor_6);
+		items_6.AddItem(4(40787, 0); //
+        items_6.AddItem(4(40788, 0); //
+        items_6.AddItem(4(40789, 0); //
+        items_6.AddItem(4(40807, 0); //
+        items_6.AddItem(4(40808, 0); //
+        items_6.AddItem(4(40809, 0); //
+        items_6.AddItem(4(40826, 0); //
+        items_6.AddItem(4(40827, 0); //
+        items_6.AddItem(4(40828, 0); //
+        items_6.AddItem(4(40847, 0); //
+        items_6.AddItem(4(40848, 0); //
+        items_6.AddItem(4(40849, 0); //
+        items_6.AddItem(4(40866, 0); //
+        items_6.AddItem(4(40868, 0); //
+        items_6.AddItem(4(40869, 0); //
+        items_6.AddItem(4(40907, 0); //
+        items_6.AddItem(4(40927, 0); //
+        items_6.AddItem(4(40933, 0); //
+        items_6.AddItem(4(40939, 0); //
+        items_6.AddItem(4(40963, 0); //
+        items_6.AddItem(4(40992, 0); //
+        items_6.AddItem(4(40993, 0); //
+        items_6.AddItem(4(41001, 0); //
+        items_6.AddItem(4(41007, 0); //
+        items_6.AddItem(4(41013, 0); //
+        items_6.AddItem(4(41019, 0); //
+        items_6.AddItem(4(41027, 0); //
+        items_6.AddItem(4(41033, 0); //
+        items_6.AddItem(4(41038, 0); //
+        items_6.AddItem(4(41044, 0); //
+        items_6.AddItem(4(41081, 0); //
+        items_6.AddItem(4(41087, 0); //
+        items_6.AddItem(4(41137, 0); //
+        items_6.AddItem(4(41143, 0); //
+        items_6.AddItem(4(41151, 0); //
+        items_6.AddItem(4(41157, 0); //
+        items_6.AddItem(4(41199, 0); //
+        items_6.AddItem(4(41205, 0); //
+        items_6.AddItem(4(41211, 0); // 
+        items_6.AddItem(4(41217, 0); //
+        items_6.AddItem(4(41275, 0); //
+        items_6.AddItem(4(41281, 0); //
+        items_6.AddItem(4(41287, 0); //
+        items_6.AddItem(4(41293, 0); //
+        items_6.AddItem(4(41298, 0); //
+        items_6.AddItem(4(41304, 0); //
+        items_6.AddItem(4(41310, 0); //
+        items_6.AddItem(4(41316, 0); //
+        items_6.AddItem(4(41321, 0); //
+        items_6.AddItem(4(41327, 0); //
+        items_6.AddItem(4(41650, 0); //
+        items_6.AddItem(4(41655, 0); //
+        items_6.AddItem(4(41661, 0); //
+        items_6.AddItem(4(41667, 0); //
+        items_6.AddItem(4(41672, 0); //
+        items_6.AddItem(4(41678, 0); //
+        items_6.AddItem(4(41683, 0); //
+        items_6.AddItem(4(41715, 0); //
+        items_6.AddItem(4(41767, 0); //
+        items_6.AddItem(4(41773, 0); //
+        items_6.AddItem(4(41854, 0); //
+        items_6.AddItem(4(41859, 0); //
+        items_6.AddItem(4(41864, 0); //
+        items_6.AddItem(4(41869, 0); //
+        items_6.AddItem(4(41874, 0); //
+        items_6.AddItem(4(41915, 0); //
+        items_6.AddItem(4(41921, 0); //
+        items_6.AddItem(4(41927, 0); //
+        items_6.AddItem(4(41934, 0); //
+        items_6.AddItem(4(41940, 0); //
+        items_6.AddItem(4(41946, 0); //
+        items_6.AddItem(4(41953, 0); //
+        items_6.AddItem(4(41959, 0); //
+        items_6.AddItem(4(41965, 0); //
+        items_6.AddItem(4(41971, 0); //
+        items_6.AddItem(4(41993, 0); //
+        items_6.AddItem(4(41998, 0); //
+        items_6.AddItem(4(42005, 0); //
+        items_6.AddItem(4(42011, 0); //
+        items_6.AddItem(4(42017, 0); //
+        items_6.AddItem(4(42122, 0); //
+        items_6.AddItem(4(42123, 0); //
+         itemlists.push_back(items_6);
+
+		Vendor vendor_7(700006, GOSSIP_ICON_VENDOR, "Season 6 NonSets");
+        ItemList items_7(&vendor_7);
+        items_7.AddItem(40881, 0); //
+        items_7.AddItem(40882, 0); //
+        items_7.AddItem(40889, 0); //
+        items_7.AddItem(40976, 0); //
+        items_7.AddItem(40977, 0); //
+        items_7.AddItem(40983, 0); //
+        items_7.AddItem(41051, 0); //
+        items_7.AddItem(41055, 0); //
+        items_7.AddItem(41060, 0); //
+        items_7.AddItem(41065, 0); //
+        items_7.AddItem(41070, 0); //
+        items_7.AddItem(41075, 0); //
+        items_7.AddItem(41225, 0); //
+        items_7.AddItem(41230, 0); //
+        items_7.AddItem(41235, 0); //
+        items_7.AddItem(41617, 0); //
+        items_7.AddItem(41621, 0); //
+        items_7.AddItem(41625, 0); // 
+        items_7.AddItem(41630, 0); // 
+        items_7.AddItem(41635, 0); // 
+        items_7.AddItem(41640, 0); //
+        items_7.AddItem(41832, 0); //
+        items_7.AddItem(41836, 0); //
+        items_7.AddItem(41840, 0); //
+        items_7.AddItem(41881, 0); //
+        items_7.AddItem(41885, 0); //
+        items_7.AddItem(41893, 0); //
+        items_7.AddItem(41898, 0); //
+        items_7.AddItem(41903, 0); //
+        items_7.AddItem(41909, 0); //
+        items_7.AddItem(42034, 0); //
+        items_7.AddItem(42035, 0); //
+        items_7.AddItem(42036, 0); //
+        items_7.AddItem(42037, 0); //
+        items_7.AddItem(42038, 0); //
+        items_7.AddItem(42039, 0); //
+        items_7.AddItem(42040, 0); //
+        items_7.AddItem(42069, 0); //
+        items_7.AddItem(42070, 0); //
+        items_7.AddItem(42071, 0); //
+        items_7.AddItem(42072, 0); //
+        items_7.AddItem(42073, 0); //
+        items_7.AddItem(42074, 0); //
+        items_7.AddItem(42075, 0); //
+        items_7.AddItem(42116, 0); //
+        items_7.AddItem(42117, 0); //
+        items_7.AddItem(42209, 0); //
+        items_7.AddItem(42228, 0); //
+        items_7.AddItem(42233, 0); //
+        items_7.AddItem(42243, 0); //
+        items_7.AddItem(42249, 0); //
+        items_7.AddItem(42256, 0); //
+        items_7.AddItem(42261, 0); //
+        items_7.AddItem(42266, 0); //
+        items_7.AddItem(42271, 0); //
+        items_7.AddItem(42276, 0); //
+        items_7.AddItem(42281, 0); //
+        items_7.AddItem(42286, 0); //
+        items_7.AddItem(42291, 0); //
+        items_7.AddItem(42318, 0); //
+        items_7.AddItem(42323, 0); //
+        items_7.AddItem(42328, 0); //
+        items_7.AddItem(42333, 0); //
+        items_7.AddItem(42347, 0); //
+        items_7.AddItem(42353, 0); //
+        items_7.AddItem(42364, 0); //
+        items_7.AddItem(42385, 0); //
+        items_7.AddItem(42391, 0); //
+        items_7.AddItem(42451, 0); //
+        items_7.AddItem(42486, 0); //
+        items_7.AddItem(42491, 0); //
+        items_7.AddItem(42496, 0); //
+        items_7.AddItem(42503, 0); //
+        items_7.AddItem(42514, 0); //
+        items_7.AddItem(42520, 0); //
+        items_7.AddItem(42526, 0); //
+        items_7.AddItem(42532, 0); //
+        items_7.AddItem(42538, 0); //
+        items_7.AddItem(42560, 0); //
+        items_7.AddItem(42565, 0); //
+        items_7.AddItem(42571, 0); //
+        items_7.AddItem(42579, 0); //
+        items_7.AddItem(42584, 0); //
+        items_7.AddItem(42589, 0); //
+        items_7.AddItem(42598, 0); //
+        items_7.AddItem(42603, 0); //
+        items_7.AddItem(42608, 0); //
+        items_7.AddItem(42615, 0); //
+        items_7.AddItem(42621, 0); //
+        items_7.AddItem(42853, 0); //
+        items_7.AddItem(44421, 0); //
+        items_7.AddItem(44422, 0); //
+        items_7.AddItem(45937, 0); //
+        items_7.AddItem(45938, 0); //
+        items_7.AddItem(45939, 0); //
+        items_7.AddItem(45948, 0); //
+        items_7.AddItem(45949, 0); //
+        items_7.AddItem(45950, 0); //
+        items_7.AddItem(45951, 0); //
+        items_7.AddItem(45952, 0); //
+        items_7.AddItem(45953, 0); //
+        items_7.AddItem(45954, 0); //
+        items_7.AddItem(45955, 0); //
+        items_7.AddItem(45956, 0); //
+        items_7.AddItem(45957, 0); //
+        items_7.AddItem(45958, 0); //
+        items_7.AddItem(45959, 0); //
+        items_7.AddItem(45960, 0); //
+        items_7.AddItem(45961, 0); //
+        items_7.AddItem(45962, 0); //
+        items_7.AddItem(45963, 0); //
+        items_7.AddItem(45964, 0); //
+        items_7.AddItem(45965, 0); //
+        items_7.AddItem(45966, 0); //
+        items_7.AddItem(45967, 0); //
+        items_7.AddItem(45968, 0); //
+        items_7.AddItem(45969, 0); //
+        items_7.AddItem(45970, 0); //
+        items_7.AddItem(45971, 0); //
+        items_7.AddItem(46373, 0); //
+
+        itemlists.push_back(items_7);
+
+        /* Verändere nicht was hier drunter steht
+         * Dies ist das Ende des editierbaren Abschnitts
+         * Verändere nur Dinge ÜBER diesem Commentblock, solange du nicht weißt was du tust!
+         *
+         * Peace out
+         * Evilfairy~ */
+
+        return itemlists;
+    }
+
+    bool OnGossipHello(Player* player, Creature* creature)
+    {
+        std::vector<ItemList> vendors = GetVendorList();
+
+        /* DO NOT EDIT ANYTHING BELOW THIS LINE */
+        for(int i = 0; i < vendors.size(); i++) // icon message sender guid
+            player->ADD_GOSSIP_ITEM(vendors[i].GetVendor().getIcon(), vendors[i].GetVendor().getMessage(), GOSSIP_SENDER_MAIN, vendors[i].GetVendor().getGuid());
+
+        player->TalkedToCreature(creature->GetEntry(), creature->GetGUID());
+        player->SEND_GOSSIP_MENU(player->GetGossipTextId(creature), creature->GetGUID());
+        return true;
+    }
+
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 action)
+    {
+        player->PlayerTalkClass->ClearMenus();
+        player->CLOSE_GOSSIP_MENU();
+        
+        SendInventoryCustom(player, creature, action);
+        
+        return true;
+    }
+
+    void SendInventoryCustom(Player* player, Creature* vendor, int guid)
+    {
+        /* Remove Feign Death effects */
+        if (player->HasUnitState(UNIT_STATE_DIED))
+            player->RemoveAurasByType(SPELL_AURA_FEIGN_DEATH);
+
+        /* Stop NPC moving */
+        if (vendor->isMoving())
+            vendor->StopMoving();
+
+        std::vector<ItemList> vendors = GetVendorList();
+        ItemList myVendor;
+        for(int i = 0; i < vendors.size(); i++)
+        {
+            if(vendors[i].GetVendor().getGuid() == guid)
+            {
+                myVendor = ItemList(&vendors[i].GetVendor(), &vendors[i].GetVendor().items);
+                break;
+            }
+        }
+
+        SmsgListInventory inventory_packet(vendor->GetGUID(), player->GetSession(), &myVendor.GetVendor().items, vendors);
+        inventory_packet.Send(vendor, player);
+    }
+};
 void AddSC_npc_multivendor()
 {
     new npc_multivendor;
+	new npc_multivendor_season;
 }
