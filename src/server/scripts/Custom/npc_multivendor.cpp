@@ -213,7 +213,7 @@ public: SmsgListInventory(uint64 vendor_guid, WorldSession* player_session, Vend
                         items_to_send.push_back(packet);
                     }
 
-            WorldPacket packet(m_opcode, 8 + 1 + (m_itemCount > 0 ? m_itemCount * 8 *        items_6.AddItem(4(4 : 1));
+            WorldPacket packet(m_opcode, 8 + 1 + (m_itemCount > 0 ? m_itemCount * 8 * 4 : 1));
             packet << m_vendorGuid;
             packet << item_count;
             for(int i = 0; i < items_to_send.size(); i++)
@@ -996,8 +996,203 @@ public:
         items_7.AddItem(45970, 0); //
         items_7.AddItem(45971, 0); //
         items_7.AddItem(46373, 0); //
+		itemlists.push_back(items_7);
 
-        itemlists.push_back(items_7);
+		Vendor vendor_8(700007, GOSSIP_ICON_VENDOR, "Season 7 Set-Teile");
+        ItemList items_8(&vendor_8);
+        items_8.AddItem(40790, 2960); //
+        items_8.AddItem(40791, 2960); //
+        items_8.AddItem(40792, 2960); //
+        items_8.AddItem(40810, 2270); //
+        items_8.AddItem(40811, 2270); //
+        items_8.AddItem(40812, 2270); //
+        items_8.AddItem(40829, 2960); //
+        items_8.AddItem(40830, 2960); //
+        items_8.AddItem(40831, 2960); //
+        items_8.AddItem(40850, 2960); //
+        items_8.AddItem(40851, 2960); //
+        items_8.AddItem(40852, 2960); //
+        items_8.AddItem(40870, 2960); //
+        items_8.AddItem(40871, 2960); //
+        items_8.AddItem(40872, 2960); //
+        items_8.AddItem(40910, 2960); //
+        items_8.AddItem(40928, 2270); //
+        items_8.AddItem(40934, 2960); //
+        items_8.AddItem(40940, 2960); //
+        items_8.AddItem(40964, 2960); //
+        items_8.AddItem(40994, 2960); //
+        items_8.AddItem(40995, 2960); //
+        items_8.AddItem(41002, 2270); //
+        items_8.AddItem(41008, 2270); //
+        items_8.AddItem(41014, 2960); //
+        items_8.AddItem(41020, 2960); //
+        items_8.AddItem(41028, 2960); //
+        items_8.AddItem(41034, 2960); //
+        items_8.AddItem(41039, 2960); //
+        items_8.AddItem(41045, 2960); //
+        items_8.AddItem(41082, 2960); //
+        items_8.AddItem(41088, 2960); //
+        items_8.AddItem(41138, 2270); //
+        items_8.AddItem(41144, 2270); //
+        items_8.AddItem(41152, 2960); //
+        items_8.AddItem(41158, 2960); //
+        items_8.AddItem(41200, 2960); //
+        items_8.AddItem(41206, 2960); //
+        items_8.AddItem(41212, 2960); //
+        items_8.AddItem(41218, 2960); //
+        items_8.AddItem(41276, 2960); //
+        items_8.AddItem(41282, 2960); //
+        items_8.AddItem(41288, 2270); //
+        items_8.AddItem(41294, 2270); //
+        items_8.AddItem(41299, 2960); //
+        items_8.AddItem(41305, 2960); //
+        items_8.AddItem(41311, 2960); //
+        items_8.AddItem(41317, 2960); //
+        items_8.AddItem(41322, 2960); //
+        items_8.AddItem(41328, 2960); //
+        items_8.AddItem(41651, 2960); //
+        items_8.AddItem(41656, 2960); //
+        items_8.AddItem(41662, 2960); //
+        items_8.AddItem(41668, 2960); //
+        items_8.AddItem(41673, 2960); //
+        items_8.AddItem(41679, 2960); //
+        items_8.AddItem(41684, 2960); //
+        items_8.AddItem(41716, 2960); //
+        items_8.AddItem(41768, 2270); //
+        items_8.AddItem(41774, 2270); //
+        items_8.AddItem(41855, 2960); //
+        items_8.AddItem(41860, 2960); //
+        items_8.AddItem(41865, 2960); //
+        items_8.AddItem(41870, 2960); //
+        items_8.AddItem(41875, 2270); //
+        items_8.AddItem(41916, 2960); //
+        items_8.AddItem(41922, 2960); //
+        items_8.AddItem(41928, 2960); //
+        items_8.AddItem(41935, 2960); //
+        items_8.AddItem(41941, 2270); //
+        items_8.AddItem(41947, 2960); //
+        items_8.AddItem(41954, 2960); //
+        items_8.AddItem(41960, 2960); //
+        items_8.AddItem(41966, 2960); //
+        items_8.AddItem(41972, 2270); //
+        items_8.AddItem(41994, 2960); //
+        items_8.AddItem(41999, 2960); //
+        items_8.AddItem(42006, 2960); //
+        items_8.AddItem(42012, 2960); //
+        items_8.AddItem(42018, 2270); //
+        items_8.AddItem(42124, 2965); //
+        items_8.AddItem(42126, 2965); //
+        items_8.AddItem(42133, 2966); //
+        items_8.AddItem(42134, 2966); //
+        items_8.AddItem(42135, 2966); //
+        items_8.AddItem(42136, 2966); //
+        items_8.AddItem(42137, 2966); //
+        items_8.AddItem(45706, 2596); //
+		itemlists.push_back(items_8);
+
+		Vendor vendor_9(700008, GOSSIP_ICON_VENDOR, "Season 7 NonSets");
+        ItemList items_9(&vendor_9);
+		items_9.AddItem(40883, 2958); //
+        items_9.AddItem(40884, 2958); //
+        items_9.AddItem(40890, 2958); //
+        items_9.AddItem(40978, 2958); //
+        items_9.AddItem(40979, 2958); //
+        items_9.AddItem(40984, 2958); //
+        items_9.AddItem(41052, 2958); //
+        items_9.AddItem(41056, 2958); //
+        items_9.AddItem(41061, 2958); //
+        items_9.AddItem(41066, 2958); //
+        items_9.AddItem(41071, 2958); //
+        items_9.AddItem(41076, 2958); //
+        items_9.AddItem(41226, 2958); //
+        items_9.AddItem(41231, 2958); //
+        items_9.AddItem(41236, 2958); //
+        items_9.AddItem(41618, 2958); //
+        items_9.AddItem(41622, 2958); //
+        items_9.AddItem(41626, 2958); //
+        items_9.AddItem(41631, 2958); //
+        items_9.AddItem(41636, 2958); //
+        items_9.AddItem(41641, 2958); //
+        items_9.AddItem(41833, 2958); //
+        items_9.AddItem(41837, 2958); //
+        items_9.AddItem(41841, 2958); //
+        items_9.AddItem(41882, 2958); //
+        items_9.AddItem(41886, 2958); //
+        items_9.AddItem(41894, 2958); //
+        items_9.AddItem(41899, 2958); //
+        items_9.AddItem(41904, 2958); //
+        items_9.AddItem(41910, 2958); //
+        items_9.AddItem(42041, 2958); //
+        items_9.AddItem(42042, 2958); //
+        items_9.AddItem(42043, 2958); //
+        items_9.AddItem(42044, 2958); //
+        items_9.AddItem(42045, 2958); //
+        items_9.AddItem(42046, 2958); //
+        items_9.AddItem(42047, 2958); //
+        items_9.AddItem(42076, 2958); //
+        items_9.AddItem(42077, 2958); //
+        items_9.AddItem(42078, 2958); //
+        items_9.AddItem(42079, 2958); //
+        items_9.AddItem(42080, 2958); //
+        items_9.AddItem(42081, 2958); //
+        items_9.AddItem(42082, 2958); //
+        items_9.AddItem(42118, 2958); //
+        items_9.AddItem(42119, 2958); //
+        items_9.AddItem(42483, 2256); //
+        items_9.AddItem(42504, 98); //
+        items_9.AddItem(42515, 98); //
+        items_9.AddItem(42521, 98); //
+        items_9.AddItem(42527, 2967); //
+        items_9.AddItem(42533, 2967); //
+        items_9.AddItem(42539, 2967); //
+        items_9.AddItem(42561, 2256); //
+        items_9.AddItem(42566, 2256); //
+        items_9.AddItem(42572, 2256); //
+        items_9.AddItem(42580, 2969); //
+        items_9.AddItem(42585, 2969); //
+        items_9.AddItem(42591, 2969); //
+        items_9.AddItem(42599, 2969); //
+        items_9.AddItem(42604, 2969); //
+        items_9.AddItem(42609, 2969); //
+        items_9.AddItem(42616, 2969); //
+        items_9.AddItem(42622, 2969); //
+        items_9.AddItem(42854, 2969); //
+        items_9.AddItem(46374, 2958); //
+        items_9.AddItem(48402, 2965); //
+        items_9.AddItem(48404, 2965); //
+        items_9.AddItem(48406, 2965); //
+        items_9.AddItem(48408, 2958); //
+        items_9.AddItem(48410, 2965); //
+        items_9.AddItem(48412, 2965); //
+        items_9.AddItem(48414, 2965); //
+        items_9.AddItem(48420, 2965); //
+        items_9.AddItem(48422, 2965); //
+        items_9.AddItem(48424, 2965); //
+        items_9.AddItem(48426, 2561); //
+        items_9.AddItem(48428, 2561); //
+        items_9.AddItem(48432, 2561); //
+        items_9.AddItem(48435, 2561); //
+        items_9.AddItem(48438, 2561); //
+        items_9.AddItem(48440, 2561); //
+        items_9.AddItem(48442, 2561); //
+        items_9.AddItem(48444, 2561); //
+        items_9.AddItem(48507, 2958); //
+        items_9.AddItem(48509, 2958); //
+        items_9.AddItem(48511, 2958); //
+        items_9.AddItem(48513, 2958); //
+        items_9.AddItem(48515, 2958); //
+        items_9.AddItem(48517, 2965); //
+        items_9.AddItem(48519, 2958); //
+        items_9.AddItem(48521, 2965); //
+        items_9.AddItem(48523, 2965); //
+        items_9.AddItem(49179, 2958); //
+        items_9.AddItem(49181, 2958); //
+        items_9.AddItem(49183, 2958); //
+        items_9.AddItem(49185, 98); //
+        items_9.AddItem(49187, 2967); //
+        items_9.AddItem(49191, 2958); //
+
+        itemlists.push_back(items_9);
 
         /* Verändere nicht was hier drunter steht
          * Dies ist das Ende des editierbaren Abschnitts
