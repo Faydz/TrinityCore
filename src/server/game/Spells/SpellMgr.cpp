@@ -2939,6 +2939,18 @@ void SpellMgr::LoadSpellCustomAttr()
 
         switch (spellInfo->SpellFamilyName)
         {
+            case SPELLFAMILY_WARLOCK:
+				switch(spellInfo->Id)
+				{
+					//Improved Corruption
+					case 17810:
+					case 17811:
+					case 17812:
+						spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
+						spellInfo->Effects[EFFECT_0].MiscValue = 32;
+						break;
+				}
+				break;
             case SPELLFAMILY_WARRIOR:
                 // Shout
                 if (spellInfo->SpellFamilyFlags[0] & 0x20000 || spellInfo->SpellFamilyFlags[1] & 0x20)
