@@ -572,17 +572,17 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 break;
             }
             case SPELLFAMILY_SHAMAN:
-+            {
-+                // Glyph of lightning shield
-+                if (m_spellInfo->Id == 26364)
-+                {
-+                    if (m_caster->GetTypeId() == TYPEID_PLAYER && m_caster->HasAura(55448) && m_caster->HasAura(324) && m_caster->GetAura(324)->GetStackAmount() <4){
-+                        m_caster->GetAura(324)->SetCharges(4);
-+                        m_caster->GetAura(324)->RefreshDuration();
-+                    }
-+                }
-+                break;
-+            }
+            {
+                // Glyph of lightning shield
+                if (m_spellInfo->Id == 26364)
+                {
+                    if (m_caster->GetTypeId() == TYPEID_PLAYER && m_caster->HasAura(55448) && m_caster->HasAura(324) && m_caster->GetAura(324)->GetStackAmount() <4){
+                        m_caster->GetAura(324)->SetCharges(4);
+                        m_caster->GetAura(324)->RefreshDuration();
+                    }
+                }
+                break;
+            }
             case SPELLFAMILY_MAGE:
             {
                 // Deep Freeze should deal damage to permanently stun-immune targets.
