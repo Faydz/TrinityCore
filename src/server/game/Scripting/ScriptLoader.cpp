@@ -1307,6 +1307,7 @@ void AddBattlegroundScripts()
     void AddSC_boss_sprixz_wunderling();
 	void AddSC_Pro_Max();
 	void AddSC_boss_arkton();
+	void AddSC_arena_link_battle();
 #endif
 
 void AddCustomScripts()
@@ -1336,5 +1337,6 @@ void AddCustomScripts()
     AddSC_boss_sprixz_wunderling();
 	AddSC_Pro_Max();
 	AddSC_boss_arkton();
+	AddSC_arena_link_battle();
 #endif
 }
