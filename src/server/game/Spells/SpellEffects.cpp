@@ -590,10 +590,6 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     if (unitTarget->GetTypeId() != TYPEID_UNIT || !(unitTarget->IsImmunedToSpellEffect(sSpellMgr->GetSpellInfo(44572), 0)))
                         return;
                 }
-                else if(m_spellInfo->Id == 92315){
-                    if (m_caster->GetTypeId() == TYPEID_PLAYER && m_caster->HasAura(48108))
-                        m_caster->GetAura(48108)->Remove();
-                }
                 break;
             }
         }
