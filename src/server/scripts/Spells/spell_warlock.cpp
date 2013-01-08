@@ -40,6 +40,7 @@ enum WarlockSpells
     WARLOCK_DEMONIC_CIRCLE_ALLOW_CAST       = 62388,
     WARLOCK_HAUNT                           = 48181,
     WARLOCK_HAUNT_HEAL                      = 48210,
+    WARLOCK_UNSTABLE_AFFLICTION             = 30108,
     WARLOCK_UNSTABLE_AFFLICTION_DISPEL      = 31117,
     WARLOCK_BANE_OF_DOOM_EFFECT             = 18662,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_R1       = 18703,
@@ -51,6 +52,65 @@ enum WarlockSpells
     WARLOCK_LIFE_TAP_ENERGIZE_2             = 32553,
     WARLOCK_IMPROVED_LIFE_TAP_ICON_ID       = 208,
     WARLOCK_MANA_FEED_ICON_ID               = 1982,
+};
+
+//1120 - Offylike Drain Soul. cit. "drain soul has always checked if the target is in execute range on initial spell cast rather than on each tic."
+class spell_warl_drain_soul: public SpellScriptLoader
+{
+public:
+    spell_warl_drain_soul() : SpellScriptLoader("spell_warl_drain_soul"){ }
+
+    class spell_warl_drain_soul_AuraScript: public AuraScript
+    {
+        PrepareAuraScript(spell_warl_drain_soul_AuraScript);
+
+        void BeforeEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if(Unit* victim = GetTarget())
+            {
+                _under25perc = victim->GetHealthPct() < 25.0f ? true : false;
+            }
+
+            if(Unit* caster = GetCaster())
+            {
+                //Need to get effect1 and use GetSpellInfo() because effect0 doesn't have an aura state.
+                _pandemic = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_WARLOCK, 4554, EFFECT_1);
+            }
+        }
+
+        void OnPeriodic(AuraEffect const* /*aurEff*/)
+        {
+			if(!GetTarget())
+				return;
+
+			Aura* unstableAff = GetTarget()->GetAura(WARLOCK_UNSTABLE_AFFLICTION);
+
+            //Check if target is under 25% when casting Drain Soul
+            if (_under25perc && unstableAff)
+            {
+                // Pandemic talent
+                if (_pandemic && roll_chance_i(_pandemic->GetSpellInfo()->Effects[0].BasePoints))
+                {
+                        unstableAff->RefreshDuration();
+                }
+            }    
+        }
+
+        void Register()
+        {
+            OnEffectApply += AuraEffectApplyFn(spell_warl_drain_soul_AuraScript::BeforeEffect, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL);
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_drain_soul_AuraScript::OnPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+        }
+
+        bool _under25perc;
+        //Pandemic is checked at the beginning to avoid a check for each periodic tick. So I need a script scope var.
+        AuraEffect* _pandemic;
+    };
+
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_warl_drain_soul_AuraScript();
+    }
 };
 
 /// Updated 4.3.4
@@ -700,6 +760,7 @@ public:
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_drain_soul();
     new spell_warl_banish();
     new spell_warl_demonic_empowerment();
     new spell_warl_create_healthstone();
