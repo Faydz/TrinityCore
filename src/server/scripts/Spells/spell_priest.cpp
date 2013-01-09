@@ -131,6 +131,13 @@ public:
             targets.SetDst(destPos);
             targets.SetUnitTarget(GetCaster());
             GetHitUnit()->CastSpell(targets, sSpellMgr->GetSpellInfo(GetEffectValue()), NULL);
+
+            // Body And Soul
+            if (AuraEffect* aurEff = GetCaster()->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 2218, 0))
+            {
+                int32 bp0 = aurEff->GetAmount();
+                GetCaster()->CastCustomSpell(GetHitUnit(), 64128, &bp0, NULL, NULL, true);
+            }
         }
 
         void Register()
@@ -640,6 +647,80 @@ class spell_pri_dispel_magic : public SpellScriptLoader
         }
 };
 
+class spell_pri_power_word_shield : public SpellScriptLoader
+{
+    public:
+        spell_pri_power_word_shield() : SpellScriptLoader("spell_pri_power_word_shield") { }
+
+        class spell_pri_power_word_shield_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_pri_power_word_shield_SpellScript);
+
+            void HandleDummy(SpellEffIndex /*effIndex*/)
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if (Unit* target = GetHitUnit())
+                    {
+                        // Body And Soul
+                        if (AuraEffect* aurEff = GetCaster()->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 2218, 0))
+                        {
+                            int32 bp0 = aurEff->GetAmount();
+                            GetCaster()->CastCustomSpell(GetHitUnit(), 64128, &bp0, NULL, NULL, true);
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_pri_power_word_shield_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_APPLY_AURA);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pri_power_word_shield_SpellScript();
+        }
+};
+
+class spell_pri_cure_disease : public SpellScriptLoader
+{
+    public:
+        spell_pri_cure_disease() : SpellScriptLoader("spell_pri_cure_disease") { }
+
+        class spell_pri_cure_disease_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_pri_cure_disease_SpellScript);
+
+            void HandleDummy(SpellEffIndex /*effIndex*/)
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if (Unit* target = GetHitUnit())
+                    {
+                        // Body And Soul
+                        if (AuraEffect* aurEff = GetCaster()->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 2218, 1))
+                        {
+                            if (roll_chance_i(aurEff->GetAmount()))
+                                GetCaster()->CastSpell(GetHitUnit(), 64136, true);
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_pri_cure_disease_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DISPEL);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pri_cure_disease_SpellScript();
+        }
+};
+
 void AddSC_priest_spell_scripts()
 {
     new spell_pri_guardian_spirit();
@@ -657,4 +738,6 @@ void AddSC_priest_spell_scripts()
     new spell_pri_inner_fire();
     new spell_pri_inner_focus();
     new spell_pri_dispel_magic();
+    new spell_pri_power_word_shield();
+    new spell_pri_cure_disease();
 }
