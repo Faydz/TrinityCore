@@ -2932,7 +2932,10 @@ void SpellMgr::LoadSpellCustomAttr()
                 break;
             case 76838: //Warrior - Arms mastery
 			    spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
-			break;
+                break;
+            case 20711: // Spirit of redemption
+                spellInfo->Effects[0].ApplyAuraName = SPELL_AURA_DUMMY;
+                break;
             default:
                 break;
         }
@@ -2940,15 +2943,15 @@ void SpellMgr::LoadSpellCustomAttr()
         switch (spellInfo->SpellFamilyName)
         {
             case SPELLFAMILY_WARLOCK:
-				switch(spellInfo->Id)
-				{
-					//Improved Corruption
-					case 17810:
-					case 17811:
-					case 17812:
-						spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
-						spellInfo->Effects[EFFECT_0].MiscValue = 32;
-						break;
+                switch(spellInfo->Id)
+                {
+                    //Improved Corruption
+                    case 17810:
+                    case 17811:
+                    case 17812:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
+                        spellInfo->Effects[EFFECT_0].MiscValue = 32;
+                        break;
                     //Soulburn: Seed of Corruption
                     case 86664:
                         spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
@@ -2959,8 +2962,8 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 86105:
                         spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(39); //2 seconds
                         break;
-				}
-				break;
+                }
+                break;
             case SPELLFAMILY_WARRIOR:
                 // Shout
                 if (spellInfo->SpellFamilyFlags[0] & 0x20000 || spellInfo->SpellFamilyFlags[1] & 0x20)
