@@ -64,42 +64,42 @@ bool _SeedOfCorruptionFlag = false;
 class spell_warl_drain_life: public SpellScriptLoader
 {
 public:
-	spell_warl_drain_life() : SpellScriptLoader("spell_warl_drain_life") { }
+    spell_warl_drain_life() : SpellScriptLoader("spell_warl_drain_life") { }
 
-	class spell_warl_drain_life_AuraScript: public AuraScript
+    class spell_warl_drain_life_AuraScript: public AuraScript
     {
-		PrepareAuraScript(spell_warl_drain_life_AuraScript);
+        PrepareAuraScript(spell_warl_drain_life_AuraScript);
 
-		void HandlePeriodic(AuraEffect const* /*aurEff*/)
+        void HandlePeriodic(AuraEffect const* /*aurEff*/)
         {
             if(Unit* caster = GetCaster())
             {
                 //Base percent
-			    int32 bp = 2; 
+                int32 bp = 2; 
                 
-			    // Checks for Death's Embrace talent and %
-			    if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 3223, 0))
+                // Checks for Death's Embrace talent and %
+                if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 3223, 0))
                 {
-				    if (caster->HealthBelowPct(25))
+                    if (caster->HealthBelowPct(25))
                     {
-					    bp += int32(aurEff->GetAmount());
+                        bp += int32(aurEff->GetAmount());
                     }
                 }
 
-			    caster->CastCustomSpell(caster, WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE, &bp, NULL, NULL, true);
+                caster->CastCustomSpell(caster, WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE, &bp, NULL, NULL, true);
             }
-		}
+        }
 
-		void Register() 
+        void Register() 
         {
-			OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_drain_life_AuraScript::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
-		}
-	};
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_drain_life_AuraScript::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+        }
+    };
 
-	AuraScript* GetAuraScript() const
+    AuraScript* GetAuraScript() const
     {
-		return new spell_warl_drain_life_AuraScript();
-	}
+        return new spell_warl_drain_life_AuraScript();
+    }
 };
 
 //1120 - Offylike Drain Soul. cit. "drain soul has always checked if the target is in execute range on initial spell cast rather than on each tic."
@@ -867,6 +867,9 @@ public:
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_soul_swap();
+    new spell_soul_swap_buff();
+    new spell_soul_swap_exhale();
     new spell_warl_drain_life();
     new spell_warl_drain_soul();
     new spell_warl_banish();
