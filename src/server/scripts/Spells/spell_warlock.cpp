@@ -60,7 +60,7 @@ enum WarlockSpells
 
 bool _SeedOfCorruptionFlag = false;
 
-//689 - Drain Life
+//689/89420 - Drain Life
 class spell_warl_drain_life: public SpellScriptLoader
 {
 public:
@@ -74,8 +74,17 @@ public:
         {
             if(Unit* caster = GetCaster())
             {
-                //Restores 2% of health
+                //Base percent
 			    int32 bp = 2; 
+                
+			    // Checks for Death's Embrace talent and %
+			    if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 3223, 0))
+                {
+				    if (caster->HealthBelowPct(25))
+                    {
+					    bp += int32(aurEff->GetAmount());
+                    }
+                }
 
 			    caster->CastCustomSpell(caster, WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE, &bp, NULL, NULL, true);
             }
