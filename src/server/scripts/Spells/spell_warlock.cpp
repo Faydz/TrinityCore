@@ -49,6 +49,8 @@ enum WarlockSpells
     WARLOCK_IMPROVED_HEALTH_FUNNEL_R2       = 18704,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1  = 60955,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2  = 60956,
+    WARLOCK_JINX_R1                         = 85541,
+    WARLOCK_JINX_R2                         = 86105,
     WARLOCK_SOULBURN                        = 74434,
     WARLOCK_SOUL_SHARD_ENERGIZE             = 87388,
     WARLOCK_SOULSHATTER                     = 32835,
@@ -63,6 +65,45 @@ enum WarlockSpells
 };
 
 bool _SeedOfCorruptionFlag = false;
+
+//1490 - Curse of the Elements
+class spell_warl_curse_of_the_elements: public SpellScriptLoader {
+public:
+    spell_warl_curse_of_the_elements() : SpellScriptLoader("spell_warl_curse_of_the_elements") { }
+
+    class spell_warl_curse_of_the_elements_AuraScript: public AuraScript
+    {
+        PrepareAuraScript(spell_warl_curse_of_the_elements_AuraScript);
+
+        void HandlePeriodic(AuraEffect const* /*aurEff*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetTarget();
+                
+            if (!target || !caster)
+                return;
+            
+            if(caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 5002, 0))
+            {
+                //Check if warlock has the either the first or the second rank of jinx
+                if (caster->HasAura(18179))
+                    caster->CastSpell(target, WARLOCK_JINX_R1, true);
+                else if(caster->HasAura(85479))
+                    caster->CastSpell(target, WARLOCK_JINX_R2, true);
+            }
+        }
+
+        void Register() 
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_curse_of_the_elements_AuraScript::HandlePeriodic, EFFECT_2, SPELL_AURA_PERIODIC_DUMMY);
+        }
+    };
+
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_warl_curse_of_the_elements_AuraScript();
+    }
+};
 
 //86121 - Soul Swap action bar spell
 class spell_warl_soul_swap: public SpellScriptLoader {
@@ -1041,6 +1082,7 @@ public:
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_curse_of_the_elements();
     new spell_warl_soul_swap();
     new spell_warl_soul_swap_buff();
     new spell_warl_soul_swap_exhale();
