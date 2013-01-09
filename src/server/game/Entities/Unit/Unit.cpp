@@ -3698,6 +3698,120 @@ void Unit::RemoveAurasWithFamily(SpellFamilyNames family, uint32 familyFlag1, ui
     }
 }
 
+// Remove and save all soul swap dot from the target
+void Unit::RemoveAndSaveSoulSwapDots(Unit* caster)
+{
+    // SpellFamilyMask
+    if (SpellInfo const *soulSwapDots = sSpellMgr->GetSpellInfo(92794))
+    {
+        flag96 affDots = soulSwapDots->Effects[EFFECT_0].SpellClassMask;
+        uint8 count = 0;
+
+        // Remove and save dots
+        for (AuraApplicationMap::iterator iter = m_appliedAuras.begin(); iter != m_appliedAuras.end();)
+        {
+            Aura *removed = iter->second->GetBase();
+            SpellInfo const *spell = sSpellMgr->GetSpellInfo(removed->GetId());
+            if (spell->SpellFamilyFlags & affDots && removed->GetCasterGUID() == caster->GetGUID())
+            {
+                caster->SaveSoulSwapAura(removed, count);
+                caster->SaveSoulSwapDotSource(GetGUID());
+
+                ++count;
+
+                // Glyph of Soul Swap
+                if (!caster->HasAura(56226))
+                {
+                    RemoveAura(iter);
+                    continue;
+                }
+            }
+            ++iter;
+        }
+    }
+}
+
+// Return the number of dots copied from the source target
+int Unit::GetSoulSwapDotsCount(Unit* caster)
+{
+    int count = 0;
+
+    // SpellFamilyMask
+    if (SpellInfo const *soulSwapDots = sSpellMgr->GetSpellInfo(92794))
+    {
+        //Affliction dots list
+        flag96 affDots = soulSwapDots->Effects[EFFECT_0].SpellClassMask;
+        
+        // Dots counting
+        for (AuraApplicationMap::iterator iter = m_appliedAuras.begin(); iter != m_appliedAuras.end();)
+        {
+            Aura *sWDots = iter->second->GetBase();
+            SpellInfo const *spell = sSpellMgr->GetSpellInfo(sWDots->GetId());
+
+            //Check if there are any affliction dots
+            if (spell->SpellFamilyFlags & affDots && sWDots->GetCasterGUID() == caster->GetGUID())
+                ++count;
+            
+            ++iter;
+        }
+    }
+    return count;
+}
+
+// Cast all removed auras (if the target is note the source)
+bool Unit::CastSavedSoulSwapDots(Unit* target)
+{
+    if (target && m_sourceSoulSwapDots != target->GetGUID())
+    {
+        // Add saved auras to target 
+        for (uint8 i = 0; i < 7; ++i)
+        {
+            if (m_soulSwapAuras[i] != 0)
+                AddAura(m_soulSwapAuras[i], target);
+            
+            m_soulSwapAuras[i] = 0;
+        }
+        return true;
+    }
+    return false;
+}
+
+// Save the aura that is removed
+bool Unit::SaveSoulSwapAura(Aura* savedAura, uint8 num)
+{
+    if (savedAura)
+    {
+        m_soulSwapAuras[num] = savedAura->GetId();
+        return true;
+    }
+    return false;
+}
+
+// Save the target source, where the dot are grabbed
+bool Unit::SaveSoulSwapDotSource(uint64 dotSourceUnitGUID)
+{
+    if (dotSourceUnitGUID)
+    {
+        m_sourceSoulSwapDots = dotSourceUnitGUID;
+        return true;
+    }
+    return false;
+}
+
+// Reset saved dots
+void Unit::ResetSoulSwapDots()
+{
+    for (uint8 i = 0; i < 7; ++i)
+    {
+        m_soulSwapAuras[i] = 0;
+    }
+}
+
+uint64 Unit::GetSourceOfSoulSwapDots()
+{
+    return m_sourceSoulSwapDots;
+}
+
 void Unit::RemoveMovementImpairingAuras()
 {
     RemoveAurasWithMechanic((1<<MECHANIC_SNARE)|(1<<MECHANIC_ROOT));

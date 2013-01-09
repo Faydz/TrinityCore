@@ -52,6 +52,10 @@ enum WarlockSpells
     WARLOCK_SOULBURN                        = 74434,
     WARLOCK_SOUL_SHARD_ENERGIZE             = 87388,
     WARLOCK_SOULSHATTER                     = 32835,
+    WARLOCK_SOUL_SWAP_SAVE_DOTS             = 86211,
+    WARLOCK_SOUL_SWAP_GLYPH                 = 56226,
+    WARLOCK_SOUL_SWAP_COOLDOWN              = 94229,
+    WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT        = 92795,
     WARLOCK_LIFE_TAP_ENERGIZE               = 31818,
     WARLOCK_LIFE_TAP_ENERGIZE_2             = 32553,
     WARLOCK_IMPROVED_LIFE_TAP_ICON_ID       = 208,
@@ -59,6 +63,176 @@ enum WarlockSpells
 };
 
 bool _SeedOfCorruptionFlag = false;
+
+//86121 - Soul Swap action bar spell
+class spell_warl_soul_swap: public SpellScriptLoader {
+public:
+    spell_warl_soul_swap() : SpellScriptLoader("spell_warl_soul_swap") { }
+
+    class spell_warl_soul_swap_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_warl_soul_swap_SpellScript);
+
+        SpellCastResult CheckRequirement()
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetExplTargetUnit();
+
+            if (!target || !caster)
+                return SPELL_FAILED_BAD_TARGETS;
+
+            //Check if there are any dots on the target
+            if(target->GetSoulSwapDotsCount(caster) == 0)
+                return SPELL_FAILED_BAD_TARGETS;
+
+            return SPELL_CAST_OK;
+        }
+            
+        //Graphic effect for the first cast
+        void HandleEffectLaunchTarget(SpellEffIndex /*effIndex*/) 
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetHitUnit();
+
+            if (!target || !caster)
+                return;
+
+            target->CastSpell(caster, WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT, true, 0, 0, caster->GetGUID());
+        }
+            
+        //Handles the first cast of soul swap
+        void HandleEffectHit(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetHitUnit();
+                
+            if (!target || !caster)
+                return;
+
+            target->RemoveAndSaveSoulSwapDots(caster);
+            caster->CastSpell(caster, WARLOCK_SOUL_SWAP_SAVE_DOTS, true);
+        }
+
+        void Register()
+        {
+            OnCheckCast += SpellCheckCastFn(spell_warl_soul_swap_SpellScript::CheckRequirement);
+            OnEffectLaunchTarget += SpellEffectFn(spell_warl_soul_swap_SpellScript::HandleEffectLaunchTarget, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+            OnEffectHitTarget += SpellEffectFn(spell_warl_soul_swap_SpellScript::HandleEffectHit, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+        }
+    };
+
+    SpellScript *GetSpellScript() const
+    {
+        return new spell_warl_soul_swap_SpellScript();
+    }
+};
+
+//86211 - Handles Soul Swap saved dots buff onRemove
+class spell_warl_soul_swap_buff : public SpellScriptLoader
+{
+public:
+    spell_warl_soul_swap_buff() : SpellScriptLoader("spell_warl_soul_swap_buff") { }
+
+    class spell_warl_soul_swap_buff_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_warl_soul_swap_buff_AuraScript);
+
+        void HandleEffectRemove(AuraEffect const * /*aurEff*/, AuraEffectHandleModes mode)
+        {
+            Unit * caster = GetCaster();
+
+            if (!caster)
+                return;
+
+            caster->ResetSoulSwapDots();
+        }
+
+        // function registering
+        void Register()
+        {
+            OnEffectRemove += AuraEffectRemoveFn(spell_warl_soul_swap_buff_AuraScript::HandleEffectRemove, EFFECT_0, SPELL_AURA_OVERRIDE_ACTIONBAR_SPELLS, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    AuraScript *GetAuraScript() const
+    {
+        return new spell_warl_soul_swap_buff_AuraScript();
+    }
+};
+
+//86213 - Soul Swap paste
+class spell_warl_soul_swap_exhale : public SpellScriptLoader
+{
+public:
+    spell_warl_soul_swap_exhale() : SpellScriptLoader("spell_warl_soul_swap_exhale") { }
+
+    class spell_warl_soul_swap_exhale_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_warl_soul_swap_exhale_SpellScript);
+
+        SpellCastResult CheckRequirementInternal(SpellCustomErrors& extendedError)
+        {
+            return SPELL_CAST_OK;
+        }
+
+        SpellCastResult CheckRequirement()
+        {
+            if (!GetExplTargetUnit())
+                return SPELL_FAILED_BAD_TARGETS;
+
+            if (GetExplTargetUnit()->GetGUID() == GetCaster()->GetSourceOfSoulSwapDots())
+                return SPELL_FAILED_BAD_TARGETS;
+
+            SpellCustomErrors extension = SPELL_CUSTOM_ERROR_NONE;
+            SpellCastResult result = CheckRequirementInternal(extension);
+
+            if (result != SPELL_CAST_OK)
+            {
+                Spell::SendCastResult(GetExplTargetUnit()->ToPlayer(), GetSpellInfo(), 0, result, extension);
+                return result;
+            }
+
+            return SPELL_CAST_OK;
+        }
+        
+        // The OnCast handler is used to prevent double soul swap when spamming the action bar bind
+        void HandleOnCast()
+        {
+            Unit * caster = GetCaster();
+
+            if (!caster)
+                return;
+
+            // Glyph of Soul Swap cooldown
+            if (caster->HasAura(WARLOCK_SOUL_SWAP_GLYPH))
+                caster->CastSpell(caster, WARLOCK_SOUL_SWAP_COOLDOWN, false);
+        }
+
+        void HandleEffectHit(SpellEffIndex /*effIndex*/)
+        {
+            Unit * target = GetHitUnit();
+            Unit * caster = GetCaster();
+
+            if (!caster || !target)
+                return;
+            
+            if (caster->CastSavedSoulSwapDots(target))
+                caster->RemoveAura(WARLOCK_SOUL_SWAP_SAVE_DOTS);
+        }
+
+        void Register()
+        {
+            OnCheckCast += SpellCheckCastFn(spell_warl_soul_swap_exhale_SpellScript::CheckRequirement);
+            OnCast += SpellCastFn(spell_warl_soul_swap_exhale_SpellScript::HandleOnCast);
+            OnEffectHitTarget += SpellEffectFn(spell_warl_soul_swap_exhale_SpellScript::HandleEffectHit, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+        }
+    };
+
+    SpellScript *GetSpellScript() const
+    {
+        return new spell_warl_soul_swap_exhale_SpellScript();
+    }
+};
 
 //689/89420 - Drain Life
 class spell_warl_drain_life: public SpellScriptLoader
@@ -868,8 +1042,8 @@ public:
 void AddSC_warlock_spell_scripts()
 {
     new spell_warl_soul_swap();
-    new spell_soul_swap_buff();
-    new spell_soul_swap_exhale();
+    new spell_warl_soul_swap_buff();
+    new spell_warl_soul_swap_exhale();
     new spell_warl_drain_life();
     new spell_warl_drain_soul();
     new spell_warl_banish();
