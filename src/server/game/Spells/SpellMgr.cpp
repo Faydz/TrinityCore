@@ -2949,6 +2949,9 @@ void SpellMgr::LoadSpellCustomAttr()
 						spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
 						spellInfo->Effects[EFFECT_0].MiscValue = 32;
 						break;
+                    case 86664:
+                        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
 				}
 				break;
             case SPELLFAMILY_WARRIOR:

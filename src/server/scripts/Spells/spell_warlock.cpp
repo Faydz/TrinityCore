@@ -28,6 +28,7 @@
 
 enum WarlockSpells
 {
+    WARLOCK_CORRUPTION                      = 172,
     WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS    = 54435,
     WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER  = 54443,
     WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD    = 54508,
@@ -47,12 +48,16 @@ enum WarlockSpells
     WARLOCK_IMPROVED_HEALTH_FUNNEL_R2       = 18704,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1  = 60955,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2  = 60956,
+    WARLOCK_SOULBURN                        = 74434,
+    WARLOCK_SOUL_SHARD_ENERGIZE             = 87388,
     WARLOCK_SOULSHATTER                     = 32835,
     WARLOCK_LIFE_TAP_ENERGIZE               = 31818,
     WARLOCK_LIFE_TAP_ENERGIZE_2             = 32553,
     WARLOCK_IMPROVED_LIFE_TAP_ICON_ID       = 208,
     WARLOCK_MANA_FEED_ICON_ID               = 1982,
 };
+
+bool _SeedOfCorruptionFlag = false;
 
 //1120 - Offylike Drain Soul. cit. "drain soul has always checked if the target is in execute range on initial spell cast rather than on each tic."
 class spell_warl_drain_soul: public SpellScriptLoader
@@ -340,6 +345,41 @@ class spell_warl_everlasting_affliction : public SpellScriptLoader
         }
 };
 
+// 27243 Seed of Corruption dot
+class spell_warl_seed_of_corruption_dot : public SpellScriptLoader
+{
+    public:
+        spell_warl_seed_of_corruption_dot() : SpellScriptLoader("spell_warl_seed_of_corruption_dot") { }
+
+        class spell_warl_seed_of_corruption_dot_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warl_seed_of_corruption_dot_SpellScript);
+
+            void HandleHit(SpellEffIndex /*effIndex*/)
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    //Checks for soulburn buff and soulburn: Seed of Corruption talent
+                    if(caster->HasAura(WARLOCK_SOULBURN) && caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 1932, 0))
+                    {
+                        _SeedOfCorruptionFlag = true;
+                        caster->RemoveAurasDueToSpell(WARLOCK_SOULBURN);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_warl_seed_of_corruption_dot_SpellScript::HandleHit, EFFECT_0, SPELL_EFFECT_APPLY_AURA);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warl_seed_of_corruption_dot_SpellScript();
+        }
+};
+
 // 27285 Seed of Corruption
 /// Updated 4.3.4
 class spell_warl_seed_of_corruption : public SpellScriptLoader
@@ -353,6 +393,30 @@ class spell_warl_seed_of_corruption : public SpellScriptLoader
 
             void FilterTargets(std::list<WorldObject*>& targets)
             {
+                if(Unit* caster = GetCaster())
+                {
+                    if(_SeedOfCorruptionFlag)
+                    {
+                        //Resets the flag for the next SoC without soulburn
+                        _SeedOfCorruptionFlag = false;
+
+                        //The detonation is successful, soul shard is refund
+                        caster->CastSpell(caster, WARLOCK_SOUL_SHARD_ENERGIZE, true);
+
+                        //All target of the seed of corruption detonation are affected by corruption
+                        for (std::list<WorldObject*>::iterator iter = targets.begin(); iter != targets.end(); ++iter)
+                        {
+                            if ((*iter))
+                            {
+                                if (Unit* unit = (*iter)->ToUnit())
+                                {
+                                    caster->CastSpell(unit, WARLOCK_CORRUPTION, true);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (GetExplTargetUnit())
                     targets.remove(GetExplTargetUnit());
             }
@@ -765,6 +829,7 @@ void AddSC_warlock_spell_scripts()
     new spell_warl_demonic_empowerment();
     new spell_warl_create_healthstone();
     new spell_warl_everlasting_affliction();
+    new spell_warl_seed_of_corruption_dot();
     new spell_warl_seed_of_corruption();
     new spell_warl_soulshatter();
     new spell_warl_life_tap();
