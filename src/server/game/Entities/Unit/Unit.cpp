@@ -6153,6 +6153,47 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
+                case 14751:
+                    sLog->outError(LOG_FILTER_GENERAL, "dentro %d", procSpell->Id);
+                    switch (procSpell->Id)
+                    {
+                        case 2050:  // Heal
+                        case 2060:  // Greater Heal
+                        case 2061:  // Flash Heal
+                        case 32546: // Binding Heal
+                            if (HasAura(81206))
+                                RemoveAura(81206);
+                            if (HasAura(81209))
+                                RemoveAura(81209);
+
+                            triggered_spell_id = 81208;
+                            break;
+                        case 596:   // Prayer of Healing
+                        case 33110: // Prayer of Mending
+                            if (HasAura(81208))
+                                RemoveAura(81208);
+                            if (HasAura(81209))
+                                RemoveAura(81209);
+
+                            triggered_spell_id = 81206;
+                            break;
+                        case 585:   // Smite
+                        case 73510: // Mind Spike
+                            if (HasAura(81206))
+                                RemoveAura(81206);
+                            if (HasAura(81209))
+                                RemoveAura(81209);
+
+                            triggered_spell_id = 81209;
+                            break;
+                        default:
+                            return false;
+                            break;
+                    }
+
+                    if (triggered_spell_id == 0)
+                        return false;
+                    break;
                 // Train of Thought
                 case 92295:
                 case 92297:
@@ -8229,6 +8270,17 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Chakra serenity
+        case 81208:
+            if (procSpell->Id == 63544)
+                return false;
+
+            // Refresh Renew
+            if (victim->HasAura(139))
+                victim->GetAura(139)->RefreshDuration();
+
+            return false;
+            break;
         // Deep Wounds
         case 12834:
         case 12849:

@@ -2936,6 +2936,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case 20711: // Spirit of redemption
                 spellInfo->Effects[0].ApplyAuraName = SPELL_AURA_DUMMY;
                 break;
+            case 14751: // Chakra
+                spellInfo->Effects[0].ApplyAuraName = SPELL_AURA_DUMMY;
+                spellInfo->Effects[0].MiscValue = 0;
+                spellInfo->Effects[0].SpellClassMask = flag96(0x0, 0x0, 0x0);
+                break;
             default:
                 break;
         }

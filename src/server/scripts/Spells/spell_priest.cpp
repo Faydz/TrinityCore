@@ -721,6 +721,39 @@ class spell_pri_cure_disease : public SpellScriptLoader
         }
 };
 
+// Guardian Spirit
+class spell_pri_chakra : public SpellScriptLoader
+{
+    public:
+        spell_pri_chakra() : SpellScriptLoader("spell_pri_chakra") { }
+
+        class spell_pri_chakra_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_pri_chakra_AuraScript);
+
+            void CalculateAmount(AuraEffect const* /*aurEff*/, int32 & amount, bool & /*canBeRecalculated*/)
+            {
+                sLog->outError(LOG_FILTER_GENERAL, "clac %d", amount);
+                if (GetCaster())
+                {
+                    // Revelations
+                    if (!GetCaster()->HasAura(88627))
+                        amount = 88625;
+                }
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_pri_chakra_AuraScript::CalculateAmount, EFFECT_2, SPELL_AURA_OVERRIDE_ACTIONBAR_SPELLS);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_pri_chakra_AuraScript();
+        }
+};
+
 void AddSC_priest_spell_scripts()
 {
     new spell_pri_guardian_spirit();
@@ -740,4 +773,5 @@ void AddSC_priest_spell_scripts()
     new spell_pri_dispel_magic();
     new spell_pri_power_word_shield();
     new spell_pri_cure_disease();
+    new spell_pri_chakra();
 }
