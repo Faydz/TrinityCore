@@ -6154,7 +6154,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             switch (dummySpell->Id)
             {
                 case 14751:
-                    sLog->outError(LOG_FILTER_GENERAL, "dentro %d", procSpell->Id);
                     switch (procSpell->Id)
                     {
                         case 2050:  // Heal

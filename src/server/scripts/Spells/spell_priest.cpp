@@ -733,7 +733,6 @@ class spell_pri_chakra : public SpellScriptLoader
 
             void CalculateAmount(AuraEffect const* /*aurEff*/, int32 & amount, bool & /*canBeRecalculated*/)
             {
-                sLog->outError(LOG_FILTER_GENERAL, "clac %d", amount);
                 if (GetCaster())
                 {
                     // Revelations
