@@ -39,6 +39,7 @@ enum WarlockSpells
     WARLOCK_DEMONIC_CIRCLE_SUMMON           = 48018,
     WARLOCK_DEMONIC_CIRCLE_TELEPORT         = 48020,
     WARLOCK_DEMONIC_CIRCLE_ALLOW_CAST       = 62388,
+    WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE      = 89653,
     WARLOCK_HAUNT                           = 48181,
     WARLOCK_HAUNT_HEAL                      = 48210,
     WARLOCK_UNSTABLE_AFFLICTION             = 30108,
@@ -58,6 +59,39 @@ enum WarlockSpells
 };
 
 bool _SeedOfCorruptionFlag = false;
+
+//689 - Drain Life
+class spell_warl_drain_life: public SpellScriptLoader
+{
+public:
+	spell_warl_drain_life() : SpellScriptLoader("spell_warl_drain_life") { }
+
+	class spell_warl_drain_life_AuraScript: public AuraScript
+    {
+		PrepareAuraScript(spell_warl_drain_life_AuraScript);
+
+		void HandlePeriodic(AuraEffect const* /*aurEff*/)
+        {
+            if(Unit* caster = GetCaster())
+            {
+                //Restores 2% of health
+			    int32 bp = 2; 
+
+			    caster->CastCustomSpell(caster, WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE, &bp, NULL, NULL, true);
+            }
+		}
+
+		void Register() 
+        {
+			OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_drain_life_AuraScript::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+		}
+	};
+
+	AuraScript* GetAuraScript() const
+    {
+		return new spell_warl_drain_life_AuraScript();
+	}
+};
 
 //1120 - Offylike Drain Soul. cit. "drain soul has always checked if the target is in execute range on initial spell cast rather than on each tic."
 class spell_warl_drain_soul: public SpellScriptLoader
@@ -824,6 +858,7 @@ public:
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_drain_life();
     new spell_warl_drain_soul();
     new spell_warl_banish();
     new spell_warl_demonic_empowerment();

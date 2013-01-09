@@ -2952,6 +2952,7 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 86664:
                         spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
                         spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
+                        break;
 				}
 				break;
             case SPELLFAMILY_WARRIOR:
