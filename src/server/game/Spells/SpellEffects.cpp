@@ -3426,6 +3426,18 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
                 }
                 ExecuteLogEffectInterruptCast(effIndex, unitTarget, curSpellInfo->Id);
                 unitTarget->InterruptSpell(CurrentSpellTypes(i), false);
+                switch (m_spellInfo->SpellFamilyName)
+                {
+                case SPELLFAMILY_MAGE:
+                    {
+                        if (m_spellInfo->Id == 2139)
+                            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(84722))
+                                m_caster->AddAura(87098, m_caster);
+                            else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(84723))
+                                m_caster->AddAura(87098, m_caster);
+                    }
+                    break;
+                }
             }
         }
     }
