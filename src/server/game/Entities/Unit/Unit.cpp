@@ -8281,6 +8281,14 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Blessed Resilience
+        case 33143:
+            if (procEx & PROC_EX_NORMAL_HIT)
+            {
+                if (damage < GetMaxHealth() / 10)
+                    return false;
+            }
+            break;
         // Chakra serenity
         case 81208:
             if (procSpell->Id == 63544)
