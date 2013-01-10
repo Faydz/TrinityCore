@@ -28,40 +28,40 @@
 
 enum WarlockSpells
 {
+    WARLOCK_BANE_OF_DOOM_EFFECT             = 18662,
     WARLOCK_CORRUPTION                      = 172,
-    WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS    = 54435,
-    WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER  = 54443,
+    WARLOCK_DEMONIC_CIRCLE_ALLOW_CAST       = 62388,
+    WARLOCK_DEMONIC_CIRCLE_SUMMON           = 48018,
+    WARLOCK_DEMONIC_CIRCLE_TELEPORT         = 48020,
     WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD    = 54508,
     WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER   = 54509,
     WARLOCK_DEMONIC_EMPOWERMENT_IMP         = 54444,
-    WARLOCK_IMPROVED_HEALTHSTONE_R1         = 18692,
-    WARLOCK_IMPROVED_HEALTHSTONE_R2         = 18693,
-    WARLOCK_DEMONIC_CIRCLE_SUMMON           = 48018,
-    WARLOCK_DEMONIC_CIRCLE_TELEPORT         = 48020,
-    WARLOCK_DEMONIC_CIRCLE_ALLOW_CAST       = 62388,
+    WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS    = 54435,
+    WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER  = 54443,
     WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE      = 89653,
     WARLOCK_HAUNT                           = 48181,
     WARLOCK_HAUNT_HEAL                      = 48210,
-    WARLOCK_UNSTABLE_AFFLICTION             = 30108,
-    WARLOCK_UNSTABLE_AFFLICTION_DISPEL      = 31117,
-    WARLOCK_BANE_OF_DOOM_EFFECT             = 18662,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_R1       = 18703,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_R2       = 18704,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1  = 60955,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2  = 60956,
+    WARLOCK_IMPROVED_HEALTHSTONE_R1         = 18692,
+    WARLOCK_IMPROVED_HEALTHSTONE_R2         = 18693,
+    WARLOCK_IMPROVED_LIFE_TAP_ICON_ID       = 208,
     WARLOCK_JINX_R1                         = 85541,
     WARLOCK_JINX_R2                         = 86105,
-    WARLOCK_SOULBURN                        = 74434,
-    WARLOCK_SOUL_SHARD_ENERGIZE             = 87388,
-    WARLOCK_SOULSHATTER                     = 32835,
-    WARLOCK_SOUL_SWAP_SAVE_DOTS             = 86211,
-    WARLOCK_SOUL_SWAP_GLYPH                 = 56226,
-    WARLOCK_SOUL_SWAP_COOLDOWN              = 94229,
-    WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT        = 92795,
     WARLOCK_LIFE_TAP_ENERGIZE               = 31818,
     WARLOCK_LIFE_TAP_ENERGIZE_2             = 32553,
-    WARLOCK_IMPROVED_LIFE_TAP_ICON_ID       = 208,
     WARLOCK_MANA_FEED_ICON_ID               = 1982,
+    WARLOCK_SOUL_SHARD_ENERGIZE             = 87388,
+    WARLOCK_SOUL_SWAP_COOLDOWN              = 94229,
+    WARLOCK_SOUL_SWAP_GLYPH                 = 56226,
+    WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT        = 92795,
+    WARLOCK_SOUL_SWAP_SAVE_DOTS             = 86211,
+    WARLOCK_SOULBURN                        = 74434,
+    WARLOCK_SOULSHATTER                     = 32835,
+    WARLOCK_UNSTABLE_AFFLICTION             = 30108,
+    WARLOCK_UNSTABLE_AFFLICTION_DISPEL      = 31117,
 };
 
 bool _SeedOfCorruptionFlag = false;
@@ -83,7 +83,7 @@ public:
             if (!target || !caster)
                 return;
             
-            if(caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 5002, 0))
+            if(caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 5002, EFFECT_0))
             {
                 //Check if warlock has the either the first or the second rank of jinx
                 if (caster->HasAura(18179))
@@ -293,7 +293,7 @@ public:
                 int32 bp = 2; 
                 
                 // Checks for Death's Embrace talent and %
-                if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 3223, 0))
+                if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 3223, EFFECT_0))
                 {
                     if (caster->HealthBelowPct(25))
                     {
