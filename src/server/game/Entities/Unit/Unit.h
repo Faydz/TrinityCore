@@ -1769,12 +1769,12 @@ class Unit : public WorldObject
         void RemoveAurasWithMechanic(uint32 mechanic_mask, AuraRemoveMode removemode = AURA_REMOVE_BY_DEFAULT, uint32 except=0);
         void RemoveMovementImpairingAuras();
         
-        void Unit::RemoveAndSaveSoulSwapDots(Unit* caster);
+        void RemoveAndSaveSoulSwapDots(Unit* caster);
         int GetSoulSwapDotsCount(Unit* caster);
-        bool Unit::CastSavedSoulSwapDots(Unit* target);
-        bool Unit::SaveSoulSwapAura(Aura* savedAura, uint8 number);
-        bool Unit::SaveSoulSwapDotSource(uint64 dotSourceUnitGUID);
-        void Unit::ResetSoulSwapDots();
+        bool CastSavedSoulSwapDots(Unit* target);
+        bool SaveSoulSwapAura(Aura* savedAura, uint8 number);
+        bool SaveSoulSwapDotSource(uint64 dotSourceUnitGUID);
+        void ResetSoulSwapDots();
         uint64 Unit::GetSourceOfSoulSwapDots();
 
         void RemoveAreaAurasDueToLeaveWorld();
