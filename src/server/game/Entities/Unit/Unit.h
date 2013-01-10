@@ -1775,7 +1775,7 @@ class Unit : public WorldObject
         bool SaveSoulSwapAura(Aura* savedAura, uint8 number);
         bool SaveSoulSwapDotSource(uint64 dotSourceUnitGUID);
         void ResetSoulSwapDots();
-        uint64 Unit::GetSourceOfSoulSwapDots();
+        uint64 GetSourceOfSoulSwapDots();
 
         void RemoveAreaAurasDueToLeaveWorld();
         void RemoveAllAuras();
