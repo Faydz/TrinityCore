@@ -9937,6 +9937,12 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 DoneTotal += (*i)->GetAmount();
                 break;
             }
+            case 21:   // Test of Faith
+            case 6935:
+            case 6918:
+                if (victim->HealthBelowPct(50))
+                    DoneTotal += (*i)->GetAmount();
+                break;
         }
     }
 
