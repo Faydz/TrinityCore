@@ -24,6 +24,7 @@
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "SpellScript.h"
+#include "SpellAuras.h"
 #include "SpellAuraEffects.h"
 
 enum MageSpells
@@ -60,6 +61,67 @@ enum MageIcons
     ICON_MAGE_IMPROVED_FREEZE               = 94,
     ICON_MAGE_INCANTER_S_ABSORPTION         = 2941,
     ICON_MAGE_IMPROVED_MANA_GEM             = 1036,
+};
+
+enum ArcaneBlastSpells
+{
+    SPELL_ARCANE_BLAST                      = 30451,    
+    SPELL_SLOW                              = 31589,
+};
+
+class spell_mage_arcane_blast : public SpellScriptLoader
+{
+public:
+    spell_mage_arcane_blast() : SpellScriptLoader("spell_mage_arcane_blast") { }
+
+    class spell_mage_arcane_blast_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_mage_arcane_blast_SpellScript);
+
+        void HandleBlastScript(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            if (Unit* unitTarget = GetHitUnit())
+            {
+                if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_MAGE, 2294, 0))
+                {
+                    if (aurEff->GetId() == 86181)
+                        if (!roll_chance_i(50))
+                            return;
+
+                    bool castSlow = true;
+                    Unit::AuraList& scAuras = caster->GetSingleCastAuras();
+                    for (Unit::AuraList::iterator iter = scAuras.begin(); iter != scAuras.end();)
+                    {
+                        Aura* aura = *iter;
+                        if (aura)
+                        {
+                            if (aura->GetId() == SPELL_SLOW)
+                            {
+                                castSlow = false;
+                                break;
+                            }
+                        }
+
+                        ++iter;
+                    }
+
+                    if (castSlow)
+                        caster->AddAura(SPELL_SLOW, unitTarget);
+                }
+            }
+        }
+
+        void Register()
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_mage_arcane_blast_SpellScript::HandleBlastScript, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+        }
+    };
+
+    SpellScript* GetSpellScript() const
+    {
+        return new spell_mage_arcane_blast_SpellScript();
+    }
 };
 
 class spell_mage_blast_wave : public SpellScriptLoader
@@ -743,6 +805,7 @@ class spell_mage_water_elemental_freeze : public SpellScriptLoader
 
 void AddSC_mage_spell_scripts()
 {
+    new spell_mage_arcane_blast();
     new spell_mage_blast_wave();
     new spell_mage_cold_snap();
     new spell_mage_cone_of_cold();
