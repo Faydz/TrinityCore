@@ -32,8 +32,8 @@
                     player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Lederverarbeitung 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 4);
                     player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Schneiderei 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 5);
                     player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "K\303\274rschnerei 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 6);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Bergbau 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 7);
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Juwelenschleifen 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 8);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Juwelenschleifen 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 7);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Bergbau 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 8);
                     player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Inschriftenkunde 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 9);
                     player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Kr\303\244uterkunde 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 10);
                     player->ADD_GOSSIP_ITEM(GOSSIP_ICON, "Kochkunst 450(75 Embleme von DarkThunder)", GOSSIP_SENDER_MAIN, 11);
