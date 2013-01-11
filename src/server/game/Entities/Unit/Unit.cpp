@@ -8308,6 +8308,17 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Masochism
+        case 88994:
+        case 88995:
+            if (procSpell)
+            {
+               if (procSpell->Id != 32409 && damage < uint32(GetMaxHealth() * 0.1))
+                   return false;
+            } 
+            else if (damage < uint32(GetMaxHealth() * 0.1))
+                return false;
+            break;
         // Blessed Resilience
         case 33143:
             if (procEx & PROC_EX_NORMAL_HIT)
@@ -10054,6 +10065,15 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 if (AuraEffect* aurEff = GetAuraEffect(55692, 0))
                     if (victim->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_PRIEST, 0x100000, 0, 0, GetGUID()))
                         AddPct(DoneTotalMod, aurEff->GetAmount());
+            }
+            // Shadow word: Death (deals three times damage to target below 25% health)
+            else if (spellProto->Id == 32379)
+            {
+                if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_PRIEST, 3139, 0))
+                {
+                    if (victim->GetHealthPct() < 25.0f)
+                       DoneTotalMod *= 1.0f + (aurEff->GetAmount() / 100);
+                }
             }
             break;
         case SPELLFAMILY_WARLOCK:
