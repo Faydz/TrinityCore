@@ -1346,6 +1346,22 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                         caster->CastCustomSpell(caster, 47755, &basepoints0, NULL, NULL, true);
                     }
                 }
+
+                if (GetSpellInfo()->SpellFamilyFlags[1] & 0x0400 && aurApp->GetRemoveMode() == AURA_REMOVE_BY_ENEMY_SPELL)
+                {
+                    // Sin and Punishment
+                    if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 1869, 1))
+                    {
+                       int32 chance = 0;
+                       if (aurEff->GetSpellInfo()->Id == 87099)
+                           chance = 50;
+                       if (aurEff->GetSpellInfo()->Id == 87100)
+                           chance = 100;
+
+                       if (roll_chance_i(chance))
+                           target->CastCustomSpell(target, 87204, NULL, NULL, NULL, true, NULL, NULL, GetCasterGUID());
+                    }
+                }
                 break;
             case SPELLFAMILY_ROGUE:
                 // Remove Vanish on stealth remove

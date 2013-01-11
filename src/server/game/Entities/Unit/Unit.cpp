@@ -6180,6 +6180,29 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
+                // Sin and Punishment
+                case 87099:
+                case 87100:
+                    if (Player* caster = ToPlayer())
+                    {
+                        if (caster->HasSpellCooldown(34433))
+                        {
+                            uint32 newCooldownDelay = caster->GetSpellCooldownDelay(34433);
+                            if (newCooldownDelay <= 5)
+                                newCooldownDelay = 0;
+                            else
+                                newCooldownDelay -= 5;
+
+                            caster->AddSpellCooldown(34433, 0, uint32(time(NULL) + newCooldownDelay));
+                            WorldPacket data(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
+                            data << uint32(34433);
+                            data << uint64(caster->GetGUID());
+                            data << int32(-5000);
+                            caster->GetSession()->SendPacket(&data);
+                        }
+                    }
+                    break;
+                // Chackra
                 case 14751:
                     switch (procSpell->Id)
                     {
