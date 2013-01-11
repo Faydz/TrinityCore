@@ -8308,6 +8308,17 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Masochism
+        case 88994:
+        case 88995:
+            if (procSpell)
+            {
+               if (procSpell->Id != 32409 && damage < uint32(GetMaxHealth() * 0.1))
+                   return false;
+            } 
+            else if (damage < uint32(GetMaxHealth() * 0.1))
+                return false;
+            break;
         // Blessed Resilience
         case 33143:
             if (procEx & PROC_EX_NORMAL_HIT)
