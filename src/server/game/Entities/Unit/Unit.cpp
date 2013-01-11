@@ -620,6 +620,33 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
 
     if (damagetype != NODAMAGE)
     {
+        // Hack for Improved PolyMorph
+        if (victim)
+        {
+            if (victim->HasAura(118))
+            {
+                if (Aura* poly = victim->GetAura(118))
+                {
+                    if (Unit* caster = poly->GetCaster())
+                    {
+                        if (!caster->HasAura(87515))
+                        {
+                            if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_MAGE, 82, EFFECT_0))
+                            {
+                                uint32 stunId = 83046;
+                                if (aurEff->GetId() == 12592)
+                                    stunId = 83047;
+
+                                caster->AddAura(stunId, victim);
+                                // Add cooldown
+                                caster->AddAura(87515 , caster);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // interrupting auras with AURA_INTERRUPT_FLAG_DAMAGE before checking !damage (absorbed damage breaks that type of auras)
         if (spellProto)
         {
