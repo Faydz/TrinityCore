@@ -6180,6 +6180,43 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
+                // Shadowy Apparition
+                case 78202:
+                case 78203:
+                case 78204:
+                    if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_PRIEST, 4879, 0))
+                    {
+                        int32 chance = aurEff->GetAmount();
+                        if (isMoving())
+                           chance *= 5;
+
+                        std::list<Creature*> unitList;
+                        GetCreatureListWithEntryInGrid(unitList, 46954, 100.0f);
+                        uint32 appCount = 0;
+                        for (std::list<Creature*>::const_iterator itr = unitList.begin(); itr != unitList.end(); ++itr)
+                        {
+                            if ((*itr)->ToTempSummon())
+                                if ((*itr)->ToTempSummon()->GetSummonerGUID() == GetGUID())
+                                   appCount++;
+                        }
+
+                        if (roll_chance_i(chance) && appCount < 4)
+                        {
+                            if (Unit* apparition = SummonCreature(46954, GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 0))
+                            {
+                                apparition->SetLevel(85);
+                                apparition->setFaction(getFaction());
+                                apparition->SetMaxHealth(GetMaxHealth() * 0.4);
+                                apparition->SetHealth(apparition->GetMaxHealth());
+                                apparition->SetSpeed(MOVE_WALK, 0.35f, true);
+                                apparition->SetSpeed(MOVE_RUN, 0.35f, true);
+
+                                CastSpell(apparition, 87213, true);
+                                apparition->GetMotionMaster()->MoveChase(victim, 0.0f, 0.0f);
+                            }
+                        }
+                    }
+                    break;
                 // Sin and Punishment
                 case 87099:
                 case 87100:
