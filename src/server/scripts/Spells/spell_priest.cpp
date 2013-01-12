@@ -756,6 +756,46 @@ class spell_pri_fade : public SpellScriptLoader
        }
 };
 
+class spell_pri_vampiric_touch : public SpellScriptLoader
+{
+    public:
+        spell_pri_vampiric_touch() : SpellScriptLoader("spell_pri_vampiric_touch") { }
+
+        class spell_pri_vampiric_touch_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_pri_vampiric_touch_AuraScript);
+
+            bool Validate(SpellInfo const* /*spell*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(64085))
+                    return false;
+                return true;
+            }
+
+            void HandleDispel(DispelInfo* /*dispelInfo*/)
+            {
+                if (Unit* caster = GetCaster())
+                    if (Unit* target = GetUnitOwner())
+                        if (AuraEffect const* aurEff = GetEffect(EFFECT_1))
+                        {
+                            int32 damage = aurEff->GetAmount() * 8;
+                            // backfire damage
+                            caster->CastCustomSpell(target, 64085, &damage, NULL, NULL, true, NULL, aurEff);
+                        }
+            }
+
+            void Register()
+            {
+                AfterDispel += AuraDispelFn(spell_pri_vampiric_touch_AuraScript::HandleDispel);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_pri_vampiric_touch_AuraScript();
+        }
+};
+
 void AddSC_priest_spell_scripts()
 {
     new spell_pri_guardian_spirit();
@@ -776,4 +816,5 @@ void AddSC_priest_spell_scripts()
     new spell_pri_cure_disease();
     new spell_pri_chakra();
     new spell_pri_fade();
+    new spell_pri_vampiric_touch();
 }

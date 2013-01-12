@@ -710,7 +710,7 @@ class spell_dk_scourge_strike : public SpellScriptLoader
                         int32 bp = int32(0.2f * caster->GetDamageTakenInPastSecs(5));
 
                         // Improved Death Strike
-                        if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, ICON_ID_IMPROVED_DEATH_STRIKE, 0))
+                        if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, 2751, 0))
                             AddPct(bp, caster->CalculateSpellDamage(caster, aurEff->GetSpellInfo(), 2));
 
                         if (bp < int32(caster->CountPctFromMaxHealth(7)))
@@ -728,7 +728,7 @@ class spell_dk_scourge_strike : public SpellScriptLoader
                                 }
                             }
                         }
-                        caster->CastCustomSpell(caster, SPELL_DEATH_STRIKE_HEAL, &bp, NULL, NULL, false);
+                        caster->CastCustomSpell(caster, 45470, &bp, NULL, NULL, false);
                     }
                 }
             }
