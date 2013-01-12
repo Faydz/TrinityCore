@@ -668,8 +668,11 @@ struct CharStartOutfitEntry
     int32 ItemId[MAX_OUTFIT_ITEMS];                         // 2-13
     //int32 ItemDisplayId[MAX_OUTFIT_ITEMS];                // 14-25 not required at server side
     //int32 ItemInventorySlot[MAX_OUTFIT_ITEMS];            // 26-37 not required at server side
-    uint32 PetDisplayId;                                    // 38 Pet Model ID for starting pet
-    uint32 PetFamilyEntry;                                  // 39 Pet Family Entry for starting pet
+    //uint32 Unknown1;                                      // 38, unique values (index-like with gaps ordered in other way as ids)
+    //uint32 Unknown2;                                      // 39
+    //uint32 Unknown3;                                      // 40
+    //uint32 Unknown4;                                      // 41
+    //uint32 Unknown5;                                      // 42
 };
 
 struct CharTitlesEntry
