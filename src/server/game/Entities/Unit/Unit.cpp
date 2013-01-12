@@ -8368,9 +8368,12 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
-        case 54646: //focus magic proc
-            if (HasAura(54646) && GetAura(54646)->GetCaster()){
-                if (Player *caster = GetAura(54646)->GetCaster()->ToPlayer()){
+        // Focus Magic
+        case 54646: 
+            if (HasAura(54646) && GetAura(54646)->GetCaster())
+            {
+                if (Player *caster = GetAura(54646)->GetCaster()->ToPlayer())
+                {
                     if (caster->HasAura(54648))
                         caster->GetAura(54648)->RefreshDuration();
                     else
@@ -8378,6 +8381,15 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 }
             }
             return false;
+        // Find Weakness
+        case 51632:
+        case 91023:
+            if (!procSpell)
+                return false;
+
+            if (procSpell->Id != 703 && procSpell->Id != 8676 && procSpell->Id != 1833)
+                return false;
+            break;
             break;
         case 84722: //Invocation rank 1
         case 84723: //           rank 2
