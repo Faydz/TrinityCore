@@ -6223,7 +6223,7 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
         {
             if (caster->ToPlayer()->GetPrimaryTalentTree(caster->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_AFFLICTION)
             {
-                float pct = float(13.0f + 1.63f * caster->ToPlayer()->GetMasteryPoints());
+                float pct = float(1.63f * caster->ToPlayer()->GetMasteryPoints());
                 AddPct(damage, pct);
             }
         }
