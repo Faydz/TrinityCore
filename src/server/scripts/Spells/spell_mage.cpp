@@ -81,17 +81,19 @@ public:
         void HandleBlastScript(SpellEffIndex /*effIndex*/)
         {
             Unit* caster = GetCaster();
+            if (!caster  || caster->GetTypeId() !=TYPEID_PLAYER)
+                return;
+
             if (Unit* unitTarget = GetHitUnit())
             {
-                if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_MAGE, 2294, 0))
-                {
-                    if (aurEff->GetId() == 86181)
-                        if (!roll_chance_i(50))
+                if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_MAGE, 2294, 0)) //Nether vortex
+                { 
+                    if (aurEff->GetId() == 86181 && !roll_chance_i(50)) //Nether vortex rank 1
                             return;
 
                     bool castSlow = true;
                     Unit::AuraList& scAuras = caster->GetSingleCastAuras();
-                    for (Unit::AuraList::iterator iter = scAuras.begin(); iter != scAuras.end();)
+                    for (Unit::AuraList::iterator iter = scAuras.begin(); iter != scAuras.end();) //Check other applications of slow
                     {
                         Aura* aura = *iter;
                         if (aura)
@@ -102,10 +104,8 @@ public:
                                 break;
                             }
                         }
-
                         ++iter;
                     }
-
                     if (castSlow)
                         caster->AddAura(SPELL_SLOW, unitTarget);
                 }
