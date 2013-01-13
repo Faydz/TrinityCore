@@ -5279,7 +5279,6 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                 {
                     if (target->IsInFeralForm())
                     target->CastSpell(target, 50322, true);
-                    sLog->outError(LOG_FILTER_GENERAL, "survival instincts");
                 } else                    
                     target->RemoveAurasDueToSpell(50322);
                 break;
