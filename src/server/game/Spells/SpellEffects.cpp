@@ -620,6 +620,17 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
     // selection by spell family
     switch (m_spellInfo->SpellFamilyName)
     {
+        case SPELLFAMILY_GENERIC:
+            switch (m_spellInfo->Id)
+            {
+                case 68996: // Two forms (worgen transformation spell)
+                {
+                    if (m_caster->GetTypeId() == TYPEID_PLAYER && !m_caster->isInCombat())
+                        m_caster->ToPlayer()->toggleWorgenForm();
+                    return;
+                }
+            }
+            break;
         case SPELLFAMILY_PALADIN:
             switch (m_spellInfo->Id)
             {
@@ -823,6 +834,18 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
                     }
                     else
                         ++iter;
+                }
+                return;
+            }
+            // Feral Aggression
+            case 91565:
+            {
+                if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 960, 0))
+                {
+                    for  (uint8 count=1; count <= aurEff->GetAmount(); count++) 
+                    {
+                        m_caster->CastSpell(unitTarget, triggered_spell_id, true);;
+                    }
                 }
                 return;
             }

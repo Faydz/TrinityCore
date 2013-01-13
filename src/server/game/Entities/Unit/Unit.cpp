@@ -623,9 +623,17 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
         // Hack for Improved PolyMorph
         if (victim)
         {
-            if (victim->HasAura(118))
-            {
-                if (Aura* poly = victim->GetAura(118))
+            if (victim->HasAuraTypeWithFamilyFlags(SPELL_AURA_MOD_CONFUSE,SPELLFAMILY_MAGE, 0x01000000)){
+                Aura* poly = NULL;
+                if (victim->HasAura(118))            //polymorph sheep
+                    poly = victim->GetAura(118);
+                else if (victim->HasAura(28272))     //polymorph pig
+                    poly = victim->GetAura(28272);
+                else if (victim->HasAura(28271))     //polymorph turtle
+                    poly = victim->GetAura(28271);
+                else if (victim->HasAura(61305))     //polymorph black cat
+                    poly = victim->GetAura(61305);
+                if (poly != NULL)
                 {
                     if (Unit* caster = poly->GetCaster())
                     {
@@ -7954,6 +7962,18 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
             }
             break;
         }
+        case SPELLFAMILY_ROGUE:
+            switch(dummySpell->Id)
+            {
+                // Gouge
+                case 1776:
+                    *handled = true;
+                    if(procSpell && procSpell->Id == 1776)
+                        return false;
+                    return true;
+                    break;
+            }
+            break;
         case SPELLFAMILY_WARRIOR:
         {
             switch (dummySpell->Id)
@@ -11715,6 +11735,12 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
 
         if (!(creature->GetCreatureTemplate()->type_flags & CREATURE_TYPEFLAGS_MOUNTED_COMBAT))
             Dismount();
+    }
+
+    if (GetTypeId() == TYPEID_PLAYER && ToPlayer()->getRace() == RACE_WORGEN)
+    {
+        //TODO: make a hackfix for worgen starting zone.
+        ToPlayer()->setInWorgenForm(UNIT_FLAG2_WORGEN_TRANSFORM3);
     }
 
     for (Unit::ControlList::iterator itr = m_Controlled.begin(); itr != m_Controlled.end(); ++itr)

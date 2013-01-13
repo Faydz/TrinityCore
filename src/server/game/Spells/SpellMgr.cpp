@@ -2944,6 +2944,9 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[0].MiscValue = 0;
                 spellInfo->Effects[0].SpellClassMask = flag96(0x0, 0x0, 0x0);
                 break;
+            case 57750: // Flame orb damage
+                spellInfo->Effects[0].Amplitude = 1000;
+                break;
             default:
                 break;
         }

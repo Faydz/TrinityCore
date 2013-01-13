@@ -5207,6 +5207,20 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                             target->PlayDirectSound(14972, target->ToPlayer());
                     }
                     break;
+                // Running Wild
+                case 87840:
+                    if (target->GetTypeId() == TYPEID_PLAYER && target->HasAura(87840)) 
+                    {
+                        if (target->HasSpell(33391)) // Journeyman Riding
+                            target->ToPlayer()->SetSpeed(MOVE_RUN, 2.0f, true);
+                        else if (target->HasSpell(33388)) // Apprentice Riding
+                            target->ToPlayer()->SetSpeed(MOVE_RUN, 1.6f, true);
+                    } else
+                        target->ToPlayer()->SetSpeed(MOVE_RUN, 1.0f, true);
+
+                    target->ToPlayer()->setInWorgenForm(UNIT_FLAG2_WORGEN_TRANSFORM3);
+                    target->GetAuraEffectsByType(SPELL_AURA_MOUNTED).front()->GetMiscValue();
+                    break;
                 case 62061: // Festive Holiday Mount
                     if (target->HasAuraType(SPELL_AURA_MOUNTED))
                     {
@@ -5254,6 +5268,22 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
         {
             //if (!(mode & AURA_EFFECT_HANDLE_REAL))
                 //break;
+            switch (GetId()) 
+            {
+                case 61336: // Survival Instincts
+                {
+                if (!(mode & AURA_EFFECT_HANDLE_REAL))
+                    break;
+
+                if (apply) 
+                {
+                    if (target->IsInFeralForm())
+                    target->CastSpell(target, 50322, true);
+                } else                    
+                    target->RemoveAurasDueToSpell(50322);
+                break;
+                }
+            }
             break;
         }
         case SPELLFAMILY_SHAMAN:

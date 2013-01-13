@@ -73,6 +73,10 @@ class spell_rog_cheat_death : public SpellScriptLoader
             void Absorb(AuraEffect* /*aurEff*/, DamageInfo & dmgInfo, uint32 & absorbAmount)
             {
                 Player* target = GetTarget()->ToPlayer();
+
+                if (!target)
+                    return;
+
                 if (dmgInfo.GetDamage() < target->GetHealth() || target->HasSpellCooldown(SPELL_ROGUE_CHEAT_DEATH_COOLDOWN) ||  !roll_chance_i(absorbChance))
                     return;
 
@@ -87,6 +91,8 @@ class spell_rog_cheat_death : public SpellScriptLoader
                 // hp lower than 10% - absorb everything
                 else
                     absorbAmount = dmgInfo.GetDamage();
+
+                target->CastSpell(target, 45182, true);
             }
 
             void Register()
