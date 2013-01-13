@@ -45,8 +45,7 @@ public:
 
         void EnterCombat(Unit* /*who*/)
         {
-           me->MonsterYell("tttteeeessssttttt", 0, 0);
-           me->MonsterYell("So spuert meinen Zorn", 0, 0);
+           me->MonsterYell("So sp\303\274rt meinen Zorn", 0, 0);
         }
 
         void JustDied(Unit* /*killer*/)
@@ -59,13 +58,13 @@ public:
              switch (urand(1,3))
              {
                case 1:
-                    me->MonsterYell("testest", 0, 0);
+                    me->MonsterYell("Haha, das war einfach!", 0, 0);
                break;
                case 2:
                    me->MonsterYell("Ihr seid zu schwach!", 0, 0);
                break;
                case 3:
-                   me->MonsterYell("Schon muede?", 0, 0);
+                   me->MonsterYell("Schon m\303\274ede?", 0, 0);
               break;
              }
         }
