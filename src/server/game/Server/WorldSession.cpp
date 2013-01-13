@@ -102,7 +102,7 @@ m_playerRecentlyLogout(false), m_playerSave(false),
 m_sessionDbcLocale(sWorld->GetAvailableDbcLocale(locale)),
 m_sessionDbLocaleIndex(locale),
 m_latency(0), m_TutorialsChanged(false), recruiterId(recruiter),
-isRecruiter(isARecruiter), timeLastWhoCommand(0)
+isRecruiter(isARecruiter), timeLastWhoCommand(0), m_CurrentVendor(0)
 {
     _warden = NULL;
 
