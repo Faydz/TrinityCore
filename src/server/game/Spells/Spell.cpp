@@ -1264,6 +1264,10 @@ void Spell::SelectImplicitAreaTargets(SpellEffIndex effIndex, SpellImplicitTarge
                         maxSize = 10;
                         power = POWER_MANA;
                         break;
+                    case 57748: // Flame Orb
+                        maxSize = 1;
+                        power = POWER_HEALTH;
+                        break;
                     default:
                         break;
                 }
