@@ -837,6 +837,18 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
                 }
                 return;
             }
+            // Feral Aggression
+            case 91565:
+            {
+                if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 960, 0))
+                {
+                    for  (uint8 count=1; count <= aurEff->GetAmount(); count++) 
+                    {
+                        m_caster->CastSpell(unitTarget, triggered_spell_id, true);;
+                    }
+                }
+                return;
+            }
         }
     }
 
