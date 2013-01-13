@@ -89,7 +89,7 @@ public:
 		    pPlayer->ADD_GOSSIP_ITEM( 5, "Teleport zum Azshara Krater (Horde)", GOSSIP_SENDER_MAIN, 6401);
 
         pPlayer->ADD_GOSSIP_ITEM( 5, "Teleport zum Playertreff", GOSSIP_SENDER_MAIN, 6403);
-        pPlayer->ADD_GOSSIP_ITEM( 5, "Teleport zur Rennbahn", GOSSIP_SENDER_MAIN, 6550);
+        //pPlayer->ADD_GOSSIP_ITEM( 5, "Teleport zur Rennbahn", GOSSIP_SENDER_MAIN, 6550);
 
         pPlayer->PlayerTalkClass->SendGossipMenu(2713,pCreature->GetGUID());
         return true;

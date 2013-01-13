@@ -23,7 +23,6 @@ set(scripts_STAT_SRCS
   Custom/Transmogrification.h
   Custom/Pro_Max.cpp
   Custom/boss_arkton.cpp
-  Custom/npc_multivendor.cpp
   Custom/npcs_dm_battle.cpp
   Custom/npcs_dm_battle.h
 )
