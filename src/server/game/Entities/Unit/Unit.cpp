@@ -623,9 +623,17 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
         // Hack for Improved PolyMorph
         if (victim)
         {
-            if (victim->HasAura(118))
-            {
-                if (Aura* poly = victim->GetAura(118))
+            if (victim->HasAuraTypeWithFamilyFlags(SPELL_AURA_MOD_CONFUSE,SPELLFAMILY_MAGE, 0x01000000)){
+                Aura* poly = NULL;
+                if (victim->HasAura(118))            //polymorph sheep
+                    poly = victim->GetAura(118);
+                else if (victim->HasAura(28272))     //polymorph pig
+                    poly = victim->GetAura(28272);
+                else if (victim->HasAura(28271))     //polymorph turtle
+                    poly = victim->GetAura(28271);
+                else if (victim->HasAura(61305))     //polymorph black cat
+                    poly = victim->GetAura(61305);
+                if (poly != NULL)
                 {
                     if (Unit* caster = poly->GetCaster())
                     {
