@@ -5268,6 +5268,23 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
         {
             //if (!(mode & AURA_EFFECT_HANDLE_REAL))
                 //break;
+            switch (GetId()) 
+            {
+                case 61336: // Survival Instincts
+                {
+                if (!(mode & AURA_EFFECT_HANDLE_REAL))
+                    break;
+
+                if (apply) 
+                {
+                    if (target->IsInFeralForm())
+                    target->CastSpell(target, 50322, true);
+                    sLog->outError(LOG_FILTER_GENERAL, "survival instincts");
+                } else                    
+                    target->RemoveAurasDueToSpell(50322);
+                break;
+                }
+            }
             break;
         }
         case SPELLFAMILY_SHAMAN:
