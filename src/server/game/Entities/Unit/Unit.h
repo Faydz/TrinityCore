@@ -635,8 +635,13 @@ enum UnitFlags2
     UNIT_FLAG2_DISABLE_TURN                 = 0x00008000,
     UNIT_FLAG2_UNK2                         = 0x00010000,
     UNIT_FLAG2_PLAY_DEATH_ANIM              = 0x00020000,   // Plays special death animation upon death
-    UNIT_FLAG2_ALLOW_CHEAT_SPELLS           = 0x00040000    // Allows casting spells with AttributesEx7 & SPELL_ATTR7_IS_CHEAT_SPELL
+    UNIT_FLAG2_ALLOW_CHEAT_SPELLS           = 0x00040000,   // Allows casting spells with AttributesEx7 & SPELL_ATTR7_IS_CHEAT_SPELL
+    UNIT_FLAG2_WORGEN_TRANSFORM             = 0x00080000,   // transform to worgen
+    UNIT_FLAG2_WORGEN_TRANSFORM2            = 0x00100000,   // transform to worgen, less animation
+    UNIT_FLAG2_WORGEN_TRANSFORM3            = 0x00200000
 };
+
+#define IN_WORGEN_FORM (UNIT_FLAG2_WORGEN_TRANSFORM|UNIT_FLAG2_WORGEN_TRANSFORM2|UNIT_FLAG2_WORGEN_TRANSFORM3)
 
 /// Non Player Character flags
 enum NPCFlags
@@ -1776,6 +1781,8 @@ class Unit : public WorldObject
         bool SaveSoulSwapDotSource(uint64 dotSourceUnitGUID);
         void ResetSoulSwapDots();
         uint64 GetSourceOfSoulSwapDots();
+
+        void HandleAuraRemoveOnDeath(Aura const* aura);
 
         void RemoveAreaAurasDueToLeaveWorld();
         void RemoveAllAuras();

@@ -623,9 +623,17 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
         // Hack for Improved PolyMorph
         if (victim)
         {
-            if (victim->HasAura(118))
-            {
-                if (Aura* poly = victim->GetAura(118))
+            if (victim->HasAuraTypeWithFamilyFlags(SPELL_AURA_MOD_CONFUSE,SPELLFAMILY_MAGE, 0x01000000)){
+                Aura* poly = NULL;
+                if (victim->HasAura(118))            //polymorph sheep
+                    poly = victim->GetAura(118);
+                else if (victim->HasAura(28272))     //polymorph pig
+                    poly = victim->GetAura(28272);
+                else if (victim->HasAura(28271))     //polymorph turtle
+                    poly = victim->GetAura(28271);
+                else if (victim->HasAura(61305))     //polymorph black cat
+                    poly = victim->GetAura(61305);
+                if (poly != NULL)
                 {
                     if (Unit* caster = poly->GetCaster())
                     {
@@ -3934,6 +3942,10 @@ void Unit::RemoveAllAurasOnDeath()
     for (AuraApplicationMap::iterator iter = m_appliedAuras.begin(); iter != m_appliedAuras.end();)
     {
         Aura const* aura = iter->second->GetBase();
+
+        //Calling to the OnDeath handle method. Is it also needed in the m_ownedAuras loop?
+        HandleAuraRemoveOnDeath(aura);
+
         if (!aura->IsPassive() && !aura->IsDeathPersistent())
             _UnapplyAura(iter, AURA_REMOVE_BY_DEATH);
         else
@@ -7954,6 +7966,18 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
             }
             break;
         }
+        case SPELLFAMILY_ROGUE:
+            switch(dummySpell->Id)
+            {
+                // Gouge
+                case 1776:
+                    *handled = true;
+                    if(procSpell && procSpell->Id == 1776)
+                        return false;
+                    return true;
+                    break;
+            }
+            break;
         case SPELLFAMILY_WARRIOR:
         {
             switch (dummySpell->Id)
@@ -8368,6 +8392,33 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Focus Magic
+        case 54646: 
+            if (HasAura(54646) && GetAura(54646)->GetCaster())
+            {
+                if (Player *caster = GetAura(54646)->GetCaster()->ToPlayer())
+                {
+                    if (caster->HasAura(54648))
+                        caster->GetAura(54648)->RefreshDuration();
+                    else
+                        caster->AddAura(54648, caster);
+                }
+            }
+            return false;
+        // Find Weakness
+        case 51632:
+        case 91023:
+            if (!procSpell)
+                return false;
+
+            if (procSpell->Id != 703 && procSpell->Id != 8676 && procSpell->Id != 1833)
+                return false;
+            break;
+            break;
+        case 84722: //Invocation rank 1
+        case 84723: //           rank 2
+            return false;
+            break;
         // Masochism
         case 88994:
         case 88995:
@@ -10149,10 +10200,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                             break;
                         }
                 }
-            // Drain Soul - increased damage for targets under 25 % HP
-            if (spellProto->SpellFamilyFlags[0] & 0x00004000)
-                if (HasAura(100001))
-                    DoneTotalMod *= 2;
+
             // Shadow Bite (30% increase from each dot)
             if (spellProto->SpellFamilyFlags[1] & 0x00400000 && isPet())
                 if (uint8 count = victim->GetDoTsByCaster(GetOwnerGUID()))
@@ -10202,6 +10250,17 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_ROGUE_SUBTLETY)
                        DoneTotalMod *= 1.0f + 2.5f * owner->ToPlayer()->GetMasteryPoints() / 100;
+            }
+            // Rogue assasination mastery (instant poison)
+            if (spellProto->Id == 8680)
+            {
+                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && owner->getClass() == CLASS_ROGUE)
+                {
+                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
+                    {
+                        DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints();
+                    }
+                }  
             }
             break;
         case SPELLFAMILY_SHAMAN:
@@ -11688,6 +11747,12 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
 
         if (!(creature->GetCreatureTemplate()->type_flags & CREATURE_TYPEFLAGS_MOUNTED_COMBAT))
             Dismount();
+    }
+
+    if (GetTypeId() == TYPEID_PLAYER && ToPlayer()->getRace() == RACE_WORGEN)
+    {
+        //TODO: make a hackfix for worgen starting zone.
+        ToPlayer()->setInWorgenForm(UNIT_FLAG2_WORGEN_TRANSFORM3);
     }
 
     for (Unit::ControlList::iterator itr = m_Controlled.begin(); itr != m_Controlled.end(); ++itr)
@@ -18602,4 +18667,26 @@ void Unit::ResetHealingDoneInPastSecs(uint32 secs)
 
     for (uint32 i = 0; i < secs; i++)
         m_heal_done[i] = 0;
+}
+
+//This method is called while dying for each aura on the unit.
+void Unit::HandleAuraRemoveOnDeath(Aura const* aura)
+{
+    Unit* caster = aura->GetCaster();
+
+    if(!caster)
+        return;
+
+    switch(aura->GetSpellInfo()->SpellFamilyName)
+    {
+        case SPELLFAMILY_WARLOCK:
+            switch(aura->GetId())
+            {
+                //Drain Soul, soul shard energize on target death
+                case 1120:
+                    CastSpell(caster, 95810, true);
+                    break;
+            }
+            break;
+    }
 }

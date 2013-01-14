@@ -905,6 +905,26 @@ void AuraEffect::CalculateSpellMod()
                     break;
             }
             break;
+        case SPELL_AURA_PERIODIC_DAMAGE:
+            switch (GetSpellInfo()->SpellFamilyName)
+            {
+                case SPELLFAMILY_WARLOCK:
+                    switch (GetId())
+                    {
+                        case 1120:									// Drain Soul under 25%
+                            if (!m_spellmod)
+                            {
+                                m_spellmod = new SpellModifier(GetBase());
+                                m_spellmod->op = SPELLMOD_DOT;
+                                m_spellmod->type = SPELLMOD_FLAT;
+                                m_spellmod->spellId = GetId();
+                            }
+                            m_spellmod->value = 2;
+                            break;
+                    }
+                    break;
+            }
+            break;
         case SPELL_AURA_ADD_FLAT_MODIFIER:
         case SPELL_AURA_ADD_PCT_MODIFIER:
             if (!m_spellmod)
@@ -5207,6 +5227,20 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                             target->PlayDirectSound(14972, target->ToPlayer());
                     }
                     break;
+                // Running Wild
+                case 87840:
+                    if (target->GetTypeId() == TYPEID_PLAYER && target->HasAura(87840)) 
+                    {
+                        if (target->HasSpell(33391)) // Journeyman Riding
+                            target->ToPlayer()->SetSpeed(MOVE_RUN, 2.0f, true);
+                        else if (target->HasSpell(33388)) // Apprentice Riding
+                            target->ToPlayer()->SetSpeed(MOVE_RUN, 1.6f, true);
+                    } else
+                        target->ToPlayer()->SetSpeed(MOVE_RUN, 1.0f, true);
+
+                    target->ToPlayer()->setInWorgenForm(UNIT_FLAG2_WORGEN_TRANSFORM3);
+                    target->GetAuraEffectsByType(SPELL_AURA_MOUNTED).front()->GetMiscValue();
+                    break;
                 case 62061: // Festive Holiday Mount
                     if (target->HasAuraType(SPELL_AURA_MOUNTED))
                     {
@@ -5254,6 +5288,22 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
         {
             //if (!(mode & AURA_EFFECT_HANDLE_REAL))
                 //break;
+            switch (GetId()) 
+            {
+                case 61336: // Survival Instincts
+                {
+                if (!(mode & AURA_EFFECT_HANDLE_REAL))
+                    break;
+
+                if (apply) 
+                {
+                    if (target->IsInFeralForm())
+                    target->CastSpell(target, 50322, true);
+                } else                    
+                    target->RemoveAurasDueToSpell(50322);
+                break;
+                }
+            }
             break;
         }
         case SPELLFAMILY_SHAMAN:
@@ -6228,12 +6278,19 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
             }
         }
 
-        // There is a Chance to make a Soul Shard when Drain soul does damage
-        if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_WARLOCK && (GetSpellInfo()->SpellFamilyFlags[0] & 0x00004000))
+        // Rogue assasination mastry (deadly poison)
+        if (GetBase()->GetSpellInfo()->Id == 2818)
         {
-            if (caster->GetTypeId() == TYPEID_PLAYER && caster->ToPlayer()->isHonorOrXPTarget(target))
-                caster->CastSpell(caster, 95810, true, 0, this);
+            if (caster->ToPlayer() && caster->HasAuraType(SPELL_AURA_MASTERY) && caster->getClass() == CLASS_ROGUE)
+            {
+                if (caster->ToPlayer()->GetPrimaryTalentTree(caster->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
+                {
+                    float pct = float(3.5f * caster->ToPlayer()->GetMasteryPoints());
+                    AddPct(damage, pct);
+                }
+            }
         }
+
         if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_GENERIC)
         {
             switch (GetId())
