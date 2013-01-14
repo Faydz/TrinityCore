@@ -3136,6 +3136,67 @@ public:
     }
 };
 
+
+class npc_flaming_orb : public CreatureScript
+{
+public:
+    npc_flaming_orb() : CreatureScript("npc_flaming_orb") { }
+
+    struct npc_flaming_orbAI : public ScriptedAI
+    {
+       npc_flaming_orbAI(Creature* c) : ScriptedAI(c) 
+       {
+           me->SetReactState(REACT_PASSIVE);
+       }
+
+       uint32 checkTimer;
+
+       void Reset()
+       {
+            me->SetSpeed(MOVE_WALK, 1.0f, true);
+            me->SetSpeed(MOVE_RUN, 1.0f, true);
+            me->SetSpeed(MOVE_FLIGHT, 1.0f, true);
+
+            float ownerOrientation = 0.0f;
+            checkTimer = 1000;
+
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
+            me->AddUnitMovementFlag(MOVEMENTFLAG_FLYING);
+            me->SetCanFly(true);
+
+            if (Unit* summoner = me->GetOwner())
+            {
+                // Add Periodic Damage Aura
+                me->CastSpell(me, 57750, me, 0, 0, summoner->GetGUID());
+                me->SetLevel(summoner->getLevel());
+                ownerOrientation = summoner->GetOrientation();
+                me->GetMotionMaster()->MovePoint(0, me->GetPositionX() + 120 / 2 * cos(ownerOrientation), me->GetPositionY() + 120 / 2 * sin(ownerOrientation), me->GetPositionZ());
+            }
+       }
+
+       void UpdateAI(const uint32 diff)
+       {
+           if (checkTimer <= diff)
+           {
+               if (me->isInCombat())
+               {
+                    me->SetSpeed(MOVE_WALK, 0.3f, true);
+                    me->SetSpeed(MOVE_RUN, 0.3f, true);
+                    me->SetSpeed(MOVE_FLIGHT, 0.3f, true);
+               }else
+                   checkTimer = 1000;
+           }else
+               checkTimer -= diff;
+       }
+
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+       return new npc_flaming_orbAI(creature);
+    }
+};
+
 void AddSC_npcs_special()
 {
     new npc_air_force_bots();
@@ -3170,4 +3231,5 @@ void AddSC_npcs_special()
     new npc_generic_harpoon_cannon();
     new npc_power_word_barrier();
     new npc_shadowy_apparition();
+    new npc_flaming_orb();
 }
