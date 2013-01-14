@@ -359,10 +359,19 @@ public:
             }    
         }
 
+		void OnPeriodicUpdate (AuraEffect* aurEff)
+		{
+            if(_under25perc)
+            {
+                aurEff->CalculateSpellMod();
+            }
+		}
+
         void Register()
         {
             OnEffectApply += AuraEffectApplyFn(spell_warl_drain_soul_AuraScript::BeforeEffect, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL);
             OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_drain_soul_AuraScript::OnPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+			OnEffectUpdatePeriodic += AuraEffectUpdatePeriodicFn(spell_warl_drain_soul_AuraScript::OnPeriodicUpdate, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
         }
 
         bool _under25perc;

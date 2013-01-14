@@ -905,6 +905,26 @@ void AuraEffect::CalculateSpellMod()
                     break;
             }
             break;
+        case SPELL_AURA_PERIODIC_DAMAGE:
+            switch (GetSpellInfo()->SpellFamilyName)
+            {
+                case SPELLFAMILY_WARLOCK:
+                    switch (GetId())
+                    {
+                        case 1120:									// Drain Soul under 25%
+                            if (!m_spellmod)
+                            {
+                                m_spellmod = new SpellModifier(GetBase());
+                                m_spellmod->op = SPELLMOD_DOT;
+                                m_spellmod->type = SPELLMOD_FLAT;
+                                m_spellmod->spellId = GetId();
+                            }
+                            m_spellmod->value = 2;
+                            break;
+                    }
+                    break;
+            }
+            break;
         case SPELL_AURA_ADD_FLAT_MODIFIER:
         case SPELL_AURA_ADD_PCT_MODIFIER:
             if (!m_spellmod)
