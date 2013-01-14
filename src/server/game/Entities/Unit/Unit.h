@@ -1782,7 +1782,7 @@ class Unit : public WorldObject
         void ResetSoulSwapDots();
         uint64 GetSourceOfSoulSwapDots();
 
-        void HandleAuraOnDeath(Aura const* aura);
+        void HandleAuraRemoveOnDeath(Aura const* aura);
 
         void RemoveAreaAurasDueToLeaveWorld();
         void RemoveAllAuras();
