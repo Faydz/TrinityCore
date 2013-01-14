@@ -605,6 +605,15 @@ void AddSC_shattrath_city();
 void AddSC_terokkar_forest();
 void AddSC_zangarmarsh();
 
+// Cataclysm Dungeons and Raids
+//TheStonecore
+void AddSC_the_stonecore();					
+void AddSC_instance_the_stonecore();
+void AddSC_boss_corborus();
+void AddSC_boss_slabhide();
+void AddSC_boss_ozruk();
+void AddSC_boss_high_priestess_azil();
+
 // Events
 void AddSC_event_childrens_week();
 
