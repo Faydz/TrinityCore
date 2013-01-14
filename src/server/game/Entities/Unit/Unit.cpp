@@ -10250,6 +10250,17 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_ROGUE_SUBTLETY)
                        DoneTotalMod *= 1.0f + 2.5f * owner->ToPlayer()->GetMasteryPoints() / 100;
             }
+            // Rogue assasination mastery (instant poison)
+            if (spellProto->Id == 8680)
+            {
+                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && owner->getClass() == CLASS_ROGUE)
+                {
+                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
+                    {
+                        DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints();
+                    }
+                }  
+            }
             break;
         case SPELLFAMILY_SHAMAN:
             // Enhanced Elements (Enhanchment Mastery)
