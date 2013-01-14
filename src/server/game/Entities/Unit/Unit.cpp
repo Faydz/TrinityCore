@@ -5864,7 +5864,9 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 case 11120:
                 case 12846:
                 {
-                    basepoints0 = CalculatePct(damage, triggerAmount);
+                    if (procSpell->Id == 34913) //ignite should ignore molten armor critical hits
+                        return false;
+                    basepoints0 = (CalculatePct(damage, triggerAmount)/2);
                     triggered_spell_id = 12654;
                     basepoints0 += victim->GetRemainingPeriodicAmount(GetGUID(), triggered_spell_id, SPELL_AURA_PERIODIC_DAMAGE);
                     break;
@@ -10146,7 +10148,19 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                {
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FROST)
                    {
-                       DoneTotalMod *= 1 + (owner->ToPlayer()->GetMasteryPoints() * 0.025f);
+                       DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -6.0f) * 0.025f); // frost base mastery is 2
+                   }
+               }
+            }
+
+            // Flashburn Fire Mastery
+            if (owner->getClass() == CLASS_MAGE && spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_FIRE && damagetype == DOT )
+            {
+               if (owner->HasAuraType(SPELL_AURA_MASTERY))
+               {
+                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FIRE)
+                   {
+                       DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -0.14f) * 0.028f); // fire base mastery is 7.852
                    }
                }
             }

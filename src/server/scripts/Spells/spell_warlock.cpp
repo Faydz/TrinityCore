@@ -329,12 +329,12 @@ public:
 
         void BeforeEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
-            if(Unit* victim = GetTarget())
+            if(victim = GetTarget())
             {
                 _under25perc = victim->GetHealthPct() < 25.0f ? true : false;
             }
 
-            if(Unit* caster = GetCaster())
+            if(caster = GetCaster())
             {
                 //Need to get effect1 and use GetSpellInfo() because effect0 doesn't have an aura state.
                 _pandemic = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_WARLOCK, 4554, EFFECT_1);
@@ -343,16 +343,16 @@ public:
 
         void OnPeriodic(AuraEffect const* /*aurEff*/)
         {
-			if(!GetTarget())
+			if(!victim)
 				return;
 
-			Aura* unstableAff = GetTarget()->GetAura(WARLOCK_UNSTABLE_AFFLICTION);
+			Aura* unstableAff = victim->GetAura(WARLOCK_UNSTABLE_AFFLICTION);
 
             //Check if target is under 25% when casting Drain Soul
-            if (_under25perc && unstableAff)
+            if (_under25perc)
             {
                 // Pandemic talent
-                if (_pandemic && roll_chance_i(_pandemic->GetSpellInfo()->Effects[0].BasePoints))
+                if (unstableAff && _pandemic && roll_chance_i(_pandemic->GetSpellInfo()->Effects[0].BasePoints))
                 {
                         unstableAff->RefreshDuration();
                 }
@@ -362,8 +362,16 @@ public:
 		void OnPeriodicUpdate (AuraEffect* aurEff)
 		{
             if(_under25perc)
-            {
-                aurEff->CalculateSpellMod();
+            {    
+                if(!caster || !victim)
+				    return;
+                
+                //Will not recalculate after setAmount
+                //aurEff->SetCanBeRecalculated(false);
+
+                int32 damage = caster->SpellDamageBonusDone(victim, GetSpellInfo(), aurEff->GetBaseAmount(), DOT);
+
+                aurEff->SetAmount(damage);
             }
 		}
 
@@ -374,6 +382,8 @@ public:
 			OnEffectUpdatePeriodic += AuraEffectUpdatePeriodicFn(spell_warl_drain_soul_AuraScript::OnPeriodicUpdate, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
         }
 
+        Unit* caster;
+        Unit* victim;
         bool _under25perc;
         //Pandemic is checked at the beginning to avoid a check for each periodic tick. So I need a script scope var.
         AuraEffect* _pandemic;
