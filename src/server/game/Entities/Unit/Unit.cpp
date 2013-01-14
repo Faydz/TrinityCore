@@ -3942,6 +3942,10 @@ void Unit::RemoveAllAurasOnDeath()
     for (AuraApplicationMap::iterator iter = m_appliedAuras.begin(); iter != m_appliedAuras.end();)
     {
         Aura const* aura = iter->second->GetBase();
+
+        //Calling to the OnDeath handle method. Is it also needed in the m_ownedAuras loop?
+        HandleAuraOnDeath(aura);
+
         if (!aura->IsPassive() && !aura->IsDeathPersistent())
             _UnapplyAura(iter, AURA_REMOVE_BY_DEATH);
         else
@@ -10199,7 +10203,10 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             // Drain Soul - increased damage for targets under 25 % HP
             if (spellProto->SpellFamilyFlags[0] & 0x00004000)
                 if (HasAura(100001))
+                {
+                    sLog->outError(LOG_FILTER_GENERAL, "DS Double!");
                     DoneTotalMod *= 2;
+                }
             // Shadow Bite (30% increase from each dot)
             if (spellProto->SpellFamilyFlags[1] & 0x00400000 && isPet())
                 if (uint8 count = victim->GetDoTsByCaster(GetOwnerGUID()))
@@ -18655,4 +18662,26 @@ void Unit::ResetHealingDoneInPastSecs(uint32 secs)
 
     for (uint32 i = 0; i < secs; i++)
         m_heal_done[i] = 0;
+}
+
+//This method is called while dying for each aura on the unit.
+void Unit::HandleAuraOnDeath(Aura const* aura)
+{
+    Unit* caster = aura->GetCaster();
+
+    if(!caster)
+        return;
+
+    switch(aura->GetSpellInfo()->SpellFamilyName)
+    {
+        case SPELLFAMILY_WARLOCK:
+            switch(aura->GetId())
+            {
+                //Drain Soul, soul shard energize on target death
+                case 1120:
+                    CastSpell(caster, 95810, true);
+                    break;
+            }
+            break;
+    }
 }
