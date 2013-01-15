@@ -52,6 +52,7 @@ enum MageSpells
     SPELL_MAGE_SHATTERED_BARRIER_FREEZE_R1       = 55080,
     SPELL_MAGE_SHATTERED_BARRIER_FREEZE_R2       = 83073,
     SPELL_MAGE_FINGERS_OF_FROST                  = 44544,
+    MAGE_SPELL_CAUTERIZE_HEAL                    = 87023,
 };
 
 enum MageIcons
@@ -803,6 +804,69 @@ class spell_mage_water_elemental_freeze : public SpellScriptLoader
        }
 };
 
+// cauterize
+class spell_mage_cauterize : public SpellScriptLoader 
+{
+public:
+    spell_mage_cauterize() : SpellScriptLoader("spell_mage_cauterize") { }
+
+    class spell_mage_cauterize_AuraScript: public AuraScript 
+    {
+        PrepareAuraScript(spell_mage_cauterize_AuraScript);
+
+        uint32 healPct;
+
+        bool Validate(SpellInfo const* /*spellEntry*/) 
+        {
+            if (!sSpellMgr->GetSpellInfo(MAGE_SPELL_CAUTERIZE_HEAL))
+                return false;
+            return true;
+        }
+
+        void CalculateAmount(AuraEffect const * /*aurEff*/, int32 & amount, bool & /*canBeRecalculated*/) 
+        {
+            // Set absorbtion amount to unlimited
+            amount = -1;
+        }
+
+        void Absorb(AuraEffect * aurEff, DamageInfo & dmgInfo, uint32 & absorbAmount)
+        {
+            Unit * target = GetTarget();
+            if (dmgInfo.GetDamage() < target->GetHealth())
+                return;
+
+            if (target->ToPlayer() && target->ToPlayer()->HasSpellCooldown(MAGE_SPELL_CAUTERIZE_HEAL))
+                return;
+
+            bool isRank1 = true;
+            if (target->HasAura(86949))
+                isRank1 = false;
+
+            if ((isRank1 && urand(0, 1) == 1) || !isRank1)
+            {
+                int32 healAmount = int32(target->CountPctFromMaxHealth(40.0f));
+
+                target->CastCustomSpell(target, MAGE_SPELL_CAUTERIZE_HEAL, NULL, &healAmount, NULL, true);
+                absorbAmount = dmgInfo.GetDamage();
+
+                if (target->ToPlayer())
+                    target->ToPlayer()->AddSpellCooldown(MAGE_SPELL_CAUTERIZE_HEAL, 0, time(NULL) + 60);
+            }
+        }
+
+        void Register()
+        {
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mage_cauterize_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
+            OnEffectAbsorb += AuraEffectAbsorbFn(spell_mage_cauterize_AuraScript::Absorb, EFFECT_0);
+        }
+    };
+
+    AuraScript *GetAuraScript() const 
+    {
+        return new spell_mage_cauterize_AuraScript();
+    }
+};
+
 void AddSC_mage_spell_scripts()
 {
     new spell_mage_arcane_blast();
@@ -821,4 +885,5 @@ void AddSC_mage_spell_scripts()
     new spell_mage_mage_ward();
     new spell_mage_replenish_mana();
     new spell_mage_water_elemental_freeze();
+    new spell_mage_cauterize();
 }
