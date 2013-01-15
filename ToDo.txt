@@ -1,3 +1,4 @@
 Questo documento tiene traccia delle ottimizzazioni da fare una volta stabilizzato il server con tutti i fix necessari.
 
 1 Ottimizzare l'improved polymorph in Unit.cpp, riga 624. Fare il check dentro RemoveAurasWithInterruptFlags, se possibile.
+2 Convertire il funzionamento della resilience alla 4.3.4
