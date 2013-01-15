@@ -1248,6 +1248,12 @@ void AddNorthrendScripts()
     AddSC_boss_saviana_ragefire();
     AddSC_boss_general_zarithrian();
     AddSC_boss_halion();
+    AddSC_the_stonecore();			    // The Stonecore
+    AddSC_instance_the_stonecore();
+    AddSC_boss_corborus();
+    AddSC_boss_slabhide();
+    AddSC_boss_ozruk();
+    AddSC_boss_high_priestess_azil();
 
     AddSC_dalaran();
     AddSC_borean_tundra();
