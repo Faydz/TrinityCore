@@ -2950,6 +2950,9 @@ void SpellMgr::LoadSpellCustomAttr()
             case 68422: // Summon Scalding Water Lord
                 spellInfo->Effects[0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
                 break;
+            case 87023: // Cauterize
+                spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_RESI;
+                break;
             default:
                 break;
         }
