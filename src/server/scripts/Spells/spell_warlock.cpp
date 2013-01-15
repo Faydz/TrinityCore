@@ -66,7 +66,7 @@ enum WarlockSpells
 
 bool _SeedOfCorruptionFlag = false;
 
-//1490 - Curse of the Elements
+// 1490 - Curse of the Elements
 class spell_warl_curse_of_the_elements: public SpellScriptLoader {
 public:
     spell_warl_curse_of_the_elements() : SpellScriptLoader("spell_warl_curse_of_the_elements") { }
@@ -85,7 +85,7 @@ public:
             
             if(caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 5002, EFFECT_0))
             {
-                //Check if warlock has the either the first or the second rank of jinx
+                // Check if warlock has the either the first or the second rank of jinx
                 if (caster->HasAura(18179))
                     caster->CastSpell(target, WARLOCK_JINX_R1, true);
                 else if(caster->HasAura(85479))
@@ -105,7 +105,7 @@ public:
     }
 };
 
-//86121 - Soul Swap action bar spell
+// 86121 - Soul Swap action bar spell
 class spell_warl_soul_swap: public SpellScriptLoader {
 public:
     spell_warl_soul_swap() : SpellScriptLoader("spell_warl_soul_swap") { }
@@ -122,14 +122,14 @@ public:
             if (!target || !caster)
                 return SPELL_FAILED_BAD_TARGETS;
 
-            //Check if there are any dots on the target
+            // Check if there are any dots on the target
             if(target->GetSoulSwapDotsCount(caster) == 0)
                 return SPELL_FAILED_BAD_TARGETS;
 
             return SPELL_CAST_OK;
         }
             
-        //Graphic effect for the first cast
+        // Graphic effect for the first cast
         void HandleEffectLaunchTarget(SpellEffIndex /*effIndex*/) 
         {
             Unit* caster = GetCaster();
@@ -141,7 +141,7 @@ public:
             target->CastSpell(caster, WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT, true, 0, 0, caster->GetGUID());
         }
             
-        //Handles the first cast of soul swap
+        // Handles the first cast of soul swap
         void HandleEffectHit(SpellEffIndex /*effIndex*/)
         {
             Unit* caster = GetCaster();
@@ -168,7 +168,7 @@ public:
     }
 };
 
-//86211 - Handles Soul Swap saved dots buff onRemove
+// 86211 - Handles Soul Swap saved dots buff onRemove
 class spell_warl_soul_swap_buff : public SpellScriptLoader
 {
 public:
@@ -275,7 +275,7 @@ public:
     }
 };
 
-//689/89420 - Drain Life
+// 689/89420 - Drain Life
 class spell_warl_drain_life: public SpellScriptLoader
 {
 public:
@@ -289,7 +289,7 @@ public:
         {
             if(Unit* caster = GetCaster())
             {
-                //Base percent
+                // Base percent
                 int32 bp = 2; 
                 
                 // Checks for Death's Embrace talent and %
@@ -317,7 +317,7 @@ public:
     }
 };
 
-//1120 - Offylike Drain Soul. cit. "drain soul has always checked if the target is in execute range on initial spell cast rather than on each tic."
+// 1120 - Offylike Drain Soul. cit. "drain soul has always checked if the target is in execute range on initial spell cast rather than on each tic."
 class spell_warl_drain_soul: public SpellScriptLoader
 {
 public:
@@ -329,63 +329,39 @@ public:
 
         void BeforeEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
-            if(victim = GetTarget())
+            if(Unit* caster = GetCaster())
             {
-                _under25perc = victim->GetHealthPct() < 25.0f ? true : false;
-            }
-
-            if(caster = GetCaster())
-            {
-                //Need to get effect1 and use GetSpellInfo() because effect0 doesn't have an aura state.
+                // Need to get effect1 and use GetSpellInfo() because effect0 doesn't have an aura state.
                 _pandemic = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_WARLOCK, 4554, EFFECT_1);
             }
         }
 
-        void OnPeriodic(AuraEffect const* /*aurEff*/)
+        void OnPeriodic(AuraEffect const* aurEff)
         {
-			if(!victim)
+			if(!GetTarget())
 				return;
 
-			Aura* unstableAff = victim->GetAura(WARLOCK_UNSTABLE_AFFLICTION);
+			Aura* unstableAff = GetTarget()->GetAura(WARLOCK_UNSTABLE_AFFLICTION);
 
-            //Check if target is under 25% when casting Drain Soul
-            if (_under25perc)
+            // Check if target is under 25% when casting Drain Soul
+            if (aurEff->GetBase())
             {
                 // Pandemic talent
-                if (unstableAff && _pandemic && roll_chance_i(_pandemic->GetSpellInfo()->Effects[0].BasePoints))
+                if (unstableAff && _pandemic && aurEff->GetBase()->WasUnder25PercentOnApp() 
+                    && roll_chance_i(_pandemic->GetSpellInfo()->Effects[0].BasePoints))
                 {
-                        unstableAff->RefreshDuration();
+                    unstableAff->RefreshDuration();
                 }
             }    
         }
-
-		void OnPeriodicUpdate (AuraEffect* aurEff)
-		{
-            if(_under25perc)
-            {    
-                if(!caster || !victim)
-				    return;
-                
-                //Will not recalculate after setAmount
-                //aurEff->SetCanBeRecalculated(false);
-
-                int32 damage = caster->SpellDamageBonusDone(victim, GetSpellInfo(), aurEff->GetBaseAmount(), DOT);
-
-                aurEff->SetAmount(damage);
-            }
-		}
 
         void Register()
         {
             OnEffectApply += AuraEffectApplyFn(spell_warl_drain_soul_AuraScript::BeforeEffect, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL);
             OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_drain_soul_AuraScript::OnPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
-			OnEffectUpdatePeriodic += AuraEffectUpdatePeriodicFn(spell_warl_drain_soul_AuraScript::OnPeriodicUpdate, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
         }
 
-        Unit* caster;
-        Unit* victim;
-        bool _under25perc;
-        //Pandemic is checked at the beginning to avoid a check for each periodic tick. So I need a script scope var.
+        // Pandemic is checked at the beginning to avoid a check for each periodic tick. So I need a script scope var.
         AuraEffect* _pandemic;
     };
 
