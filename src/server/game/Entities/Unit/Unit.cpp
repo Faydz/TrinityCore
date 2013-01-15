@@ -10202,6 +10202,24 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             }
             break;
         case SPELLFAMILY_WARLOCK:
+
+            switch(spellProto->Id)
+            {
+                // Drain soul
+                case 1120:
+                    if(victim)
+                    {
+                        if(Aura* aura = victim->GetAura(spellProto->Id, GetGUID()))
+                        {
+                            if(aura->WasUnder25PercentOnApp())
+                            {
+                                DoneTotalMod *= 2.0f;
+                            }
+                        }
+                    }
+                    break;
+            }
+
             // Fire and Brimstone
             if (spellProto->SpellFamilyFlags[1] & 0x00020040)
                 if (victim->HasAuraState(AURA_STATE_CONFLAGRATE))

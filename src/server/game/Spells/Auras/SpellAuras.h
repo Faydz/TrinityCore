@@ -179,7 +179,9 @@ class Aura
         const AuraApplication * GetApplicationOfTarget (uint64 guid) const { ApplicationMap::const_iterator itr = m_applications.find(guid); if (itr != m_applications.end()) return itr->second; return NULL; }
         AuraApplication * GetApplicationOfTarget (uint64 guid) { ApplicationMap::iterator itr = m_applications.find(guid); if (itr != m_applications.end()) return itr->second; return NULL; }
         bool IsAppliedOnTarget(uint64 guid) const { return m_applications.find(guid) != m_applications.end(); }
-
+        bool WasUnder25PercentOnApp() { return m_was_under_25_percent_on_app; }
+        
+        void SetWasUnder25PercentOnApp(bool val) { m_was_under_25_percent_on_app = val; }
         void SetNeedClientUpdateForTargets() const;
         void HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, bool apply, bool onReapply);
         bool CanBeAppliedOn(Unit* target);
@@ -244,6 +246,8 @@ class Aura
         bool m_isRemoved:1;
         bool m_isSingleTarget:1;                        // true if it's a single target spell and registered at caster - can change at spell steal for example
         bool m_isUsingCharges:1;
+
+        bool m_was_under_25_percent_on_app;
 
     private:
         Unit::AuraApplicationList m_removedApplications;
