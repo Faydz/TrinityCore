@@ -5762,6 +5762,10 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         }
         case SPELLFAMILY_MAGE:
         {
+            //this will prevent the remotion of the arcane missiles aura when casting a spell that is not arcane missiles
+            if (dummySpell->Id == 79683)
+                return false;
+            
             // Magic Absorption
             if (dummySpell->SpellIconID == 459)             // only this spell has SpellIconID == 459 and dummy aura
             {
@@ -8396,13 +8400,14 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     {
         // Arcane Missiles should not proc if having hot streak or brain freeze
         case 79684: 
-            if (Player *caster = GetAura(79684)->GetOwner()->ToPlayer())
-            if (caster->HasAura(44445)){
-                return false;
-            }
-            else if (HasAura (44546) ||HasAura (44548) ||HasAura (44549) ){
-                return false;
+            if (Player *caster = GetAura(79684)->GetOwner()->ToPlayer()){
+                if (caster->HasAura(44445)){
+                    return false;
                 }
+                else if (caster->HasAura (44546) || caster->HasAura (44548) || caster->HasAura (44549) ){
+                    return false;
+                    }
+            }
             break;
         // Focus Magic
         case 54646: 
