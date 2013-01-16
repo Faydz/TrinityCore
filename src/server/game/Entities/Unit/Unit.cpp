@@ -10165,6 +10165,20 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                }
             }
 
+            //Molten Fury
+            if (victim->GetHealthPct() <= 35.0f && owner->ToPlayer() && owner->getClass() == CLASS_MAGE ){
+                if (Aura* aura = GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0)->GetBase()){
+                    uint32 BP = 12;
+                    if (aura->GetId() == 31680)      //rank 2
+                        BP = 8;
+                    else if (aura->GetId() == 31679) //rank 1
+                        BP = 4;
+
+                    DoneTotalMod *= 1 + (BP / 100.0f);
+                }
+            }
+
+
             // Torment the weak
             if (spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_ARCANE)
             {
