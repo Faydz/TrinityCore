@@ -941,3 +941,7 @@ public: npc_startup() : CreatureScript("npc_startup") { }
 		}
 
 };
+void AddSC_npc_startup()
+{
+	new npc_startup();
+}
