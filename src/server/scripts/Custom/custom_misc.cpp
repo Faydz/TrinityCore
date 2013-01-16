@@ -667,3 +667,275 @@ void AddSC_Morph_NPC()
 {
 	new Morph_NPC();
 }
+
+class npc_startup : public CreatureScript
+{
+public: npc_startup : CreatureScript("npc_startup") {}
+
+		bool OnGossipHello(Player* player, Creature* creature)
+		{
+		if (player->isInCombat())
+		{
+			creature->MonsterWhisper("Du bist im Kampf. Komme wieder sobald du den Kampf beendet hast.", player->GetGUID());
+			player->CLOSE_GOSSIP_MENU();
+		}
+
+		if (player->GetClass()==1)		// Krieger
+		{
+			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 1);
+			player->ADD_GOSSIP_ITEM(9, "Tank", GOSSIP_SENDER_MAIN, 2);
+			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
+		}
+
+		if (player->GetClass()==2)		// Paladin
+		{
+			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 3);
+			player->ADD_GOSSIP_ITEM(9, "Tank", GOSSIP_SENDER_MAIN, 4);
+			player->ADD_GOSSIP_ITEM(9, "Heilung", GOSSIP_SENDER_MAIN, 5);
+			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
+		}
+
+		if (player->GetClass()==3)		//Jäger
+		{
+			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 6);
+			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
+		}
+
+		if (player->GetClass()==4)		// Schurke
+		{
+			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 7);
+			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
+		}
+
+		if (player->GetClass()==5)		// Priester
+		{
+			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 8);
+			player->ADD_GOSSIP_ITEM(9, "Heilung", GOSSIP_SENDER_MAIN, 9);
+			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
+		}
+
+		if (player->GetClass()==6)		// Todesritter
+		{
+			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 10);
+			player->ADD_GOSSIP_ITEM(9, "Tank", GOSSIP_SENDER_MAIN, 11);
+			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
+		}
+
+		if (player->GetClass()==7)		// Schamane
+		{
+			player->ADD_GOSSIP_ITEM(9, "Schaden (Elementar)", GOSSIP_SENDER_MAIN, 12);
+			player->ADD_GOSSIP_ITEM(9, "Schaden (Verst\303\244rkung", GOSSIP_SENDER_MAIN, 13);
+			player->ADD_GOSSIP_ITEM(9, "Heilung", GOSSIP_SENDER_MAIN, 14);
+			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
+		}
+
+		if (player->GetClass()==8)		// Magier
+		{
+			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 15);
+			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
+		}
+
+		if (player->GetClass()==9)		// Hexenmeister
+		{
+			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 16);
+			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
+		}
+
+		if (player->GetClass()==11)		//Druide
+		{
+			player->ADD_GOSSIP_ITEM(9, "Schaden (Gleichgewicht)", GOSSIP_SENDER_MAIN, 17);
+			player->ADD_GOSSIP_ITEM(9, "Schaden (Wilder Kampf)", GOSSIP_SENDER_MAIN, 18);
+			player->ADD_GOSSIP_ITEM(9, "Heilung", GOSSIP_SENDER_MAIN, 19);
+			player->ADD_GOSSIP_ITEM(9, "Tank", GOSSIP_SENDER_MAIN, 20);
+			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
+		}
+		player->PlayerTalkClass->SendGossipMenu(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
+		return true:
+}
+
+		bool OnGossipSelect(Player * player, Creature * creature, uint32 /*sender*/, uint32 action)
+		{
+			switch (action)
+			{
+				case 1:								// Krieger DD
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+
+					break;
+				case 2:								// Krieger Tank
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+				case 3:								// Pala DD
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+				case 4:								// Pala Tank
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					if (player->GetInventory
+					else
+					{
+						player->AddItem(40583);
+						player->AddItem(40584);
+						player->AddItem(40580);
+						player->AddItem(40579);
+						player->AddItem(40581);
+						player->AddItem(40400);
+						player->AddItem(40345);
+						player->AddItem(39717);
+						player->AddItem(39759);
+						player->AddItem(39764);
+						player->AddItem(40107);
+						player->AddItem(40069);
+						player->AddItem(40252);
+						player->AddItem(40257);
+						player->AddItem(40372);
+						player->AddItem(40337);
+					}
+					break;
+				case 5:								// Pala Heal
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					else
+					{
+						player->AddItem(40569);
+						player->AddItem(40570);
+						player->AddItem(40571);
+						player->AddItem(40573);
+						player->AddItem(40401);
+						player->AddItem(40395);
+						player->AddItem(39425);
+						player->AddItem(40187);
+						player->AddItem(40241);
+						player->AddItem(40268);
+						player->AddItem(40274);
+						player->AddItem(40375);
+						player->AddItem(40374);
+						player->AddItem(40258);
+						player->AddItem(40108);
+						player->AddItem(40382);
+					}
+					break;
+				case 6:								// Hunter
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+				case 7:								// Schurke
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					else
+					{
+						player->AddItem(40495);
+						player->AddItem(40496);
+						player->AddItem(40499);
+						player->AddItem(40500);
+						player->AddItem(40502);
+						player->AddItem(40369);
+						player->AddItem(40250);
+						player->AddItem(40186);
+						player->AddItem(40205);
+						player->AddItem(40243);
+						player->AddItem(40074);
+						player->AddItem(40075);
+						player->AddItem(40256);
+						player->AddItem(40371);
+						player->AddItem(40383);
+						player->AddItem(40239);
+						player->AddItem(40385);
+					}
+					break;
+				case 8:								// Priester Schaden
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+				case 9:								// Priester Heal
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+				case 11:							// DK Schaden
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+					case 12:							// DK Tank
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+					case 13:							// Schami Ele
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+					case 14:							// Schami VS
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+					case 15:							// Schami Heal
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+					case 16:							// Mage
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+					case 17:							// Hexer
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+					case 18:							// Dudu Moonkin
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+					case 19:							// Dudu Feral DD
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+					case 20:							// Dudu Feral Tank
+					if (player->GetMoney()<6000000)
+					{
+						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
+					}
+					break;
+				case 50:
+					player->CLOSE_GOSSIP_MENU();
+					break;
+			}
+			return true;
+		}
+
+};
