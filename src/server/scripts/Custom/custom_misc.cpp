@@ -670,7 +670,7 @@ void AddSC_Morph_NPC()
 
 class npc_startup : public CreatureScript
 {
-public: npc_startup : CreatureScript("npc_startup") {}
+public: npc_startup() : CreatureScript("npc_startup") { }
 
 		bool OnGossipHello(Player* player, Creature* creature)
 		{
@@ -680,14 +680,14 @@ public: npc_startup : CreatureScript("npc_startup") {}
 			player->CLOSE_GOSSIP_MENU();
 		}
 
-		if (player->GetClass()==1)		// Krieger
+		if (player->getClass()==1)		// Krieger
 		{
 			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 1);
 			player->ADD_GOSSIP_ITEM(9, "Tank", GOSSIP_SENDER_MAIN, 2);
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
 		}
 
-		if (player->GetClass()==2)		// Paladin
+		if (player->getClass()==2)		// Paladin
 		{
 			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 3);
 			player->ADD_GOSSIP_ITEM(9, "Tank", GOSSIP_SENDER_MAIN, 4);
@@ -695,33 +695,33 @@ public: npc_startup : CreatureScript("npc_startup") {}
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
 		}
 
-		if (player->GetClass()==3)		//Jäger
+		if (player->getClass()==3)		//Jäger
 		{
 			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 6);
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
 		}
 
-		if (player->GetClass()==4)		// Schurke
+		if (player->getClass()==4)		// Schurke
 		{
 			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 7);
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
 		}
 
-		if (player->GetClass()==5)		// Priester
+		if (player->getClass()==5)		// Priester
 		{
 			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 8);
 			player->ADD_GOSSIP_ITEM(9, "Heilung", GOSSIP_SENDER_MAIN, 9);
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
 		}
 
-		if (player->GetClass()==6)		// Todesritter
+		if (player->getClass()==6)		// Todesritter
 		{
 			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 10);
 			player->ADD_GOSSIP_ITEM(9, "Tank", GOSSIP_SENDER_MAIN, 11);
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
 		}
 
-		if (player->GetClass()==7)		// Schamane
+		if (player->getClass()==7)		// Schamane
 		{
 			player->ADD_GOSSIP_ITEM(9, "Schaden (Elementar)", GOSSIP_SENDER_MAIN, 12);
 			player->ADD_GOSSIP_ITEM(9, "Schaden (Verst\303\244rkung", GOSSIP_SENDER_MAIN, 13);
@@ -729,19 +729,19 @@ public: npc_startup : CreatureScript("npc_startup") {}
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
 		}
 
-		if (player->GetClass()==8)		// Magier
+		if (player->getClass()==8)		// Magier
 		{
 			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 15);
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
 		}
 
-		if (player->GetClass()==9)		// Hexenmeister
+		if (player->getClass()==9)		// Hexenmeister
 		{
 			player->ADD_GOSSIP_ITEM(9, "Schaden", GOSSIP_SENDER_MAIN, 16);
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
 		}
 
-		if (player->GetClass()==11)		//Druide
+		if (player->getClass()==11)		//Druide
 		{
 			player->ADD_GOSSIP_ITEM(9, "Schaden (Gleichgewicht)", GOSSIP_SENDER_MAIN, 17);
 			player->ADD_GOSSIP_ITEM(9, "Schaden (Wilder Kampf)", GOSSIP_SENDER_MAIN, 18);
@@ -750,7 +750,7 @@ public: npc_startup : CreatureScript("npc_startup") {}
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
 		}
 		player->PlayerTalkClass->SendGossipMenu(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
-		return true:
+		return true;
 }
 
 		bool OnGossipSelect(Player * player, Creature * creature, uint32 /*sender*/, uint32 action)
@@ -781,25 +781,25 @@ public: npc_startup : CreatureScript("npc_startup") {}
 					{
 						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
 					}
-					if (player->GetInventory
 					else
 					{
-						player->AddItem(40583);
-						player->AddItem(40584);
-						player->AddItem(40580);
-						player->AddItem(40579);
-						player->AddItem(40581);
-						player->AddItem(40400);
-						player->AddItem(40345);
-						player->AddItem(39717);
-						player->AddItem(39759);
-						player->AddItem(39764);
-						player->AddItem(40107);
-						player->AddItem(40069);
-						player->AddItem(40252);
-						player->AddItem(40257);
-						player->AddItem(40372);
-						player->AddItem(40337);
+						player->ModifyMoney(-6000000);
+						player->AddItem(40583, 1);
+						player->AddItem(40584, 1);
+						player->AddItem(40580, 1);
+						player->AddItem(40579, 1);
+						player->AddItem(40581, 1);
+						player->AddItem(40400, 1);
+						player->AddItem(40345, 1);
+						player->AddItem(39717, 1);
+						player->AddItem(39759, 1);
+						player->AddItem(39764, 1);
+						player->AddItem(40107, 1);
+						player->AddItem(40069, 1);
+						player->AddItem(40252, 1);
+						player->AddItem(40257, 1);
+						player->AddItem(40372, 1);
+						player->AddItem(40337, 1);
 					}
 					break;
 				case 5:								// Pala Heal
@@ -809,22 +809,23 @@ public: npc_startup : CreatureScript("npc_startup") {}
 					}
 					else
 					{
-						player->AddItem(40569);
-						player->AddItem(40570);
-						player->AddItem(40571);
-						player->AddItem(40573);
-						player->AddItem(40401);
-						player->AddItem(40395);
-						player->AddItem(39425);
-						player->AddItem(40187);
-						player->AddItem(40241);
-						player->AddItem(40268);
-						player->AddItem(40274);
-						player->AddItem(40375);
-						player->AddItem(40374);
-						player->AddItem(40258);
-						player->AddItem(40108);
-						player->AddItem(40382);
+						player->ModifyMoney(-6000000);
+						player->AddItem(40569, 1);
+						player->AddItem(40570, 1);
+						player->AddItem(40571, 1);
+						player->AddItem(40573, 1);
+						player->AddItem(40401, 1);
+						player->AddItem(40395, 1);
+						player->AddItem(39425, 1);
+						player->AddItem(40187, 1);
+						player->AddItem(40241, 1);
+						player->AddItem(40268, 1);
+						player->AddItem(40274, 1);
+						player->AddItem(40375, 1);
+						player->AddItem(40374, 1);
+						player->AddItem(40258, 1);
+						player->AddItem(40108, 1);
+						player->AddItem(40382, 1);
 					}
 					break;
 				case 6:								// Hunter
@@ -840,23 +841,24 @@ public: npc_startup : CreatureScript("npc_startup") {}
 					}
 					else
 					{
-						player->AddItem(40495);
-						player->AddItem(40496);
-						player->AddItem(40499);
-						player->AddItem(40500);
-						player->AddItem(40502);
-						player->AddItem(40369);
-						player->AddItem(40250);
-						player->AddItem(40186);
-						player->AddItem(40205);
-						player->AddItem(40243);
-						player->AddItem(40074);
-						player->AddItem(40075);
-						player->AddItem(40256);
-						player->AddItem(40371);
-						player->AddItem(40383);
-						player->AddItem(40239);
-						player->AddItem(40385);
+						player->ModifyMoney(-6000000);
+						player->AddItem(40495, 1);
+						player->AddItem(40496, 1);
+						player->AddItem(40499, 1);
+						player->AddItem(40500, 1);
+						player->AddItem(40502, 1);
+						player->AddItem(40369, 1);
+						player->AddItem(40250, 1);
+						player->AddItem(40186, 1);
+						player->AddItem(40205, 1);
+						player->AddItem(40243, 1);
+						player->AddItem(40074, 1);
+						player->AddItem(40075, 1);
+						player->AddItem(40256, 1);
+						player->AddItem(40371, 1);
+						player->AddItem(40383, 1);
+						player->AddItem(40239, 1);
+						player->AddItem(40385, 1);
 					}
 					break;
 				case 8:								// Priester Schaden
