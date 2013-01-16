@@ -8394,6 +8394,16 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Arcane Missiles should not proc if having hot streak or brain freeze
+        case 79684: 
+            if (Player *caster = GetAura(79684)->GetOwner()->ToPlayer())
+            if (caster->HasAura(44445)){
+                return false;
+            }
+            else if (HasAura (44546) ||HasAura (44548) ||HasAura (44549) ){
+                return false;
+                }
+            break;
         // Focus Magic
         case 54646: 
             if (HasAura(54646) && GetAura(54646)->GetCaster())
@@ -8407,6 +8417,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 }
             }
             return false;
+            break;
         // Find Weakness
         case 51632:
         case 91023:
@@ -10042,13 +10053,15 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 
         switch ((*i)->GetMiscValue())
         {
-            case 4920: // Molten Fury
+            // this is the tbc/wotlk talent
+           /* case 4920: // Molten Fury
             case 4919:
             {
                 if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, spellProto, this))
                     AddPct(DoneTotalMod, (*i)->GetAmount());
                 break;
             }
+            */
             case 6917: // Death's Embrace damage effect
             case 6926:
             case 6928:
@@ -10166,7 +10179,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             }
 
             //Molten Fury
-            if (victim->GetHealthPct() <= 35.0f && owner->ToPlayer() && owner->getClass() == CLASS_MAGE ){
+            if (victim->GetHealthPct() <= 35.0f && owner->ToPlayer() && owner->getClass() == CLASS_MAGE && GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0)){
                 if (Aura* aura = GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0)->GetBase()){
                     uint32 BP = 12;
                     if (aura->GetId() == 31680)      //rank 2
