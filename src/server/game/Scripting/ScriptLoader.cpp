@@ -605,6 +605,15 @@ void AddSC_shattrath_city();
 void AddSC_terokkar_forest();
 void AddSC_zangarmarsh();
 
+// Cataclysm Dungeons and Raids
+//TheStonecore
+void AddSC_the_stonecore();					
+void AddSC_instance_the_stonecore();
+void AddSC_boss_corborus();
+void AddSC_boss_slabhide();
+void AddSC_boss_ozruk();
+void AddSC_boss_high_priestess_azil();
+
 // Events
 void AddSC_event_childrens_week();
 
@@ -1239,6 +1248,12 @@ void AddNorthrendScripts()
     AddSC_boss_saviana_ragefire();
     AddSC_boss_general_zarithrian();
     AddSC_boss_halion();
+    AddSC_the_stonecore();			    // The Stonecore
+    AddSC_instance_the_stonecore();
+    AddSC_boss_corborus();
+    AddSC_boss_slabhide();
+    AddSC_boss_ozruk();
+    AddSC_boss_high_priestess_azil();
 
     AddSC_dalaran();
     AddSC_borean_tundra();

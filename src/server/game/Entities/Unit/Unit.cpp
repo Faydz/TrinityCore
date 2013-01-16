@@ -3942,6 +3942,10 @@ void Unit::RemoveAllAurasOnDeath()
     for (AuraApplicationMap::iterator iter = m_appliedAuras.begin(); iter != m_appliedAuras.end();)
     {
         Aura const* aura = iter->second->GetBase();
+
+        //Calling to the OnDeath handle method. Is it also needed in the m_ownedAuras loop?
+        HandleAuraRemoveOnDeath(aura);
+
         if (!aura->IsPassive() && !aura->IsDeathPersistent())
             _UnapplyAura(iter, AURA_REMOVE_BY_DEATH);
         else
@@ -5860,7 +5864,9 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 case 11120:
                 case 12846:
                 {
-                    basepoints0 = CalculatePct(damage, triggerAmount);
+                    if (procSpell->Id == 34913) //ignite should ignore molten armor critical hits
+                        return false;
+                    basepoints0 = (CalculatePct(damage, triggerAmount)/2);
                     triggered_spell_id = 12654;
                     basepoints0 += victim->GetRemainingPeriodicAmount(GetGUID(), triggered_spell_id, SPELL_AURA_PERIODIC_DAMAGE);
                     break;
@@ -8388,6 +8394,16 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Arcane Missiles should not proc if having hot streak or brain freeze
+        case 79684: 
+            if (Player *caster = GetAura(79684)->GetOwner()->ToPlayer())
+            if (caster->HasAura(44445)){
+                return false;
+            }
+            else if (HasAura (44546) ||HasAura (44548) ||HasAura (44549) ){
+                return false;
+                }
+            break;
         // Focus Magic
         case 54646: 
             if (HasAura(54646) && GetAura(54646)->GetCaster())
@@ -8401,6 +8417,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 }
             }
             return false;
+            break;
         // Find Weakness
         case 51632:
         case 91023:
@@ -10036,13 +10053,15 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 
         switch ((*i)->GetMiscValue())
         {
-            case 4920: // Molten Fury
+            // this is the tbc/wotlk talent
+           /* case 4920: // Molten Fury
             case 4919:
             {
                 if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, spellProto, this))
                     AddPct(DoneTotalMod, (*i)->GetAmount());
                 break;
             }
+            */
             case 6917: // Death's Embrace damage effect
             case 6926:
             case 6928:
@@ -10142,10 +10161,36 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                {
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FROST)
                    {
-                       DoneTotalMod *= 1 + (owner->ToPlayer()->GetMasteryPoints() * 0.025f);
+                       DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -6.0f) * 0.025f); // frost base mastery is 2
                    }
                }
             }
+
+            // Flashburn Fire Mastery
+            if (owner->getClass() == CLASS_MAGE && spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_FIRE && damagetype == DOT )
+            {
+               if (owner->HasAuraType(SPELL_AURA_MASTERY))
+               {
+                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FIRE)
+                   {
+                       DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -0.14f) * 0.028f); // fire base mastery is 7.852
+                   }
+               }
+            }
+
+            //Molten Fury
+            if (victim->GetHealthPct() <= 35.0f && owner->ToPlayer() && owner->getClass() == CLASS_MAGE && GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0)){
+                if (Aura* aura = GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0)->GetBase()){
+                    uint32 BP = 12;
+                    if (aura->GetId() == 31680)      //rank 2
+                        BP = 8;
+                    else if (aura->GetId() == 31679) //rank 1
+                        BP = 4;
+
+                    DoneTotalMod *= 1 + (BP / 100.0f);
+                }
+            }
+
 
             // Torment the weak
             if (spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_ARCANE)
@@ -10184,6 +10229,24 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             }
             break;
         case SPELLFAMILY_WARLOCK:
+
+            switch(spellProto->Id)
+            {
+                // Drain soul
+                case 1120:
+                    if(victim)
+                    {
+                        if(Aura* aura = victim->GetAura(spellProto->Id, GetGUID()))
+                        {
+                            if(aura->WasUnder25PercentOnApp())
+                            {
+                                DoneTotalMod *= 2.0f;
+                            }
+                        }
+                    }
+                    break;
+            }
+
             // Fire and Brimstone
             if (spellProto->SpellFamilyFlags[1] & 0x00020040)
                 if (victim->HasAuraState(AURA_STATE_CONFLAGRATE))
@@ -10196,10 +10259,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                             break;
                         }
                 }
-            // Drain Soul - increased damage for targets under 25 % HP
-            if (spellProto->SpellFamilyFlags[0] & 0x00004000)
-                if (HasAura(100001))
-                    DoneTotalMod *= 2;
+
             // Shadow Bite (30% increase from each dot)
             if (spellProto->SpellFamilyFlags[1] & 0x00400000 && isPet())
                 if (uint8 count = victim->GetDoTsByCaster(GetOwnerGUID()))
@@ -10249,6 +10309,17 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_ROGUE_SUBTLETY)
                        DoneTotalMod *= 1.0f + 2.5f * owner->ToPlayer()->GetMasteryPoints() / 100;
+            }
+            // Rogue assasination mastery (instant poison)
+            if (spellProto->Id == 8680)
+            {
+                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && owner->getClass() == CLASS_ROGUE)
+                {
+                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
+                    {
+                        DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints();
+                    }
+                }  
             }
             break;
         case SPELLFAMILY_SHAMAN:
@@ -18655,4 +18726,26 @@ void Unit::ResetHealingDoneInPastSecs(uint32 secs)
 
     for (uint32 i = 0; i < secs; i++)
         m_heal_done[i] = 0;
+}
+
+//This method is called while dying for each aura on the unit.
+void Unit::HandleAuraRemoveOnDeath(Aura const* aura)
+{
+    Unit* caster = aura->GetCaster();
+
+    if(!caster)
+        return;
+
+    switch(aura->GetSpellInfo()->SpellFamilyName)
+    {
+        case SPELLFAMILY_WARLOCK:
+            switch(aura->GetId())
+            {
+                //Drain Soul, soul shard energize on target death
+                case 1120:
+                    CastSpell(caster, 95810, true);
+                    break;
+            }
+            break;
+    }
 }

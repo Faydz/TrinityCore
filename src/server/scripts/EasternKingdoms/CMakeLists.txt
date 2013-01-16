@@ -198,7 +198,14 @@ set(scripts_STAT_SRCS
   EasternKingdoms/Karazhan/bosses_opera.cpp
   EasternKingdoms/Karazhan/boss_moroes.cpp
   EasternKingdoms/Karazhan/boss_terestian_illhoof.cpp
-  EasternKingdoms/Karazhan/karazhan.h
+  EasternKingdoms/TheStonecore/the_stonecore.h
+  EasternKingdoms/TheStonecore/boss_corborus.cpp
+  EasternKingdoms/TheStonecore/boss_ozruk.cpp
+  EasternKingdoms/TheStonecore/boss_high_priestess_azil.cpp
+  EasternKingdoms/TheStonecore/boss_slabhide.cpp
+  EasternKingdoms/TheStonecore/instance_the_stonecore.cpp
+  EasternKingdoms/TheStonecore/the_stonecore.cpp
+
 )
 
 message("  -> Prepared: Eastern Kingdoms")

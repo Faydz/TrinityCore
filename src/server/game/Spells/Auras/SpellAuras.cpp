@@ -332,6 +332,13 @@ Aura* Aura::Create(SpellInfo const* spellproto, uint8 effMask, WorldObject* owne
             ASSERT(false);
             return NULL;
     }
+    
+    // sets flag variable for spells like drain soul
+    if (aura && owner->isType(TYPEMASK_UNIT))
+    {
+        aura->SetWasUnder25PercentOnApp(((Unit*)owner)->HealthBelowPct(25) ? TRUE : FALSE);
+    }
+
     // aura can be removed in Unit::_AddAura call
     if (aura->IsRemoved())
         return NULL;
@@ -1490,26 +1497,6 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                             target->RemoveAurasDueToSpell(71166);
                     }
                     break;
-            }
-            break;
-        case SPELLFAMILY_WARLOCK:
-            // Drain Soul - If the target is at or below 25% health, Drain Soul causes four times the normal damage
-            if (GetSpellInfo()->SpellFamilyFlags[0] & 0x00004000)
-            {
-                if (!caster)
-                    break;
-                if (apply)
-                {
-                    if (target != caster && !target->HealthAbovePct(25))
-                        caster->CastSpell(caster, 100001, true);
-                }
-                else
-                {
-                    if (target != caster)
-                        caster->RemoveAurasDueToSpell(GetId());
-                    else
-                        caster->RemoveAurasDueToSpell(100001);
-                }
             }
             break;
     }

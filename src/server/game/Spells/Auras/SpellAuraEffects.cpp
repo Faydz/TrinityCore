@@ -6258,12 +6258,19 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
             }
         }
 
-        // There is a Chance to make a Soul Shard when Drain soul does damage
-        if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_WARLOCK && (GetSpellInfo()->SpellFamilyFlags[0] & 0x00004000))
+        // Rogue assasination mastry (deadly poison)
+        if (GetBase()->GetSpellInfo()->Id == 2818)
         {
-            if (caster->GetTypeId() == TYPEID_PLAYER && caster->ToPlayer()->isHonorOrXPTarget(target))
-                caster->CastSpell(caster, 95810, true, 0, this);
+            if (caster->ToPlayer() && caster->HasAuraType(SPELL_AURA_MASTERY) && caster->getClass() == CLASS_ROGUE)
+            {
+                if (caster->ToPlayer()->GetPrimaryTalentTree(caster->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
+                {
+                    float pct = float(3.5f * caster->ToPlayer()->GetMasteryPoints());
+                    AddPct(damage, pct);
+                }
+            }
         }
+
         if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_GENERIC)
         {
             switch (GetId())

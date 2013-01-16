@@ -2947,6 +2947,12 @@ void SpellMgr::LoadSpellCustomAttr()
             case 57750: // Flame orb damage
                 spellInfo->Effects[0].Amplitude = 1000;
                 break;
+            case 68422: // Summon Scalding Water Lord
+                spellInfo->Effects[0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                break;
+            case 87023: // Cauterize
+                spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_RESI;
+                break;
             default:
                 break;
         }
