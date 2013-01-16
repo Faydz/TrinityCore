@@ -7788,6 +7788,10 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
         case SPELLFAMILY_GENERIC:
             switch (dummySpell->Id)
             {
+                // Dark Intent proc
+                case 85767:
+                    DarkIntentHandler();
+                    break;
                 // Nevermelting Ice Crystal
                 case 71564:
                     RemoveAuraFromStack(71564);
@@ -7834,6 +7838,15 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
                 }
             }
 
+            break;
+        case SPELLFAMILY_WARLOCK:
+            switch(dummySpell->Id)
+            {
+                // Dark Intent proc
+                case 85768:
+                    DarkIntentHandler();
+                    break;
+            }
             break;
         case SPELLFAMILY_PALADIN:
         {
@@ -18747,5 +18760,68 @@ void Unit::HandleAuraRemoveOnDeath(Aura const* aura)
                     break;
             }
             break;
+    }
+}
+
+//Handles the Dark Intent's buff from dots/hots
+void Unit::DarkIntentHandler()
+{
+    //Get the friendly target that has Dark Intent
+    Unit* target = this->getDarkIntentTarget();
+
+    if(!target || !target->isAlive())
+    {
+        return;
+    }
+    
+    int32 bp0;
+    //Id of Dark Intent depending on the class of the target
+    uint32 darkIntentId;
+
+    bp0 = target->HasAura(85768) ? 3 : (target->HasAura(85767) ? 1 : NULL);
+
+    if(!bp0)
+        return;
+    else
+    {
+        switch (target->getClass())
+        {
+            case CLASS_WARRIOR:
+                darkIntentId = 94313;
+            break;
+            case CLASS_PALADIN:
+                darkIntentId = 94323;
+            break;
+            case CLASS_HUNTER:
+                darkIntentId = 94320;
+            break;
+            case CLASS_ROGUE:
+                darkIntentId = 94324;
+            break;
+            case CLASS_PRIEST:
+                darkIntentId = 94311;
+            break;
+            case CLASS_DEATH_KNIGHT:
+                darkIntentId = 94312;
+            break;
+            case CLASS_SHAMAN:
+                darkIntentId = 94319;
+            break;
+            case CLASS_MAGE:
+                darkIntentId = 85759;
+            break;
+            case CLASS_WARLOCK:
+                darkIntentId = 94310;
+            break;
+            case CLASS_DRUID:
+                darkIntentId = 94318;
+            break;
+        }
+    }
+
+    //Prevent not classified unit
+    if(darkIntentId)
+    {
+        this->CastCustomSpell(target, darkIntentId, &bp0, NULL, NULL, true);
     }
 }

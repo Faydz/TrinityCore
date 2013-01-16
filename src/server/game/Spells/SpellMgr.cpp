@@ -2953,6 +2953,12 @@ void SpellMgr::LoadSpellCustomAttr()
             case 87023: // Cauterize
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_RESI;
                 break;
+            case 85767: // Dark Intent target
+                spellInfo->SpellFamilyName = SPELLFAMILY_GENERIC;;
+                break;
+            case 85768: // Dark Intent self
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARLOCK;
+                break;
             default:
                 break;
         }
@@ -2962,19 +2968,19 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
-                    //Improved Corruption
+                    // Improved Corruption
                     case 17810:
                     case 17811:
                     case 17812:
                         spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
                         spellInfo->Effects[EFFECT_0].MiscValue = 32;
                         break;
-                    //Soulburn: Seed of Corruption
+                    // Soulburn: Seed of Corruption
                     case 86664:
                         spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
                         spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
                         break;
-                    //Curse of the Elements
+                    // Curse of the Elements
                     case 85547:
                     case 86105:
                         spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(39); //2 seconds
