@@ -4263,6 +4263,63 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
             }
             break;
         }
+        case SPELLFAMILY_MAGE:
+        {
+            if (m_spellInfo->Id == 11129) //Combustion
+            {
+                //I assume initial periodic damage is 0 if no Dots on target
+                int32 bp = 0;
+                Unit::AuraEffectList const &mPeriodic =    unitTarget->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+                //Cycle trough all periodic auras to increase Combustion periodic damage
+                for (Unit::AuraEffectList::const_iterator i = mPeriodic.begin(); i != mPeriodic.end(); ++i)                 
+                    if ((*i)->GetCasterGUID() == m_caster->GetGUID())
+                        bp += (*i)->GetAmount();         
+                m_caster->CastCustomSpell(unitTarget, 83853, &bp,NULL, NULL, true);
+            }
+            // Impact
+            if (m_spellInfo->Id == 12355){
+                if (!unitTarget || !GetCaster())
+                    return;
+
+                if (Unit* stunned = m_targets.GetUnitTarget())
+                {
+                    Unit::AuraEffectList const& dotList = stunned->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+                    if (unitTarget->GetGUID() !=  stunned->GetGUID())
+                    {
+                        for (Unit::AuraEffectList::const_iterator itr = dotList.begin(); itr != dotList.end(); ++itr)
+                        {
+                            if (!(*itr) || !(*itr)->GetBase() ||!(*itr)->GetBase()->GetSpellInfo())
+                                return;
+
+                            if ((*itr)->GetBase()->GetSpellInfo()->SchoolMask == SPELL_SCHOOL_MASK_FIRE && (*itr)->GetCasterGUID() == GetCaster()->GetGUID()){
+                                switch ((*itr)->GetId()){
+                                    case 44457:
+                                    case 11366:
+                                        uint32 dur = (*itr)->GetBase()->GetDuration();
+                                        uint32 ids = (*itr)->GetId();
+                                        m_caster->AddAura((*itr)->GetId(), unitTarget);
+                                        unitTarget->GetAura(ids)->SetDuration(dur);
+                                        break;
+                                    case 83853:
+                                    case 12654:
+                                        uint32 dur = (*itr)->GetBase()->GetDuration();
+                                        int32 dam = (*itr)->GetAmount();
+                                        uint32 ids = (*itr)->GetId();
+                                        m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
+                                        unitTarget->GetAura(ids)->SetDuration(dur);
+                                        break;
+                                    default:
+                                        break;
+                                }
+                               // m_caster->AddAura((*itr)->GetId(), unitTarget);
+                               // m_caster->CastCustomSpell(unitTarget, 83853, &dam,NULL, NULL, true);
+                            }
+                        }
+                    }
+                }  
+            }
+            break;
+        }
         case SPELLFAMILY_PRIEST:
         {
             if (m_spellInfo->Id == 87151)

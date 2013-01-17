@@ -8411,6 +8411,12 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // impact
+        case 12357:
+        case 11103:
+            if (ToPlayer())
+                ToPlayer()->RemoveSpellCooldown(2136, true);
+            break;
         // Arcane Missiles should not proc if having hot streak or brain freeze
         case 79684: 
             if (Player *caster = GetAura(79684)->GetOwner()->ToPlayer()){
