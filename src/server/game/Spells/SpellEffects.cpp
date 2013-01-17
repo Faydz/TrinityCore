@@ -3548,6 +3548,36 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
         {
             switch (m_spellInfo->Id)
             {
+                // Impact
+            case 12355:
+                if (!unitTarget || !GetCaster()){
+                    return;
+                }
+
+                if (Unit* stunned = m_targets.GetUnitTarget())
+                {
+                    Unit::AuraEffectList const& dotList = stunned->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+                    if (unitTarget->GetGUID() !=  stunned->GetGUID())
+                    {
+                        for (Unit::AuraEffectList::const_iterator itr = dotList.begin(); itr != dotList.end(); ++itr)
+                        {
+                            if (!(*itr) || !(*itr)->GetBase() ||!(*itr)->GetBase()->GetSpellInfo()){
+                                return;
+                            }
+
+                            if ((*itr)->GetBase()->GetCasterGUID() == m_caster->GetGUID() && (*itr)->GetId() != 2120){ //2120 is flamestrike, spreading it would cause a crash
+                                uint32 dur = (*itr)->GetBase()->GetDuration();
+                                uint32 ids = (*itr)->GetId();
+                                int32 dam = (*itr)->GetAmount();
+                                m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
+                                if (unitTarget->GetAura(ids)){        //this should prevent crashing if target was immune to the casting
+                                    unitTarget->GetAura(ids)->SetDuration(dur);
+                                }
+                            }
+                        }
+                    }
+                } 
+                break;
                 // Glyph of Backstab
                 case 63975:
                 {
@@ -4276,48 +4306,7 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                         bp += (*i)->GetAmount();         
                 m_caster->CastCustomSpell(unitTarget, 83853, &bp,NULL, NULL, true);
             }
-            // Impact
-            if (m_spellInfo->Id == 12355){
-                if (!unitTarget || !GetCaster())
-                    return;
-
-                if (Unit* stunned = m_targets.GetUnitTarget())
-                {
-                    Unit::AuraEffectList const& dotList = stunned->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
-                    if (unitTarget->GetGUID() !=  stunned->GetGUID())
-                    {
-                        for (Unit::AuraEffectList::const_iterator itr = dotList.begin(); itr != dotList.end(); ++itr)
-                        {
-                            if (!(*itr) || !(*itr)->GetBase() ||!(*itr)->GetBase()->GetSpellInfo())
-                                return;
-
-                            if ((*itr)->GetCasterGUID() == GetCaster()->GetGUID()){
-                                uint32 dur = (*itr)->GetBase()->GetDuration();
-                                uint32 ids = (*itr)->GetId();
-                                int32 dam = (*itr)->GetAmount();
-                                switch (ids){
-                                    case 44457:
-                                    case 11366:
-                                        m_caster->AddAura(ids, unitTarget);
-                                        unitTarget->GetAura(ids)->SetDuration(dur);
-                                        break;
-                                    case 83853:
-                                    case 12654:
-                                        m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
-                                        unitTarget->GetAura(ids)->SetDuration(dur);
-                                        break;
-                                    default:
-                                        m_caster->AddAura(ids, unitTarget);
-                                        unitTarget->GetAura(ids)->SetDuration(dur);
-                                        break;
-                                }
-                               // m_caster->AddAura((*itr)->GetId(), unitTarget);
-                               // m_caster->CastCustomSpell(unitTarget, 83853, &dam,NULL, NULL, true);
-                            }
-                        }
-                    }
-                }  
-            }
+            
             break;
         }
         case SPELLFAMILY_PRIEST:
