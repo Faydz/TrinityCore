@@ -10326,7 +10326,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             {
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DEMONOLOGY)
                {
-                   float pct = uint32(0.023f * owner->ToPlayer()->GetMasteryPoints());
+                   float pct = float(0.023f * owner->ToPlayer()->GetMasteryPoints());
                    DoneTotalMod *= 1 +  pct;
                }
             }
@@ -10337,7 +10337,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DESTRUCTION)
                {
                    // Increase fire damage by 1.35*Mastery points
-                   float pct = uint32(0.0135f * owner->ToPlayer()->GetMasteryPoints());
+                   float pct = float(0.0135f * owner->ToPlayer()->GetMasteryPoints());
                    DoneTotalMod *= 1 +  pct;
                }
             }
