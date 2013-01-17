@@ -4291,24 +4291,24 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                             if (!(*itr) || !(*itr)->GetBase() ||!(*itr)->GetBase()->GetSpellInfo())
                                 return;
 
-                            if ((*itr)->GetBase()->GetSpellInfo()->SchoolMask == SPELL_SCHOOL_MASK_FIRE && (*itr)->GetCasterGUID() == GetCaster()->GetGUID()){
-                                switch ((*itr)->GetId()){
+                            if ((*itr)->GetCasterGUID() == GetCaster()->GetGUID()){
+                                uint32 dur = (*itr)->GetBase()->GetDuration();
+                                uint32 ids = (*itr)->GetId();
+                                int32 dam = (*itr)->GetAmount();
+                                switch (ids){
                                     case 44457:
                                     case 11366:
-                                        uint32 dur = (*itr)->GetBase()->GetDuration();
-                                        uint32 ids = (*itr)->GetId();
-                                        m_caster->AddAura((*itr)->GetId(), unitTarget);
+                                        m_caster->AddAura(ids, unitTarget);
                                         unitTarget->GetAura(ids)->SetDuration(dur);
                                         break;
                                     case 83853:
                                     case 12654:
-                                        uint32 dur = (*itr)->GetBase()->GetDuration();
-                                        int32 dam = (*itr)->GetAmount();
-                                        uint32 ids = (*itr)->GetId();
                                         m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
                                         unitTarget->GetAura(ids)->SetDuration(dur);
                                         break;
                                     default:
+                                        m_caster->AddAura(ids, unitTarget);
+                                        unitTarget->GetAura(ids)->SetDuration(dur);
                                         break;
                                 }
                                // m_caster->AddAura((*itr)->GetId(), unitTarget);
