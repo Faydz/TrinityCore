@@ -8419,13 +8419,15 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
             break;
         // Arcane Missiles should not proc if having hot streak or brain freeze
         case 79684: 
-            if (Player *caster = GetAura(79684)->GetOwner()->ToPlayer()){
-                if (caster->HasAura(44445)){
-                    return false;
-                }
-                else if (caster->HasAura (44546) || caster->HasAura (44548) || caster->HasAura (44549) ){
-                    return false;
+            if (GetAura(79684) && GetAura(79684)->GetOwner()){
+                if (Player *caster = GetAura(79684)->GetOwner()->ToPlayer()){
+                    if (caster->HasAura(44445)){
+                        return false;
                     }
+                    else if (caster->HasAura (44546) || caster->HasAura (44548) || caster->HasAura (44549) ){
+                        return false;
+                    }
+                }
             }
             break;
         // Focus Magic
