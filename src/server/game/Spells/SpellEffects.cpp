@@ -3533,6 +3533,36 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
         {
             switch (m_spellInfo->Id)
             {
+                // Impact
+            case 12355:
+                if (!unitTarget || !GetCaster()){
+                    return;
+                }
+
+                if (Unit* stunned = m_targets.GetUnitTarget())
+                {
+                    Unit::AuraEffectList const& dotList = stunned->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+                    if (unitTarget->GetGUID() !=  stunned->GetGUID())
+                    {
+                        for (Unit::AuraEffectList::const_iterator itr = dotList.begin(); itr != dotList.end(); ++itr)
+                        {
+                            if (!(*itr) || !(*itr)->GetBase() ||!(*itr)->GetBase()->GetSpellInfo()){
+                                return;
+                            }
+
+                            if ((*itr)->GetBase()->GetCasterGUID() == m_caster->GetGUID() && (*itr)->GetId() != 2120){ //2120 is flamestrike, spreading it would cause a crash
+                                uint32 dur = (*itr)->GetBase()->GetDuration();
+                                uint32 ids = (*itr)->GetId();
+                                int32 dam = (*itr)->GetAmount();
+                                m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
+                                if (unitTarget->GetAura(ids)){        //this should prevent crashing if target was immune to the casting
+                                    unitTarget->GetAura(ids)->SetDuration(dur);
+                                }
+                            }
+                        }
+                    }
+                } 
+                break;
                 // Glyph of Backstab
                 case 63975:
                 {
@@ -4246,6 +4276,22 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                 unitTarget->RemoveAurasWithMechanic(1<<MECHANIC_IMMUNE_SHIELD, AURA_REMOVE_BY_ENEMY_SPELL);
                 return;
             }
+            break;
+        }
+        case SPELLFAMILY_MAGE:
+        {
+            if (m_spellInfo->Id == 11129) //Combustion
+            {
+                //I assume initial periodic damage is 0 if no Dots on target
+                int32 bp = 0;
+                Unit::AuraEffectList const &mPeriodic =    unitTarget->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+                //Cycle trough all periodic auras to increase Combustion periodic damage
+                for (Unit::AuraEffectList::const_iterator i = mPeriodic.begin(); i != mPeriodic.end(); ++i)                 
+                    if ((*i)->GetCasterGUID() == m_caster->GetGUID())
+                        bp += (*i)->GetAmount();         
+                m_caster->CastCustomSpell(unitTarget, 83853, &bp,NULL, NULL, true);
+            }
+            
             break;
         }
         case SPELLFAMILY_PRIEST:
