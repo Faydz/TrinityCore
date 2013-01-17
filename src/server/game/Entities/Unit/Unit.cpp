@@ -6693,6 +6693,23 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     CastCustomSpell(70691, SPELLVALUE_BASE_POINT0, damage, victim, true);
                     return true;
                 }
+                // Nature's ward
+                case 33881:
+                case 33882:
+                {
+                    if (Player* caster = ToPlayer())
+                    {
+                        if (caster->HealthBelowPct(50) && !caster->HasSpellCooldown(45281))
+                        {
+                            target = this;
+                            caster->CastSpell(caster, 45281, true);
+                            caster->CastSpell(caster, 774, true);
+                            caster->AddSpellCooldown(45281, 0, time(NULL)+6);
+                            return true;
+                        }
+                    }
+                    break;
+                }
             }
             // Living Seed
             if (dummySpell->SpellIconID == 2860)
@@ -10258,29 +10275,16 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 
             switch(spellProto->Id)
             {
-                // Conflagrate
-                case 17962:
-                    if(AuraEffect* aurEff = victim->GetAuraEffect(348, EFFECT_2, this->GetGUID()))
-                    {
-                        if(aurEff->GetBase())
-                        {
-                            int32 damage;
-                            int32 singleDotDamage = aurEff->GetAmount();
-                            uint32 baseTotalTicks = aurEff->GetBase()->GetMaxDuration();
-                            
-                            singleDotDamage = SpellDamageBonusDone(victim, aurEff->GetSpellInfo(), singleDotDamage, DOT, aurEff->GetBase()->GetStackAmount());
-                            damage = singleDotDamage * int32(baseTotalTicks / aurEff->GetAmplitude());
-                            DoneTotal = ApplyPct(damage, 60.0f);
-                        }
-                    }
-                    break;
                 // Drain soul
                 case 1120:
-                    if(Aura* aura = victim->GetAura(spellProto->Id, GetGUID()))
+                    if(victim)
                     {
-                        if(aura->WasUnder25PercentOnApp())
+                        if(Aura* aura = victim->GetAura(spellProto->Id, GetGUID()))
                         {
-                            DoneTotalMod *= 2.0f;
+                            if(aura->WasUnder25PercentOnApp())
+                            {
+                                DoneTotalMod *= 2.0f;
+                            }
                         }
                     }
                     break;
