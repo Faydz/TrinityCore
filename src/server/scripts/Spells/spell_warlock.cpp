@@ -41,6 +41,7 @@ enum WarlockSpells
     WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE      = 89653,
     WARLOCK_HAUNT                           = 48181,
     WARLOCK_HAUNT_HEAL                      = 48210,
+    WARLOCK_IMMOLATE                        = 348,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_R1       = 18703,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_R2       = 18704,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1  = 60955,
@@ -65,6 +66,41 @@ enum WarlockSpells
 };
 
 bool _SeedOfCorruptionFlag = false;
+
+// 29722 - Incinerate
+class spell_warl_incinerate : public SpellScriptLoader
+{
+public:
+    spell_warl_incinerate() : SpellScriptLoader("spell_warl_incinerate") { }
+
+    class spell_warl_incinerate_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_warl_incinerate_SpellScript);
+
+        void RecalculateDamage()
+        {
+            if(!GetCaster() || !GetHitUnit())
+                return;
+
+            // Bonus damage if the immolate dot is on the target
+            if(GetHitUnit()->HasAura(WARLOCK_IMMOLATE, GetCaster()->GetGUID()))
+            {
+                int32 newDamage = GetHitDamage() + int32(GetHitDamage() / 6);
+                SetHitDamage(newDamage); 
+            }
+        }
+
+        void Register()
+        {
+            OnHit += SpellHitFn(spell_warl_incinerate_SpellScript::RecalculateDamage);
+        }
+    };
+
+    SpellScript* GetSpellScript() const
+    {
+        return new spell_warl_incinerate_SpellScript();
+    }
+};
 
 // 1490 - Curse of the Elements
 class spell_warl_curse_of_the_elements: public SpellScriptLoader {
@@ -1073,6 +1109,7 @@ public:
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_incinerate();
     new spell_warl_curse_of_the_elements();
     new spell_warl_soul_swap();
     new spell_warl_soul_swap_buff();
