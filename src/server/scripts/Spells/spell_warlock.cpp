@@ -67,6 +67,63 @@ enum WarlockSpells
 
 bool _SeedOfCorruptionFlag = false;
 
+// 77799 - spell_warl_fel_flame
+class spell_warl_fel_flame: public SpellScriptLoader 
+{
+public:
+    spell_warl_fel_flame() : SpellScriptLoader("spell_warl_fel_flame") { }
+
+    class spell_warl_fel_flame_SpellScript: public SpellScript
+    {
+        PrepareSpellScript(spell_warl_fel_flame_SpellScript);
+
+        void HandleScriptEffect(SpellEffIndex /*effIndex*/) 
+        {
+            Unit* target = GetHitUnit();
+            Unit* caster = GetCaster();
+
+            if (!target)
+                return;
+
+            if (!caster)
+                return;
+            
+            // Immolate
+            if (target->HasAura(WARLOCK_IMMOLATE, caster->GetGUID()))
+            {
+                int32 newDuration = target->GetAura(WARLOCK_IMMOLATE, caster->GetGUID())->GetDuration();
+                if (newDuration >= GetEffectValue()*1000)
+                    newDuration = target->GetAura(WARLOCK_IMMOLATE, caster->GetGUID())->GetMaxDuration();
+                else
+                    newDuration += (GetEffectValue()*1000);
+
+                target->GetAura(WARLOCK_IMMOLATE, caster->GetGUID())->SetDuration(newDuration, true);
+            } 
+            // Unstable Affliction
+            else if (target->HasAura(WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID()))
+            {
+                int32 newDuration = target->GetAura(WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->GetDuration();
+                if (newDuration >= GetEffectValue()*1000)
+                    newDuration = target->GetAura(WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->GetMaxDuration();
+                else
+                    newDuration += (GetEffectValue()*1000);
+
+                target->GetAura(WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->SetDuration(newDuration, true);
+            }            
+        }
+
+        void Register()
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_warl_fel_flame_SpellScript::HandleScriptEffect, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
+        }
+    };
+
+    SpellScript* GetSpellScript() const 
+    {
+        return new spell_warl_fel_flame_SpellScript();
+    }
+};
+
 // 29722 - Incinerate
 class spell_warl_incinerate : public SpellScriptLoader
 {
@@ -1109,6 +1166,7 @@ public:
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_fel_flame();
     new spell_warl_incinerate();
     new spell_warl_curse_of_the_elements();
     new spell_warl_soul_swap();
