@@ -925,6 +925,44 @@ class spell_dru_harmony : public SpellScriptLoader
         }
 };
 
+class spell_dru_feral_swiftness : public SpellScriptLoader
+{
+    public:
+        spell_dru_feral_swiftness() : SpellScriptLoader("spell_dru_feral_swiftness") { }
+
+        class spell_dru_feral_swiftness_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_feral_swiftness_SpellScript);
+
+            void OnHit()
+            {
+                if (Unit* caster=GetCaster())
+                    if (Unit* target=GetHitUnit())
+                    {
+                        int32 chance = 0;
+                        if (target->HasAura(17002) || target->HasAura(24867))
+                            chance = 50;
+                        else if (target->HasAura(24866) || target->HasAura(24864))
+                            chance = 100;
+
+                        if(roll_chance_i(chance))
+                            target->RemoveMovementImpairingAuras();
+                    }
+            }
+
+            void Register()
+            {
+                
+                AfterHit += SpellHitFn(spell_dru_feral_swiftness_SpellScript::OnHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_feral_swiftness_SpellScript();
+        }
+};
+
 void AddSC_druid_spell_scripts()
 {
     new spell_dru_enrage();
@@ -946,4 +984,5 @@ void AddSC_druid_spell_scripts()
     new spell_dru_eclipse();
     new spell_dru_harmony_periodic();
     new spell_dru_harmony();
+    new spell_dru_feral_swiftness();
 }
