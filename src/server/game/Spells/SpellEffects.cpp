@@ -387,6 +387,25 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 }
                 break;
             }
+            case SPELLFAMILY_WARLOCK:
+                switch (m_spellInfo->Id)
+                {
+                    // Rain of Fire damage
+                    case 42223:
+                        if(m_caster)
+                        {
+                            if(AuraEffect* aurEff = m_caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_WARLOCK, 11, EFFECT_0))
+                            {
+                                if(roll_chance_i(aurEff->GetAmount()))
+                                {
+                                    // Aftermath stun
+                                    m_caster->CastSpell(unitTarget, 85387, true);
+                                }
+                            }
+                        }
+                        break;
+                }
+                break;
             case SPELLFAMILY_WARRIOR:
             {
                 // Victory Rush
