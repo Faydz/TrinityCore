@@ -18795,7 +18795,7 @@ void Unit::ResetHealingDoneInPastSecs(uint32 secs)
         m_heal_done[i] = 0;
 }
 
-//This method is called while dying for each aura on the unit.
+// This method is called while dying for each aura on the unit.
 void Unit::HandleAuraRemoveOnDeath(Aura const* aura)
 {
     Unit* caster = aura->GetCaster();
@@ -18812,7 +18812,7 @@ void Unit::HandleAuraRemoveOnDeath(Aura const* aura)
                 case 29341:
                     caster->CastSpell(caster, 95810, true);
                     break;
-                //Drain Soul, soul shard energize on target death
+                // Drain Soul, soul shard energize on target death
                 case 1120:
                     caster->CastSpell(caster, 95810, true);
                     break;
@@ -18821,10 +18821,10 @@ void Unit::HandleAuraRemoveOnDeath(Aura const* aura)
     }
 }
 
-//Handles the Dark Intent's buff from dots/hots
+// Handles the Dark Intent's buff from dots/hots
 void Unit::DarkIntentHandler()
 {
-    //Get the friendly target that has Dark Intent
+    // Get the friendly target that has Dark Intent
     Unit* target = this->getDarkIntentTarget();
 
     if(!target || !target->isAlive())
@@ -18833,7 +18833,7 @@ void Unit::DarkIntentHandler()
     }
     
     int32 bp0;
-    //Id of Dark Intent depending on the class of the target
+    // Id of Dark Intent depending on the class of the target
     uint32 darkIntentId;
 
     bp0 = target->HasAura(85768) ? 3 : (target->HasAura(85767) ? 1 : NULL);
@@ -18877,7 +18877,7 @@ void Unit::DarkIntentHandler()
         }
     }
 
-    //Prevent not classified unit
+    // Prevent not classified unit
     if(darkIntentId)
     {
         this->CastCustomSpell(target, darkIntentId, &bp0, NULL, NULL, true);
