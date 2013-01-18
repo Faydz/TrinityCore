@@ -336,7 +336,7 @@ Aura* Aura::Create(SpellInfo const* spellproto, uint8 effMask, WorldObject* owne
     // sets flag variable for spells like drain soul
     if (aura && owner->isType(TYPEMASK_UNIT))
     {
-        aura->SetWasUnder25PercentOnApp(((Unit*)owner)->HealthBelowPct(25) ? TRUE : FALSE);
+        aura->SetWasUnder25PercentOnApp(((Unit*)owner)->HealthBelowPct(25) ? true : false);
     }
 
     // aura can be removed in Unit::_AddAura call
