@@ -18808,9 +18808,13 @@ void Unit::HandleAuraRemoveOnDeath(Aura const* aura)
         case SPELLFAMILY_WARLOCK:
             switch(aura->GetId())
             {
+                // Shadowburn Soul Shards back
+                case 29341:
+                    caster->CastSpell(caster, 95810, true);
+                    break;
                 //Drain Soul, soul shard energize on target death
                 case 1120:
-                    CastSpell(caster, 95810, true);
+                    caster->CastSpell(caster, 95810, true);
                     break;
             }
             break;
