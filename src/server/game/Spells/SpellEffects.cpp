@@ -390,6 +390,19 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             case SPELLFAMILY_WARLOCK:
                 switch (m_spellInfo->Id)
                 {
+                    // Soul Fire
+                    case 6353:
+                        if(m_caster)
+                        {
+                            if(AuraEffect* aurEff = m_caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 184, EFFECT_0))
+                            {
+                                int32 bp0 = aurEff->GetAmount();
+
+                                // Improved Soul Fire
+                                m_caster->CastCustomSpell(unitTarget, 85383, &bp0, NULL, NULL, true);
+                            }
+                        }
+                        break;
                     // Rain of Fire damage
                     case 42223:
                         if(m_caster)
