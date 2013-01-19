@@ -390,6 +390,22 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             case SPELLFAMILY_WARLOCK:
                 switch (m_spellInfo->Id)
                 {
+                    // Firebolt (basic attack)
+                    case 3110:
+                        if(m_caster && m_caster->isPet() && m_caster->ToPet()->GetOwner())
+                        {
+                            Unit* creator = m_caster->ToPet()->GetOwner();
+
+                            if(AuraEffect* aurEff = creator->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 5116, EFFECT_0))
+                            {
+                                int32 bp0 = creator->GetDamageDoneInPastSecs(7);
+
+                                // Burning Embers
+                                ApplyPct(bp0, aurEff->GetAmount());
+                                creator->CastCustomSpell(unitTarget, 85421, &bp0, NULL, NULL, true);
+                            }
+                        }
+                        break;
                     // Soul Fire
                     case 6353:
                         if(m_caster)
