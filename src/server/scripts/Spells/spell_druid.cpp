@@ -963,6 +963,41 @@ class spell_dru_feral_swiftness : public SpellScriptLoader
         }
 };
 
+class spell_dru_ravage : public SpellScriptLoader
+{
+    public:
+        spell_dru_ravage() : SpellScriptLoader("spell_dru_ravage") { }
+
+        class spell_dru_ravage_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_ravage_SpellScript);
+
+            void OnHit()
+            {
+                if (Unit* caster=GetCaster())
+                    if (Unit* target=GetHitUnit())
+                    {
+                        if (caster->HasAura(48483))
+                            caster->CastSpell(target, 58179, true);
+
+                        if (caster->HasAura(48484))
+                            caster->CastSpell(target, 58180, true);
+                    }
+            }
+
+            void Register()
+            {
+                
+                AfterHit += SpellHitFn(spell_dru_ravage_SpellScript::OnHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_ravage_SpellScript();
+        }
+};
+
 void AddSC_druid_spell_scripts()
 {
     new spell_dru_enrage();
@@ -985,4 +1020,5 @@ void AddSC_druid_spell_scripts()
     new spell_dru_harmony_periodic();
     new spell_dru_harmony();
     new spell_dru_feral_swiftness();
+    new spell_dru_ravage();
 }
