@@ -764,7 +764,7 @@ class spell_hun_kill_command : public SpellScriptLoader
                                 dist = pet->GetDistance2d(GetCaster()->ToPlayer()->GetSelectedUnit());
 
                                 if (dist > 5.0f)
-                                    return SPELL_FAILED_ALREADY_AT_FULL_HEALTH;
+                                    return SPELL_FAILED_OUT_OF_RANGE;
 
                                 if (!GetCaster()->GetGuardianPet()->isInCombat())
                                     return SPELL_FAILED_AFFECTING_COMBAT;
