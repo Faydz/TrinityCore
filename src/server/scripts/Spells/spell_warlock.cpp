@@ -41,6 +41,7 @@ enum WarlockSpells
     WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE      = 89653,
     WARLOCK_HAUNT                           = 48181,
     WARLOCK_HAUNT_HEAL                      = 48210,
+    WARLOCK_IMMOLATE                        = 348,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_R1       = 18703,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_R2       = 18704,
     WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1  = 60955,
@@ -66,7 +67,99 @@ enum WarlockSpells
 
 bool _SeedOfCorruptionFlag = false;
 
-//1490 - Curse of the Elements
+// 77799 - spell_warl_fel_flame
+class spell_warl_fel_flame: public SpellScriptLoader 
+{
+public:
+    spell_warl_fel_flame() : SpellScriptLoader("spell_warl_fel_flame") { }
+
+    class spell_warl_fel_flame_SpellScript: public SpellScript
+    {
+        PrepareSpellScript(spell_warl_fel_flame_SpellScript);
+
+        void HandleScriptEffect(SpellEffIndex /*effIndex*/) 
+        {
+            Unit* target = GetHitUnit();
+            Unit* caster = GetCaster();
+
+            if (!target)
+                return;
+
+            if (!caster)
+                return;
+            
+            // Immolate
+            if (target->HasAura(WARLOCK_IMMOLATE, caster->GetGUID()))
+            {
+                int32 newDuration = target->GetAura(WARLOCK_IMMOLATE, caster->GetGUID())->GetDuration();
+                if (newDuration >= GetEffectValue()*1000)
+                    newDuration = target->GetAura(WARLOCK_IMMOLATE, caster->GetGUID())->GetMaxDuration();
+                else
+                    newDuration += (GetEffectValue()*1000);
+
+                target->GetAura(WARLOCK_IMMOLATE, caster->GetGUID())->SetDuration(newDuration, true);
+            } 
+            // Unstable Affliction
+            else if (target->HasAura(WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID()))
+            {
+                int32 newDuration = target->GetAura(WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->GetDuration();
+                if (newDuration >= GetEffectValue()*1000)
+                    newDuration = target->GetAura(WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->GetMaxDuration();
+                else
+                    newDuration += (GetEffectValue()*1000);
+
+                target->GetAura(WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->SetDuration(newDuration, true);
+            }            
+        }
+
+        void Register()
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_warl_fel_flame_SpellScript::HandleScriptEffect, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
+        }
+    };
+
+    SpellScript* GetSpellScript() const 
+    {
+        return new spell_warl_fel_flame_SpellScript();
+    }
+};
+
+// 29722 - Incinerate
+class spell_warl_incinerate : public SpellScriptLoader
+{
+public:
+    spell_warl_incinerate() : SpellScriptLoader("spell_warl_incinerate") { }
+
+    class spell_warl_incinerate_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_warl_incinerate_SpellScript);
+
+        void RecalculateDamage()
+        {
+            if(!GetCaster() || !GetHitUnit())
+                return;
+
+            // Bonus damage if the immolate dot is on the target
+            if(GetHitUnit()->HasAura(WARLOCK_IMMOLATE, GetCaster()->GetGUID()))
+            {
+                int32 newDamage = GetHitDamage() + int32(GetHitDamage() / 6);
+                SetHitDamage(newDamage); 
+            }
+        }
+
+        void Register()
+        {
+            OnHit += SpellHitFn(spell_warl_incinerate_SpellScript::RecalculateDamage);
+        }
+    };
+
+    SpellScript* GetSpellScript() const
+    {
+        return new spell_warl_incinerate_SpellScript();
+    }
+};
+
+// 1490 - Curse of the Elements
 class spell_warl_curse_of_the_elements: public SpellScriptLoader {
 public:
     spell_warl_curse_of_the_elements() : SpellScriptLoader("spell_warl_curse_of_the_elements") { }
@@ -85,7 +178,7 @@ public:
             
             if(caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 5002, EFFECT_0))
             {
-                //Check if warlock has the either the first or the second rank of jinx
+                // Check if warlock has the either the first or the second rank of jinx
                 if (caster->HasAura(18179))
                     caster->CastSpell(target, WARLOCK_JINX_R1, true);
                 else if(caster->HasAura(85479))
@@ -105,7 +198,7 @@ public:
     }
 };
 
-//86121 - Soul Swap action bar spell
+// 86121 - Soul Swap action bar spell
 class spell_warl_soul_swap: public SpellScriptLoader {
 public:
     spell_warl_soul_swap() : SpellScriptLoader("spell_warl_soul_swap") { }
@@ -122,14 +215,14 @@ public:
             if (!target || !caster)
                 return SPELL_FAILED_BAD_TARGETS;
 
-            //Check if there are any dots on the target
+            // Check if there are any dots on the target
             if(target->GetSoulSwapDotsCount(caster) == 0)
                 return SPELL_FAILED_BAD_TARGETS;
 
             return SPELL_CAST_OK;
         }
             
-        //Graphic effect for the first cast
+        // Graphic effect for the first cast
         void HandleEffectLaunchTarget(SpellEffIndex /*effIndex*/) 
         {
             Unit* caster = GetCaster();
@@ -141,7 +234,7 @@ public:
             target->CastSpell(caster, WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT, true, 0, 0, caster->GetGUID());
         }
             
-        //Handles the first cast of soul swap
+        // Handles the first cast of soul swap
         void HandleEffectHit(SpellEffIndex /*effIndex*/)
         {
             Unit* caster = GetCaster();
@@ -168,7 +261,7 @@ public:
     }
 };
 
-//86211 - Handles Soul Swap saved dots buff onRemove
+// 86211 - Handles Soul Swap saved dots buff onRemove
 class spell_warl_soul_swap_buff : public SpellScriptLoader
 {
 public:
@@ -275,7 +368,7 @@ public:
     }
 };
 
-//689/89420 - Drain Life
+// 689/89420 - Drain Life
 class spell_warl_drain_life: public SpellScriptLoader
 {
 public:
@@ -289,7 +382,7 @@ public:
         {
             if(Unit* caster = GetCaster())
             {
-                //Base percent
+                // Base percent
                 int32 bp = 2; 
                 
                 // Checks for Death's Embrace talent and %
@@ -317,7 +410,7 @@ public:
     }
 };
 
-//1120 - Offylike Drain Soul. cit. "drain soul has always checked if the target is in execute range on initial spell cast rather than on each tic."
+// 1120 - Offylike Drain Soul. cit. "drain soul has always checked if the target is in execute range on initial spell cast rather than on each tic."
 class spell_warl_drain_soul: public SpellScriptLoader
 {
 public:
@@ -329,53 +422,39 @@ public:
 
         void BeforeEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
-            if(Unit* victim = GetTarget())
-            {
-                _under25perc = victim->GetHealthPct() < 25.0f ? true : false;
-            }
-
             if(Unit* caster = GetCaster())
             {
-                //Need to get effect1 and use GetSpellInfo() because effect0 doesn't have an aura state.
+                // Need to get effect1 and use GetSpellInfo() because effect0 doesn't have an aura state.
                 _pandemic = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_WARLOCK, 4554, EFFECT_1);
             }
         }
 
-        void OnPeriodic(AuraEffect const* /*aurEff*/)
+        void OnPeriodic(AuraEffect const* aurEff)
         {
 			if(!GetTarget())
 				return;
 
 			Aura* unstableAff = GetTarget()->GetAura(WARLOCK_UNSTABLE_AFFLICTION);
 
-            //Check if target is under 25% when casting Drain Soul
-            if (_under25perc && unstableAff)
+            // Check if target is under 25% when casting Drain Soul
+            if (aurEff->GetBase())
             {
                 // Pandemic talent
-                if (_pandemic && roll_chance_i(_pandemic->GetSpellInfo()->Effects[0].BasePoints))
+                if (unstableAff && _pandemic && aurEff->GetBase()->WasUnder25PercentOnApp() 
+                    && roll_chance_i(_pandemic->GetSpellInfo()->Effects[0].BasePoints))
                 {
-                        unstableAff->RefreshDuration();
+                    unstableAff->RefreshDuration();
                 }
             }    
         }
-
-		void OnPeriodicUpdate (AuraEffect* aurEff)
-		{
-            if(_under25perc)
-            {
-                aurEff->CalculateSpellMod();
-            }
-		}
 
         void Register()
         {
             OnEffectApply += AuraEffectApplyFn(spell_warl_drain_soul_AuraScript::BeforeEffect, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL);
             OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_drain_soul_AuraScript::OnPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
-			OnEffectUpdatePeriodic += AuraEffectUpdatePeriodicFn(spell_warl_drain_soul_AuraScript::OnPeriodicUpdate, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
         }
 
-        bool _under25perc;
-        //Pandemic is checked at the beginning to avoid a check for each periodic tick. So I need a script scope var.
+        // Pandemic is checked at the beginning to avoid a check for each periodic tick. So I need a script scope var.
         AuraEffect* _pandemic;
     };
 
@@ -1087,6 +1166,8 @@ public:
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_fel_flame();
+    new spell_warl_incinerate();
     new spell_warl_curse_of_the_elements();
     new spell_warl_soul_swap();
     new spell_warl_soul_swap_buff();

@@ -5762,6 +5762,10 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         }
         case SPELLFAMILY_MAGE:
         {
+            //this will prevent the remotion of the arcane missiles aura when casting a spell that is not arcane missiles
+            if (dummySpell->Id == 79683)
+                return false;
+            
             // Magic Absorption
             if (dummySpell->SpellIconID == 459)             // only this spell has SpellIconID == 459 and dummy aura
             {
@@ -5864,7 +5868,9 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 case 11120:
                 case 12846:
                 {
-                    basepoints0 = CalculatePct(damage, triggerAmount);
+                    if (procSpell->Id == 34913) //ignite should ignore molten armor critical hits
+                        return false;
+                    basepoints0 = (CalculatePct(damage, triggerAmount)/2);
                     triggered_spell_id = 12654;
                     basepoints0 += victim->GetRemainingPeriodicAmount(GetGUID(), triggered_spell_id, SPELL_AURA_PERIODIC_DAMAGE);
                     break;
@@ -6686,6 +6692,23 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
                     CastCustomSpell(70691, SPELLVALUE_BASE_POINT0, damage, victim, true);
                     return true;
+                }
+                // Nature's ward
+                case 33881:
+                case 33882:
+                {
+                    if (Player* caster = ToPlayer())
+                    {
+                        if (caster->HealthBelowPct(50) && !caster->HasSpellCooldown(45281))
+                        {
+                            target = this;
+                            caster->CastSpell(caster, 45281, true);
+                            caster->CastSpell(caster, 774, true);
+                            caster->AddSpellCooldown(45281, 0, time(NULL)+6);
+                            return true;
+                        }
+                    }
+                    break;
                 }
             }
             // Living Seed
@@ -7786,6 +7809,10 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
         case SPELLFAMILY_GENERIC:
             switch (dummySpell->Id)
             {
+                // Dark Intent proc
+                case 85767:
+                    DarkIntentHandler();
+                    break;
                 // Nevermelting Ice Crystal
                 case 71564:
                     RemoveAuraFromStack(71564);
@@ -7832,6 +7859,15 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
                 }
             }
 
+            break;
+        case SPELLFAMILY_WARLOCK:
+            switch(dummySpell->Id)
+            {
+                // Dark Intent proc
+                case 85768:
+                    DarkIntentHandler();
+                    break;
+            }
             break;
         case SPELLFAMILY_PALADIN:
         {
@@ -8392,6 +8428,25 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // impact
+        case 12357:
+        case 11103:
+            if (ToPlayer())
+                ToPlayer()->RemoveSpellCooldown(2136, true);
+            break;
+        // Arcane Missiles should not proc if having hot streak or brain freeze
+        case 79684: 
+            if (GetAura(79684) && GetAura(79684)->GetOwner()){
+                if (Player *caster = GetAura(79684)->GetOwner()->ToPlayer()){
+                    if (caster->HasAura(44445)){
+                        return false;
+                    }
+                    else if (caster->HasAura (44546) || caster->HasAura (44548) || caster->HasAura (44549) ){
+                        return false;
+                    }
+                }
+            }
+            break;
         // Focus Magic
         case 54646: 
             if (HasAura(54646) && GetAura(54646)->GetCaster())
@@ -8405,6 +8460,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 }
             }
             return false;
+            break;
         // Find Weakness
         case 51632:
         case 91023:
@@ -10040,13 +10096,15 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 
         switch ((*i)->GetMiscValue())
         {
-            case 4920: // Molten Fury
+            // this is the tbc/wotlk talent
+           /* case 4920: // Molten Fury
             case 4919:
             {
                 if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, spellProto, this))
                     AddPct(DoneTotalMod, (*i)->GetAmount());
                 break;
             }
+            */
             case 6917: // Death's Embrace damage effect
             case 6926:
             case 6928:
@@ -10146,10 +10204,36 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                {
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FROST)
                    {
-                       DoneTotalMod *= 1 + (owner->ToPlayer()->GetMasteryPoints() * 0.025f);
+                       DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -6.0f) * 0.025f); // frost base mastery is 2
                    }
                }
             }
+
+            // Flashburn Fire Mastery
+            if (owner->getClass() == CLASS_MAGE && spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_FIRE && damagetype == DOT )
+            {
+               if (owner->HasAuraType(SPELL_AURA_MASTERY))
+               {
+                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FIRE)
+                   {
+                       DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -0.14f) * 0.028f); // fire base mastery is 7.852
+                   }
+               }
+            }
+
+            //Molten Fury
+            if (victim->GetHealthPct() <= 35.0f && owner->ToPlayer() && owner->getClass() == CLASS_MAGE && GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0)){
+                if (Aura* aura = GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0)->GetBase()){
+                    uint32 BP = 12;
+                    if (aura->GetId() == 31680)      //rank 2
+                        BP = 8;
+                    else if (aura->GetId() == 31679) //rank 1
+                        BP = 4;
+
+                    DoneTotalMod *= 1 + (BP / 100.0f);
+                }
+            }
+
 
             // Torment the weak
             if (spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_ARCANE)
@@ -10188,6 +10272,37 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             }
             break;
         case SPELLFAMILY_WARLOCK:
+
+            switch(spellProto->Id)
+            {
+                // Conflagrate
+                case 17962:
+                    if(AuraEffect* aurEff = victim->GetAuraEffect(348, EFFECT_2, this->GetGUID()))
+                    {
+                        if(aurEff->GetBase())
+                        {
+                            int32 damage;
+                            int32 singleDotDamage = aurEff->GetAmount();
+                            uint32 baseTotalTicks = aurEff->GetBase()->GetMaxDuration();
+                            
+                            singleDotDamage = SpellDamageBonusDone(victim, aurEff->GetSpellInfo(), singleDotDamage, DOT, aurEff->GetBase()->GetStackAmount());
+                            damage = singleDotDamage * int32(baseTotalTicks / aurEff->GetAmplitude());
+                            DoneTotal = ApplyPct(damage, 60.0f);
+                        }
+                    }
+                    break;
+                // Drain soul
+                case 1120:
+                    if(Aura* aura = victim->GetAura(spellProto->Id, GetGUID()))
+                    {
+                        if(aura->WasUnder25PercentOnApp())
+                        {
+                            DoneTotalMod *= 2.0f;
+                        }
+                    }
+                    break;
+            }
+
             // Fire and Brimstone
             if (spellProto->SpellFamilyFlags[1] & 0x00020040)
                 if (victim->HasAuraState(AURA_STATE_CONFLAGRATE))
@@ -10211,7 +10326,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             {
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DEMONOLOGY)
                {
-                   float pct = uint32(0.023f * owner->ToPlayer()->GetMasteryPoints());
+                   float pct = float(0.023f * owner->ToPlayer()->GetMasteryPoints());
                    DoneTotalMod *= 1 +  pct;
                }
             }
@@ -10222,7 +10337,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DESTRUCTION)
                {
                    // Increase fire damage by 1.35*Mastery points
-                   float pct = uint32(0.0135f * owner->ToPlayer()->GetMasteryPoints());
+                   float pct = float(0.0135f * owner->ToPlayer()->GetMasteryPoints());
                    DoneTotalMod *= 1 +  pct;
                }
             }
@@ -10572,6 +10687,17 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                 // Custom crit by class
                 switch (spellProto->SpellFamilyName)
                 {
+                    case SPELLFAMILY_WARLOCK:
+                        switch(spellProto->Id)
+                        {
+                            // Improved Searing Pain
+                            case 5676:
+                                if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 816, EFFECT_0))
+                                    if (victim->HealthBelowPct(25))
+                                        crit_chance += aurEff->GetAmount();
+                                break;
+                        }
+                        break; 
                     case SPELLFAMILY_MAGE:
                         // Glyph of Fire Blast
                         if (spellProto->SpellFamilyFlags[0] == 0x2 && spellProto->SpellIconID == 12)
@@ -18669,7 +18795,7 @@ void Unit::ResetHealingDoneInPastSecs(uint32 secs)
         m_heal_done[i] = 0;
 }
 
-//This method is called while dying for each aura on the unit.
+// This method is called while dying for each aura on the unit.
 void Unit::HandleAuraRemoveOnDeath(Aura const* aura)
 {
     Unit* caster = aura->GetCaster();
@@ -18682,11 +18808,78 @@ void Unit::HandleAuraRemoveOnDeath(Aura const* aura)
         case SPELLFAMILY_WARLOCK:
             switch(aura->GetId())
             {
-                //Drain Soul, soul shard energize on target death
+                // Shadowburn Soul Shards back
+                case 29341:
+                    caster->CastSpell(caster, 95810, true);
+                    break;
+                // Drain Soul, soul shard energize on target death
                 case 1120:
-                    CastSpell(caster, 95810, true);
+                    caster->CastSpell(caster, 95810, true);
                     break;
             }
             break;
+    }
+}
+
+// Handles the Dark Intent's buff from dots/hots
+void Unit::DarkIntentHandler()
+{
+    // Get the friendly target that has Dark Intent
+    Unit* target = this->getDarkIntentTarget();
+
+    if(!target || !target->isAlive())
+    {
+        return;
+    }
+    
+    int32 bp0;
+    // Id of Dark Intent depending on the class of the target
+    uint32 darkIntentId;
+
+    bp0 = target->HasAura(85768) ? 3 : (target->HasAura(85767) ? 1 : NULL);
+
+    if(!bp0)
+        return;
+    else
+    {
+        switch (target->getClass())
+        {
+            case CLASS_WARRIOR:
+                darkIntentId = 94313;
+            break;
+            case CLASS_PALADIN:
+                darkIntentId = 94323;
+            break;
+            case CLASS_HUNTER:
+                darkIntentId = 94320;
+            break;
+            case CLASS_ROGUE:
+                darkIntentId = 94324;
+            break;
+            case CLASS_PRIEST:
+                darkIntentId = 94311;
+            break;
+            case CLASS_DEATH_KNIGHT:
+                darkIntentId = 94312;
+            break;
+            case CLASS_SHAMAN:
+                darkIntentId = 94319;
+            break;
+            case CLASS_MAGE:
+                darkIntentId = 85759;
+            break;
+            case CLASS_WARLOCK:
+                darkIntentId = 94310;
+            break;
+            case CLASS_DRUID:
+                darkIntentId = 94318;
+            break;
+        }
+    }
+
+    // Prevent not classified unit
+    if(darkIntentId)
+    {
+        this->CastCustomSpell(target, darkIntentId, &bp0, NULL, NULL, true);
     }
 }

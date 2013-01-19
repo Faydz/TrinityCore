@@ -2223,6 +2223,16 @@ class Unit : public WorldObject
             if (!_focusSpell)
                 SetUInt64Value(UNIT_FIELD_TARGET, guid);
         }
+        
+        void DarkIntentHandler();
+        Unit* getDarkIntentTarget(){ return m_darkIntentUnit; }
+        void setDarkIntentTargets(Unit* target)
+        {
+            if(!target)
+                return;
+
+            m_darkIntentUnit = target;
+        }
 
         // Handling caster facing during spellcast
         void FocusTarget(Spell const* focusSpell, uint64 target);
@@ -2320,6 +2330,8 @@ class Unit : public WorldObject
 
         uint32 m_soulSwapAuras[6];
         uint64 m_sourceSoulSwapDots;
+        
+        Unit* m_darkIntentUnit; //Could be either the warlock owner of the DI or  the friendly buffed target
 
         void DisableSpline();
     private:
