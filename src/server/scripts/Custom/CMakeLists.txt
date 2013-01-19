@@ -25,7 +25,6 @@ set(scripts_STAT_SRCS
   Custom/boss_arkton.cpp
   Custom/npcs_dm_battle.cpp
   Custom/npcs_dm_battle.h
-  Custom/custom_phasing.cpp
 )
 
 SOURCE_GROUP(Custom REGULAR_EXPRESSION .*/Custom/.*)
