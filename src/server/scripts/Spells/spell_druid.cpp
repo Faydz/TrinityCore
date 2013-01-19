@@ -963,6 +963,116 @@ class spell_dru_feral_swiftness : public SpellScriptLoader
         }
 };
 
+class spell_dru_ravage : public SpellScriptLoader
+{
+    public:
+        spell_dru_ravage() : SpellScriptLoader("spell_dru_ravage") { }
+
+        class spell_dru_ravage_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_ravage_SpellScript);
+
+            void OnHit()
+            {
+                if (Unit* caster=GetCaster())
+                    if (Unit* target=GetHitUnit())
+                    {
+                        if (caster->HasAura(48483))
+                            caster->CastSpell(target, 58179, true);
+
+                        if (caster->HasAura(48484))
+                            caster->CastSpell(target, 58180, true);
+
+                        if (caster->HasAura(109881))
+                            caster->RemoveAura(109881);
+
+                    }
+            }
+
+            void Register()
+            {
+                
+                AfterHit += SpellHitFn(spell_dru_ravage_SpellScript::OnHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_ravage_SpellScript();
+        }
+};
+
+class spell_dru_feral_charge_bear : public SpellScriptLoader
+{
+    public:
+        spell_dru_feral_charge_bear() : SpellScriptLoader("spell_dru_feral_charge_bear") { }
+
+        class spell_dru_feral_charge_bear_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_feral_charge_bear_SpellScript);
+
+            void OnHit()
+            {
+                if (Unit* caster=GetCaster())
+                    if (Unit* target=GetHitUnit())
+                    {
+                        if (caster->HasAura(78892))
+                            caster->CastSpell(caster,81016, true);
+
+                        if (caster->HasAura(78893))
+                            caster->CastSpell(caster,81017, true);
+                    }
+            }
+
+            void Register()
+            {
+                
+                AfterHit += SpellHitFn(spell_dru_feral_charge_bear_SpellScript::OnHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_feral_charge_bear_SpellScript();
+        }
+};
+
+class spell_dru_feral_charge_cat : public SpellScriptLoader
+{
+    public:
+        spell_dru_feral_charge_cat() : SpellScriptLoader("spell_dru_feral_charge_cat") { }
+
+        class spell_dru_feral_charge_cat_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_feral_charge_cat_SpellScript);
+
+            void OnHit()
+            {
+                if (Unit* caster=GetCaster())
+                    if (Unit* target=GetHitUnit())
+                    {
+                        if (caster->HasAura(78892))
+                            caster->CastSpell(caster,81021, true);
+
+                        if (caster->HasAura(78893))
+                            caster->CastSpell(caster,81022, true);
+                    }
+            }
+
+            void Register()
+            {
+                
+                AfterHit += SpellHitFn(spell_dru_feral_charge_cat_SpellScript::OnHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_feral_charge_cat_SpellScript();
+        }
+};
+
+
 void AddSC_druid_spell_scripts()
 {
     new spell_dru_enrage();
@@ -985,4 +1095,7 @@ void AddSC_druid_spell_scripts()
     new spell_dru_harmony_periodic();
     new spell_dru_harmony();
     new spell_dru_feral_swiftness();
+    new spell_dru_ravage();
+    new spell_dru_feral_charge_bear();
+    new spell_dru_feral_charge_cat();
 }
