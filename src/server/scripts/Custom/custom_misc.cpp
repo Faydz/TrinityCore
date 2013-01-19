@@ -724,7 +724,7 @@ public: npc_startup() : CreatureScript("npc_startup") { }
 		if (player->getClass()==7)		// Schamane
 		{
 			player->ADD_GOSSIP_ITEM(9, "Schaden (Elementar)", GOSSIP_SENDER_MAIN, 12);
-			player->ADD_GOSSIP_ITEM(9, "Schaden (Verst\303\244rkung", GOSSIP_SENDER_MAIN, 13);
+			player->ADD_GOSSIP_ITEM(9, "Schaden (Verst\303\244rkung)", GOSSIP_SENDER_MAIN, 13);
 			player->ADD_GOSSIP_ITEM(9, "Heilung", GOSSIP_SENDER_MAIN, 14);
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen", GOSSIP_SENDER_MAIN, 50);
 		}
@@ -800,6 +800,7 @@ public: npc_startup() : CreatureScript("npc_startup") { }
 						player->AddItem(40257, 1);
 						player->AddItem(40372, 1);
 						player->AddItem(40337, 1);
+						player->CLOSE_GOSSIP_MENU();
 					}
 					break;
 				case 5:								// Pala Heal
@@ -826,6 +827,7 @@ public: npc_startup() : CreatureScript("npc_startup") { }
 						player->AddItem(40258, 1);
 						player->AddItem(40108, 1);
 						player->AddItem(40382, 1);
+						player->CLOSE_GOSSIP_MENU();
 					}
 					break;
 				case 6:								// Hunter
@@ -859,6 +861,7 @@ public: npc_startup() : CreatureScript("npc_startup") { }
 						player->AddItem(40383, 1);
 						player->AddItem(40239, 1);
 						player->AddItem(40385, 1);
+						player->CLOSE_GOSSIP_MENU();
 					}
 					break;
 				case 8:								// Priester Schaden
