@@ -741,6 +741,61 @@ class spell_hun_target_only_pet_and_owner : public SpellScriptLoader
         }
 };
 
+class spell_hun_kill_command : public SpellScriptLoader
+{
+    public:
+        spell_hun_kill_command() : SpellScriptLoader("spell_hun_kill_command") { }
+
+        class spell_hun_kill_command_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_kill_command_SpellScript);
+
+            SpellCastResult CheckTarget()
+            {
+                if (GetCaster())
+                {
+                    if (GetCaster()->ToPlayer())
+                    {
+                        if (Unit* pet = GetCaster()->GetGuardianPet())
+                        {
+                            if (GetCaster()->ToPlayer()->GetSelectedUnit())
+                            {
+                                float dist = 0.0f;
+                                dist = pet->GetDistance2d(GetCaster()->ToPlayer()->GetSelectedUnit());
+
+                                if (dist > 5.0f)
+                                    return SPELL_FAILED_ALREADY_AT_FULL_HEALTH;
+
+                                if (!GetCaster()->GetGuardianPet()->isInCombat())
+                                    return SPELL_FAILED_AFFECTING_COMBAT;
+                            }
+                        } else
+                            return SPELL_FAILED_NO_PET;
+                    }
+                }
+
+                return SPELL_CAST_OK;
+            }
+
+            void HandleDummy()
+            {
+                if(Unit* pet = GetCaster()->GetGuardianPet())
+                    pet->CastSpell(GetCaster()->getVictim(), 83381);
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_hun_kill_command_SpellScript::CheckTarget);
+                BeforeCast  += SpellCastFn(spell_hun_kill_command_SpellScript::HandleDummy);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_kill_command_SpellScript();
+        }
+};
+
 void AddSC_hunter_spell_scripts()
 {
     new spell_hun_aspect_of_the_beast();
@@ -758,4 +813,5 @@ void AddSC_hunter_spell_scripts()
     new spell_hun_sniper_training();
     new spell_hun_tame_beast();
     new spell_hun_target_only_pet_and_owner();
+    new spell_hun_kill_command();
 }
