@@ -336,7 +336,7 @@ Aura* Aura::Create(SpellInfo const* spellproto, uint8 effMask, WorldObject* owne
     // sets flag variable for spells like drain soul
     if (aura && owner->isType(TYPEMASK_UNIT))
     {
-        aura->SetWasUnder25PercentOnApp(((Unit*)owner)->HealthBelowPct(25) ? TRUE : FALSE);
+        aura->SetWasUnder25PercentOnApp(((Unit*)owner)->HealthBelowPct(25) ? true : false);
     }
 
     // aura can be removed in Unit::_AddAura call
@@ -1151,6 +1151,15 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
             case SPELLFAMILY_GENERIC:
                 switch (GetId())
                 {
+                    case 85767: // Dark Intent from warlock to target
+                        if(Unit* target = aurApp->GetTarget())
+                        {
+                            // Dark Intent on the warlock owner. AddAura because the spell is self-only
+                            target->AddAura(85768, caster);
+
+                            target->setDarkIntentTargets(caster);
+                        }
+                        break;
                     case 32474: // Buffeting Winds of Susurrus
                         if (target->GetTypeId() == TYPEID_PLAYER)
                             target->ToPlayer()->ActivateTaxiPathTo(506, GetId());
@@ -1169,6 +1178,16 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                         break;
                 }
                 break;
+            case SPELLFAMILY_WARLOCK:
+                switch (GetId())
+                {
+                    case 85768: // Dark Intent from target to warlock
+                        if(Unit* target = aurApp->GetTarget())
+                        {
+                            target->setDarkIntentTargets(caster);
+                        }
+                        break;
+                }
             case SPELLFAMILY_DRUID:
                 if (!caster)
                     break;

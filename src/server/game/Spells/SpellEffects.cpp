@@ -387,6 +387,38 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 }
                 break;
             }
+            case SPELLFAMILY_WARLOCK:
+                switch (m_spellInfo->Id)
+                {
+                    // Soul Fire
+                    case 6353:
+                        if(m_caster)
+                        {
+                            if(AuraEffect* aurEff = m_caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 184, EFFECT_0))
+                            {
+                                int32 bp0 = aurEff->GetAmount();
+
+                                // Improved Soul Fire
+                                m_caster->CastCustomSpell(unitTarget, 85383, &bp0, NULL, NULL, true);
+                            }
+                        }
+                        break;
+                    // Rain of Fire damage
+                    case 42223:
+                        if(m_caster)
+                        {
+                            if(AuraEffect* aurEff = m_caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_WARLOCK, 11, EFFECT_0))
+                            {
+                                if(roll_chance_i(aurEff->GetAmount()))
+                                {
+                                    // Aftermath stun
+                                    m_caster->CastSpell(unitTarget, 85387, true);
+                                }
+                            }
+                        }
+                        break;
+                }
+                break;
             case SPELLFAMILY_WARRIOR:
             {
                 // Victory Rush
@@ -399,21 +431,6 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     if (pct > 0)
                         damage += int32(CalculatePct(m_caster->GetTotalAttackPowerValue(BASE_ATTACK), pct));
                     break;
-                }
-                break;
-            }
-            case SPELLFAMILY_WARLOCK:
-            {
-                // Incinerate Rank 1 & 2
-                if ((m_spellInfo->SpellFamilyFlags[1] & 0x000040) && m_spellInfo->SpellIconID == 2128)
-                {
-                    // Incinerate does more dmg (dmg/6) if the target have Immolate debuff.
-                    // Check aura state for speed but aura state set not only for Immolate spell
-                    if (unitTarget->HasAuraState(AURA_STATE_CONFLAGRATE))
-                    {
-                        if (unitTarget->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_WARLOCK, 0x4, 0, 0))
-                            damage += damage / 6;
-                    }
                 }
                 break;
             }
@@ -3548,6 +3565,36 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
         {
             switch (m_spellInfo->Id)
             {
+                // Impact
+            case 12355:
+                if (!unitTarget || !GetCaster()){
+                    return;
+                }
+
+                if (Unit* stunned = m_targets.GetUnitTarget())
+                {
+                    Unit::AuraEffectList const& dotList = stunned->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+                    if (unitTarget->GetGUID() !=  stunned->GetGUID())
+                    {
+                        for (Unit::AuraEffectList::const_iterator itr = dotList.begin(); itr != dotList.end(); ++itr)
+                        {
+                            if (!(*itr) || !(*itr)->GetBase() ||!(*itr)->GetBase()->GetSpellInfo()){
+                                return;
+                            }
+
+                            if ((*itr)->GetBase()->GetCasterGUID() == m_caster->GetGUID() && (*itr)->GetId() != 2120){ //2120 is flamestrike, spreading it would cause a crash
+                                uint32 dur = (*itr)->GetBase()->GetDuration();
+                                uint32 ids = (*itr)->GetId();
+                                int32 dam = (*itr)->GetAmount();
+                                m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
+                                if (unitTarget->GetAura(ids)){        //this should prevent crashing if target was immune to the casting
+                                    unitTarget->GetAura(ids)->SetDuration(dur);
+                                }
+                            }
+                        }
+                    }
+                } 
+                break;
                 // Glyph of Backstab
                 case 63975:
                 {
@@ -4261,6 +4308,22 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                 unitTarget->RemoveAurasWithMechanic(1<<MECHANIC_IMMUNE_SHIELD, AURA_REMOVE_BY_ENEMY_SPELL);
                 return;
             }
+            break;
+        }
+        case SPELLFAMILY_MAGE:
+        {
+            if (m_spellInfo->Id == 11129) //Combustion
+            {
+                //I assume initial periodic damage is 0 if no Dots on target
+                int32 bp = 0;
+                Unit::AuraEffectList const &mPeriodic =    unitTarget->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+                //Cycle trough all periodic auras to increase Combustion periodic damage
+                for (Unit::AuraEffectList::const_iterator i = mPeriodic.begin(); i != mPeriodic.end(); ++i)                 
+                    if ((*i)->GetCasterGUID() == m_caster->GetGUID())
+                        bp += (*i)->GetAmount();         
+                m_caster->CastCustomSpell(unitTarget, 83853, &bp,NULL, NULL, true);
+            }
+            
             break;
         }
         case SPELLFAMILY_PRIEST:
