@@ -3239,8 +3239,12 @@ public:
             else
                 despawnTimer -=diff;
         }
-        
+        CreatureAI* GetAI(Creature* creature) const
+        {
+            return new npc_flaming_orbAI(creature);
+        }
     };
+};
 
 void AddSC_npcs_special()
 {
