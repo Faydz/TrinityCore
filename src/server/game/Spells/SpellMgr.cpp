@@ -2968,6 +2968,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Warlock's armor basepoint for nether ward
+                    case 687:
+                    case 28176:
+                        spellInfo->Effects[EFFECT_2].BasePoints = 91711;
+                        break;
                     // Improved Corruption
                     case 17810:
                     case 17811:
