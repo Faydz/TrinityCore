@@ -6076,7 +6076,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 case 85112:
                 case 91986:
                 {
-                    int dmgPastSecs = GetDamageDoneInPastSecs(7);
+                    int32 dmgPastSecs = GetDamageDoneInPastSecs(7);
 
                     basepoints0 = ApplyPct(dmgPastSecs, triggerAmount);
                     triggered_spell_id = 85421;
