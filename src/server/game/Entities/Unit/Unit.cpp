@@ -6742,6 +6742,19 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Honor Among Thieves
+                case 51698:
+                case 51700:
+                case 51701:
+                    if (Unit* caster = triggeredByAura->GetCaster())
+                    {
+                        if (!caster->ToPlayer())
+                            return false;
+
+                        caster->CastSpell(caster->ToPlayer()->GetSelectedUnit(), 51699, true);
+                        return true;
+                    }
+                    break;
                 // Main gauche Combat Rogue Mastery 
                 case 76806:
                     if (Player* caster = ToPlayer())
@@ -8026,8 +8039,22 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
                 // Gouge
                 case 1776:
                     *handled = true;
-                    if(procSpell && procSpell->Id == 1776)
-                        return false;
+                    if(procSpell)
+                    {
+                        if (procSpell->Id == 1776)
+                            return false;
+
+                        // Sanguinary veins
+                        if (triggeredByAura->GetCaster())
+                        {
+                            if (AuraEffect* aurEff = triggeredByAura->GetCaster()->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 4821, EFFECT_1))
+                            {
+                                if (procSpell->Mechanic == MECHANIC_BLEED)
+                                    if (roll_chance_i(aurEff->GetAmount()))
+                                        return false;
+                            }
+                        }
+                    }
                     return true;
                     break;
             }

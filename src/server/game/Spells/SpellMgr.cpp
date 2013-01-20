@@ -2959,6 +2959,9 @@ void SpellMgr::LoadSpellCustomAttr()
             case 85768: // Dark Intent self
                 spellInfo->SpellFamilyName = SPELLFAMILY_WARLOCK;
                 break;
+            case 51698: // Honor Among Thieves
+                spellInfo->SpellFamilyName = SPELLFAMILY_ROGUE;
+                break;
             default:
                 break;
         }
