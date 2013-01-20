@@ -6072,6 +6072,34 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
+                // Nether Protection
+                case 30299:
+                case 30301:
+                    if(!procSpell)
+                        return false;
+
+                    switch(procSpell->SchoolMask)
+                    {
+                        case SPELL_SCHOOL_MASK_HOLY:
+                            this->CastSpell(this, 54370, true);
+                            break;
+                        case SPELL_SCHOOL_MASK_FIRE:
+                            this->CastSpell(this, 54371, true);
+                            break;
+                        case SPELL_SCHOOL_MASK_FROST:
+                            this->CastSpell(this, 54372, true);
+                            break;
+                        case SPELL_SCHOOL_MASK_ARCANE:
+                            this->CastSpell(this, 54373, true);
+                            break;
+                        case SPELL_SCHOOL_MASK_SHADOW:
+                            this->CastSpell(this, 54374, true);
+                            break;
+                        case SPELL_SCHOOL_MASK_NATURE:
+                            this->CastSpell(this, 54375, true);
+                            break;
+                    }
+                    break;
                 // Burning Embers
                 case 85112:
                 case 91986:
