@@ -6072,6 +6072,24 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
+                // Bane of Havoc track spell
+                case 85466:
+                    if (!victim)
+                        return false;
+
+                    if (victim->HasAura(80240))
+                        return false;
+
+                    if (Unit* havoc_target = triggeredByAura->GetCaster())
+                    {
+                        if (!havoc_target->HasAura(80240))
+                            return false;
+
+                        int32 bp0 = damage * 15.0f / 100;
+                        CastCustomSpell(havoc_target, 85455, &bp0, NULL, NULL, true, 0, 0, 0);
+                        return true;
+                    }        
+                    break;
                 // Nether Protection
                 case 30299:
                 case 30301:

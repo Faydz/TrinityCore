@@ -1181,6 +1181,13 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
             case SPELLFAMILY_WARLOCK:
                 switch (GetId())
                 {
+                    case 80240: // Bane of Havoc
+                        if(!caster || !target)
+                            return;
+
+                        // Bane of Havoc track spell
+                        target->AddAura(85466, caster);
+                        break;
                     case 85768: // Dark Intent from target to warlock
                         if(Unit* target = aurApp->GetTarget())
                         {

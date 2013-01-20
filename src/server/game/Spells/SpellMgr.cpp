@@ -2962,6 +2962,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case 51698: // Honor Among Thieves
                 spellInfo->SpellFamilyName = SPELLFAMILY_ROGUE;
                 break;
+            case 85466: // Bane of Havoc track spell
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARLOCK;
+                spellInfo->Effects[EFFECT_0].TargetA = TARGET_UNIT_TARGET_ENEMY;
+                break;
             default:
                 break;
         }
