@@ -46,11 +46,18 @@ class spell_dru_enrage : public SpellScriptLoader
     public:
         spell_dru_enrage() : SpellScriptLoader("spell_dru_enrage") { }
 
-        class spell_dru_enrage_SpellScript : public SpellScript
+        class spell_dru_enrage_AuraScript : public AuraScript
         {
-            PrepareSpellScript(spell_dru_enrage_SpellScript);
+            PrepareAuraScript(spell_dru_enrage_AuraScript);
 
-            void OnHit()
+            bool Validate(SpellInfo const* /*spell*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(5229))
+                    return false;
+                return true;
+            }
+
+            void AfterApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
                 if (Unit* caster=GetCaster())
                 {
@@ -61,18 +68,25 @@ class spell_dru_enrage : public SpellScriptLoader
                             int32 bp0 = aurEff->GetAmount();
                             caster->CastCustomSpell(caster, 51185, &bp0, 0, 0, true); // King of the Jungle
                         }
-                    }
+                    }   
                 }
             }
+
+            void AfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                
+            }
+
             void Register()
             {
-                AfterHit += SpellHitFn(spell_dru_enrage_SpellScript::OnHit);
+                AfterEffectApply += AuraEffectApplyFn(spell_dru_enrage_AuraScript::AfterApply, EFFECT_0, SPELL_AURA_PERIODIC_ENERGIZE, AURA_EFFECT_HANDLE_REAL);
+                AfterEffectRemove += AuraEffectRemoveFn(spell_dru_enrage_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_PERIODIC_ENERGIZE, AURA_EFFECT_HANDLE_REAL);
             }
         };
 
-        SpellScript* GetSpellScript() const
+        AuraScript* GetAuraScript() const
         {
-            return new spell_dru_enrage_SpellScript();
+            return new spell_dru_enrage_AuraScript();
         }
 };
 
@@ -693,11 +707,18 @@ class spell_dru_tiger_s_fury : public SpellScriptLoader
     public:
         spell_dru_tiger_s_fury() : SpellScriptLoader("spell_dru_tiger_s_fury") { }
 
-        class spell_dru_tiger_s_fury_SpellScript : public SpellScript
+        class spell_dru_tiger_s_fury_AuraScript : public AuraScript
         {
-            PrepareSpellScript(spell_dru_tiger_s_fury_SpellScript);
+            PrepareAuraScript(spell_dru_tiger_s_fury_AuraScript);
 
-            void OnHit()
+            bool Validate(SpellInfo const* /*spell*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(5217))
+                    return false;
+                return true;
+            }
+
+            void AfterApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
                 if (Unit* caster=GetCaster())
                 {
@@ -706,18 +727,36 @@ class spell_dru_tiger_s_fury : public SpellScriptLoader
                         int32 bp0 = aurEff->GetAmount();
                         caster->CastCustomSpell(caster, 51178, &bp0, 0, 0, true); // King of the Jungle
                     }
+                    if (caster->HasAura(80316)) // Primal Madness (rank 1)
+                        caster->CastSpell(caster, 80879, true);
+
+                    if (caster->HasAura(80317)) // Primal Madness (rank 1)
+                        caster->CastSpell(caster, 80886, true);
+                }
+            }
+
+            void AfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if (Unit* caster=GetCaster())
+                {
+                    if (caster->HasAura(80316))
+                        caster->RemoveAura(80879);
+
+                    if (caster->HasAura(80317))
+                        caster->RemoveAura(80886);
                 }
             }
 
             void Register()
             {
-                AfterHit += SpellHitFn(spell_dru_tiger_s_fury_SpellScript::OnHit);
+                AfterEffectApply += AuraEffectApplyFn(spell_dru_tiger_s_fury_AuraScript::AfterApply, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, AURA_EFFECT_HANDLE_REAL);
+                AfterEffectRemove += AuraEffectRemoveFn(spell_dru_tiger_s_fury_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, AURA_EFFECT_HANDLE_REAL);
             }
         };
 
-        SpellScript* GetSpellScript() const
+        AuraScript* GetAuraScript() const
         {
-            return new spell_dru_tiger_s_fury_SpellScript();
+            return new spell_dru_tiger_s_fury_AuraScript();
         }
 };
 
@@ -1108,6 +1147,65 @@ class spell_dru_pulverize : public SpellScriptLoader
         }
 };
 
+class spell_dru_berserk : public SpellScriptLoader
+{
+    public:
+        spell_dru_berserk() : SpellScriptLoader("spell_dru_berserk") { }
+
+        class spell_dru_berserk_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dru_berserk_AuraScript);
+
+            bool Validate(SpellInfo const* /*spell*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(50334))
+                    return false;
+                return true;
+            }
+
+            void AfterApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if (Unit* caster=GetCaster())
+                {
+                    if (caster->GetShapeshiftForm() == FORM_CAT)
+                    {
+                        if (caster->HasAura(80316)) // Primal Madness (rank 1)
+                            caster->CastSpell(caster, 80879, true);
+
+                        if (caster->HasAura(80317)) // Primal Madness (rank 2)
+                            caster->CastSpell(caster, 80886, true);
+                    }
+                }
+            }
+
+            void AfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if (Unit* caster=GetCaster())
+                {
+                    if (caster->GetShapeshiftForm() == FORM_CAT)
+                    {
+                        if (caster->HasAura(80316))
+                            caster->RemoveAura(80879);
+
+                        if (caster->HasAura(80317))
+                            caster->RemoveAura(80886);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                AfterEffectApply += AuraEffectApplyFn(spell_dru_berserk_AuraScript::AfterApply, EFFECT_0, SPELL_AURA_ADD_PCT_MODIFIER, AURA_EFFECT_HANDLE_REAL);
+                AfterEffectRemove += AuraEffectRemoveFn(spell_dru_berserk_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_ADD_PCT_MODIFIER, AURA_EFFECT_HANDLE_REAL);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dru_berserk_AuraScript();
+        }
+};
+
 void AddSC_druid_spell_scripts()
 {
     new spell_dru_enrage();
@@ -1134,4 +1232,5 @@ void AddSC_druid_spell_scripts()
     new spell_dru_feral_charge_bear();
     new spell_dru_feral_charge_cat();
     new spell_dru_pulverize();
+    new spell_dru_berserk();
 }
