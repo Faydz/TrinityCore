@@ -3261,6 +3261,12 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
                 if (AuraEffect const* rendAndTear = m_caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2859, 0))
                     AddPct(totalDamagePercentMod, rendAndTear->GetAmount());
             }
+            // Pulverize
+            else if (m_spellInfo->SpellFamilyFlags[2] & 0x08000000 && unitTarget->HasAura(33745))
+            {
+                if (AuraEffect const* lacerate = unitTarget->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE,SPELLFAMILY_DRUID,0x00000000,0x00000100,0x00000000,m_caster->GetGUID()))
+                     fixed_bonus= 1624*lacerate->GetBase()->GetStackAmount();
+            }
             break;
         }
         case SPELLFAMILY_HUNTER:

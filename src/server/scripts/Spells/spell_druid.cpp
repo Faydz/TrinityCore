@@ -792,7 +792,6 @@ public:
                     if (Unit* target=GetHitUnit())
                     {
                         if (caster->GetAuraEffect(SPELL_AURA_DUMMY,SPELLFAMILY_DRUID, 4399, EFFECT_0))
-                        //if (caster->HasAura(80319) || caster->HasAura(80319))
                         {
                             if (target->HealthBelowPct(25))
                             {
@@ -985,7 +984,6 @@ class spell_dru_ravage : public SpellScriptLoader
 
                         if (caster->HasAura(109881))
                             caster->RemoveAura(109881);
-
                     }
             }
 
@@ -1072,6 +1070,43 @@ class spell_dru_feral_charge_cat : public SpellScriptLoader
         }
 };
 
+class spell_dru_pulverize : public SpellScriptLoader
+{
+    public:
+        spell_dru_pulverize() : SpellScriptLoader("spell_dru_pulverize") { }
+
+        class spell_dru_pulverize_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_pulverize_SpellScript);
+
+            void OnHit()
+            {
+                if (Unit* caster=GetCaster())
+                {
+                    if (Unit* target=GetHitUnit())
+                    {
+                        if (AuraEffect const* lacerate = target->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE,SPELLFAMILY_DRUID,0x00000000,0x00000100,0x00000000,caster->GetGUID()))
+                        {
+                            int32 bp0 = 3*lacerate->GetBase()->GetStackAmount();
+                            caster->CastCustomSpell(caster,80951,&bp0,0,0,true);
+                            target->RemoveAura(lacerate->GetBase());
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                
+                AfterHit += SpellHitFn(spell_dru_pulverize_SpellScript::OnHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_pulverize_SpellScript();
+        }
+};
 
 void AddSC_druid_spell_scripts()
 {
@@ -1098,4 +1133,5 @@ void AddSC_druid_spell_scripts()
     new spell_dru_ravage();
     new spell_dru_feral_charge_bear();
     new spell_dru_feral_charge_cat();
+    new spell_dru_pulverize();
 }
