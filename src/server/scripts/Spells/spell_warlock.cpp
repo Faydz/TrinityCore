@@ -54,7 +54,9 @@ enum WarlockSpells
     WARLOCK_LIFE_TAP_ENERGIZE               = 31818,
     WARLOCK_LIFE_TAP_ENERGIZE_2             = 32553,
     WARLOCK_MANA_FEED_ICON_ID               = 1982,
-    WARLOCK_NETHER_WARD                     = 91713,
+    WARLOCK_NETHER_WARD                     = 91711,
+    WARLOCK_NETHER_WARD_TALENT              = 91713,
+    WARLOCK_SHADOW_WARD                     = 6229,
     WARLOCK_SOUL_SHARD_ENERGIZE             = 87388,
     WARLOCK_SOUL_SWAP_COOLDOWN              = 94229,
     WARLOCK_SOUL_SWAP_GLYPH                 = 56226,
@@ -74,27 +76,30 @@ class spell_warl_armor_nether_ward_ignore: public SpellScriptLoader
 public:
     spell_warl_armor_nether_ward_ignore() : SpellScriptLoader("spell_warl_armor_nether_ward_ignore") { }
 
-    class spell_warl_armor_nether_ward_ignore_SpellScript: public SpellScript
+    class spell_warl_armor_nether_ward_ignore_AuraScript: public AuraScript
     {
-        PrepareSpellScript(spell_warl_armor_nether_ward_ignore_SpellScript);
+        PrepareAuraScript(spell_warl_armor_nether_ward_ignore_AuraScript);
 
-        void HandleOverrideEffect(SpellEffIndex effIndex) 
+        void OnEffectCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)
         {
-            if(GetCaster() && !GetCaster()->HasAura(WARLOCK_NETHER_WARD))
+            if(GetCaster())
             {
-                PreventHitAura();
+                if(GetCaster()->HasAura(WARLOCK_NETHER_WARD_TALENT))
+                    amount = WARLOCK_NETHER_WARD;
+                else
+                    amount = WARLOCK_SHADOW_WARD;
             }
         }
 
         void Register()
         {
-            OnEffectHitTarget += SpellEffectFn(spell_warl_armor_nether_ward_ignore_SpellScript::HandleOverrideEffect, EFFECT_2, SPELL_EFFECT_APPLY_AURA);
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warl_armor_nether_ward_ignore_AuraScript::OnEffectCalcAmount, EFFECT_2, SPELL_AURA_OVERRIDE_ACTIONBAR_SPELLS);
         }
     };
 
-    SpellScript* GetSpellScript() const 
+    AuraScript* GetAuraScript() const 
     {
-        return new spell_warl_armor_nether_ward_ignore_SpellScript();
+        return new spell_warl_armor_nether_ward_ignore_AuraScript();
     }
 };
 
