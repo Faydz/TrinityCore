@@ -3268,6 +3268,20 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             else if (m_spellInfo->Id == 1752)
             if (m_caster->GetTypeId() == TYPEID_PLAYER && m_caster->ToPlayer()->HasAura(56821) && roll_chance_i(20) )
                  m_caster->ToPlayer()->AddComboPoints(unitTarget, 1, this);
+
+            // Backstab
+            if (m_spellInfo->Id == 53)
+            {
+                // Murderous Intent 
+                if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_ROGUE, 134, 0))
+                {
+                    if (unitTarget->HealthBelowPct(35))
+                    {
+                        int32 bp0 = aurEff->GetAmount();
+                        m_caster->CastCustomSpell(m_caster, 79132, &bp0, NULL, NULL, true);
+                    }
+                }
+            }
             break;
         }
         case SPELLFAMILY_SHAMAN:
