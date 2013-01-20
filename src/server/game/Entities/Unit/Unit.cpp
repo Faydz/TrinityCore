@@ -6742,6 +6742,19 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Honor Among Thieves
+                case 51698:
+                case 51700:
+                case 51701:
+                    if (Unit* caster = triggeredByAura->GetCaster())
+                    {
+                        if (!caster->ToPlayer())
+                            return false;
+
+                        caster->CastSpell(caster->ToPlayer()->GetSelectedUnit(), 51699, true);
+                        return true;
+                    }
+                    break;
                 // Main gauche Combat Rogue Mastery 
                 case 76806:
                     if (Player* caster = ToPlayer())
