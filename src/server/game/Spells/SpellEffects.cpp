@@ -398,11 +398,16 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
 
                             if(AuraEffect* aurEff = creator->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 5116, EFFECT_0))
                             {
-                                int32 bp0 = creator->GetDamageDoneInPastSecs(7);
+                                if(creator->ToPlayer() &&  effIndex == EFFECT_0)
+                                {
+                                    int32 dmgDonePast = creator->GetDamageDoneInPastSecs(7);
+                                    int32 bpDamage = int32(ApplyPct(dmgDonePast, aurEff->GetAmount()) / 7);
+                                    int32 dmgThreshold = int32(creator->ToPlayer()->GetBaseSpellPowerBonus() * 1.4f / 7);
+                                    int32 bp0 = bpDamage > dmgThreshold ? dmgThreshold : bpDamage;
 
-                                // Burning Embers
-                                ApplyPct(bp0, aurEff->GetAmount());
-                                creator->CastCustomSpell(unitTarget, 85421, &bp0, NULL, NULL, true);
+                                    // Burning Embers
+                                    creator->CastCustomSpell(unitTarget, 85421, &bp0, NULL, NULL, true);
+                                }
                             }
                         }
                         break;
