@@ -6076,10 +6076,18 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 case 85112:
                 case 91986:
                 {
-                    int32 dmgPastSecs = GetDamageDoneInPastSecs(7);
+                    if(this->ToPlayer())
+                    {
+                        if(effIndex == EFFECT_0)
+                        {
+                            int32 dmgPastSecs = GetDamageDoneInPastSecs(7);
+                            int32 bpDamage = int32(ApplyPct(dmgPastSecs, triggerAmount) / 7);
+                            int32 dmgThreshold = int32(this->ToPlayer()->GetBaseSpellPowerBonus() * 1.4f / 7);
 
-                    basepoints0 = ApplyPct(dmgPastSecs, triggerAmount);
-                    triggered_spell_id = 85421;
+                            basepoints0 = bpDamage > dmgThreshold ? dmgThreshold : bpDamage;
+                            triggered_spell_id = 85421;
+                        }
+                    }
                     break;
                 }
                 // Glyph of Shadowflame
