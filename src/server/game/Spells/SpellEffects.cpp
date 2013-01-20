@@ -583,6 +583,16 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                                 damage += combo*40;
                         }
                     }
+
+                    // Serrated Blades
+                    if (unitTarget->HasAura(1943))
+                    {
+                        if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_ROGUE, 2004, 0))
+                        {
+                            if (roll_chance_i(aurEff->GetAmount()))
+                                unitTarget->GetAura(1943)->RefreshDuration();
+                        }
+                    }
                 }
                 break;
             }
