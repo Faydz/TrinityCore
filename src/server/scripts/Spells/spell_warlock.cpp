@@ -876,20 +876,20 @@ class spell_warl_life_tap : public SpellScriptLoader
                 Player* caster = GetCaster()->ToPlayer();
                 if (Unit* target = GetHitUnit())
                 {
-                    int32 damage = caster->CountPctFromMaxHealth(GetSpellInfo()->Effects[EFFECT_2].CalcValue());
-                    int32 mana = CalculatePct(damage, GetSpellInfo()->Effects[EFFECT_1].CalcValue());
+                    int32 maxHPPCT = caster->CountPctFromMaxHealth(GetSpellInfo()->Effects[EFFECT_2].CalcValue());
+                    int32 mana = CalculatePct(maxHPPCT, GetSpellInfo()->Effects[EFFECT_1].CalcValue());
 
                     // Shouldn't Appear in Combat Log
-                    target->ModifyHealth(-damage);
+                    target->ModifyHealth(-maxHPPCT);
 
                     // Improved Life Tap mod
-                    if (AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, WARLOCK_IMPROVED_LIFE_TAP_ICON_ID, 0))
+                    if (AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, WARLOCK_IMPROVED_LIFE_TAP_ICON_ID, EFFECT_0))
                         AddPct(mana, aurEff->GetAmount());
 
                     caster->CastCustomSpell(target, WARLOCK_LIFE_TAP_ENERGIZE, &mana, NULL, NULL, false);
 
                     // Mana Feed
-                    if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_WARLOCK, WARLOCK_MANA_FEED_ICON_ID, 0))
+                    if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_WARLOCK, WARLOCK_MANA_FEED_ICON_ID, EFFECT_0))
                     {
                         int32 manaFeedVal = aurEff->GetAmount();
                         ApplyPct(manaFeedVal, mana);
