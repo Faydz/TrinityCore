@@ -6072,6 +6072,52 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
+                // Nether Protection
+                case 30299:
+                case 30301:
+                    if(!procSpell)
+                        return false;
+
+                    switch(procSpell->SchoolMask)
+                    {
+                        case SPELL_SCHOOL_MASK_HOLY:
+                            this->CastSpell(this, 54370, true);
+                            break;
+                        case SPELL_SCHOOL_MASK_FIRE:
+                            this->CastSpell(this, 54371, true);
+                            break;
+                        case SPELL_SCHOOL_MASK_FROST:
+                            this->CastSpell(this, 54372, true);
+                            break;
+                        case SPELL_SCHOOL_MASK_ARCANE:
+                            this->CastSpell(this, 54373, true);
+                            break;
+                        case SPELL_SCHOOL_MASK_SHADOW:
+                            this->CastSpell(this, 54374, true);
+                            break;
+                        case SPELL_SCHOOL_MASK_NATURE:
+                            this->CastSpell(this, 54375, true);
+                            break;
+                    }
+                    break;
+                // Burning Embers
+                case 85112:
+                case 91986:
+                {
+                    if(this->ToPlayer())
+                    {
+                        if(effIndex == EFFECT_0)
+                        {
+                            int32 dmgPastSecs = GetDamageDoneInPastSecs(7);
+                            int32 bpDamage = int32(ApplyPct(dmgPastSecs, triggerAmount) / 7);
+                            int32 dmgThreshold = int32(this->ToPlayer()->GetBaseSpellPowerBonus() * 1.4f / 7);
+
+                            basepoints0 = bpDamage > dmgThreshold ? dmgThreshold : bpDamage;
+                            triggered_spell_id = 85421;
+                        }
+                    }
+                    break;
+                }
                 // Glyph of Shadowflame
                 case 63310:
                 {
@@ -6724,6 +6770,36 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+               // Venomous Wounds
+               case 79133:
+               case 79134:
+                   if (procSpell->Id == 1943 || procSpell->Id == 703)
+                   {
+                       if (Player* caster = ToPlayer())
+                       {
+                           if (!caster->HasSpellCooldown(79136))
+                           {
+                               caster->CastSpell(target, 79136, false);
+                               int32 bp0 = 10;
+                               caster->CastCustomSpell(caster, 51637, &bp0, 0, 0, false, 0, 0, caster->GetGUID());
+                               caster->AddSpellCooldown(79136, 0, time(NULL)+1);
+                           }
+                       }
+                   }
+                   break;
+                // Honor Among Thieves
+                case 51698:
+                case 51700:
+                case 51701:
+                    if (Unit* caster = triggeredByAura->GetCaster())
+                    {
+                        if (!caster->ToPlayer())
+                            return false;
+
+                        caster->CastSpell(caster->ToPlayer()->GetSelectedUnit(), 51699, true);
+                        return true;
+                    }
+                    break;
                 // Main gauche Combat Rogue Mastery 
                 case 76806:
                     if (Player* caster = ToPlayer())
@@ -8008,8 +8084,22 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
                 // Gouge
                 case 1776:
                     *handled = true;
-                    if(procSpell && procSpell->Id == 1776)
-                        return false;
+                    if(procSpell)
+                    {
+                        if (procSpell->Id == 1776)
+                            return false;
+
+                        // Sanguinary veins
+                        if (triggeredByAura->GetCaster())
+                        {
+                            if (AuraEffect* aurEff = triggeredByAura->GetCaster()->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 4821, EFFECT_1))
+                            {
+                                if (procSpell->Mechanic == MECHANIC_BLEED)
+                                    if (roll_chance_i(aurEff->GetAmount()))
+                                        return false;
+                            }
+                        }
+                    }
                     return true;
                     break;
             }
@@ -10275,6 +10365,17 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 
             switch(spellProto->Id)
             {
+                // Fire and Brimstone
+                case 29722:
+                case 50796:
+                    if(AuraEffect* aurEff = this->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 3173, EFFECT_0))
+                    {
+                        if(victim->HasAuraState(AURA_STATE_CONFLAGRATE))
+                        {
+                            AddPct(DoneTotalMod, aurEff->GetAmount());
+                        }
+                    }
+                    break;
                 // Conflagrate
                 case 17962:
                     if(AuraEffect* aurEff = victim->GetAuraEffect(348, EFFECT_2, this->GetGUID()))
@@ -10302,19 +10403,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                     }
                     break;
             }
-
-            // Fire and Brimstone
-            if (spellProto->SpellFamilyFlags[1] & 0x00020040)
-                if (victim->HasAuraState(AURA_STATE_CONFLAGRATE))
-                {
-                    AuraEffectList const& mDumyAuras = GetAuraEffectsByType(SPELL_AURA_DUMMY);
-                    for (AuraEffectList::const_iterator i = mDumyAuras.begin(); i != mDumyAuras.end(); ++i)
-                        if ((*i)->GetSpellInfo()->SpellIconID == 3173)
-                        {
-                            AddPct(DoneTotalMod, (*i)->GetAmount());
-                            break;
-                        }
-                }
 
             // Shadow Bite (30% increase from each dot)
             if (spellProto->SpellFamilyFlags[1] & 0x00400000 && isPet())

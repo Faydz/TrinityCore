@@ -3144,21 +3144,33 @@ public:
 
     struct npc_flaming_orbAI : public ScriptedAI
     {
-       npc_flaming_orbAI(Creature* c) : ScriptedAI(c) 
-       {
-           me->SetReactState(REACT_PASSIVE);
-       }
+        npc_flaming_orbAI(Creature* c) : ScriptedAI(c) 
+        {
+            me->SetReactState(REACT_PASSIVE);
+        }
 
-       uint32 checkTimer;
+        uint32 checkTimer;
+        uint32 damageTimer;
+        uint32 despawnTimer;
+        bool combat;
+        uint32 damagespellid;
+        uint32 visualspellid;
+        bool explo;
 
-       void Reset()
-       {
-            me->SetSpeed(MOVE_WALK, 1.0f, true);
-            me->SetSpeed(MOVE_RUN, 1.0f, true);
-            me->SetSpeed(MOVE_FLIGHT, 1.0f, true);
+        void Reset()
+        {
+            me->SetSpeed(MOVE_WALK, 1.3f, true);
+            me->SetSpeed(MOVE_RUN, 1.3f, true);
+            me->SetSpeed(MOVE_FLIGHT, 1.3f, true);
+            combat = false;
+            explo = false;
 
             float ownerOrientation = 0.0f;
-            checkTimer = 1000;
+            checkTimer = 500;
+            damageTimer = 1000;
+            despawnTimer =15000;
+            damagespellid = 82739;
+            visualspellid = 86719;
 
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
             me->AddUnitMovementFlag(MOVEMENTFLAG_FLYING);
@@ -3167,34 +3179,71 @@ public:
             if (Unit* summoner = me->GetOwner())
             {
                 // Add Periodic Damage Aura
-                me->CastSpell(me, 57750, me, 0, 0, summoner->GetGUID());
+                //me->CastSpell(me, 57750, me, 0, 0, summoner->GetGUID());
                 me->SetLevel(summoner->getLevel());
                 ownerOrientation = summoner->GetOrientation();
-                me->GetMotionMaster()->MovePoint(0, me->GetPositionX() + 120 / 2 * cos(ownerOrientation), me->GetPositionY() + 120 / 2 * sin(ownerOrientation), me->GetPositionZ());
+                me->NearTeleportTo(summoner->GetPositionX(), summoner->GetPositionY(), (summoner->GetPositionZ() +2), ownerOrientation, true);
+                me->GetMotionMaster()->MovePoint(0, me->GetPositionX() + 120 / 2 * cos(ownerOrientation), me->GetPositionY() + 120 / 2 * sin(ownerOrientation), (me->GetPositionZ()+2));
+                //the frostfire orb talent will change the damage spell of the orb
+                if (AuraEffect* frostfire =summoner->GetAuraEffect(SPELL_AURA_OVERRIDE_ACTIONBAR_SPELLS, SPELLFAMILY_MAGE, 4650, EFFECT_1)){
+                    damagespellid = 95969;
+                    if (frostfire->GetId() == 84727)
+                        damagespellid = 84721;
+                }
+                //this will choose if the flame orb will explode because of the talent fire power
+                if(AuraEffect* firepower =summoner->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_MAGE, 31, EFFECT_0)){
+                    if (firepower->GetId() == 18460 && roll_chance_i(33))
+                        return;
+                    else if (firepower->GetId() == 18459 && roll_chance_i(66))
+                        return;
+                    explo = true;
+                }
             }
-       }
+        }
 
-       void UpdateAI(const uint32 diff)
-       {
-           if (checkTimer <= diff)
-           {
-               if (me->isInCombat())
-               {
-                    me->SetSpeed(MOVE_WALK, 0.3f, true);
-                    me->SetSpeed(MOVE_RUN, 0.3f, true);
-                    me->SetSpeed(MOVE_FLIGHT, 0.3f, true);
-               }else
-                   checkTimer = 1000;
-           }else
-               checkTimer -= diff;
-       }
+        void UpdateAI(const uint32 diff)
+        {
+            if (checkTimer <= diff)
+            {
+                if (me->isInCombat() && !combat){
+                    me->AddAura(82736, me);
+                }
+                checkTimer = 500;
+            }
+            else
+                checkTimer -= diff;
 
+            if (damageTimer <= diff){
+                Unit* target = me->SelectNearestTarget(20);
+                if (me->GetOwner() && target){
+                    me->CastSpell(target, damagespellid, me, 0, 0, me->GetOwner()->GetGUID());
+                    me->CastSpell(target, visualspellid);
+                }
+                else{
+                    me->CastSpell(target, damagespellid);
+                    me->CastSpell(target, visualspellid);
+                }
+                damageTimer = 1000; 
+            }
+            else
+                damageTimer-= diff;
+
+            if (despawnTimer <=diff){
+                if (explo && me->GetOwner()){
+                    Unit* target = me->SelectNearestTarget(20);
+                    if (target)
+                        me->CastSpell(target, 83619, me, 0, 0, me->GetOwner()->GetGUID());
+                }
+                me->DisappearAndDie();
+            }
+            else
+                despawnTimer -=diff;
+        }
+        CreatureAI* GetAI(Creature* creature) const
+        {
+            return new npc_flaming_orbAI(creature);
+        }
     };
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-       return new npc_flaming_orbAI(creature);
-    }
 };
 
 void AddSC_npcs_special()

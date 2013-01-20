@@ -390,6 +390,27 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             case SPELLFAMILY_WARLOCK:
                 switch (m_spellInfo->Id)
                 {
+                    // Firebolt (basic attack)
+                    case 3110:
+                        if(m_caster && m_caster->isPet() && m_caster->ToPet()->GetOwner())
+                        {
+                            Unit* creator = m_caster->ToPet()->GetOwner();
+
+                            if(AuraEffect* aurEff = creator->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 5116, EFFECT_0))
+                            {
+                                if(creator->ToPlayer() &&  effIndex == EFFECT_0)
+                                {
+                                    int32 dmgDonePast = creator->GetDamageDoneInPastSecs(7);
+                                    int32 bpDamage = int32(ApplyPct(dmgDonePast, aurEff->GetAmount()) / 7);
+                                    int32 dmgThreshold = int32(creator->ToPlayer()->GetBaseSpellPowerBonus() * 1.4f / 7);
+                                    int32 bp0 = bpDamage > dmgThreshold ? dmgThreshold : bpDamage;
+
+                                    // Burning Embers
+                                    creator->CastCustomSpell(unitTarget, 85421, &bp0, NULL, NULL, true);
+                                }
+                            }
+                        }
+                        break;
                     // Soul Fire
                     case 6353:
                         if(m_caster)
@@ -560,6 +581,16 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                             // Eviscerate and Envenom Bonus Damage (item set effect)
                             if (m_caster->HasAura(37169))
                                 damage += combo*40;
+                        }
+                    }
+
+                    // Serrated Blades
+                    if (unitTarget->HasAura(1943))
+                    {
+                        if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_ROGUE, 2004, 0))
+                        {
+                            if (roll_chance_i(aurEff->GetAmount()))
+                                unitTarget->GetAura(1943)->RefreshDuration();
                         }
                     }
                 }
@@ -3237,6 +3268,20 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             else if (m_spellInfo->Id == 1752)
             if (m_caster->GetTypeId() == TYPEID_PLAYER && m_caster->ToPlayer()->HasAura(56821) && roll_chance_i(20) )
                  m_caster->ToPlayer()->AddComboPoints(unitTarget, 1, this);
+
+            // Backstab
+            if (m_spellInfo->Id == 53)
+            {
+                // Murderous Intent 
+                if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_ROGUE, 134, 0))
+                {
+                    if (unitTarget->HealthBelowPct(35))
+                    {
+                        int32 bp0 = aurEff->GetAmount();
+                        m_caster->CastCustomSpell(m_caster, 79132, &bp0, NULL, NULL, true);
+                    }
+                }
+            }
             break;
         }
         case SPELLFAMILY_SHAMAN:
@@ -3582,6 +3627,20 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     Unit::AuraEffectList const& dotList = stunned->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
                     if (unitTarget->GetGUID() !=  stunned->GetGUID())
                     {
+                        Unit* nearby = m_caster->SelectNearbyTarget(unitTarget, 15.0f);
+                        if (nearby && nearby->GetGUID() !=  stunned->GetGUID())
+                        {     // Hackfix to give pyromaniac if impact share dots between at least 3 targets
+                            if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_MAGE, 2128, 0))
+                            {
+                                int32 bh=10;
+                                if (aurEff->GetId() == 34293)
+                                    bh=5;
+                                m_caster->CastCustomSpell(m_caster, 83582, &bh, NULL, NULL, true);
+                                if(m_caster->GetAura(83582)){
+                                    m_caster->GetAura(83582)->SetDuration(10000);
+                                }
+                            }
+                        }
                         for (Unit::AuraEffectList::const_iterator itr = dotList.begin(); itr != dotList.end(); ++itr)
                         {
                             if (!(*itr) || !(*itr)->GetBase() ||!(*itr)->GetBase()->GetSpellInfo()){
@@ -3592,6 +3651,9 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                                 uint32 dur = (*itr)->GetBase()->GetDuration();
                                 uint32 ids = (*itr)->GetId();
                                 int32 dam = (*itr)->GetAmount();
+                                if (ids == 11366) //only cast the dot from pyroblast
+                                    m_caster->AddAura(ids, unitTarget);
+                                else
                                 m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
                                 if (unitTarget->GetAura(ids)){        //this should prevent crashing if target was immune to the casting
                                     unitTarget->GetAura(ids)->SetDuration(dur);

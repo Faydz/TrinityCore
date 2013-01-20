@@ -2959,6 +2959,9 @@ void SpellMgr::LoadSpellCustomAttr()
             case 85768: // Dark Intent self
                 spellInfo->SpellFamilyName = SPELLFAMILY_WARLOCK;
                 break;
+            case 51698: // Honor Among Thieves
+                spellInfo->SpellFamilyName = SPELLFAMILY_ROGUE;
+                break;
             default:
                 break;
         }
@@ -2968,6 +2971,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Warlock's armor basepoint for nether ward
+                    case 687:
+                    case 28176:
+                        spellInfo->Effects[EFFECT_2].BasePoints = 91711;
+                        break;
                     // Improved Corruption
                     case 17810:
                     case 17811:
@@ -3674,9 +3682,6 @@ void SpellMgr::LoadSpellInfoCorrections()
             case 75323: // Reverberating Hymn
                 // Aura is refreshed at 3 seconds, and the tick should happen at the fourth.
                 spellInfo->AttributesEx8 |= SPELL_ATTR8_DONT_RESET_PERIODIC_TIMER;
-                break;
-            case 12355: // impact range
-                spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_12_YARDS);
                 break;
             default:
                 break;

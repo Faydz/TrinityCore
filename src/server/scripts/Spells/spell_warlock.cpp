@@ -54,6 +54,7 @@ enum WarlockSpells
     WARLOCK_LIFE_TAP_ENERGIZE               = 31818,
     WARLOCK_LIFE_TAP_ENERGIZE_2             = 32553,
     WARLOCK_MANA_FEED_ICON_ID               = 1982,
+    WARLOCK_NETHER_WARD                     = 91713,
     WARLOCK_SOUL_SHARD_ENERGIZE             = 87388,
     WARLOCK_SOUL_SWAP_COOLDOWN              = 94229,
     WARLOCK_SOUL_SWAP_GLYPH                 = 56226,
@@ -66,6 +67,36 @@ enum WarlockSpells
 };
 
 bool _SeedOfCorruptionFlag = false;
+
+// 687/28176 - spell_warl_armor_nether_ward_ignore
+class spell_warl_armor_nether_ward_ignore: public SpellScriptLoader 
+{
+public:
+    spell_warl_armor_nether_ward_ignore() : SpellScriptLoader("spell_warl_armor_nether_ward_ignore") { }
+
+    class spell_warl_armor_nether_ward_ignore_SpellScript: public SpellScript
+    {
+        PrepareSpellScript(spell_warl_armor_nether_ward_ignore_SpellScript);
+
+        void HandleOverrideEffect(SpellEffIndex effIndex) 
+        {
+            if(GetCaster() && !GetCaster()->HasAura(WARLOCK_NETHER_WARD))
+            {
+                PreventHitAura();
+            }
+        }
+
+        void Register()
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_warl_armor_nether_ward_ignore_SpellScript::HandleOverrideEffect, EFFECT_2, SPELL_EFFECT_APPLY_AURA);
+        }
+    };
+
+    SpellScript* GetSpellScript() const 
+    {
+        return new spell_warl_armor_nether_ward_ignore_SpellScript();
+    }
+};
 
 // 77799 - spell_warl_fel_flame
 class spell_warl_fel_flame: public SpellScriptLoader 
@@ -1166,6 +1197,7 @@ public:
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_armor_nether_ward_ignore();
     new spell_warl_fel_flame();
     new spell_warl_incinerate();
     new spell_warl_curse_of_the_elements();
