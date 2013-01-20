@@ -6742,6 +6742,23 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+               // Venomous Wounds
+               case 79133:
+               case 79134:
+                   if (procSpell->Id == 1943 || procSpell->Id == 703)
+                   {
+                       if (Player* caster = ToPlayer())
+                       {
+                           if (!caster->HasSpellCooldown(79136))
+                           {
+                               caster->CastSpell(target, 79136, false);
+                               int32 bp0 = 10;
+                               caster->CastCustomSpell(caster, 51637, &bp0, 0, 0, false, 0, 0, caster->GetGUID());
+                               caster->AddSpellCooldown(79136, 0, time(NULL)+1);
+                           }
+                       }
+                   }
+                   break;
                 // Honor Among Thieves
                 case 51698:
                 case 51700:
