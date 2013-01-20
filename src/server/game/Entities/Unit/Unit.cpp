@@ -6060,18 +6060,18 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 triggeredByAura->SetAmount(triggeredByAura->GetAmount() - damage);
                 return true;
             }
-            // Fel Synergy
-            if (dummySpell->SpellIconID == 3222)
-            {
-                target = GetGuardianPet();
-                if (!target)
-                    return false;
-                basepoints0 = CalculatePct(int32(damage), triggerAmount);
-                triggered_spell_id = 54181;
-                break;
-            }
             switch (dummySpell->Id)
             {
+                // Fel Synergy
+                case 47230:
+                case 47231:
+                    target = GetGuardianPet();
+                    if (!target)
+                        return false;
+
+                    basepoints0 = CalculatePct(int32(damage), triggerAmount);
+                    triggered_spell_id = 54181;
+                    break;
                 // Bane of Havoc track spell
                 case 85466:
                     if (!victim)
