@@ -178,6 +178,55 @@ class spell_mage_blast_wave : public SpellScriptLoader
         }
 };
 
+class spell_pyromaniac : public SpellScriptLoader
+{
+    public:
+        spell_pyromaniac() : SpellScriptLoader("spell_pyromaniac") { }
+
+        class spell_pyromaniac_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_pyromaniac_SpellScript);
+
+            /*bool Validate(SpellInfo const* /*spellEntry* /)
+            {
+                if (!sSpellMgr->GetSpellInfo(11355) && !sSpellMgr->GetSpellInfo(2120))
+                    return false;
+                return true;
+            } */
+
+            void CountTargets(std::list<WorldObject*>& targetList)
+            {
+                _targetCount = targetList.size();
+                if (_targetCount >= 3 && GetCaster() && GetCaster()->ToPlayer()){
+                    if (AuraEffect* aurEff = GetCaster()->GetDummyAuraEffect(SPELLFAMILY_MAGE, 2128, 0))
+                    {
+                        Player* player = GetCaster()->ToPlayer();
+                        int32 bh=10;
+                        if (aurEff->GetId() == 34293)
+                            bh=5;
+                        player->CastCustomSpell(player, 83582, &bh, NULL, NULL, true);
+                        if(player->GetAura(83582)){
+                            player->GetAura(83582)->SetDuration(10000);
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pyromaniac_SpellScript::CountTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENEMY);
+            }
+
+        private:
+            uint32 _targetCount;
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pyromaniac_SpellScript();
+        }
+};
+
 class spell_mage_cold_snap : public SpellScriptLoader
 {
     public:
@@ -871,6 +920,7 @@ void AddSC_mage_spell_scripts()
 {
     new spell_mage_arcane_blast();
     new spell_mage_blast_wave();
+    new spell_pyromaniac();
     new spell_mage_cold_snap();
     new spell_mage_cone_of_cold();
     new spell_mage_conjure_refreshment();
