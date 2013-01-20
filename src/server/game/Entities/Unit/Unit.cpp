@@ -10293,6 +10293,17 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 
             switch(spellProto->Id)
             {
+                // Fire and Brimstone
+                case 29722:
+                case 50796:
+                    if(AuraEffect* aurEff = this->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 3173, EFFECT_0))
+                    {
+                        if(victim->HasAuraState(AURA_STATE_CONFLAGRATE))
+                        {
+                            AddPct(DoneTotalMod, aurEff->GetAmount());
+                        }
+                    }
+                    break;
                 // Conflagrate
                 case 17962:
                     if(AuraEffect* aurEff = victim->GetAuraEffect(348, EFFECT_2, this->GetGUID()))
@@ -10320,19 +10331,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                     }
                     break;
             }
-
-            // Fire and Brimstone
-            if (spellProto->SpellFamilyFlags[1] & 0x00020040)
-                if (victim->HasAuraState(AURA_STATE_CONFLAGRATE))
-                {
-                    AuraEffectList const& mDumyAuras = GetAuraEffectsByType(SPELL_AURA_DUMMY);
-                    for (AuraEffectList::const_iterator i = mDumyAuras.begin(); i != mDumyAuras.end(); ++i)
-                        if ((*i)->GetSpellInfo()->SpellIconID == 3173)
-                        {
-                            AddPct(DoneTotalMod, (*i)->GetAmount());
-                            break;
-                        }
-                }
 
             // Shadow Bite (30% increase from each dot)
             if (spellProto->SpellFamilyFlags[1] & 0x00400000 && isPet())

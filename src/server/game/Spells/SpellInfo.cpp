@@ -1876,9 +1876,7 @@ AuraStateType SpellInfo::GetAuraState() const
     // Conflagrate aura state on Immolate and Shadowflame
     if (SpellFamilyName == SPELLFAMILY_WARLOCK &&
         // Immolate
-        ((SpellFamilyFlags[0] & 4) ||
-        // Shadowflame
-        (SpellFamilyFlags[2] & 2)))
+        ((SpellFamilyFlags[0] & 4)))
         return AURA_STATE_CONFLAGRATE;
 
     // Faerie Fire (druid versions)
