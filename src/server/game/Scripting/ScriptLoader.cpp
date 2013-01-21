@@ -606,13 +606,20 @@ void AddSC_terokkar_forest();
 void AddSC_zangarmarsh();
 
 // Cataclysm Dungeons and Raids
-//TheStonecore
+// The Stonecore
 void AddSC_the_stonecore();					
 void AddSC_instance_the_stonecore();
 void AddSC_boss_corborus();
 void AddSC_boss_slabhide();
 void AddSC_boss_ozruk();
 void AddSC_boss_high_priestess_azil();
+// Blackrock Caverns
+void AddSC_boss_ascendant_lord_obsidius(); 
+void AddSC_instance_blackrock_caverns();
+void AddSC_boss_romogg_bonecrusher();
+void AddSC_boss_karsh_steelbender();
+void AddSC_boss_corla_herald_of_twilight();
+void AddSC_boss_beauty();
 
 // Events
 void AddSC_event_childrens_week();
@@ -1253,7 +1260,13 @@ void AddNorthrendScripts()
     AddSC_boss_corborus();
     AddSC_boss_slabhide();
     AddSC_boss_ozruk();
-    AddSC_boss_high_priestess_azil();
+    AddSC_boss_high_priestess_azil();   
+    AddSC_boss_ascendant_lord_obsidius(); // Blackrock Caverns
+    AddSC_instance_blackrock_caverns();
+    AddSC_boss_romogg_bonecrusher();
+    AddSC_boss_karsh_steelbender();
+    AddSC_boss_corla_herald_of_twilight();
+    AddSC_boss_beauty();
 
     AddSC_dalaran();
     AddSC_borean_tundra();
