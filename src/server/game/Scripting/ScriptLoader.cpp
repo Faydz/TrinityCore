@@ -620,6 +620,13 @@ void AddSC_boss_romogg_bonecrusher();
 void AddSC_boss_karsh_steelbender();
 void AddSC_boss_corla_herald_of_twilight();
 void AddSC_boss_beauty();
+// Lost City of the Tolvir
+void AddSC_lost_city_of_the_tolvir();
+void AddSC_boss_general_husam();
+void AddSC_boss_high_prophet_barim();
+void AddSC_boss_lockmaw();
+void AddSC_boss_siamat();
+void AddSC_instance_lost_city_of_the_tolvir();
 
 // Events
 void AddSC_event_childrens_week();
@@ -1267,6 +1274,12 @@ void AddNorthrendScripts()
     AddSC_boss_karsh_steelbender();
     AddSC_boss_corla_herald_of_twilight();
     AddSC_boss_beauty();
+    AddSC_lost_city_of_the_tolvir();  // Lost City of the Tolvir
+    AddSC_boss_general_husam();
+    AddSC_boss_high_prophet_barim();
+    AddSC_boss_lockmaw();
+    AddSC_boss_siamat();
+    AddSC_instance_lost_city_of_the_tolvir();
 
     AddSC_dalaran();
     AddSC_borean_tundra();
