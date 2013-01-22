@@ -630,6 +630,20 @@ void AddSC_boss_high_prophet_barim();
 void AddSC_boss_lockmaw();
 void AddSC_boss_siamat();
 void AddSC_instance_lost_city_of_the_tolvir();
+// Vortex Pinnacle
+void AddSC_boss_altairus();           
+void AddSC_boss_asaad();
+void AddSC_boss_grand_vizier_ertan();
+void AddSC_vortex_pinnacle();
+void AddSC_instance_vortex_pinnacle();
+//Throne of the Tides
+void AddSC_instance_throne_of_the_tides();	
+void AddSC_boss_commander_ulthok();
+void AddSC_boss_erunak_stonespeaker();
+void AddSC_throne_of_the_tides();
+void AddSC_boss_lady_nazjar();
+void AddSC_ozumat();
+void AddSC_mob_trash_throne_of_tides();
 
 // Events
 void AddSC_event_childrens_week();
@@ -1286,6 +1300,18 @@ void AddNorthrendScripts()
     AddSC_boss_lockmaw();
     AddSC_boss_siamat();
     AddSC_instance_lost_city_of_the_tolvir();
+	AddSC_instance_throne_of_the_tides(); //Throne of the Tides
+    AddSC_boss_commander_ulthok();
+    AddSC_throne_of_the_tides();
+    AddSC_boss_erunak_stonespeaker();
+    AddSC_boss_lady_nazjar();
+    AddSC_ozumat();
+	AddSC_mob_trash_throne_of_tides();
+	AddSC_boss_altairus();                  //Vortex Pinnacle
+    AddSC_boss_asaad();
+    AddSC_boss_grand_vizier_ertan();
+    AddSC_vortex_pinnacle();
+    AddSC_instance_vortex_pinnacle();
 
     AddSC_dalaran();
     AddSC_borean_tundra();
