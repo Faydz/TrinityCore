@@ -28,10 +28,6 @@
 
 enum WarlockSpells
 {
-	SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1       = 18703,
-    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R2       = 18704,
-    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1  = 60955,
-    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2  = 60956,
     SPELL_WARLOCK_CORRUPTION                      = 172,
     SPELL_WARLOCK_BANE_OF_DOOM_EFFECT               = 18662,
     SPELL_WARLOCK_DEMONIC_CIRCLE_SUMMON             = 48018,
@@ -49,6 +45,10 @@ enum WarlockSpells
     SPELL_WARLOCK_LIFE_TAP_ENERGIZE                 = 31818,
     SPELL_WARLOCK_LIFE_TAP_ENERGIZE_2               = 32553,
     SPELL_WARLOCK_SOULSHATTER                       = 32835,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1  = 60955,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2  = 60956,
+	SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1       = 18703,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R2       = 18704,
     SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R1         = 18692,
 	SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R2         = 18693,
     SPELL_WARLOCK_IMPROVED_LIFE_TAP_ICON_ID       = 208,
@@ -828,7 +828,11 @@ class spell_warl_demonic_empowerment : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellInfo*/)
             {
-                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_IMP))
+                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS) 
+                    || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER) 
+                    || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD) 
+                    || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER) 
+                    || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_IMP))
                     return false;
                 return true;
             }
@@ -984,27 +988,36 @@ public:
         void ApplyEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
             Unit* caster = GetCaster();
-            if (!caster)
+            Unit* target = GetTarget();
+
+            if (!caster || !target)
                 return;
  
-            Unit* target = GetTarget();
             if (caster->HasAura(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R2))
-                target->CastSpell(target, SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2, true);
+            {
+                target->AddAura(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2, target);
+            }
             else if (caster->HasAura(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1))
-                target->CastSpell(target, SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1, true);
+            {
+                target->AddAura(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1, target);
+            }
         }
  
         void RemoveEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
             Unit* target = GetTarget();
+            
+            if(!target)
+                return;
+
             target->RemoveAurasDueToSpell(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1);
             target->RemoveAurasDueToSpell(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2);
         }
  
         void Register()
         {
-            OnEffectRemove += AuraEffectRemoveFn(spell_warl_health_funnel_AuraScript::RemoveEffect, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
-            OnEffectApply += AuraEffectApplyFn(spell_warl_health_funnel_AuraScript::ApplyEffect, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
+            OnEffectApply += AuraEffectApplyFn(spell_warl_health_funnel_AuraScript::ApplyEffect, EFFECT_0, SPELL_AURA_OBS_MOD_HEALTH, AURA_EFFECT_HANDLE_REAL);
+            OnEffectRemove += AuraEffectRemoveFn(spell_warl_health_funnel_AuraScript::RemoveEffect, EFFECT_0, SPELL_AURA_OBS_MOD_HEALTH, AURA_EFFECT_HANDLE_REAL);
         }
     };
  
@@ -1013,6 +1026,7 @@ public:
         return new spell_warl_health_funnel_AuraScript();
     }
 };
+
 // 1454 - Life Tap
 /// Updated 4.3.4
 class spell_warl_life_tap : public SpellScriptLoader
