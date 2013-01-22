@@ -214,6 +214,14 @@ set(scripts_STAT_SRCS
   EasternKingdoms/BlackrockCaverns/boss_karsh_steelbender.cpp
   EasternKingdoms/BlackrockCaverns/boss_romogg_bonecrusher.cpp
   EasternKingdoms/BlackrockCaverns/instance_blackrock_caverns.cpp
+  EasternKingdoms/ThroneOfTheTides/throne_of_the_tides.h
+  EasternKingdoms/ThroneOfTheTides/throne_of_the_tides.cpp
+  EasternKingdoms/ThroneOfTheTides/instance_throne_of_the_tides.cpp
+  EasternKingdoms/ThroneOfTheTides/mob_trash_throne_of_the_tides.cpp
+  EasternKingdoms/ThroneOfTheTides/boss_commander_ulthok.cpp
+  EasternKingdoms/ThroneOfTheTides/boss_lady_nazjar.cpp
+  EasternKingdoms/ThroneOfTheTides/boss_mindbender_ghursha.cpp
+  EasternKingdoms/ThroneOfTheTides/boss_ozumat.cpp
 
 )
 
