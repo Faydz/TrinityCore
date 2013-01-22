@@ -126,7 +126,12 @@ set(scripts_STAT_SRCS
   Kalimdor/LostCityOfTheTolvir/boss_siamat.cpp
   Kalimdor/LostCityOfTheTolvir/lost_city_of_the_tolvir.cpp
   Kalimdor/LostCityOfTheTolvir/instance_lost_city_of_the_tolvir.cpp
-
+  Kalimdor/TheVortexPinnacle/vortex_pinnacle.h
+  Kalimdor/TheVortexPinnacle/vortex_pinnacle.cpp
+  Kalimdor/TheVortexPinnacle/instance_vortex_pinnacle.cpp
+  Kalimdor/TheVortexPinnacle/boss_altairus.cpp
+  Kalimdor/TheVortexPinnacle/boss_asaad.cpp
+  Kalimdor/TheVortexPinnacle/boss_grand_vizier_ertan.cpp
 )
 
 message("  -> Prepared: Kalimdor")
