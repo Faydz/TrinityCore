@@ -1206,14 +1206,8 @@ void AddSC_warlock_spell_scripts()
     new spell_warl_life_tap();
     new spell_warl_demonic_circle_summon();
     new spell_warl_demonic_circle_teleport();
-    new spell_warl_demonic_empowerment();
-    new spell_warl_everlasting_affliction();
     new spell_warl_haunt();
     new spell_warl_unstable_affliction();
     new spell_warl_bane_of_doom();
     new spell_warl_health_funnel();
-    new spell_warl_life_tap();
-    new spell_warl_seed_of_corruption();
-    new spell_warl_soulshatter();
-    new spell_warl_unstable_affliction();
 }
