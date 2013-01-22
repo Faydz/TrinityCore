@@ -6062,6 +6062,13 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
+                // Fel Armor
+                case 28176:
+                {
+                    int32 bp0 = int32(damage * triggerAmount / 100);
+                    CastCustomSpell(this, 96379, &bp0, NULL, NULL, true);
+                    return true;
+                }
                 // Fel Synergy
                 case 47230:
                 case 47231:

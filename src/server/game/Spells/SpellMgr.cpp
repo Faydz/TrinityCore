@@ -2954,7 +2954,7 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_RESI;
                 break;
             case 85767: // Dark Intent target
-                spellInfo->SpellFamilyName = SPELLFAMILY_GENERIC;;
+                spellInfo->SpellFamilyName = SPELLFAMILY_GENERIC;
                 break;
             case 85768: // Dark Intent self
                 spellInfo->SpellFamilyName = SPELLFAMILY_WARLOCK;
@@ -2975,6 +2975,12 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Fel Armor
+                    case 28176:
+                        //These two info are necessary for making the aura SPELL_AURA_MOD_DAMAGE_DONE to work
+                        spellInfo->EquippedItemClass = -1;
+                        spellInfo->EquippedItemInventoryTypeMask = 0;
+                        break;
                     // Improved Corruption
                     case 17810:
                     case 17811:
