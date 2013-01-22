@@ -6062,6 +6062,30 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
+                // Impending Doom
+                case 85106:
+                case 85107:
+                case 85108:
+                    if(Player* caster = this->ToPlayer())
+                    {
+                        if(caster->HasSpellCooldown(47241))
+                        {
+                            uint32 newCooldownDelay = caster->GetSpellCooldownDelay(47241);
+                            if (newCooldownDelay <= 15)
+                                newCooldownDelay = 0;
+                            else
+                                newCooldownDelay -= 15;
+                            
+                            caster->AddSpellCooldown(47241, 0, uint32(time(NULL) + newCooldownDelay));
+                            
+                            WorldPacket data(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
+                            data << uint32(47241);                      // Spell ID
+                            data << uint64(GetGUID());                  // Player GUID
+                            data << int32(-15000);                      // Cooldown mod in milliseconds
+                            caster->GetSession()->SendPacket(&data);
+                        }
+                    }
+                    break;
                 // Fel Armor
                 case 28176:
                 {

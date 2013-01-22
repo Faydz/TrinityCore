@@ -2975,6 +2975,12 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Impending Doom (rank 2/3)
+                    case 85107:
+                    case 85108:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
+                        break;
                     // Fel Armor
                     case 28176:
                         //These two info are necessary for making the aura SPELL_AURA_MOD_DAMAGE_DONE to work
