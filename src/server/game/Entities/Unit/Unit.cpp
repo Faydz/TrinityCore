@@ -10498,10 +10498,23 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                     victim->RemoveAura(84617);
                 }
                 
+               // Mastery Assassination (Potent Poisons)
+               if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
+                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
+                       DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints() / 100;
+
                // Mastery Subtlety Executione
                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_ROGUE_SUBTLETY)
-                       DoneTotalMod *= 1.0f + 2.5f * owner->ToPlayer()->GetMasteryPoints() / 100;
+                       DoneTotalMod *= 1.0f + 0.025f * owner->ToPlayer()->GetMasteryPoints() / 100;
+            }
+            // Venomous wounds
+            if (spellProto->Id == 79136)
+            {
+                // Mastery Assassination (Potent Poisons)
+                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
+                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
+                        DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints() / 100;
             }
             // Rogue assasination mastery (instant poison)
             if (spellProto->Id == 8680)
