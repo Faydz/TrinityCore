@@ -28,6 +28,10 @@
 
 enum WarlockSpells
 {
+	WARLOCK_IMPROVED_HEALTH_FUNNEL_R1       = 18703,
+    WARLOCK_IMPROVED_HEALTH_FUNNEL_R2       = 18704,
+    WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1  = 60955,
+    WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2  = 60956,
     WARLOCK_BANE_OF_DOOM_EFFECT             = 18662,
     WARLOCK_CORRUPTION                      = 172,
     WARLOCK_DEMONIC_CIRCLE_ALLOW_CAST       = 62388,
@@ -57,13 +61,13 @@ enum WarlockSpells
     SPELL_WARLOCK_LIFE_TAP_ENERGIZE                 = 31818,
     SPELL_WARLOCK_LIFE_TAP_ENERGIZE_2               = 32553,
     SPELL_WARLOCK_SOULSHATTER                       = 32835,
-    SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117
+    SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117,
     WARLOCK_IMPROVED_HEALTHSTONE_R1         = 18692,
     WARLOCK_IMPROVED_HEALTHSTONE_R2         = 18693,
     WARLOCK_IMPROVED_LIFE_TAP_ICON_ID       = 208,
     WARLOCK_JINX_R1                         = 85541,
     WARLOCK_JINX_R2                         = 86105,
-    WARLOCK_ICON_ID_MANA_FEED                       = 1982
+    WARLOCK_ICON_ID_MANA_FEED                       = 1982,
     WARLOCK_LIFE_TAP_ENERGIZE               = 31818,
     WARLOCK_LIFE_TAP_ENERGIZE_2             = 32553,
     WARLOCK_MANA_FEED_ICON_ID               = 1982,
@@ -582,7 +586,7 @@ class spell_warl_create_healthstone : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellInfo*/)
             {
-                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R1) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R2))
+                if (!sSpellMgr->GetSpellInfo(WARLOCK_IMPROVED_HEALTHSTONE_R1) || !sSpellMgr->GetSpellInfo(WARLOCK_IMPROVED_HEALTHSTONE_R2))
                     return false;
                 return true;
             }
@@ -610,10 +614,10 @@ class spell_warl_create_healthstone : public SpellScriptLoader
                     {
                         switch (aurEff->GetId())
                         {
-                            case SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R1:
+                            case WARLOCK_IMPROVED_HEALTHSTONE_R1:
                                 rank = 1;
                                 break;
-                            case SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R2:
+                            case WARLOCK_IMPROVED_HEALTHSTONE_R2:
                                 rank = 2;
                                 break;
                             default:
@@ -652,28 +656,7 @@ uint32 const spell_warl_create_healthstone::spell_warl_create_healthstone_SpellS
     {36892, 36893, 36894}               // Fel Healthstone
 };
 
-// 603 - Bane of Doom
-/// Updated 4.3.4
-class spell_warl_bane_of_doom : public SpellScriptLoader
-{
-    public:
-        spell_warl_bane_of_doom() : SpellScriptLoader("spell_warl_bane_of_doom") { }
 
-        class spell_warl_curse_of_doom_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_warl_curse_of_doom_AuraScript);
-
-            bool Validate(SpellInfo const* /*spellInfo*/)
-            {
-                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_BANE_OF_DOOM_EFFECT))
-                    return false;
-                return true;
-            }
-
-            bool Load()
-            {
-                return GetCaster() && GetCaster()->GetTypeId() == TYPEID_PLAYER;
-            }
 
 // 27243 Seed of Corruption dot
 class spell_warl_seed_of_corruption_dot : public SpellScriptLoader
@@ -710,48 +693,44 @@ class spell_warl_seed_of_corruption_dot : public SpellScriptLoader
         }
 };
 
+// 603 Bane of Doom
+/// Updated 4.3.4
+class spell_warl_bane_of_doom : public SpellScriptLoader
+{
+    public:
+        spell_warl_bane_of_doom() : SpellScriptLoader("spell_warl_bane_of_doom") { }
+ 
+        class spell_warl_curse_of_doom_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warl_curse_of_doom_AuraScript);
+ 
+            bool Validate(SpellInfo const* /*spell*/)
             {
-                if (!GetCaster())
-                    return;
-
-                AuraRemoveMode removeMode = GetTargetApplication()->GetRemoveMode();
-                if (removeMode != AURA_REMOVE_BY_DEATH || !IsExpired())
-                    return;
-
-                if (GetCaster()->ToPlayer()->isHonorOrXPTarget(GetTarget()))
-                    GetCaster()->CastSpell(GetTarget(), SPELL_WARLOCK_BANE_OF_DOOM_EFFECT, true, NULL, aurEff);
-                if(Unit* caster = GetCaster())
-                {
-                    if(_SeedOfCorruptionFlag)
-                    {
-                        //Resets the flag for the next SoC without soulburn
-                        _SeedOfCorruptionFlag = false;
-
-                        //The detonation is successful, soul shard is refund
-                        caster->CastSpell(caster, WARLOCK_SOUL_SHARD_ENERGIZE, true);
-
-                        //All target of the seed of corruption detonation are affected by corruption
-                        for (std::list<WorldObject*>::iterator iter = targets.begin(); iter != targets.end(); ++iter)
-                        {
-                            if ((*iter))
-                            {
-                                if (Unit* unit = (*iter)->ToUnit())
-                                {
-                                    caster->CastSpell(unit, WARLOCK_CORRUPTION, true);
-                                }
-                            }
-                        }
-                    }
-                }
-
+                if (!sSpellMgr->GetSpellInfo(WARLOCK_BANE_OF_DOOM_EFFECT))
+                    return false;
+                return true;
             }
-
+ 
+            bool Load()
+            {
+                return GetCaster() && GetCaster()->GetTypeId() == TYPEID_PLAYER;
+            }
+ 
+            void HandlePeriodic(AuraEffect const* /*aurEff*/)
+            {
+                if (!GetCaster() || !GetTarget())
+                    return;
+ 
+                if(roll_chance_i(20))
+                    GetCaster()->CastSpell(GetTarget(), WARLOCK_BANE_OF_DOOM_EFFECT, true);
+            }
+ 
             void Register()
             {
-                 AfterEffectRemove += AuraEffectRemoveFn(spell_warl_curse_of_doom_AuraScript::OnRemove, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL);
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_curse_of_doom_AuraScript::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
             }
         };
-
+ 
         AuraScript* GetAuraScript() const
         {
             return new spell_warl_curse_of_doom_AuraScript();
@@ -817,47 +796,35 @@ class spell_warl_demonic_circle_teleport : public SpellScriptLoader
 {
     public:
         spell_warl_demonic_circle_teleport() : SpellScriptLoader("spell_warl_demonic_circle_teleport") { }
-
+ 
         class spell_warl_demonic_circle_teleport_AuraScript : public AuraScript
         {
             PrepareAuraScript(spell_warl_demonic_circle_teleport_AuraScript);
-
+ 
             void HandleTeleport(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
-                return GetCaster()->GetTypeId() == TYPEID_PLAYER;
-            }
-
-            bool Validate(SpellInfo const* /*spell*/)
-            {
-                if (!sSpellMgr->GetSpellInfo(WARLOCK_LIFE_TAP_ENERGIZE) || !sSpellMgr->GetSpellInfo(WARLOCK_LIFE_TAP_ENERGIZE_2))
-                    return false;
-                return true;
-            }
-
-            void HandleDummy(SpellEffIndex /*effIndex*/)
-            {
-                Player* caster = GetCaster()->ToPlayer();
-                if (Unit* target = GetHitUnit())
+                if (Player* player = GetTarget()->ToPlayer())
                 {
-                    if (GameObject* circle = player->GetGameObject(SPELL_WARLOCK_DEMONIC_CIRCLE_SUMMON))
+                    if (GameObject* circle = player->GetGameObject(WARLOCK_DEMONIC_CIRCLE_SUMMON))
                     {
                         player->NearTeleportTo(circle->GetPositionX(), circle->GetPositionY(), circle->GetPositionZ(), circle->GetOrientation());
                         player->RemoveMovementImpairingAuras();
                     }
                 }
             }
-
+ 
             void Register()
             {
                 OnEffectApply += AuraEffectApplyFn(spell_warl_demonic_circle_teleport_AuraScript::HandleTeleport, EFFECT_0, SPELL_AURA_MECHANIC_IMMUNITY, AURA_EFFECT_HANDLE_REAL);
             }
         };
-
+ 
         AuraScript* GetAuraScript() const
         {
             return new spell_warl_demonic_circle_teleport_AuraScript();
         }
 };
+
 
 // 47193 - Demonic Empowerment
 /// Updated 4.3.4
@@ -872,7 +839,7 @@ class spell_warl_demonic_empowerment : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellInfo*/)
             {
-                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_IMP))
+                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER) || !sSpellMgr->GetSpellInfo(WARLOCK_DEMONIC_EMPOWERMENT_IMP))
                     return false;
                 return true;
             }
@@ -903,7 +870,7 @@ class spell_warl_demonic_empowerment : public SpellScriptLoader
                                 targetCreature->CastSpell(targetCreature, SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER, true);
                                 break;
                             case CREATURE_FAMILY_IMP:
-                                targetCreature->CastSpell(targetCreature, SPELL_WARLOCK_DEMONIC_EMPOWERMENT_IMP, true);
+                                targetCreature->CastSpell(targetCreature, WARLOCK_DEMONIC_EMPOWERMENT_IMP, true);
                                 break;
                         }
                     }
@@ -1014,50 +981,49 @@ class spell_warl_haunt : public SpellScriptLoader
         }
 };
 
-// 755 - Health Funnel
+// 755 Health Funnel
 /// Updated 4.3.4
 class spell_warl_health_funnel : public SpellScriptLoader
 {
-    public:
-        spell_warl_health_funnel() : SpellScriptLoader("spell_warl_health_funnel") { }
-
-        class spell_warl_health_funnel_AuraScript : public AuraScript
+public:
+    spell_warl_health_funnel() : SpellScriptLoader("spell_warl_health_funnel") { }
+ 
+    class spell_warl_health_funnel_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_warl_health_funnel_AuraScript);
+ 
+        void ApplyEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
-            PrepareAuraScript(spell_warl_health_funnel_AuraScript);
-
-            void ApplyEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-            {
-                Unit* caster = GetCaster();
-                if (!caster)
-                    return;
-
-                Unit* target = GetTarget();
-                if (caster->HasAura(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R2))
-                    target->CastSpell(target, SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2, true);
-                else if (caster->HasAura(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1))
-                    target->CastSpell(target, SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1, true);
-            }
-
-            void RemoveEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-            {
-                Unit* target = GetTarget();
-                target->RemoveAurasDueToSpell(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1);
-                target->RemoveAurasDueToSpell(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2);
-            }
-
-            void Register()
-            {
-                OnEffectRemove += AuraEffectRemoveFn(spell_warl_health_funnel_AuraScript::RemoveEffect, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
-                OnEffectApply += AuraEffectApplyFn(spell_warl_health_funnel_AuraScript::ApplyEffect, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
-            }
-        };
-
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_warl_health_funnel_AuraScript();
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+ 
+            Unit* target = GetTarget();
+            if (caster->HasAura(WARLOCK_IMPROVED_HEALTH_FUNNEL_R2))
+                target->CastSpell(target, WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2, true);
+            else if (caster->HasAura(WARLOCK_IMPROVED_HEALTH_FUNNEL_R1))
+                target->CastSpell(target, WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1, true);
         }
+ 
+        void RemoveEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* target = GetTarget();
+            target->RemoveAurasDueToSpell(WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1);
+            target->RemoveAurasDueToSpell(WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2);
+        }
+ 
+        void Register()
+        {
+            OnEffectRemove += AuraEffectRemoveFn(spell_warl_health_funnel_AuraScript::RemoveEffect, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
+            OnEffectApply += AuraEffectApplyFn(spell_warl_health_funnel_AuraScript::ApplyEffect, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+ 
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_warl_health_funnel_AuraScript();
+    }
 };
-
 // 1454 - Life Tap
 /// Updated 4.3.4
 class spell_warl_life_tap : public SpellScriptLoader
@@ -1093,7 +1059,7 @@ class spell_warl_life_tap : public SpellScriptLoader
                     target->ModifyHealth(-damage);
 
                     // Improved Life Tap mod
-                    if (AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, WARLOCK_ICON_ID_IMPROVED_LIFE_TAP, 0))
+					if (AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, WARLOCK_IMPROVED_LIFE_TAP_ICON_ID, 0))
                         AddPct(mana, aurEff->GetAmount());
 
                     caster->CastCustomSpell(target, SPELL_WARLOCK_LIFE_TAP_ENERGIZE, &mana, NULL, NULL, false);

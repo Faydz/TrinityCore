@@ -29,12 +29,12 @@
 
 enum DruidSpells
 {
-    DRUID_INCREASED_MOONFIRE_DURATION   = 38414,
-    DRUID_NATURES_SPLENDOR              = 57865,
-    DRUID_LIFEBLOOM_FINAL_HEAL          = 33778,
-    DRUID_LIFEBLOOM_ENERGIZE            = 64372,
-    DRUID_SURVIVAL_INSTINCTS            = 50322,
-    DRUID_SAVAGE_ROAR                   = 62071,
+    SPELL_DRUID_INCREASED_MOONFIRE_DURATION   = 38414,
+    SPELL_DRUID_NATURES_SPLENDOR              = 57865,
+    SPELL_DRUID_LIFEBLOOM_FINAL_HEAL          = 33778,
+    SPELL_DRUID_LIFEBLOOM_ENERGIZE            = 64372,
+    SPELL_DRUID_SURVIVAL_INSTINCTS            = 50322,
+    SPELL_DRUID_SAVAGE_ROAR                   = 62071,
     SPELL_DRUID_ITEM_T8_BALANCE_RELIC   = 64950,
     SPELL_KING_OF_THE_JUNGLE            = 48492,
     SPELL_TIGER_S_FURY_ENERGIZE         = 51178,
@@ -90,6 +90,7 @@ class spell_dru_enrage : public SpellScriptLoader
         }
 };
 
+
 // 54846 Glyph of Starfire
 class spell_dru_glyph_of_starfire : public SpellScriptLoader
 {
@@ -102,7 +103,7 @@ class spell_dru_glyph_of_starfire : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellEntry*/)
             {
-                if (!sSpellMgr->GetSpellInfo(DRUID_INCREASED_MOONFIRE_DURATION) || !sSpellMgr->GetSpellInfo(DRUID_NATURES_SPLENDOR))
+                if (!sSpellMgr->GetSpellInfo(SPELL_DRUID_INCREASED_MOONFIRE_DURATION) || !sSpellMgr->GetSpellInfo(SPELL_DRUID_NATURES_SPLENDOR))
                     return false;
                 return true;
             }
@@ -117,9 +118,9 @@ class spell_dru_glyph_of_starfire : public SpellScriptLoader
 
                         uint32 countMin = aura->GetMaxDuration();
                         uint32 countMax = aura->GetSpellInfo()->GetMaxDuration() + 9000;
-                        if (caster->HasAura(DRUID_INCREASED_MOONFIRE_DURATION))
+                        if (caster->HasAura(SPELL_DRUID_INCREASED_MOONFIRE_DURATION))
                             countMax += 3000;
-                        if (caster->HasAura(DRUID_NATURES_SPLENDOR))
+                        if (caster->HasAura(SPELL_DRUID_NATURES_SPLENDOR))
                             countMax += 3000;
 
                         if (countMin < countMax)
@@ -293,114 +294,8 @@ class spell_dru_eclipse_energize : public SpellScriptLoader
         }
 };
 
-// -5229 - Enrage
-class spell_dru_enrage : public SpellScriptLoader
-{
-    public:
-        spell_dru_enrage() : SpellScriptLoader("spell_dru_enrage") { }
 
-        class spell_dru_enrage_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_dru_enrage_SpellScript);
 
-            void OnHit()
-            {
-                if (AuraEffect const* aurEff = GetHitUnit()->GetAuraEffectOfRankedSpell(SPELL_DRUID_KING_OF_THE_JUNGLE, EFFECT_0))
-                    GetHitUnit()->CastCustomSpell(SPELL_DRUID_ENRAGE_MOD_DAMAGE, SPELLVALUE_BASE_POINT0, aurEff->GetAmount(), GetHitUnit(), true);
-            }
-
-            void Register()
-            {
-                AfterHit += SpellHitFn(spell_dru_enrage_SpellScript::OnHit);
-            }
-        };
-
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_dru_enrage_SpellScript();
-        }
-};
-
-// 54846 - Glyph of Starfire
-class spell_dru_glyph_of_starfire : public SpellScriptLoader
-{
-    public:
-        spell_dru_glyph_of_starfire() : SpellScriptLoader("spell_dru_glyph_of_starfire") { }
-
-        class spell_dru_glyph_of_starfire_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_dru_glyph_of_starfire_SpellScript);
-
-            bool Validate(SpellInfo const* /*spellInfo*/)
-            {
-                if (!sSpellMgr->GetSpellInfo(SPELL_DRUID_INCREASED_MOONFIRE_DURATION) || !sSpellMgr->GetSpellInfo(SPELL_DRUID_NATURES_SPLENDOR))
-                    return false;
-                return true;
-            }
-
-            void HandleScriptEffect(SpellEffIndex /*effIndex*/)
-            {
-                Unit* caster = GetCaster();
-                if (Unit* unitTarget = GetHitUnit())
-                    if (AuraEffect const* aurEff = unitTarget->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DRUID, 0x00000002, 0, 0, caster->GetGUID()))
-                    {
-                        Aura* aura = aurEff->GetBase();
-
-                        uint32 countMin = aura->GetMaxDuration();
-                        uint32 countMax = aura->GetSpellInfo()->GetMaxDuration() + 9000;
-                        if (caster->HasAura(SPELL_DRUID_INCREASED_MOONFIRE_DURATION))
-                            countMax += 3000;
-                        if (caster->HasAura(SPELL_DRUID_NATURES_SPLENDOR))
-                            countMax += 3000;
-
-                        if (countMin < countMax)
-                        {
-                            aura->SetDuration(uint32(aura->GetDuration() + 3000));
-                            aura->SetMaxDuration(countMin + 3000);
-                        }
-                    }
-            }
-
-            void Register()
-            {
-                OnEffectHitTarget += SpellEffectFn(spell_dru_glyph_of_starfire_SpellScript::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
-            }
-        };
-
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_dru_glyph_of_starfire_SpellScript();
-        }
-};
-
-// -5570 - Insect Swarm
-class spell_dru_insect_swarm : public SpellScriptLoader
-{
-    public:
-        spell_dru_insect_swarm() : SpellScriptLoader("spell_dru_insect_swarm") { }
-
-        class spell_dru_insect_swarm_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_dru_insect_swarm_AuraScript);
-
-            void CalculateAmount(AuraEffect const* aurEff, int32 & amount, bool & /*canBeRecalculated*/)
-            {
-                if (Unit* caster = GetCaster())
-                    if (AuraEffect const* relicAurEff = caster->GetAuraEffect(SPELL_DRUID_ITEM_T8_BALANCE_RELIC, EFFECT_0))
-                        amount += relicAurEff->GetAmount() / aurEff->GetTotalTicks();
-            }
-
-            void Register()
-            {
-                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dru_insect_swarm_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
-            }
-        };
-
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_dru_insect_swarm_AuraScript();
-        }
-};
 
 // -33763 - Lifebloom
 class spell_dru_lifebloom : public SpellScriptLoader

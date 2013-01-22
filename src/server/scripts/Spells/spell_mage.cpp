@@ -65,7 +65,7 @@ enum MageSpells
     SPELL_MAGE_SUMMON_WATER_ELEMENTAL_PERMANENT  = 70908,
     SPELL_MAGE_SUMMON_WATER_ELEMENTAL_TEMPORARY  = 70907,
 
-    SPELL_MAGE_FINGERS_OF_FROST                  = 44544
+    SPELL_MAGE_FINGERS_OF_FROST                  = 44544,
     MAGE_SPELL_CAUTERIZE_HEAL                    = 87023,
 };
 
@@ -241,15 +241,18 @@ class spell_pyromaniac : public SpellScriptLoader
         }
 };
 
+// 42208 Blizzard
+/// Updated 4.3.4
+class spell_mage_blizzard : public SpellScriptLoader
 {
    public:
        spell_mage_blizzard() : SpellScriptLoader("spell_mage_blizzard") { }
-
+ 
        class spell_mage_blizzard_SpellScript : public SpellScript
        {
            PrepareSpellScript(spell_mage_blizzard_SpellScript);
-
-           bool Validate(SpellInfo const* /*spellInfo*/)
+ 
+           bool Validate(SpellInfo const* /*spellEntry*/)
            {
                if (!sSpellMgr->GetSpellInfo(SPELL_MAGE_CHILLED_R1))
                    return false;
@@ -257,7 +260,7 @@ class spell_pyromaniac : public SpellScriptLoader
                    return false;
                return true;
            }
-
+ 
            void AddChillEffect(SpellEffIndex /*effIndex*/)
            {
                Unit* caster = GetCaster();
@@ -269,14 +272,14 @@ class spell_pyromaniac : public SpellScriptLoader
                        caster->CastSpell(unitTarget, SPELL_MAGE_CHILLED_R2, true);
                }
            }
-
+ 
            void Register()
            {
                OnEffectHitTarget += SpellEffectFn(spell_mage_blizzard_SpellScript::AddChillEffect, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
            }
        };
-
-       SpellScript* GetSpellScript() const
+ 
+       SpellScript *GetSpellScript() const
        {
            return new spell_mage_blizzard_SpellScript();
        }
