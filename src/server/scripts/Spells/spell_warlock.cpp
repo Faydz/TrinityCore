@@ -28,61 +28,44 @@
 
 enum WarlockSpells
 {
-	WARLOCK_IMPROVED_HEALTH_FUNNEL_R1       = 18703,
-    WARLOCK_IMPROVED_HEALTH_FUNNEL_R2       = 18704,
-    WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1  = 60955,
-    WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2  = 60956,
-    WARLOCK_BANE_OF_DOOM_EFFECT             = 18662,
-    WARLOCK_CORRUPTION                      = 172,
-    WARLOCK_DEMONIC_CIRCLE_ALLOW_CAST       = 62388,
-    WARLOCK_DEMONIC_CIRCLE_SUMMON           = 48018,
-    WARLOCK_DEMONIC_CIRCLE_TELEPORT         = 48020,
+	SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1       = 18703,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R2       = 18704,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1  = 60955,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2  = 60956,
+    SPELL_WARLOCK_CORRUPTION                      = 172,
     SPELL_WARLOCK_BANE_OF_DOOM_EFFECT               = 18662,
     SPELL_WARLOCK_DEMONIC_CIRCLE_SUMMON             = 48018,
     SPELL_WARLOCK_DEMONIC_CIRCLE_TELEPORT           = 48020,
     SPELL_WARLOCK_DEMONIC_CIRCLE_ALLOW_CAST         = 62388,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS      = 54435,
-    WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD    = 54508,
-    WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER   = 54509,
-    WARLOCK_DEMONIC_EMPOWERMENT_IMP         = 54444,
+    SPELL_WARLOCK_DEMONIC_EMPOWERMENT_IMP         = 54444,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER    = 54443,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD      = 54508,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER     = 54509,
-    WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS    = 54435,
-    WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER  = 54443,
-    WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE      = 89653,
-    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1    = 60955,
-    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2    = 60956,
-    WARLOCK_HAUNT                           = 48181,
-    WARLOCK_HAUNT_HEAL                      = 48210,
-    WARLOCK_IMMOLATE                        = 348,
+    SPELL_WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE      = 89653,
+    SPELL_WARLOCK_IMMOLATE                        = 348,
     SPELL_WARLOCK_HAUNT                             = 48181,
     SPELL_WARLOCK_HAUNT_HEAL                        = 48210,
     SPELL_WARLOCK_LIFE_TAP_ENERGIZE                 = 31818,
     SPELL_WARLOCK_LIFE_TAP_ENERGIZE_2               = 32553,
     SPELL_WARLOCK_SOULSHATTER                       = 32835,
-    SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117,
-    WARLOCK_IMPROVED_HEALTHSTONE_R1         = 18692,
-    WARLOCK_IMPROVED_HEALTHSTONE_R2         = 18693,
-    WARLOCK_IMPROVED_LIFE_TAP_ICON_ID       = 208,
-    WARLOCK_JINX_R1                         = 85541,
-    WARLOCK_JINX_R2                         = 86105,
-    WARLOCK_ICON_ID_MANA_FEED                       = 1982,
-    WARLOCK_LIFE_TAP_ENERGIZE               = 31818,
-    WARLOCK_LIFE_TAP_ENERGIZE_2             = 32553,
-    WARLOCK_MANA_FEED_ICON_ID               = 1982,
-    WARLOCK_NETHER_WARD                     = 91711,
-    WARLOCK_NETHER_WARD_TALENT              = 91713,
-    WARLOCK_SHADOW_WARD                     = 6229,
-    WARLOCK_SOUL_SHARD_ENERGIZE             = 87388,
-    WARLOCK_SOUL_SWAP_COOLDOWN              = 94229,
-    WARLOCK_SOUL_SWAP_GLYPH                 = 56226,
-    WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT        = 92795,
-    WARLOCK_SOUL_SWAP_SAVE_DOTS             = 86211,
-    WARLOCK_SOULBURN                        = 74434,
-    WARLOCK_SOULSHATTER                     = 32835,
-    WARLOCK_UNSTABLE_AFFLICTION             = 30108,
-    WARLOCK_UNSTABLE_AFFLICTION_DISPEL      = 31117,
+    SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R1         = 18692,
+	SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R2         = 18693,
+    SPELL_WARLOCK_IMPROVED_LIFE_TAP_ICON_ID       = 208,
+    SPELL_WARLOCK_JINX_R1                         = 85541,
+    SPELL_WARLOCK_JINX_R2                         = 86105,
+    SPELL_WARLOCK_MANA_FEED_ICON_ID               = 1982,
+    SPELL_WARLOCK_NETHER_WARD                     = 91711,
+    SPELL_WARLOCK_NETHER_WARD_TALENT              = 91713,
+    SPELL_WARLOCK_SHADOW_WARD                     = 6229,
+    SPELL_WARLOCK_SOUL_SHARD_ENERGIZE             = 87388,
+    SPELL_WARLOCK_SOUL_SWAP_COOLDOWN              = 94229,
+    SPELL_WARLOCK_SOUL_SWAP_GLYPH                 = 56226,
+    SPELL_WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT        = 92795,
+    SPELL_WARLOCK_SOUL_SWAP_SAVE_DOTS             = 86211,
+    SPELL_WARLOCK_SOULBURN                        = 74434,
+    SPELL_WARLOCK_UNSTABLE_AFFLICTION             = 30108,
+    SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL      = 31117,
 };
 
 bool _SeedOfCorruptionFlag = false;
@@ -101,10 +84,10 @@ public:
         {
             if(GetCaster())
             {
-                if(GetCaster()->HasAura(WARLOCK_NETHER_WARD_TALENT))
-                    amount = WARLOCK_NETHER_WARD;
+                if(GetCaster()->HasAura(SPELL_WARLOCK_NETHER_WARD_TALENT))
+                    amount = SPELL_WARLOCK_NETHER_WARD;
                 else
-                    amount = WARLOCK_SHADOW_WARD;
+                    amount = SPELL_WARLOCK_SHADOW_WARD;
             }
         }
 
@@ -142,26 +125,26 @@ public:
                 return;
             
             // Immolate
-            if (target->HasAura(WARLOCK_IMMOLATE, caster->GetGUID()))
+            if (target->HasAura(SPELL_WARLOCK_IMMOLATE, caster->GetGUID()))
             {
-                int32 newDuration = target->GetAura(WARLOCK_IMMOLATE, caster->GetGUID())->GetDuration();
+                int32 newDuration = target->GetAura(SPELL_WARLOCK_IMMOLATE, caster->GetGUID())->GetDuration();
                 if (newDuration >= GetEffectValue()*1000)
-                    newDuration = target->GetAura(WARLOCK_IMMOLATE, caster->GetGUID())->GetMaxDuration();
+                    newDuration = target->GetAura(SPELL_WARLOCK_IMMOLATE, caster->GetGUID())->GetMaxDuration();
                 else
                     newDuration += (GetEffectValue()*1000);
 
-                target->GetAura(WARLOCK_IMMOLATE, caster->GetGUID())->SetDuration(newDuration, true);
+                target->GetAura(SPELL_WARLOCK_IMMOLATE, caster->GetGUID())->SetDuration(newDuration, true);
             } 
             // Unstable Affliction
-            else if (target->HasAura(WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID()))
+            else if (target->HasAura(SPELL_WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID()))
             {
-                int32 newDuration = target->GetAura(WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->GetDuration();
+                int32 newDuration = target->GetAura(SPELL_WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->GetDuration();
                 if (newDuration >= GetEffectValue()*1000)
-                    newDuration = target->GetAura(WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->GetMaxDuration();
+                    newDuration = target->GetAura(SPELL_WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->GetMaxDuration();
                 else
                     newDuration += (GetEffectValue()*1000);
 
-                target->GetAura(WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->SetDuration(newDuration, true);
+                target->GetAura(SPELL_WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->SetDuration(newDuration, true);
             }            
         }
 
@@ -193,7 +176,7 @@ public:
                 return;
 
             // Bonus damage if the immolate dot is on the target
-            if(GetHitUnit()->HasAura(WARLOCK_IMMOLATE, GetCaster()->GetGUID()))
+            if(GetHitUnit()->HasAura(SPELL_WARLOCK_IMMOLATE, GetCaster()->GetGUID()))
             {
                 int32 newDamage = GetHitDamage() + int32(GetHitDamage() / 6);
                 SetHitDamage(newDamage); 
@@ -233,9 +216,9 @@ public:
             {
                 // Check if warlock has the either the first or the second rank of jinx
                 if (caster->HasAura(18179))
-                    caster->CastSpell(target, WARLOCK_JINX_R1, true);
+                    caster->CastSpell(target, SPELL_WARLOCK_JINX_R1, true);
                 else if(caster->HasAura(85479))
-                    caster->CastSpell(target, WARLOCK_JINX_R2, true);
+                    caster->CastSpell(target, SPELL_WARLOCK_JINX_R2, true);
             }
         }
 
@@ -284,7 +267,7 @@ public:
             if (!target || !caster)
                 return;
 
-            target->CastSpell(caster, WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT, true, 0, 0, caster->GetGUID());
+            target->CastSpell(caster, SPELL_WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT, true, 0, 0, caster->GetGUID());
         }
             
         // Handles the first cast of soul swap
@@ -297,7 +280,7 @@ public:
                 return;
 
             target->RemoveAndSaveSoulSwapDots(caster);
-            caster->CastSpell(caster, WARLOCK_SOUL_SWAP_SAVE_DOTS, true);
+            caster->CastSpell(caster, SPELL_WARLOCK_SOUL_SWAP_SAVE_DOTS, true);
         }
 
         void Register()
@@ -391,8 +374,8 @@ public:
                 return;
 
             // Glyph of Soul Swap cooldown
-            if (caster->HasAura(WARLOCK_SOUL_SWAP_GLYPH))
-                caster->CastSpell(caster, WARLOCK_SOUL_SWAP_COOLDOWN, false);
+            if (caster->HasAura(SPELL_WARLOCK_SOUL_SWAP_GLYPH))
+                caster->CastSpell(caster, SPELL_WARLOCK_SOUL_SWAP_COOLDOWN, false);
         }
 
         void HandleEffectHit(SpellEffIndex /*effIndex*/)
@@ -404,7 +387,7 @@ public:
                 return;
             
             if (caster->CastSavedSoulSwapDots(target))
-                caster->RemoveAura(WARLOCK_SOUL_SWAP_SAVE_DOTS);
+                caster->RemoveAura(SPELL_WARLOCK_SOUL_SWAP_SAVE_DOTS);
         }
 
         void Register()
@@ -447,7 +430,7 @@ public:
                     }
                 }
 
-                caster->CastCustomSpell(caster, WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE, &bp, NULL, NULL, true);
+                caster->CastCustomSpell(caster, SPELL_WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE, &bp, NULL, NULL, true);
             }
         }
 
@@ -487,7 +470,7 @@ public:
 			if(!GetTarget())
 				return;
 
-			Aura* unstableAff = GetTarget()->GetAura(WARLOCK_UNSTABLE_AFFLICTION);
+			Aura* unstableAff = GetTarget()->GetAura(SPELL_WARLOCK_UNSTABLE_AFFLICTION);
 
             // Check if target is under 25% when casting Drain Soul
             if (aurEff->GetBase())
@@ -586,7 +569,7 @@ class spell_warl_create_healthstone : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellInfo*/)
             {
-                if (!sSpellMgr->GetSpellInfo(WARLOCK_IMPROVED_HEALTHSTONE_R1) || !sSpellMgr->GetSpellInfo(WARLOCK_IMPROVED_HEALTHSTONE_R2))
+                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R1) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R2))
                     return false;
                 return true;
             }
@@ -614,10 +597,10 @@ class spell_warl_create_healthstone : public SpellScriptLoader
                     {
                         switch (aurEff->GetId())
                         {
-                            case WARLOCK_IMPROVED_HEALTHSTONE_R1:
+                            case SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R1:
                                 rank = 1;
                                 break;
-                            case WARLOCK_IMPROVED_HEALTHSTONE_R2:
+                            case SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R2:
                                 rank = 2;
                                 break;
                             default:
@@ -673,10 +656,10 @@ class spell_warl_seed_of_corruption_dot : public SpellScriptLoader
                 if(Unit* caster = GetCaster())
                 {
                     //Checks for soulburn buff and soulburn: Seed of Corruption talent
-                    if(caster->HasAura(WARLOCK_SOULBURN) && caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 1932, 0))
+                    if(caster->HasAura(SPELL_WARLOCK_SOULBURN) && caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 1932, 0))
                     {
                         _SeedOfCorruptionFlag = true;
-                        caster->RemoveAurasDueToSpell(WARLOCK_SOULBURN);
+                        caster->RemoveAurasDueToSpell(SPELL_WARLOCK_SOULBURN);
                     }
                 }
             }
@@ -706,7 +689,7 @@ class spell_warl_bane_of_doom : public SpellScriptLoader
  
             bool Validate(SpellInfo const* /*spell*/)
             {
-                if (!sSpellMgr->GetSpellInfo(WARLOCK_BANE_OF_DOOM_EFFECT))
+                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_BANE_OF_DOOM_EFFECT))
                     return false;
                 return true;
             }
@@ -722,7 +705,7 @@ class spell_warl_bane_of_doom : public SpellScriptLoader
                     return;
  
                 if(roll_chance_i(20))
-                    GetCaster()->CastSpell(GetTarget(), WARLOCK_BANE_OF_DOOM_EFFECT, true);
+                    GetCaster()->CastSpell(GetTarget(), SPELL_WARLOCK_BANE_OF_DOOM_EFFECT, true);
             }
  
             void Register()
@@ -805,7 +788,7 @@ class spell_warl_demonic_circle_teleport : public SpellScriptLoader
             {
                 if (Player* player = GetTarget()->ToPlayer())
                 {
-                    if (GameObject* circle = player->GetGameObject(WARLOCK_DEMONIC_CIRCLE_SUMMON))
+                    if (GameObject* circle = player->GetGameObject(SPELL_WARLOCK_DEMONIC_CIRCLE_SUMMON))
                     {
                         player->NearTeleportTo(circle->GetPositionX(), circle->GetPositionY(), circle->GetPositionZ(), circle->GetOrientation());
                         player->RemoveMovementImpairingAuras();
@@ -839,7 +822,7 @@ class spell_warl_demonic_empowerment : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellInfo*/)
             {
-                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER) || !sSpellMgr->GetSpellInfo(WARLOCK_DEMONIC_EMPOWERMENT_IMP))
+                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER) || !sSpellMgr->GetSpellInfo(SPELL_WARLOCK_DEMONIC_EMPOWERMENT_IMP))
                     return false;
                 return true;
             }
@@ -870,7 +853,7 @@ class spell_warl_demonic_empowerment : public SpellScriptLoader
                                 targetCreature->CastSpell(targetCreature, SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER, true);
                                 break;
                             case CREATURE_FAMILY_IMP:
-                                targetCreature->CastSpell(targetCreature, WARLOCK_DEMONIC_EMPOWERMENT_IMP, true);
+                                targetCreature->CastSpell(targetCreature, SPELL_WARLOCK_DEMONIC_EMPOWERMENT_IMP, true);
                                 break;
                         }
                     }
@@ -999,17 +982,17 @@ public:
                 return;
  
             Unit* target = GetTarget();
-            if (caster->HasAura(WARLOCK_IMPROVED_HEALTH_FUNNEL_R2))
-                target->CastSpell(target, WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2, true);
-            else if (caster->HasAura(WARLOCK_IMPROVED_HEALTH_FUNNEL_R1))
-                target->CastSpell(target, WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1, true);
+            if (caster->HasAura(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R2))
+                target->CastSpell(target, SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2, true);
+            else if (caster->HasAura(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1))
+                target->CastSpell(target, SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1, true);
         }
  
         void RemoveEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
             Unit* target = GetTarget();
-            target->RemoveAurasDueToSpell(WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1);
-            target->RemoveAurasDueToSpell(WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2);
+            target->RemoveAurasDueToSpell(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1);
+            target->RemoveAurasDueToSpell(SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2);
         }
  
         void Register()
@@ -1059,13 +1042,13 @@ class spell_warl_life_tap : public SpellScriptLoader
                     target->ModifyHealth(-damage);
 
                     // Improved Life Tap mod
-					if (AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, WARLOCK_IMPROVED_LIFE_TAP_ICON_ID, 0))
+					if (AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, SPELL_WARLOCK_IMPROVED_LIFE_TAP_ICON_ID, 0))
                         AddPct(mana, aurEff->GetAmount());
 
                     caster->CastCustomSpell(target, SPELL_WARLOCK_LIFE_TAP_ENERGIZE, &mana, NULL, NULL, false);
 
                     // Mana Feed
-                    if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_WARLOCK, WARLOCK_ICON_ID_MANA_FEED, 0))
+                    if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_WARLOCK, SPELL_WARLOCK_MANA_FEED_ICON_ID, 0))
                     {
                         int32 manaFeedVal = aurEff->GetAmount();
                         ApplyPct(manaFeedVal, mana);
