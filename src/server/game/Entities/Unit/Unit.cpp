@@ -424,7 +424,7 @@ bool Unit::haveOffhandWeapon() const
 void Unit::MonsterMoveWithSpeed(float x, float y, float z, float speed)
 {
     Movement::MoveSplineInit init(*this);
-    init.MoveTo(x,y,z);
+    init.MoveTo(x, y, z);
     init.SetVelocity(speed);
     init.Launch();
 }
@@ -5071,7 +5071,7 @@ bool Unit::HandleSpellCritChanceAuraProc(Unit* victim, uint32 /*damage*/, AuraEf
     return true;
 }
 
-bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffect* triggeredByAura, SpellInfo const *procSpell, uint32 procFlag, uint32 /*procEx*/, uint32 cooldown)
+bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffect* triggeredByAura, SpellInfo const* procSpell, uint32 procFlag, uint32 /*procEx*/, uint32 cooldown)
 {
     // Get triggered aura spell info
     SpellInfo const* auraSpellInfo = triggeredByAura->GetSpellInfo();
@@ -5139,7 +5139,7 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                 uint32 solarEclipseMarker = 67483;
                 uint32 lunarEclipseMarker = 67484;
 
-                switch(effIndex)
+                switch (effIndex)
                 {
                     case 0:
                     {
@@ -5150,7 +5150,7 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                         if (HasAura(solarEclipseMarker))
                         {
                             RemoveAurasDueToSpell(solarEclipseMarker);
-                            CastSpell(this,lunarEclipseMarker,true);
+                            CastSpell(this, lunarEclipseMarker, true);
                         }
                         break;
                     }
@@ -5163,7 +5163,7 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                         if (HasAura(lunarEclipseMarker))
                         {
                             RemoveAurasDueToSpell(lunarEclipseMarker);
-                            CastSpell(this,solarEclipseMarker,true);
+                            CastSpell(this, solarEclipseMarker, true);
                         }
 
                         break;
@@ -6854,8 +6854,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     RemoveAura(57934);
                     if (!redirectTarget)
                         break;
-                    CastSpell(this,59628,true);
-                    CastSpell(redirectTarget,57933,true);
+                    CastSpell(this, 59628, true);
+                    CastSpell(redirectTarget, 57933, true);
                     break;
                 }
             }
@@ -10780,7 +10780,7 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                 {
                     if (!((*i)->IsAffectingSpell(spellProto)))
                         continue;
-                    int32 modChance = 0;
+
                     switch ((*i)->GetMiscValue())
                     {
                          // Shatter
@@ -14549,7 +14549,8 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
     Unit* actionTarget = !isVictim ? target : this;
 
     DamageInfo damageInfo = DamageInfo(actor, actionTarget, damage, procSpell, procSpell ? SpellSchoolMask(procSpell->SchoolMask) : SPELL_SCHOOL_MASK_NORMAL, SPELL_DIRECT_DAMAGE);
-    ProcEventInfo eventInfo = ProcEventInfo(actor, actionTarget, target, procFlag, 0, 0, procExtra, NULL, &damageInfo, NULL /*HealInfo*/);
+    HealInfo healInfo = HealInfo(actor, actionTarget, damage, procSpell, procSpell ? SpellSchoolMask(procSpell->SchoolMask) : SPELL_SCHOOL_MASK_NORMAL);
+    ProcEventInfo eventInfo = ProcEventInfo(actor, actionTarget, target, procFlag, 0, 0, procExtra, NULL, &damageInfo, &healInfo);
 
     ProcTriggeredList procTriggered;
     // Fill procTriggered list
@@ -14578,6 +14579,10 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
         ConditionList conditions = sConditionMgr->GetConditionsForNotGroupedEntry(CONDITION_SOURCE_TYPE_SPELL_PROC, spellProto->Id);
         ConditionSourceInfo condInfo = ConditionSourceInfo(eventInfo.GetActor(), eventInfo.GetActionTarget());
         if (!sConditionMgr->IsObjectMeetToConditions(condInfo, conditions))
+            continue;
+
+        // AuraScript Hook
+        if (!triggerData.aura->CallScriptCheckProcHandlers(itr->second, eventInfo))
             continue;
 
         // Triggered spells not triggering additional spells
@@ -14628,14 +14633,20 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
         SpellInfo const* spellInfo = i->aura->GetSpellInfo();
         uint32 Id = i->aura->GetId();
 
+        AuraApplication const* aurApp = i->aura->GetApplicationOfTarget(GetGUID());
+
+        bool prepare = i->aura->CallScriptPrepareProcHandlers(aurApp, eventInfo);
+
         // For players set spell cooldown if need
         uint32 cooldown = 0;
-        if (GetTypeId() == TYPEID_PLAYER && i->spellProcEvent && i->spellProcEvent->cooldown)
+        if (prepare && GetTypeId() == TYPEID_PLAYER && i->spellProcEvent && i->spellProcEvent->cooldown)
             cooldown = i->spellProcEvent->cooldown;
 
         // Note: must SetCantProc(false) before return
         if (spellInfo->AttributesEx3 & SPELL_ATTR3_DISABLE_PROC)
             SetCantProc(true);
+
+        i->aura->CallScriptProcHandlers(aurApp, eventInfo);
 
         // This bool is needed till separate aura effect procs are still here
         bool handled = false;
@@ -14654,6 +14665,13 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
 
                 AuraEffect* triggeredByAura = i->aura->GetEffect(effIndex);
                 ASSERT(triggeredByAura);
+
+                bool prevented = i->aura->CallScriptEffectProcHandlers(triggeredByAura, aurApp, eventInfo);
+                if (prevented)
+                {
+                    takeCharges = true;
+                    continue;
+                }
 
                 switch (triggeredByAura->GetAuraType())
                 {
@@ -14831,12 +14849,15 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
                         takeCharges = true;
                         break;
                 } // switch (triggeredByAura->GetAuraType())
+                i->aura->CallScriptAfterEffectProcHandlers(triggeredByAura, aurApp, eventInfo);
             } // for (uint8 effIndex = 0; effIndex < MAX_SPELL_EFFECTS; ++effIndex)
         } // if (!handled)
 
         // Remove charge (aura can be removed by triggers)
-        if (useCharges && takeCharges)
+        if (prepare && useCharges && takeCharges)
             i->aura->DropCharge();
+
+        i->aura->CallScriptAfterProcHandlers(aurApp, eventInfo);
 
         if (spellInfo->AttributesEx3 & SPELL_ATTR3_DISABLE_PROC)
             SetCantProc(false);
@@ -14858,7 +14879,7 @@ void Unit::GetProcAurasTriggeredOnEvent(std::list<AuraApplication*>& aurasTrigge
             if (!(*itr)->GetRemoveMode())
                 if ((*itr)->GetBase()->IsProcTriggeredOnEvent(*itr, eventInfo))
                 {
-                    (*itr)->GetBase()->PrepareProcToTrigger();
+                    (*itr)->GetBase()->PrepareProcToTrigger(*itr, eventInfo);
                     aurasTriggeringProc.push_back(*itr);
                 }
         }
@@ -14870,7 +14891,7 @@ void Unit::GetProcAurasTriggeredOnEvent(std::list<AuraApplication*>& aurasTrigge
         {
             if (itr->second->GetBase()->IsProcTriggeredOnEvent(itr->second, eventInfo))
             {
-                itr->second->GetBase()->PrepareProcToTrigger();
+                itr->second->GetBase()->PrepareProcToTrigger(itr->second, eventInfo);
                 aurasTriggeringProc.push_back(itr->second);
             }
         }
@@ -15355,7 +15376,7 @@ void Unit::UpdateAuraForGroup(uint8 slot)
     }
 }
 
-float Unit::CalculateDefaultCoefficient(SpellInfo const *spellInfo, DamageEffectType damagetype) const
+float Unit::CalculateDefaultCoefficient(SpellInfo const* spellInfo, DamageEffectType damagetype) const
 {
     // Damage over Time spells bonus calculation
     float DotFactor = 1.0f;
@@ -18004,7 +18025,7 @@ void Unit::ReadMovementInfo(WorldPacket& data, MovementInfo* mi)
        if (GetTransport())
            GetTransport()->UpdatePosition(mi);
 
-    //! Anti-cheat checks. Please keep them in seperate if() blocks to maintain a clear overview.
+    //! Anti-cheat checks. Please keep them in seperate if () blocks to maintain a clear overview.
     //! Might be subject to latency, so just remove improper flags.
     #ifdef TRINITY_DEBUG
     #define REMOVE_VIOLATING_FLAGS(check, maskToRemove) \
@@ -18104,7 +18125,7 @@ void Unit::WriteMovementInfo(WorldPacket& data)
     ObjectGuid guid = mover->GetGUID();
     ObjectGuid tguid = hasTransportData ? GetTransport()->GetGUID() : 0;
 
-    for(uint32 i = 0; i < MSE_COUNT; ++i)
+    for (uint32 i = 0; i < MSE_COUNT; ++i)
     {
         MovementStatusElements element = sequence[i];
         if (element == MSEEnd)
@@ -18350,10 +18371,10 @@ void Unit::SendTeleportPacket(Position& pos)
 
     // Relocate the player/creature to its old position, so we can broadcast to nearby players correctly
     if (GetTypeId() == TYPEID_PLAYER)
-        Relocate(&pos); 
+        Relocate(&pos);
     else
         Relocate(&oldPos);
-    
+
     // Broadcast the packet to everyone except self.
     SendMessageToSet(&data, false);
 }

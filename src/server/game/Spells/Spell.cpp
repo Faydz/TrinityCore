@@ -1743,7 +1743,7 @@ void Spell::SelectImplicitTrajTargets()
         m_targets.ModDst(trajDst);
     }
 
-    if (Vehicle * veh = m_caster->GetVehicleKit())
+    if (Vehicle* veh = m_caster->GetVehicleKit())
         veh->SetLastShootPos(*m_targets.GetDstPos());
 }
 
@@ -1875,7 +1875,7 @@ void Spell::SearchTargets(SEARCHER& searcher, uint32 containerMask, Unit* refere
     bool searchInWorld = containerMask & (GRID_MAP_TYPE_MASK_CREATURE | GRID_MAP_TYPE_MASK_PLAYER | GRID_MAP_TYPE_MASK_CORPSE);
     if (searchInGrid || searchInWorld)
     {
-        float x,y;
+        float x, y;
         x = pos->GetPositionX();
         y = pos->GetPositionY();
 
@@ -1893,7 +1893,7 @@ void Spell::SearchTargets(SEARCHER& searcher, uint32 containerMask, Unit* refere
         if (searchInGrid)
         {
             TypeContainerVisitor<SEARCHER, GridTypeMapContainer >  grid_object_notifier(searcher);
-            cell.Visit(p, grid_object_notifier, map, radius, x , y);
+            cell.Visit(p, grid_object_notifier, map, radius, x, y);
         }
     }
 }
@@ -4990,7 +4990,7 @@ SpellCastResult Spell::CheckCast(bool strict)
             return SPELL_FAILED_ONLY_BATTLEGROUNDS;
 
     // do not allow spells to be cast in arenas or rated battlegrounds
-    if (Player * player = m_caster->ToPlayer())
+    if (Player* player = m_caster->ToPlayer())
         if (player->InArena()/* || player->InRatedBattleGround() NYI*/)
         {
             SpellCastResult castResult = CheckArenaAndRatedBattlegroundCastRules();
