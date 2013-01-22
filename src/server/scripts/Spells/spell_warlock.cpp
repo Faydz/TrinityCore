@@ -704,7 +704,13 @@ class spell_warl_bane_of_doom : public SpellScriptLoader
                 if (!GetCaster() || !GetTarget())
                     return;
  
-                if(roll_chance_i(20))
+                //Base chance
+                int chance = 20;
+
+                if(AuraEffect* aurEff = GetCaster()->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_WARLOCK, 195, EFFECT_0))
+                    chance += int(aurEff->GetAmount());
+
+                if(roll_chance_i(chance))
                     GetCaster()->CastSpell(GetTarget(), SPELL_WARLOCK_BANE_OF_DOOM_EFFECT, true);
             }
  
