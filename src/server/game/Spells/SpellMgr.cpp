@@ -2966,6 +2966,11 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->SpellFamilyName = SPELLFAMILY_WARLOCK;
                 spellInfo->Effects[EFFECT_0].TargetA = TARGET_UNIT_TARGET_ENEMY;
                 break;
+            // Hand of Gul'dan graphic
+            case 85526:
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARLOCK;
+                spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(8); // 15 seconds
+                break;
             default:
                 break;
         }
@@ -2975,6 +2980,18 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Hand of Gul'dan talent
+                    case 71521:
+                        spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_4_YARDS);
+                        spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
+                        break;
+                    // Hand of Gul'dan aura
+                    case 86000:
+                        //Fix aura targets, it won't be linked with specific targets
+                        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_PERSISTENT_AREA_AURA;
+                        spellInfo->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_DEST_DYNOBJ_ENEMY);
+                        spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo();
+                        break;
                     // Impending Doom (rank 2/3)
                     case 85107:
                     case 85108:

@@ -70,6 +70,46 @@ enum WarlockSpells
 
 bool _SeedOfCorruptionFlag = false;
 
+// 71521 spell_warl_Hand_of_Guldan
+class spell_warl_hand_of_guldan: public SpellScriptLoader 
+{
+public:
+    spell_warl_hand_of_guldan() : SpellScriptLoader("spell_warl_hand_of_guldan")  { }
+
+    class spell_warl_hand_of_guldan_SpellScript: public SpellScript
+    {
+        PrepareSpellScript(spell_warl_hand_of_guldan_SpellScript);
+
+        void BeforeEffect(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetHitUnit();
+
+            if (!target)
+                return;
+
+            if (!caster)
+                return;
+
+            // Cast the debuff on the target (it applies the aura)
+            caster->CastSpell(target, 86000, true);
+
+            // Graphical effect
+            target->CastSpell(target, 85526, true);
+        }
+
+        void Register()
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_warl_hand_of_guldan_SpellScript::BeforeEffect, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+        }
+    };
+
+    SpellScript* GetSpellScript() const 
+    {
+        return new spell_warl_hand_of_guldan_SpellScript();
+    }
+};
+
 // 687/28176 - spell_warl_armor_nether_ward_ignore
 class spell_warl_armor_nether_ward_ignore: public SpellScriptLoader 
 {
@@ -1207,6 +1247,7 @@ class spell_warl_unstable_affliction : public SpellScriptLoader
 
 void AddSC_warlock_spell_scripts()
 {
+	new spell_warl_hand_of_guldan();
     new spell_warl_armor_nether_ward_ignore();
     new spell_warl_fel_flame();
     new spell_warl_incinerate();
