@@ -633,6 +633,11 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
                     poly = victim->GetAura(28271);
                 else if (victim->HasAura(61305))     //polymorph black cat
                     poly = victim->GetAura(61305);
+                else if (victim->HasAura(61721))     //polymorph rabbit
+                    poly = victim->GetAura(61721);
+                else if (victim->HasAura(61780))     //polymorph turkey
+                    poly = victim->GetAura(61780);
+
                 if (poly != NULL)
                 {
                     if (Unit* caster = poly->GetCaster())
@@ -654,6 +659,7 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
                 }
             }
         }
+
 
         // interrupting auras with AURA_INTERRUPT_FLAG_DAMAGE before checking !damage (absorbed damage breaks that type of auras)
         if (spellProto)
