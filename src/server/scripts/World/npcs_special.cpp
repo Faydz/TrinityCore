@@ -1812,6 +1812,11 @@ public:
     struct npc_mirror_imageAI : CasterAI
     {
         npc_mirror_imageAI(Creature* creature) : CasterAI(creature) {}
+        uint32 damagespellid;
+        uint32 istantspellid;
+        uint32 checkTimer;
+        uint32 blastcd;
+        float followdist;
 
         void InitializeAI()
         {
@@ -1823,8 +1828,103 @@ public:
             owner->CastSpell((Unit*)NULL, 58838, true);
             // here mirror image casts on summoner spell (not present in client dbc) 49866
             // here should be auras (not present in client dbc): 35657, 35658, 35659, 35660 selfcasted by mirror images (stats related?)
-            // Clone Me!
-            owner->CastSpell(me, 45204, false);
+            
+            owner->CastSpell(me, 45204, false); // Clone Me!
+            owner->CastSpell(me, 41054, false); // Clone main hand
+            owner->CastSpell(me, 45205, false); // Clone off hand
+            damagespellid = 59638;
+            istantspellid = 59637;
+            blastcd = 0;
+            followdist = PET_FOLLOW_DIST *2;
+            //check on glyph of mirror image & spec
+            owner = me->ToTempSummon()->GetSummoner();
+            if (owner->ToPlayer() && owner->HasAura(63093)){
+                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_ARCANE)
+                    damagespellid = 88084;
+                else if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FIRE)
+                    damagespellid = 88082;
+            }
+            checkTimer = 250;
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if (checkTimer <= diff)
+            {
+                if (!me->GetOwner() || me->GetOwner()->ToPlayer())
+                    return;
+                Player* owner = me->GetOwner()->ToPlayer();
+                //actions by mirror images
+                if(owner->isInCombat()){
+                    if (Unit* target =owner->GetSelectedUnit()){
+                        if (target->HasAuraTypeWithFamilyFlags(SPELL_AURA_MOD_CONFUSE,SPELLFAMILY_MAGE, 0x01000000))
+                        {
+                            Aura* poly = NULL;
+                            if (target->HasAura(118))            //polymorph sheep
+                                poly = target->GetAura(118);
+                            else if (target->HasAura(28272))     //polymorph pig
+                                poly = target->GetAura(28272);
+                            else if (target->HasAura(28271))     //polymorph turtle
+                                poly = target->GetAura(28271);
+                            else if (target->HasAura(61305))     //polymorph black cat
+                                poly = target->GetAura(61305);
+                            else if (target->HasAura(61721))     //polymorph rabbit
+                                poly = target->GetAura(61721);
+                            else if (target->HasAura(61780))     //polymorph turkey
+                                poly = target->GetAura(61780);
+
+                            if (poly != NULL && poly->GetCasterGUID() == owner->GetGUID()){
+                                // will get back to the caster if his/her target is polymorphed
+                                me->GetMotionMaster()->Clear(false);
+                                me->GetMotionMaster()->MoveFollow(owner, followdist, me->GetFollowAngle(), MOTION_SLOT_ACTIVE);
+                                checkTimer=200;
+                            }
+                        }
+                        else
+                        {
+                            if (owner->isMoving())
+                            {
+                                //when in combat and moving will cast fire blast (if avaible) and follow
+                                if (blastcd<=diff)
+                                {
+                                    me->CastSpell(target, istantspellid);
+                                    blastcd=6000;
+                                }
+                                me->GetMotionMaster()->Clear(false);
+                                me->GetMotionMaster()->MoveFollow(owner, followdist, me->GetFollowAngle(), MOTION_SLOT_ACTIVE);
+                                if (blastcd == 6000) //will wait a gcd after casting a blast
+                                    checkTimer=1500;
+                                else
+                                    checkTimer=200;
+                            }
+                            else 
+                            {
+                                if (blastcd<=diff && roll_chance_i(30))
+                                { //while in combat and not moving will randomly cast fire blast if avaible
+                                    me->CastSpell(target, istantspellid);
+                                    blastcd=6000;
+                                    checkTimer=1500;
+                                }
+                                else
+                                { // or frostbolt/fireball/arcaneblast
+                                    me->CastSpell(target, damagespellid);
+                                    checkTimer=2500;
+                                }
+                            }
+                        }
+                    }
+                }
+                else{
+                    me->GetMotionMaster()->Clear(false);
+                    me->GetMotionMaster()->MoveFollow(owner, followdist, me->GetFollowAngle(), MOTION_SLOT_ACTIVE);
+                    checkTimer=200;
+                }            
+            }
+            else
+                checkTimer -=diff;
+                if (blastcd>=diff)
+                    blastcd-=diff;
+
         }
 
         // Do not reload Creature templates on evade mode enter - prevent visual lost
@@ -1839,7 +1939,7 @@ public:
             if (owner && !me->HasUnitState(UNIT_STATE_FOLLOW))
             {
                 me->GetMotionMaster()->Clear(false);
-                me->GetMotionMaster()->MoveFollow(owner, PET_FOLLOW_DIST, me->GetFollowAngle(), MOTION_SLOT_ACTIVE);
+                me->GetMotionMaster()->MoveFollow(owner, followdist, me->GetFollowAngle(), MOTION_SLOT_ACTIVE);
             }
         }
     };
@@ -3193,10 +3293,11 @@ public:
                 //this will choose if the flame orb will explode because of the talent fire power
                 if(AuraEffect* firepower =summoner->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_MAGE, 31, EFFECT_0)){
                     if (firepower->GetId() == 18460 && roll_chance_i(33))
-                        return;
+                        explo = false;
                     else if (firepower->GetId() == 18459 && roll_chance_i(66))
-                        return;
-                    explo = true;
+                        explo = false;
+                    else
+                        explo = true;
                 }
             }
         }
@@ -3215,13 +3316,36 @@ public:
 
             if (damageTimer <= diff){
                 Unit* target = me->SelectNearestTarget(20);
-                if (me->GetOwner() && target){
-                    me->CastSpell(target, damagespellid, me, 0, 0, me->GetOwner()->GetGUID());
-                    me->CastSpell(target, visualspellid);
+                Unit* oldtarget = target;
+                if (target->HasAuraTypeWithFamilyFlags(SPELL_AURA_MOD_CONFUSE,SPELLFAMILY_MAGE, 0x01000000))
+                    {
+                    Aura* poly = NULL;
+                    if (target->HasAura(118))            //polymorph sheep
+                        poly = target->GetAura(118);
+                    else if (target->HasAura(28272))     //polymorph pig
+                        poly = target->GetAura(28272);
+                    else if (target->HasAura(28271))     //polymorph turtle
+                        poly = target->GetAura(28271);
+                    else if (target->HasAura(61305))     //polymorph black cat
+                        poly = target->GetAura(61305);
+                    else if (target->HasAura(61721))     //polymorph rabbit
+                        poly = target->GetAura(61721);
+                    else if (target->HasAura(61780))     //polymorph turkey
+                        poly = target->GetAura(61780);
+
+                    if (poly != NULL && me->GetOwner() && poly->GetCasterGUID() == me->GetOwner()->GetGUID()){
+                        target = me->SelectNearbyTarget(oldtarget, 20);
+                    }
                 }
-                else{
-                    me->CastSpell(target, damagespellid);
-                    me->CastSpell(target, visualspellid);
+                if(target){
+                    if (me->GetOwner() && target){
+                        me->CastSpell(target, damagespellid, me, 0, 0, me->GetOwner()->GetGUID());
+                        me->CastSpell(target, visualspellid);
+                    }
+                    else{
+                        me->CastSpell(target, damagespellid);
+                        me->CastSpell(target, visualspellid);
+                    }
                 }
                 damageTimer = 1000; 
             }
@@ -3239,11 +3363,12 @@ public:
             else
                 despawnTimer -=diff;
         }
+        
+    };
         CreatureAI* GetAI(Creature* creature) const
         {
             return new npc_flaming_orbAI(creature);
         }
-    };
 };
 
 void AddSC_npcs_special()
