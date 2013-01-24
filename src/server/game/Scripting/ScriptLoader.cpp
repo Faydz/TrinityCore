@@ -1296,6 +1296,7 @@ void AddBattlegroundScripts()
     void AddSC_LEVEL_NPC();
     void AddSC_NPC_Transmogrify();
 	void AddSC_npc_dtinireset();
+	void AddSC_CHANGE_NPC();
 
     void AddSC_Morph_NPC();
     void AddSC_DuelCD_Reset();
@@ -1326,6 +1327,7 @@ void AddCustomScripts()
     AddSC_LEVEL_NPC();
     AddSC_NPC_Transmogrify();
 	AddSC_npc_dtinireset();
+	AddSC_CHANGE_NPC();
 
     AddSC_Morph_NPC();
     AddSC_DuelCD_Reset();

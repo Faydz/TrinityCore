@@ -945,3 +945,104 @@ void AddSC_npc_startup()
 {
 	new npc_startup();
 }
+
+/*
+#include <cstring>
+#define t9_token			= 44209,
+#define nonset_token		= 44209,
+#define racechange_token	= 44209,
+#define factionchange_token	= 44209
+
+class npc_donation : public CreatureScript
+{
+public: npc_donation() : CreatureScript("npc_donation") { }
+
+		bool OnGossipHello(Player* player, Creature* creature)
+			{
+				if (player->isInCombat())
+					{
+						creature->MonsterWhisper("Du bist im Kampf. Komme wieder sobald du den Kampf beendet hast.", player->GetGUID());
+						player->CLOSE_GOSSIP_MENU();
+					}
+
+				player->ADD_GOSSIP_ITEM(0, "Fraktionswechsel", GOSSIP_SENDER_MAIN, 1);
+				player->ADD_GOSSIP_ITEM(0, "Rassenwechsel", GOSSIP_SENDER_MAIN, 2);
+				player->ADD_GOSSIP_ITEM(0, "Tier 9 Set", GOSSIP_SENDER_MAIN, 3);
+				player->ADD_GOSSIP_ITEM_EXTENDED(0, "ItemID eingeben (maximal 258er Gegenstandsstufe)", GOSSIP_SENDER_MAIN, 4, "", 0, true);
+				player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen...", GOSSIP_SENDER_MAIN, 50);
+				player->PlayerTalkClass->SendGossipMenu(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
+				return true;
+			}
+
+		bool OnGossipSelect(Player * player, Creature * creature, uint32 /*sender/, uint32 action)
+		{
+			switch(action)
+			{
+			case 1:
+				if (player->HasItem(factionchange_token)
+				{
+
+				}
+				else
+				{
+					creature->MonsterWhisper("Du hast nicht die ben\303\266tigten Gegenst\303\244nde.", player->GetGUID());
+				}
+				break;
+			case 2:
+				break;
+			case 3:
+				break;
+			case 50:
+				player->CLOSE_GOSSIP_MENU();
+				break;
+			}
+			return true;
+		}
+
+		bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, const uint32* entry)
+		{
+			switch (action)
+			{
+			case 4:
+				if (player->HasItem(nonset_token);
+				{
+					QueryResult result;
+					result = WorldDatabase.PQuery("SELECT `entry`, `ItemLevel` FROM `item_template`  WHERE `entry` LIKE '%s'", entry);
+					
+					if (result)
+					{
+						fields = result->Fetch();
+
+						entry = fields[1].GetInt32();
+						uint32 ItemLevel = fields[2].GetInt32();
+
+						if (ItemLevel > 258)
+						{
+							creature->MonsterWhisper("Dieser Gegenstand hat eine zu hohe Gegenstandsstufe.", player->GetGUID());
+						}
+
+						else
+						{
+							player->AddItem(entry, 1);
+						}
+					}
+					else
+					{
+						creature->MonsterWhisper("Ungültige Item ID.", player->GetGUID());
+					}
+				}
+
+				else
+				{
+					creature->MonsterWhisper("Du hast nicht die ben\303\266tigten Gegenst\303\244nde.", player->GetGUID());
+				}
+				break;
+			}
+			return true;
+		}
+};
+void AddSC_npc_donation()
+{
+	new npc_donation();
+}
+*/

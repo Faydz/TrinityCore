@@ -4,8 +4,7 @@
 
 class LEVEL_NPC : public CreatureScript
 {
-    public:
-    LEVEL_NPC() : CreatureScript("LEVEL_NPC") {}
+    public: LEVEL_NPC() : CreatureScript("LEVEL_NPC") {}
 
     bool OnGossipHello(Player* player, Creature* creature)
     {
@@ -74,4 +73,90 @@ class LEVEL_NPC : public CreatureScript
 void AddSC_LEVEL_NPC()
 {
     new LEVEL_NPC();
+}
+
+class CHANGE_NPC : public CreatureScript
+{
+    public:
+    CHANGE_NPC() : CreatureScript("CHANGE_NPC") {}
+
+    bool OnGossipHello(Player* player, Creature* creature)
+    {
+        if (player->isInCombat())
+        {
+            creature->MonsterWhisper("Du bist in einen Kampf verwickelt. Komme wieder sobald du den Kampf beendet hast.", player->GetGUID());
+            player->CLOSE_GOSSIP_MENU();
+        }
+        player->ADD_GOSSIP_ITEM(1, "Fraktionswechsel", GOSSIP_SENDER_MAIN, 2);
+		player->ADD_GOSSIP_ITEM(1, "Rassenwechsel", GOSSIP_SENDER_MAIN, 3);
+		player->ADD_GOSSIP_ITEM(1, "Charakter anpassen", GOSSIP_SENDER_MAIN, 4);
+        player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen!", GOSSIP_SENDER_MAIN, 500);
+        player->PlayerTalkClass->SendGossipMenu(950001, creature->GetGUID());
+        return true;
+    }
+
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 action)
+    {
+        player->PlayerTalkClass->ClearMenus();  
+         
+        if (action == 2)
+        {
+            uint32 guid = player->GetGUID();
+            QueryResult result;
+            result = LoginDatabase.PQuery("SELECT `guid` FROM `account_factionchange` WHERE `guid`='%u'", guid);
+            
+            if(!result)
+            {
+                    player->SetAtLoginFlag(AT_LOGIN_CHANGE_FACTION);
+                    creature->MonsterWhisper("Bei deinem n\303\244chsten Login kannst du die Fraktion wechseln.", player->GetGUID());
+                    player->CLOSE_GOSSIP_MENU();
+                    LoginDatabase.PExecute("INSERT INTO `account_factionchange` (`guid`) VALUES ('%u')", guid);
+            }
+            else
+            {
+               creature->MonsterWhisper("Dieser Service ist einmalig!", player->GetGUID());
+               player->CLOSE_GOSSIP_MENU();
+            }
+        }
+
+		if (action == 3)
+        {
+            uint32 guid = player->GetGUID();
+            QueryResult result;
+            result = LoginDatabase.PQuery("SELECT `guid` FROM `account_racechange` WHERE `guid`='%u'", guid);
+            
+            if(!result)
+            {
+                    player->SetAtLoginFlag(AT_LOGIN_CHANGE_RACE);
+                    creature->MonsterWhisper("Bei deinem n\303\244chsten Login kannst du die Rasse wechseln.", player->GetGUID());
+                    player->CLOSE_GOSSIP_MENU();
+                    LoginDatabase.PExecute("INSERT INTO `account_racechange` (`guid`) VALUES ('%u')", guid);
+            }
+            else
+            {
+               creature->MonsterWhisper("Dieser Service ist einmalig!", player->GetGUID());
+               player->CLOSE_GOSSIP_MENU();
+            }
+        }
+
+		if (action == 4)
+		{
+			player->SetAtLoginFlag(AT_LOGIN_CUSTOMIZE);
+			creature->MonsterWhisper("Bei deinem n\303\244chsten Login kannst du deinen Charakter anpassen.", player->GetGUID());
+			player->CLOSE_GOSSIP_MENU();
+		}
+            
+        if (action == 500)
+        {
+            player->GetSession()->SendNotification("Bis zum n\303\244chsten mal!");
+            creature->MonsterWhisper("Bis zum n\303\244chsten mal!", player->GetGUID());
+            player->CLOSE_GOSSIP_MENU();
+        }
+        return true;
+    }
+};
+
+void AddSC_CHANGE_NPC()
+{
+    new CHANGE_NPC();
 }
