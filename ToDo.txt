@@ -2,3 +2,4 @@ Questo documento tiene traccia delle ottimizzazioni da fare una volta stabilizza
 
 1 Ottimizzare l'improved polymorph in Unit.cpp, riga 624. Fare il check dentro RemoveAurasWithInterruptFlags, se possibile.
 2 Testare il corretto funzionamento del burning embers sul test server.
+3 Controllare se la chiamata alla funzione CanCastWhileWalking in InterruptSpell consuma troppa cpu. In caso inserire l'hackfix con if.

@@ -2852,6 +2852,14 @@ void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed, bool wi
         if (!spell->IsInterruptable())
             return;
 
+        // Check if currently spell can be casted while walking
+        if (Unit* caster = spell->GetCaster())
+        {
+            if (const SpellInfo* spellProto = spell->GetSpellInfo())
+                if (caster->CanCastWhileWalking(spellProto))
+                    return;
+        }
+
         // send autorepeat cancel message for autorepeat spells
         if (spellType == CURRENT_AUTOREPEAT_SPELL)
             if (GetTypeId() == TYPEID_PLAYER)
@@ -2863,6 +2871,19 @@ void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed, bool wi
         m_currentSpells[spellType] = NULL;
         spell->SetReferencedFromCurrent(false);
     }
+}
+
+bool Unit::CanCastWhileWalking(const SpellInfo* sp)
+{
+    AuraEffectList alist = GetAuraEffectsByType(SPELL_AURA_CAST_WHILE_WALKING);
+    for (AuraEffectList::const_iterator i = alist.begin(); i != alist.end(); ++i)
+    {
+        // check that spell mask matches
+        if (!((*i)->GetSpellInfo()->Effects[(*i)->GetEffIndex()].SpellClassMask & sp->SpellFamilyFlags)) 
+            continue;
+        return true;
+    }
+    return false;
 }
 
 void Unit::FinishSpell(CurrentSpellTypes spellType, bool ok /*= true*/)
@@ -8294,6 +8315,18 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                         if (!target)
                             return false;
                     }
+                }
+                break;
+            case SPELLFAMILY_WARLOCK:
+                switch (auraSpellInfo->Id)
+                {
+                    // Decimation
+                    case 63156:
+                    case 63158:
+                        // Can proc only if target has hp below 25%
+                        if (!victim || !victim->HealthBelowPct(auraSpellInfo->Effects[EFFECT_1].BasePoints))
+                            return false;
+                        break;
                 }
                 break;
             case SPELLFAMILY_MAGE:

@@ -738,6 +738,16 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
             if (GetId() == 55233)
                 amount = GetBase()->GetUnitOwner()->CountPctFromMaxHealth(amount);
             break;
+        case SPELL_AURA_MOD_INCREASE_HEALTH_2:
+            switch (GetId())
+            {
+                // Frenzied Regeneration
+                case 22842:
+                    if (caster->GetShapeshiftForm() == FORM_BEAR);
+                        amount = GetBase()->GetUnitOwner()->CountPctFromMaxHealth(30);
+                    break;
+            }
+            break;
         case SPELL_AURA_MOD_INCREASE_SPEED:
             // Dash - do not set speed if not in cat form
             if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_DRUID && GetSpellInfo()->SpellFamilyFlags[2] & 0x00000008)
@@ -5763,7 +5773,7 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
                     if (rage == 0)
                         break;
                     int32 mod = (rage < 100) ? rage : 100;
-                    int32 points = target->CalculateSpellDamage(target, GetSpellInfo(), 1);
+                    int32 points = (target->CalculateSpellDamage(target, GetSpellInfo(), 1)/10);
                     int32 regen = target->GetMaxHealth() * (mod * points / 10) / 1000;
                     target->CastCustomSpell(target, 22845, &regen, 0, 0, true, 0, this);
                     target->SetPower(POWER_RAGE, rage-mod);
