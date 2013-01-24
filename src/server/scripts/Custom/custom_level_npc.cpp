@@ -87,9 +87,9 @@ class CHANGE_NPC : public CreatureScript
             creature->MonsterWhisper("Du bist in einen Kampf verwickelt. Komme wieder sobald du den Kampf beendet hast.", player->GetGUID());
             player->CLOSE_GOSSIP_MENU();
         }
-        player->ADD_GOSSIP_ITEM(1, "Fraktionswechsel", GOSSIP_SENDER_MAIN, 2);
-		player->ADD_GOSSIP_ITEM(1, "Rassenwechsel", GOSSIP_SENDER_MAIN, 3);
-		player->ADD_GOSSIP_ITEM(1, "Charakter anpassen", GOSSIP_SENDER_MAIN, 4);
+        player->ADD_GOSSIP_ITEM(5, "Fraktionswechsel", GOSSIP_SENDER_MAIN, 2);
+		player->ADD_GOSSIP_ITEM(5, "Rassenwechsel", GOSSIP_SENDER_MAIN, 3);
+		player->ADD_GOSSIP_ITEM(5, "Charakter anpassen", GOSSIP_SENDER_MAIN, 4);
         player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen!", GOSSIP_SENDER_MAIN, 500);
         player->PlayerTalkClass->SendGossipMenu(950001, creature->GetGUID());
         return true;

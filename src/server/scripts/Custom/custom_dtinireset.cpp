@@ -41,7 +41,7 @@ public:
     {
         player->ADD_GOSSIP_ITEM(5, "Eiskronenzitadelle 10 Heroisch (10 Embleme von Darkthunder)", GOSSIP_SENDER_MAIN, 6002);
 
-        player->ADD_GOSSIP_ITEM(10, "Auf Wiedersehen!", GOSSIP_SENDER_MAIN, 9999);
+        player->ADD_GOSSIP_ITEM(0, "Auf Wiedersehen!", GOSSIP_SENDER_MAIN, 9999);
         player->PlayerTalkClass->SendGossipMenu(2713,creature->GetGUID());
         return true;
     }
