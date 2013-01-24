@@ -55,7 +55,7 @@ UPDATE `quest_template` SET `NextQuestIdChain`='26196' WHERE (`Id`='25939');
 UPDATE `quest_template` SET `PrevQuestId`='25939' WHERE (`Id`='26196');
 
 -- Quest 25939 For Peat's Sake
-UPDATE `creature_template` SET `modelid1`='11686', `modelid2`=NULL WHERE (`entry`='41628');
+UPDATE `creature_template` SET `modelid1`='11686', `modelid2`='0' WHERE (`entry`='41628');
 UPDATE `creature_template` SET `AIName`='SmartAI' WHERE (`entry`='41628');
 DELETE FROM `smart_scripts` WHERE (`entryorguid`='41628');
 INSERT INTO `smart_scripts` VALUES (41628, 0, 1, 2, 8, 0, 100, 0, 77571, 0, 0, 0, 33, 41628, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, '');
