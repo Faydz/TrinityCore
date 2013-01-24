@@ -84,6 +84,9 @@ class AuraEffect
 
         void SendTickImmune(Unit* target, Unit* caster) const;
         void PeriodicTick(AuraApplication * aurApp, Unit* caster) const;
+        
+        void SetHoGUnitList(std::list<Unit *> & targetList);
+        std::list<Unit *> GetHoGUnitList() const;
 
         void HandleProc(AuraApplication* aurApp, ProcEventInfo& eventInfo);
 
@@ -108,6 +111,9 @@ class AuraEffect
         uint8 const m_effIndex;
         bool m_canBeRecalculated;
         bool m_isPeriodic;
+
+        //Used for Hand of Gul'Dan
+        std::list<Unit*> m_HoGunitList;
     private:
         bool IsPeriodicTickCrit(Unit* target, Unit const* caster) const;
 

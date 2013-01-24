@@ -2980,6 +2980,19 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Aura of Foreboding's root rank 1-2
+                    case 93974:
+                    case 93987:
+                        spellInfo->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo();
+                        break;
+                    // Aura of Foreboding's stun rank 1-2
+                    case 93975:
+                    case 93986:
+                        //Force to be a single target spell because the perioc effect handles one instance for each target affected by the debuff
+                        spellInfo->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo();
+                        break;
                     // Hand of Gul'dan talent
                     case 71521:
                         spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_4_YARDS);
@@ -2991,6 +3004,8 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_PERSISTENT_AREA_AURA;
                         spellInfo->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_DEST_DYNOBJ_ENEMY);
                         spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo();
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_PERIODIC_DUMMY;
+                        spellInfo->Effects[EFFECT_0].Amplitude = 1000;
                         break;
                     // Impending Doom (rank 2/3)
                     case 85107:

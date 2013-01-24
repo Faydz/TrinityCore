@@ -28,44 +28,50 @@
 
 enum WarlockSpells
 {
-    SPELL_WARLOCK_CORRUPTION                      = 172,
+    SPELL_WARLOCK_AURA_OF_FOREBODING_R1             = 89604,
+    SPELL_WARLOCK_AURA_OF_FOREBODING_R2             = 89605,
+    SPELL_WARLOCK_AURA_OF_FOREBODING_ROOT_R1        = 93974,
+    SPELL_WARLOCK_AURA_OF_FOREBODING_ROOT_R2        = 93987,
+    SPELL_WARLOCK_CORRUPTION                        = 172,
     SPELL_WARLOCK_BANE_OF_DOOM_EFFECT               = 18662,
     SPELL_WARLOCK_DEMONIC_CIRCLE_SUMMON             = 48018,
     SPELL_WARLOCK_DEMONIC_CIRCLE_TELEPORT           = 48020,
     SPELL_WARLOCK_DEMONIC_CIRCLE_ALLOW_CAST         = 62388,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS      = 54435,
-    SPELL_WARLOCK_DEMONIC_EMPOWERMENT_IMP         = 54444,
+    SPELL_WARLOCK_DEMONIC_EMPOWERMENT_IMP           = 54444,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER    = 54443,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD      = 54508,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER     = 54509,
-    SPELL_WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE      = 89653,
-    SPELL_WARLOCK_IMMOLATE                        = 348,
+    SPELL_WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE        = 89653,
+    SPELL_WARLOCK_IMMOLATE                          = 348,
+    SPELL_WARLOCK_HAND_OF_GUL_DAN_AURA              = 86000,
+    SPELL_WARLOCK_HAND_OF_GUL_DAN_GRAPHIC           = 85526,
     SPELL_WARLOCK_HAUNT                             = 48181,
     SPELL_WARLOCK_HAUNT_HEAL                        = 48210,
     SPELL_WARLOCK_LIFE_TAP_ENERGIZE                 = 31818,
     SPELL_WARLOCK_LIFE_TAP_ENERGIZE_2               = 32553,
     SPELL_WARLOCK_SOULSHATTER                       = 32835,
-    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1  = 60955,
-    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2  = 60956,
-	SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1       = 18703,
-    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R2       = 18704,
-    SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R1         = 18692,
-	SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R2         = 18693,
-    SPELL_WARLOCK_IMPROVED_LIFE_TAP_ICON_ID       = 208,
-    SPELL_WARLOCK_JINX_R1                         = 85541,
-    SPELL_WARLOCK_JINX_R2                         = 86105,
-    SPELL_WARLOCK_MANA_FEED_ICON_ID               = 1982,
-    SPELL_WARLOCK_NETHER_WARD                     = 91711,
-    SPELL_WARLOCK_NETHER_WARD_TALENT              = 91713,
-    SPELL_WARLOCK_SHADOW_WARD                     = 6229,
-    SPELL_WARLOCK_SOUL_SHARD_ENERGIZE             = 87388,
-    SPELL_WARLOCK_SOUL_SWAP_COOLDOWN              = 94229,
-    SPELL_WARLOCK_SOUL_SWAP_GLYPH                 = 56226,
-    SPELL_WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT        = 92795,
-    SPELL_WARLOCK_SOUL_SWAP_SAVE_DOTS             = 86211,
-    SPELL_WARLOCK_SOULBURN                        = 74434,
-    SPELL_WARLOCK_UNSTABLE_AFFLICTION             = 30108,
-    SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL      = 31117,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1    = 60955,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2    = 60956,
+	SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1         = 18703,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R2         = 18704,
+    SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R1           = 18692,
+	SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R2           = 18693,
+    SPELL_WARLOCK_IMPROVED_LIFE_TAP_ICON_ID         = 208,
+    SPELL_WARLOCK_JINX_R1                           = 85541,
+    SPELL_WARLOCK_JINX_R2                           = 86105,
+    SPELL_WARLOCK_MANA_FEED_ICON_ID                 = 1982,
+    SPELL_WARLOCK_NETHER_WARD                       = 91711,
+    SPELL_WARLOCK_NETHER_WARD_TALENT                = 91713,
+    SPELL_WARLOCK_SHADOW_WARD                       = 6229,
+    SPELL_WARLOCK_SOUL_SHARD_ENERGIZE               = 87388,
+    SPELL_WARLOCK_SOUL_SWAP_COOLDOWN                = 94229,
+    SPELL_WARLOCK_SOUL_SWAP_GLYPH                   = 56226,
+    SPELL_WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT          = 92795,
+    SPELL_WARLOCK_SOUL_SWAP_SAVE_DOTS               = 86211,
+    SPELL_WARLOCK_SOULBURN                          = 74434,
+    SPELL_WARLOCK_UNSTABLE_AFFLICTION               = 30108,
+    SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117,
 };
 
 bool _SeedOfCorruptionFlag = false;
@@ -92,10 +98,53 @@ public:
                 return;
 
             // Cast the debuff on the target (it applies the aura)
-            caster->CastSpell(target, 86000, true);
+            caster->CastSpell(target, SPELL_WARLOCK_HAND_OF_GUL_DAN_AURA, true);
 
             // Graphical effect
-            target->CastSpell(target, 85526, true);
+            target->CastSpell(target, SPELL_WARLOCK_HAND_OF_GUL_DAN_GRAPHIC, true);			
+            
+            // Cast also the roots if the warlock has the talent
+            if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 140, 0))
+            {
+                int32 aurOfForeId = -1;
+
+                if(aurEff->GetId() == SPELL_WARLOCK_AURA_OF_FOREBODING_R1)
+                {
+                    // Rank 1
+                    aurOfForeId = SPELL_WARLOCK_AURA_OF_FOREBODING_ROOT_R1;
+                    //target->CastSpell(target, SPELL_WARLOCK_AURA_OF_FOREBODING_ROOT_R1, true, 0, 0, caster->GetGUID());
+                }
+                else if(aurEff->GetId() == SPELL_WARLOCK_AURA_OF_FOREBODING_R2)
+                {
+                    // Rank 2
+                    aurOfForeId = SPELL_WARLOCK_AURA_OF_FOREBODING_ROOT_R2;
+                    //target->CastSpell(target, SPELL_WARLOCK_AURA_OF_FOREBODING_ROOT_R2, true, 0, 0, caster->GetGUID());
+                }
+            
+                // Check the aura not the auraEffect because the aura effect of the Hand of Gul'dan is not applied on the targets. It's is on the ground, they just get the debuff (aura)
+                if(Aura *aur = target->GetAura(SPELL_WARLOCK_HAND_OF_GUL_DAN_AURA, caster->GetGUID()))
+                {
+                    // Get the AuraEffect object from the aura
+                    AuraEffect *aurEff = aur->GetEffect(EFFECT_0);
+                    std::list<Unit*> targets;
+
+                    // Get the targets that took the Hand of Gul'dan's debuff at the beginning (for the stun if they remain in the 4 yard range for 6 sec)
+                    aurEff->GetTargetList(targets);
+                
+                    // Set the instance variable for the targets stun check
+                    aurEff->SetHoGUnitList(targets);
+                
+                    // Root
+                    for (std::list<Unit*>::iterator singleTarget = targets.begin(); singleTarget != targets.end(); ++singleTarget) 
+                    {
+                        // Check the current target instance until it finds the correct one
+                        if((*singleTarget))
+                        {
+                            (*singleTarget)->CastSpell((*singleTarget), aurOfForeId, true, 0, 0, caster->GetGUID());
+                        }
+                    }
+                }
+            }
         }
 
         void Register()

@@ -1292,6 +1292,18 @@ void AuraEffect::PeriodicTick(AuraApplication * aurApp, Unit* caster) const
     }
 }
 
+//Sets the instance array with the list of target parameter
+void AuraEffect::SetHoGUnitList(std::list<Unit *> & targetList)
+{
+    m_HoGunitList = targetList;
+}
+
+//Just returns current target list
+std::list<Unit*> AuraEffect::GetHoGUnitList() const
+{
+    return m_HoGunitList;
+}
+
 void AuraEffect::HandleProc(AuraApplication* aurApp, ProcEventInfo& eventInfo)
 {
     bool prevented = GetBase()->CallScriptEffectProcHandlers(const_cast<AuraEffect const*>(this), const_cast<AuraApplication const*>(aurApp), eventInfo);
@@ -5683,6 +5695,50 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
                     break;
             }
             break;
+        case SPELLFAMILY_WARLOCK:
+            switch(GetId())
+            {
+                // Hand of Gul'dan
+                case 86000:
+                    // It handles only the sixth periodic tick for the stun
+                    if(m_tickNumber == 7)
+                    {
+                        if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 140, 0))
+                        {
+                            uint32 spellId;
+
+                            if(caster->HasAura(89604))
+                                // Rank 1
+                                spellId = 93975;
+                            else
+                                // Rank 2
+                                spellId = 93986;
+
+                            // This is a secure check, it will probably never gives false unless the core throws an exception
+                            if(this->GetHoGUnitList().size() > 0)
+                            {
+                                // Gets the target list stored in spell_warlock.cpp Hand of Gul'dan's script
+                                std::list<Unit*> targets = this->GetHoGUnitList();
+
+                                // Loops for the whole targets
+                                for (std::list<Unit*>::iterator singleTarget = targets.begin(); singleTarget != targets.end(); ++singleTarget) 
+                                {
+                                    // Check the current target instance until it finds the correct one
+                                    if((*singleTarget) == target)
+                                    {
+                                        // Cast the stun (modded for affecting only one target
+                                        target->CastSpell(target, spellId, true, 0, 0, caster->GetGUID());
+
+                                        // Exit from the loop
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                break;
+            }
+        break;
         case SPELLFAMILY_MAGE:
         {
             // Mirror Image
