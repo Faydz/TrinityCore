@@ -743,7 +743,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
             {
                 // Frenzied Regeneration
                 case 22842:
-                    if (caster->GetShapeshiftForm() == FORM_BEAR);
+                    if (caster->GetShapeshiftForm() == FORM_BEAR)
                         amount = GetBase()->GetUnitOwner()->CountPctFromMaxHealth(30);
                     break;
             }
