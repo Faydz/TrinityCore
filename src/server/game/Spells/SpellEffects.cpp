@@ -63,6 +63,7 @@
 #include "GameObjectAI.h"
 #include "AccountMgr.h"
 #include "InstanceScript.h"
+#include "PathGenerator.h"
 #include "ReputationMgr.h"
 
 pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
@@ -4930,21 +4931,24 @@ void Spell::EffectSkinning(SpellEffIndex /*effIndex*/)
 
 void Spell::EffectCharge(SpellEffIndex /*effIndex*/)
 {
+    if (!unitTarget)
+        return;
+
     if (effectHandleMode == SPELL_EFFECT_HANDLE_LAUNCH_TARGET)
     {
-        if (!unitTarget)
-            return;
-
-        float x, y, z;
-        unitTarget->GetContactPoint(m_caster, x, y, z);
-        m_caster->GetMotionMaster()->MoveCharge(x, y, z);
+        if (m_preGeneratedPath.GetPathType() & PATHFIND_NOPATH)
+        {
+            Position pos;
+            unitTarget->GetContactPoint(m_caster, pos.m_positionX, pos.m_positionY, pos.m_positionZ);
+            unitTarget->GetFirstCollisionPosition(pos, unitTarget->GetObjectSize(), unitTarget->GetRelativeAngle(m_caster));
+            m_caster->GetMotionMaster()->MoveCharge(pos.m_positionX, pos.m_positionY, pos.m_positionZ);
+        }
+        else
+            m_caster->GetMotionMaster()->MoveCharge(m_preGeneratedPath);
     }
 
     if (effectHandleMode == SPELL_EFFECT_HANDLE_HIT_TARGET)
     {
-        if (!unitTarget)
-            return;
-
         // not all charge effects used in negative spells
         if (!m_spellInfo->IsPositive() && m_caster->GetTypeId() == TYPEID_PLAYER)
             m_caster->Attack(unitTarget, true);
@@ -5787,7 +5791,7 @@ void Spell::EffectRedirectThreat(SpellEffIndex /*effIndex*/)
         return;
 
     if (unitTarget)
-        m_caster->SetReducedThreatPercent((uint32)damage, unitTarget->GetGUID());
+        m_caster->SetRedirectThreat(unitTarget->GetGUID(), uint32(damage));
 }
 
 void Spell::EffectGameObjectDamage(SpellEffIndex /*effIndex*/)
