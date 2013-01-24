@@ -4247,6 +4247,17 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
             }
             break;
         }
+        case SPELLFAMILY_WARLOCK:
+            switch (m_spellInfo->Id)
+            {
+                // Cremation
+                case 89603:
+                    if(unitTarget && GetCaster())
+                        if (Aura* aur = unitTarget->GetAura(348, GetCaster()->GetGUID()))
+                            aur->RefreshDuration();
+                    break;
+            }
+            break;
         case SPELLFAMILY_PALADIN:
         {
             // Judgement (seal trigger)
