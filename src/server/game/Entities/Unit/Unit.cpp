@@ -8317,6 +8317,18 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                     }
                 }
                 break;
+            case SPELLFAMILY_WARLOCK:
+                switch (auraSpellInfo->Id)
+                {
+                    // Decimation
+                    case 63156:
+                    case 63158:
+                        // Can proc only if target has hp below 25%
+                        if (!victim || !victim->HealthBelowPct(auraSpellInfo->Effects[EFFECT_1].BasePoints))
+                            return false;
+                        break;
+                }
+                break;
             case SPELLFAMILY_MAGE:
                 if (auraSpellInfo->SpellIconID == 2127)     // Blazing Speed
                 {
