@@ -679,6 +679,21 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                 }
             }
             break;
+        case SPELLFAMILY_DRUID:
+            switch (m_spellInfo->Id)
+            {
+                case 80964:  // Skull Bash (bear) 
+                {
+                  m_caster->CastSpell(unitTarget,93985,true); // can't use spell_linked_spell
+                  break; 
+                }
+                case 80965:  // Skull Bash(cat) 
+                { 
+                  m_caster->CastSpell(unitTarget,93985,true); // can't use spell_linked_spell
+                  break;
+                }
+            }
+            break;
         case SPELLFAMILY_PALADIN:
             switch (m_spellInfo->Id)
             {
@@ -3529,8 +3544,18 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
                                 int32 basePoints = 5;  //rank 1
                                 m_caster->CastCustomSpell(m_caster, 87098, &basePoints, NULL, NULL, true);
                             }
+                        break;
                     }
-                    break;
+                    case SPELLFAMILY_DRUID:
+                        // Skull Bash
+                        if (m_spellInfo->Id == 93985)
+                        {
+                            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(16940)) // Brutal Impact (rank 1)
+                                m_caster->CastSpell(unitTarget,82364, true);
+                            else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(16941)) // Brutal Impact (rank 2)
+                                m_caster->CastSpell(unitTarget,82365, true);
+                        }
+                        break;
                 }
             }
         }
