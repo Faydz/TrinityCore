@@ -1354,58 +1354,6 @@ INSERT INTO `spell_area` (`spell`,`area`,`quest_start`,`quest_end`,`aura_spell`,
 -- Issue 7541: Shambling Horror immunities
 UPDATE `creature_template` SET `mechanic_immune_mask`=`mechanic_immune_mask`|1|2|4|8|16|64|512|1024|4096|8192|65536|131072|524288|4194304|536870912 WHERE `entry`=37698;
 
-/* Removed 4.x
--- Issue 7436: Ground bound Highperch 
--- Highperch Soarer
-SET @NPC := 21708;
-SET @PATH := @NPC*10;
-UPDATE `creature_template` SET `InhabitType`=4 WHERE `entry`=6139;
-UPDATE `creature` SET `spawndist`=0,`MovementType`=2,`position_x`=-5155.09,`position_y`=-1194.89,`position_z`=73.70869 WHERE `guid`=@NPC;
-UPDATE `creature_addon` SET `path_id`=@PATH WHERE `guid`=@NPC;
-DELETE FROM `waypoint_data` WHERE `id`=@PATH;
-INSERT INTO `waypoint_data` (`id`,`point`,`position_x`,`position_y`,`position_z`,`delay`,`move_flag`,`action`,`action_chance`,`wpguid`) VALUES
-(@PATH,1,-5155.09,-1194.89,73.70869,0,0,0,100,0),
-(@PATH,2,-5155.986,-1199.748,81.49023,0,0,0,100,0),
-(@PATH,3,-5166.314,-1220.043,81.76808,0,0,0,100,0),
-(@PATH,4,-5170.551,-1226.347,76.71234,0,0,0,100,0),
-(@PATH,5,-5178.024,-1237.037,72.43468,0,0,0,100,0),
-(@PATH,6,-5190.296,-1239.181,71.90687,0,0,0,100,0),
-(@PATH,7,-5215.796,-1225.133,69.76797,0,0,0,100,0),
-(@PATH,8,-5221.52,-1209.387,67.79574,0,0,0,100,0),
-(@PATH,9,-5219.366,-1194.92,67.15694,0,0,0,100,0),
-(@PATH,10,-5209.852,-1187.224,65.96239,0,0,0,100,0),
-(@PATH,11,-5194.886,-1188.915,70.71236,0,0,0,100,0),
-(@PATH,12,-5181.055,-1199.332,60.29574,0,0,0,100,0),
-(@PATH,13,-5158.846,-1213.597,57.6291,0,0,0,100,0),
-(@PATH,14,-5122.129,-1222.279,42.46242,0,0,0,100,0),
-(@PATH,15,-5110.988,-1230.767,15.32349,0,0,0,100,0),
-(@PATH,16,-5084.673,-1227.625,-11.81538,0,0,0,100,0),
-(@PATH,17,-5065.282,-1209.691,-34.89864,0,0,0,100,0),
-(@PATH,18,-5052.477,-1181.261,-39.42649,0,0,0,100,0),
-(@PATH,19,-5025.058,-1165.288,-32.56528,0,0,0,100,0),
-(@PATH,20,-5004.282,-1140.431,-38.3154,0,0,0,100,0),
-(@PATH,21,-4984.813,-1123.683,-38.17639,0,0,0,100,0),
-(@PATH,22,-4971.478,-1109.776,-38.17639,0,0,0,100,0),
-(@PATH,23,-4949.74,-1096.296,-32.42633,0,0,0,100,0),
-(@PATH,24,-4927.954,-1090.275,-24.84298,0,0,0,100,0),
-(@PATH,25,-4909.837,-1080.728,-14.0652,0,0,0,100,0),
-(@PATH,26,-4914.713,-1066.641,-7.898551,0,0,0,100,0),
-(@PATH,27,-4927.922,-1056.954,-3.352009,0,0,0,100,0),
-(@PATH,28,-4942.696,-1055.217,8.220422,0,0,0,100,0),
-(@PATH,29,-4951.954,-1049.145,14.62554,0,0,0,100,0),
-(@PATH,30,-4960.176,-1028.92,20.03323,0,0,0,100,0),
-(@PATH,31,-4970.474,-1008.432,22.08879,0,0,0,100,0),
-(@PATH,32,-4980.969,-992.9671,23.42848,0,0,0,100,0),
-(@PATH,33,-4993.734,-980.054,23.75917,0,0,0,100,0),
-(@PATH,34,-5012.753,-967.9377,24.0925,0,0,0,100,0),
-(@PATH,35,-5032.862,-971.138,30.92584,0,0,0,100,0),
-(@PATH,36,-5052.127,-982.1085,39.0092,0,0,0,100,0),
-(@PATH,37,-5060.675,-991.1913,52.28708,0,0,0,100,0),
-(@PATH,38,-5072.277,-1008.99,67.84268,0,0,0,100,0),
-(@PATH,39,-5090.256,-1005.558,79.18673,0,0,0,100,0),
-(@PATH,40,-5106.005,-1004.311,73.88409,0,0,0,100,0);
-*/
-
 -- Issue 8639: Eyes of the Eagle
 -- Talonshrike's Egg
 SET @ENTRY := 186814;
@@ -1526,37 +1474,7 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 (@ENTRY,0,0,0,8,0,100,1,28730,0,0,0,27,15468,28730,0,0,0,0,7,0,0,0,0,0,0,0,"Tainted Arcane Wraith - On Spellhit Arcane Torrent - Quest Credit"),
 (@ENTRY,0,1,0,8,0,100,1,25046,0,0,0,27,15468,28730,0,0,0,0,7,0,0,0,0,0,0,0,"Tainted Arcane Wraith - On Spellhit Arcane Torrent - Quest Credit"),
 (@ENTRY,0,2,0,0,0,100,0,9000,18800,21100,32200,11,25603,0,0,0,0,0,2,0,0,0,0,0,0,0,"Tainted Arcane Wraith - In Combat - Cast Slow");
-/* 4.x removed
--- Add Gossip for Harrison Jones
-UPDATE `creature_template` SET `gossip_menu_id`=8932 WHERE `entry`=24358;
-DELETE FROM `gossip_menu` WHERE `entry`=8932 AND `text_id`=12135;
-INSERT INTO `gossip_menu` (`entry`,`text_id`) VALUES (8932,12135);
-DELETE FROM `gossip_menu_option` WHERE `menu_id`=8932 AND `id`=0;
-INSERT INTO `gossip_menu_option` (`menu_id`,`id`,`option_icon`,`option_text`,`option_id`,`npc_option_npcflag`) VALUES
-(8932,0,0, 'Thanks for the concern, but we intend to explore Zul''Aman.',1,1);
 
--- Pathing for Harrison Jones Entry: 24358
-SET @NPC := 86177;
-SET @PATH := @NPC * 10;
-DELETE FROM `waypoint_data` WHERE `id`IN (@PATH,@PATH+1,@PATH+2);
-INSERT INTO `waypoint_data` (`id`,`point`,`position_x`,`position_y`,`position_z`,`delay`,`move_flag`,`action`,`action_chance`,`wpguid`) VALUES
-(@PATH,1,112.1772,1670.18,42.02158,0,0,0,100,0),
-(@PATH,2,82.44975,1655.312,42.02155,0,0,0,100,0),
-(@PATH,3,114.1627,1661.469,42.02158,0,0,0,100,0),
-(@PATH,4,131.8243,1644.853,42.0216,0,0,0,100,0),
-(@PATH+1,1,121.897,1639.106,42.19081,0,0,0,100,0),
-(@PATH+1,2,120.8522,1637.931,42.37172,0,0,0,100,0),
-(@PATH+1,3,120.7898,1609.063,43.49005,0,0,0,100,0),
-(@PATH+2,1,120.6967,1603.713,43.4503,0,0,0,100,0);
-
--- Text for Harrison Jones from sniff
-DELETE FROM `creature_text` WHERE `entry` IN (24358);
-INSERT INTO `creature_text` (`entry`,`groupid`,`id`,`text`,`type`,`language`,`probability`,`emote`,`duration`,`sound`,`comment`) VALUES
-(24358,0,0, 'Suit yourself. At least five of you must assist me if we''re to get inside. Follow me....',14,0,100,1,0,0, 'Harrison Jones - Gong Event Say 0'),
-(24358,1,0, 'According to my calculations, if enough of us bang the gong at once the seal on these doors will break and we can enter.',14,0,100,1,0,0, 'Harrison Jones - Gong Event Say 1'),
-(24358,2,0, 'I''ve researched this site extensively and I won''t allow any dim-witted treasure hunters to swoop in and steal what belongs in a museum. I''ll lead this charge...',14,0,100,0,0,0, 'Harrison Jones - Gong Event Say 2'),
-(24358,3,0, 'In fact, it would be best if you just stay here. You''d only get in my way....',14,0,100,0,0,0, 'Harrison Jones - Gong Event Say 3');
-*/
 -- Summon minions
 DELETE FROM `spell_script_names` WHERE `spell_id`=59910;
 INSERT INTO `spell_script_names`(`spell_id`,`ScriptName`) VALUE
@@ -1733,18 +1651,7 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,
 (13,2,100091,0,1,31,0,3,53791,0,0,0,0,'','Right-Side Smack - Blazing Monstrosity'),
 (13,1,100092,0,0,31,0,3,53788,0,0,0,0,'','Tickle - Molten Barrage'),
 (13,2,100092,0,1,31,0,3,53791,0,0,0,0,'','Tickle - Blazing Monstrosity');
-/* 4.x removed
--- Pathing for Harrison Jones Entry: 24358
-SET @NPC := 86177;
-SET @PATH := @NPC * 10;
-DELETE FROM `waypoint_data` WHERE `id`IN (@PATH,@PATH+1,@PATH+2);
-INSERT INTO `waypoint_data` (`id`,`point`,`position_x`,`position_y`,`position_z`,`delay`,`move_flag`,`action`,`action_chance`,`wpguid`) VALUES
-(@PATH,1,131.8243,1644.853,42.0216,0,0,0,100,0),
-(@PATH+1,1,121.897,1639.106,42.19081,0,0,0,100,0),
-(@PATH+1,2,120.8522,1637.931,42.37172,0,0,0,100,0),
-(@PATH+1,3,120.7898,1609.063,43.49005,0,0,0,100,0),
-(@PATH+2,1,120.6967,1603.713,43.4503,0,0,0,100,0);
-*/
+
 -- Cleanup creature_addon and creature_template_addon
 -- we had 83 duplicate aura definitions in those
 -- Glacier Penguin (51 rows) 
@@ -1759,26 +1666,8 @@ DELETE FROM `creature_addon` WHERE `guid` IN (
 -- UPDATE `creature_template` SET `AIName`= '', `ScriptName`= 'npc_harrison_jones' WHERE `entry`=24358; 4.x removed
 -- Remove cpp script from Strange Gong
 UPDATE `gameobject_template` SET `AIName`= '', `ScriptName`= '' WHERE `entry`=187359;
-/* 4.x removed
--- Pathing for Kirtonos the Herald Entry: 10506
-SET @PATH := 105061;
-DELETE FROM `waypoint_data` WHERE `id`IN (@PATH,@PATH+1,@PATH+2);
-INSERT INTO `waypoint_data` (`id`,`point`,`position_x`,`position_y`,`position_z`,`delay`,`move_flag`,`action`,`action_chance`,`wpguid`) VALUES
-(@PATH,1,316.7087,71.26834,104.5843,0,0,0,100,0),
-(@PATH,2,321.1605,72.80973,104.6676,0,0,0,100,0),
-(@PATH,3,332.3713,77.98991,105.8621,0,0,0,100,0),
-(@PATH,4,333.3254,86.60159,106.6399,0,0,0,100,0),
-(@PATH,5,334.1263,101.6836,106.8343,0,0,0,100,0),
-(@PATH,6,331.0458,114.5935,106.3621,0,0,0,100,0),
-(@PATH,7,329.5439,126.7019,106.1399,0,0,0,100,0),
-(@PATH,8,335.2471,136.546,105.7232,0,0,0,100,0),
-(@PATH,9,343.21,139.9459,107.6399,0,0,0,100,0),
-(@PATH,10,364.3288,140.9012,109.9454,0,0,0,100,0),
-(@PATH,11,362.676,115.6384,110.3065,0,0,0,100,0),
-(@PATH,12,341.7896,91.9439,107.1676,0,0,0,100,0),
-(@PATH,13,313.4945,93.45945,104.0565,0,0,0,100,0),
-(@PATH,14,306.3839,93.61675,104.0565,0,0,0,100,0);
-*/-- Small fix to pathing for Harrison Jones
+
+-- Small fix to pathing for Harrison Jones
 UPDATE `waypoint_data` SET `position_y`=1642.853 WHERE `id`=861770 AND `point`=1;
 
 -- Text for Amani'shi Guardian from sniff
@@ -1798,16 +1687,6 @@ DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry`=43
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (13,1,43647,0,0,31,0,3,24375,0,0,0,0, '', 'Cosmetic - Spear Throw - Harrison Jones');
 
-/* 4.x removed
--- Text for Harrison Jones from sniff
-DELETE FROM `creature_text` WHERE `entry` IN (24358,24375);
-INSERT INTO `creature_text` (`entry`,`groupid`,`id`,`text`,`type`,`language`,`probability`,`emote`,`duration`,`sound`,`comment`) VALUES
-(24358,0,0, 'Suit yourself. At least five of you must assist me if we''re to get inside. Follow me....',14,0,100,1,0,0, 'Harrison Jones - Gong Event Say 0'),
-(24358,1,0, 'According to my calculations, if enough of us bang the gong at once the seal on these doors will break and we can enter.',14,0,100,1,0,0, 'Harrison Jones - Gong Event Say 1'),
-(24375,0,0, 'I''ve researched this site extensively and I won''t allow any dim-witted treasure hunters to swoop in and steal what belongs in a museum. I''ll lead this charge...',14,0,100,0,0,0, 'Harrison Jones - Gong Event Say 2'),
-(24375,1,0, 'In fact, it would be best if you just stay here. You''d only get in my way....',14,0,100,0,0,0, 'Harrison Jones - Gong Event Say 3');
-*/
-
 -- Add spell script for banging the gong
 DELETE FROM `spell_script_names` WHERE `spell_id`=45226;
 INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
@@ -1818,19 +1697,7 @@ DELETE FROM `creature` WHERE id=24358;
 -- DELETE FROM `creature_addon` WHERE guid=86177; 4.x removed
 UPDATE `creature_template` SET `equipment_id`=0 WHERE `entry`=24358;
 
-/* 4.x removed
--- Pathing for Harrison Jones Entry: 24358
-SET @NPC := 86044;
-SET @PATH := @NPC * 10;
-DELETE FROM `waypoint_data` WHERE `id`IN (861770,861771,861772);
-DELETE FROM `waypoint_data` WHERE `id`IN (@PATH,@PATH+1,@PATH+2);
-INSERT INTO `waypoint_data` (`id`,`point`,`position_x`,`position_y`,`position_z`,`delay`,`move_flag`,`action`,`action_chance`,`wpguid`) VALUES
-(@PATH,1,131.8243,1642.853,42.0216,0,0,0,100,0),
-(@PATH+1,1,121.897,1639.106,42.19081,0,0,0,100,0),
-(@PATH+1,2,120.8522,1637.931,42.37172,0,0,0,100,0),
-(@PATH+1,3,120.7898,1609.063,43.49005,0,0,0,100,0),
-(@PATH+2,1,120.6967,1603.713,43.4503,0,0,0,100,0);
-*/
+
 -- SAI for Amani'shi Guardian
 SET @ENTRY := 23597;
 DELETE FROM `smart_scripts` WHERE `source_type`=0 AND `entryorguid`=@ENTRY AND `id`>1;
@@ -10563,39 +10430,7 @@ DELETE FROM `creature_text` WHERE `entry`=11382 AND `groupid`=4;
 INSERT INTO `creature_text` (`entry`,`groupid`,`id`,`text`,`type`,`language`,`probability`,`emote`,`duration`,`sound`,`comment`) VALUES
 (11382,4,0, '%s goes into a rage after seeing his raptor fall in battle!',16,0,100,0,0,0, 'Bloodlord Mandokir - Ohgan Dead');
 
-/* 4.x removed
--- Bloodlord Mandokir path from sniff
-SET @PATH := 492861;
-DELETE FROM `creature_template_addon` WHERE `entry`=11382;
-INSERT INTO `creature_template_addon` (`entry`,`path_id`,`bytes2`,`auras`) VALUES (11382,@PATH,1, '');
-DELETE FROM `waypoint_data` WHERE `id`=@PATH;
-INSERT INTO `waypoint_data` (`id`,`point`,`position_x`,`position_y`,`position_z`,`delay`,`move_flag`,`action`,`action_chance`,`wpguid`) VALUES
-(@PATH,1,-12312.66,-1889.255,131.5301,0,1,0,100,0),
-(@PATH,2,-12368.16,-1861.005,131.5301,0,1,0,100,0),
-(@PATH,3,-12352.66,-1875.505,131.5301,0,1,0,100,0),
-(@PATH,4,-12351.41,-1876.505,130.7801,0,1,0,100,0),
-(@PATH,5,-12347.41,-1877.505,131.0301,0,1,0,100,0),
-(@PATH,6,-12343.16,-1877.505,131.2801,0,1,0,100,0),
-(@PATH,7,-12334.91,-1879.755,131.5301,0,1,0,100,0),
-(@PATH,8,-12329.91,-1889.505,131.0301,0,1,0,100,0),
-(@PATH,9,-12328.66,-1892.255,131.0301,0,1,0,100,0),
-(@PATH,10,-12326.41,-1894.255,131.2801,0,1,0,100,0),
-(@PATH,11,-12318.16,-1896.255,131.2801,0,1,0,100,0),
-(@PATH,12,-12301.41,-1896.255,131.5301,0,1,0,100,0),
-(@PATH,13,-12293.16,-1899.005,131.7801,0,1,0,100,0),
-(@PATH,14,-12292.16,-1899.005,131.7801,0,1,0,100,0),
-(@PATH,15,-12291.16,-1899.005,131.7801,0,1,0,100,0),
-(@PATH,16,-12289.41,-1900.505,131.7801,0,1,0,100,0),
-(@PATH,17,-12287.41,-1902.505,131.7801,0,1,0,100,0),
-(@PATH,18,-12285.41,-1904.755,131.7801,0,1,0,100,0),
-(@PATH,19,-12280.66,-1906.755,131.7801,0,1,0,100,0),
-(@PATH,20,-12276.41,-1907.755,131.7801,0,1,0,100,0),
-(@PATH,21,-12275.41,-1908.755,131.7801,0,1,0,100,0),
-(@PATH,22,-12272.41,-1917.255,131.7801,0,1,0,100,0),
-(@PATH,23,-12268.16,-1921.255,131.5301,0,1,0,100,0),
-(@PATH,24,-12259.91,-1919.255,131.0301,0,1,0,100,0),
-(@PATH,25,-12255.66,-1919.255,130.5301,0,1,0,100,0);
-*/
+
 UPDATE `game_event` SET `start_time`='2013-10-18 01:00:00' WHERE `eventEntry`=12; -- Hallow's End
 -- Reconnaissance Flight (12671)
 
@@ -11492,7 +11327,7 @@ UPDATE `gameobject_template` SET `flags`=`flags`|16 WHERE `entry` IN
 
 UPDATE `gameobject_template` SET `faction`=94 WHERE `entry` IN (195046,195047,195631,195632,195633,195635);
 UPDATE `gameobject_template` SET `faction`=35 WHERE `entry` IN (201710,201959);
-﻿-- Intro Areatrigger
+-- Intro Areatrigger
 DELETE FROM `areatrigger_scripts` WHERE `entry`=7246;
 INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
 (7246, 'at_alizabal_intro');
