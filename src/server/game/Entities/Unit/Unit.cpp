@@ -8238,6 +8238,28 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
             case SPELLFAMILY_GENERIC:
                 switch (auraSpellInfo->Id)
                 {
+                    case 86303:    
+                    case 86304:             // Reactive Barrier
+                        if (HealthBelowPctDamaged(50, damage))
+                            if (Player* caster = ToPlayer())
+                                if (!caster->HasSpellCooldown(11426))
+                                {
+                                    caster->CastSpell(caster, 11426, true);
+                                    uint32 cd =30;
+                                    if(AuraEffect* aura = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_MAGE, 2133, EFFECT_0))
+                                    {
+                                        if (aura->GetId() == 55094)
+                                            cd = 24;
+                                        else if (aura->GetId() == 31672)
+                                            cd = 26;
+                                        else
+                                            cd = 28;
+                                    }
+                                    caster->AddSpellCooldown(11426, NULL, time(NULL) +  cd);
+                                }
+                            
+                        return false;
+                        break;
                     case 23780:             // Aegis of Preservation (Aegis of Preservation trinket)
                         trigger_spell_id = 23781;
                         break;
