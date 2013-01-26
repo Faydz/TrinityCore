@@ -18325,6 +18325,8 @@ void Player::LoadPet()
         Pet* pet = new Pet(this);
         if (!pet->LoadPetFromDB(this, 0, 0, true))
             delete pet;
+        else
+            HandlePetSummonState(pet->getPetType(), PETSUMMON_RESUMMONED);
     }
 }
 
@@ -20505,6 +20507,8 @@ void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent)
         if (GetGroup())
             SetGroupUpdateFlag(GROUP_UPDATE_PET);
     }
+    
+    HandlePetSummonState(pet->getPetType(), PETSUMMON_UNSUMMONED);
 }
 
 void Player::StopCastingCharm()
@@ -25382,6 +25386,8 @@ void Player::ResummonPetTemporaryUnSummonedIfAny()
     Pet* NewPet = new Pet(this);
     if (!NewPet->LoadPetFromDB(this, 0, m_temporaryUnsummonedPetNumber, true))
         delete NewPet;
+    else
+        HandlePetSummonState(NewPet->getPetType(), PETSUMMON_RESUMMONED);
 
     m_temporaryUnsummonedPetNumber = 0;
 }
@@ -26874,6 +26880,9 @@ Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetTy
 {
     Pet* pet = new Pet(this, petType);
 
+    // Can it be placed in a better position ?
+    HandlePetSummonState(petType, PETSUMMON_SUMMONING);
+
     if (petType == SUMMON_PET && pet->LoadPetFromDB(this, entry))
     {
         // Remove Demonic Sacrifice auras (known pet)
@@ -27561,5 +27570,49 @@ void Player::CompleteArtifact(uint32 artId, uint32 spellId, ByteBuffer &data)
             if (GetCurrency(currencyId, false) >= rp->req_fragments - currencySale)
                 CastCustomSpell(this, rp->spellId, &bp0, NULL, NULL, false);
                 
+    }
+}
+
+// Handles the summon states of the player's pets
+void Player::HandlePetSummonState(PetType petType, PetSummonState petSummonState)
+{
+    // If some spell is triggered
+    uint32 triggered_spell_id = 0;
+
+    uint8 pClass = getClass();
+    Unit* target = this;
+
+    switch (petSummonState)
+    {
+        case PETSUMMON_SUMMONING:
+            break;
+        case PETSUMMON_RESUMMONED:
+            break;
+        case PETSUMMON_UNSUMMONED:
+            break;
+        case PETSUMMON_TEMPORARY_UNSUMMONED:
+            break;
+    }
+
+    switch(pClass)
+    {
+        case CLASS_WARLOCK:
+            if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 3220, EFFECT_0))
+            {
+                if(petSummonState & PETSUMMON_SUMMON_STATE)
+                {
+                    triggered_spell_id = 53646;
+                }
+                else
+                {
+                    RemoveAura(53646);
+                }
+            }
+            break;
+    }
+
+    if(triggered_spell_id != 0)
+    {
+        CastSpell(target, triggered_spell_id, true);
     }
 }

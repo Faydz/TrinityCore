@@ -2980,6 +2980,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Demonic Pact pet's aura
+                    case 53646:
+                        spellInfo->Attributes |= SPELL_ATTR0_CANT_CANCEL;
+                        break;
                     // Aura of Foreboding's root rank 1-2
                     case 93974:
                     case 93987:

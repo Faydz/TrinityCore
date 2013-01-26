@@ -45,6 +45,21 @@ enum HappinessState
     HAPPY   = 3
 };
 
+enum PetSummonState
+{
+    PETSUMMON_NONE                  = 0x0,
+    PETSUMMON_SUMMONING             = (1 << 1),                    // Not yet summoned
+    PETSUMMON_RESUMMONED            = (1 << 2),
+    PETSUMMON_UNSUMMONED            = (1 << 3),
+    PETSUMMON_TEMPORARY_UNSUMMONED  = (1 << 4),
+
+    // Unions
+    PETSUMMON_SUMMON_STATE          = (PETSUMMON_SUMMONING   | PETSUMMON_RESUMMONED),
+    PETSUMMON_UNSUMMON_STATE        = (PETSUMMON_UNSUMMONED | PETSUMMON_TEMPORARY_UNSUMMONED),
+    PETSUMMON_ALL                   = (PETSUMMON_SUMMONING   | PETSUMMON_RESUMMONED |
+                                        PETSUMMON_UNSUMMONED | PETSUMMON_TEMPORARY_UNSUMMONED)
+};
+
 enum PetSpellState
 {
     PETSPELL_UNCHANGED = 0,
