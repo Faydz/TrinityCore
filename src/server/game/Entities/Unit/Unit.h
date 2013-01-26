@@ -1877,7 +1877,6 @@ class Unit : public WorldObject
         void SetCurrentCastedSpell(Spell* pSpell);
         virtual void ProhibitSpellSchool(SpellSchoolMask /*idSchoolMask*/, uint32 /*unTimeMs*/) { }
         void InterruptSpell(CurrentSpellTypes spellType, bool withDelayed = true, bool withInstant = true);
-        bool CanCastWhileWalking(const SpellInfo* sp);
         void FinishSpell(CurrentSpellTypes spellType, bool ok = true);
 
         // set withDelayed to true to account delayed spells as casted
