@@ -1467,6 +1467,7 @@ class Player : public Unit, public GridObject<Player>
         {
             return CanStoreItem(bag, slot, dest, item, count, NULL, false, no_space_count);
         }
+        uint32 GetFreeBagSlot();
         InventoryResult CanStoreItem(uint8 bag, uint8 slot, ItemPosCountVec& dest, Item* pItem, bool swap = false) const
         {
             if (!pItem)

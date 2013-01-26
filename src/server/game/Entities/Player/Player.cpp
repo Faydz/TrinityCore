@@ -10894,6 +10894,26 @@ InventoryResult Player::CanStoreItem_InSpecificSlot(uint8 bag, uint8 slot, ItemP
     return EQUIP_ERR_OK;
 }
 
+// Returns the number of free slot in the bags and backpack
+uint32 Player::GetFreeBagSlot()
+{
+    uint32 freeBagSlots = 0;
+
+    for (uint8 i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; i++)
+    {
+        if (Bag* bag = this->GetBagByPos(i))
+            freeBagSlots += bag->GetFreeSlots();
+    }
+    
+    for (uint8 i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END; i++)
+    {
+        if (!GetItemByPos(INVENTORY_SLOT_BAG_0, i))
+            ++freeBagSlots;
+    }
+
+    return freeBagSlots;
+}
+
 InventoryResult Player::CanStoreItem_InBag(uint8 bag, ItemPosCountVec &dest, ItemTemplate const* pProto, uint32& count, bool merge, bool non_specialized, Item* pSrcItem, uint8 skip_bag, uint8 skip_slot) const
 {
     // skip specific bag already processed in first called CanStoreItem_InBag
