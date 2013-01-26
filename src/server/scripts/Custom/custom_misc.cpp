@@ -914,6 +914,27 @@ public: npc_startup() : CreatureScript("npc_startup") { }
 					{
 						creature->MonsterWhisper("Das kannst du dir leider nicht leisten.", player->GetGUID());
 					}
+					else
+					{
+						player->ModifyMoney(-6000000);
+						player->AddItem(40421, 1);
+						player->AddItem(40374, 1);
+						player->AddItem(40424, 1);
+						player->AddItem(40251, 1);
+						player->AddItem(40423, 1);
+						player->AddItem(40325, 1);
+						player->AddItem(40420, 1);
+						player->AddItem(40301, 1);
+						player->AddItem(40422, 1);
+						player->AddItem(40246, 1);
+						player->AddItem(40375, 1);
+						player->AddItem(40108, 1);
+						player->AddItem(40373, 1);
+						player->AddItem(40255, 1);
+						player->AddItem(40336, 1);
+						player->AddItem(40273, 1);
+						player->AddItem(39712, 1);
+					}
 					break;
 					case 18:							// Dudu Moonkin
 					if (player->GetMoney()<6000000)
