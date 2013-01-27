@@ -4275,6 +4275,33 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
         case SPELLFAMILY_WARLOCK:
             switch (m_spellInfo->Id)
             {
+                // Demon Soul
+                case 77801:
+                    if (m_caster && m_caster->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        if (!unitTarget || !unitTarget->isAlive()) 
+                            return;
+
+                        switch(unitTarget->GetEntry())
+                        {
+                            case 416: // Summoned Imp
+                                m_caster->CastSpell(m_caster, 79459, true);
+                                break;
+                            case 417: // Summoned Felhunter
+                                m_caster->CastSpell(m_caster, 79460, true);
+                                break;
+                            case 1860: // Summoned Voidwalker
+                                m_caster->CastSpell(m_caster, 79464, true);
+                                break;
+                            case 1863: // Summoned Succubus
+                                m_caster->CastSpell(m_caster, 79463, true);
+                                break;
+                            case 17252: // Summoned Felguard
+                                m_caster->CastSpell(m_caster, 79462, true);
+                                break;
+                        }       
+                    }
+                break;
                 // Cremation
                 case 89603:
                     if(unitTarget && GetCaster())
