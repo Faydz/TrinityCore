@@ -507,6 +507,7 @@ class spell_dru_savage_defense : public SpellScriptLoader
             PrepareAuraScript(spell_dru_savage_defense_AuraScript);
 
             uint32 absorbPct;
+            int32 absAmount;
 
             bool Load()
             {
@@ -516,20 +517,31 @@ class spell_dru_savage_defense : public SpellScriptLoader
 
             void CalculateAmount(AuraEffect const* /*aurEff*/, int32 & amount, bool & /*canBeRecalculated*/)
             {
-                // Set absorbtion amount to unlimited
-                amount = -1;
+                if (Unit* caster = GetCaster())
+                {
+                    absAmount = uint32 (CalculatePct(caster->GetTotalAttackPowerValue(BASE_ATTACK), absorbPct));
+                    amount = absAmount;
+                }
             }
 
-            void Absorb(AuraEffect* aurEff, DamageInfo & /*dmgInfo*/, uint32 & absorbAmount)
+            void Absorb(AuraEffect* aurEff, DamageInfo & dmgInfo, uint32 & absorbAmount)
             {
-                absorbAmount = uint32(CalculatePct(GetTarget()->GetTotalAttackPowerValue(BASE_ATTACK), absorbPct));
-                aurEff->SetAmount(0);
+                aurEff->SetAmount(absAmount);
+                absAmount = absAmount - dmgInfo.GetDamage() < 0 ? 0 : absAmount - dmgInfo.GetDamage();
+            }
+
+            void AfterEffect (AuraEffect* aurEff, DamageInfo& dmgInfo, uint32& absorbAmount)
+            {
+                if (Unit* caster = GetTarget()) 
+                    if (absAmount <= 0)
+                        caster->RemoveAura(62606);
             }
 
             void Register()
             {
                  DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dru_savage_defense_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
                  OnEffectAbsorb += AuraEffectAbsorbFn(spell_dru_savage_defense_AuraScript::Absorb, EFFECT_0);
+                 AfterEffectAbsorb += AuraEffectAbsorbFn(spell_dru_savage_defense_AuraScript::AfterEffect, EFFECT_0);
             }
         };
 

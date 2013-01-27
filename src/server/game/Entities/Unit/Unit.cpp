@@ -8924,7 +8924,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
         // Savage Defense
         case 62606:
         {
-            basepoints0 = CalculatePct(triggerAmount, GetTotalAttackPowerValue(BASE_ATTACK));
+            basepoints0 = CalculatePct(GetTotalAttackPowerValue(BASE_ATTACK), triggerAmount);
             break;
         }
         // Body and Soul
