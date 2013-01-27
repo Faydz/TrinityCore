@@ -11176,7 +11176,7 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                 case 6262: // Healthstone
                     if(victim)
                     {
-                        healamount = 0.45f * victim->GetCreateHealth();
+                        healamount = uint32(0.45f * victim->GetCreateHealth());
                         return healamount;
                     }
                     break;

@@ -3043,7 +3043,7 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
                         spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
                         break;
-                    // Curse of the Elements
+                    // Jinx: Curse of the Elements
                     case 85547:
                     case 86105:
                         spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(39); //2 seconds
