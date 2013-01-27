@@ -6533,17 +6533,34 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
     }
     else
     {
-        // Wild Growth = amount + (6 - 2*doneTicks) * ticks* amount / 100
-        if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DRUID && m_spellInfo->SpellIconID == 2864)
+        switch(m_spellInfo->SpellFamilyName)
         {
-            int32 addition = int32(float(damage * GetTotalTicks()) * ((6-float(2*(GetTickNumber()-1)))/100));
+            case SPELLFAMILY_WARLOCK:
+                switch(m_spellInfo->Id)
+                {
+                    // Health Funnel login check
+                    case 755:
+                        if(!caster->HasAura(755))
+                            return;
+                        break;
+                }
+                break;
+            case SPELLFAMILY_DRUID:
+                switch(m_spellInfo->Id)
+                {
+                    // Wild Growth = amount + (6 - 2*doneTicks) * ticks* amount / 100
+                    case 48438:
+                        int32 addition = int32(float(damage * GetTotalTicks()) * ((6-float(2*(GetTickNumber()-1)))/100));
 
-            // Item - Druid T10 Restoration 2P Bonus
-            if (AuraEffect* aurEff = caster->GetAuraEffect(70658, 0))
-                // divided by 50 instead of 100 because calculated as for every 2 tick
-                addition += abs(int32((addition * aurEff->GetAmount()) / 50));
+                        // Item - Druid T10 Restoration 2P Bonus
+                        if (AuraEffect* aurEff = caster->GetAuraEffect(70658, 0))
+                            // divided by 50 instead of 100 because calculated as for every 2 tick
+                            addition += abs(int32((addition * aurEff->GetAmount()) / 50));
 
-            damage += addition;
+                        damage += addition;
+                        break;
+                }
+                break;
         }
 
         damage = caster->SpellHealingBonusDone(target, GetSpellInfo(), damage, DOT, GetBase()->GetStackAmount());
@@ -6574,6 +6591,13 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
     {
         uint32 funnelDamage = uint32(0.01f * caster->GetMaxHealth());
         uint32 funnelAbsorb = 0;
+
+        // Improved Health Funnel check. The effect 1 is useless, Health Funnel no longer has mana cost
+        if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_WARLOCK, 153, EFFECT_0))
+        {
+            float talentMod = 1 - float(aurEff->GetAmount()) / 100;
+            funnelDamage *= talentMod;
+        }
 
         caster->DealDamageMods(caster, funnelDamage, &funnelAbsorb);
         caster->SendSpellNonMeleeDamageLog(caster, GetId(), funnelDamage, GetSpellInfo()->GetSchoolMask(), funnelAbsorb, 0, false, 0, false);
