@@ -2980,6 +2980,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Enslave Demon
+                    case 1098:
+                        spellInfo->Effects[EFFECT_1].BasePoints = 30;
+                        break;
                     // Healthstone
                     case 6262:
                         spellInfo->SchoolMask = SPELL_SCHOOL_MASK_SHADOW;
