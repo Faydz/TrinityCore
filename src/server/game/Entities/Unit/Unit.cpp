@@ -11170,6 +11170,18 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
     // Custom scripted healing
     switch (spellProto->SpellFamilyName)
     {
+        case SPELLFAMILY_WARLOCK:
+            switch(spellProto->Id)
+            {
+                case 6262: // Healthstone
+                    if(victim)
+                    {
+                        healamount = 0.45f * victim->GetCreateHealth();
+                        return healamount;
+                    }
+                    break;
+            }
+            break;
         case SPELLFAMILY_SHAMAN:
                if (ToPlayer() && HasAuraType(SPELL_AURA_MASTERY))
                {

@@ -2980,6 +2980,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Healthstone
+                    case 6262:
+                        spellInfo->SchoolMask = SPELL_SCHOOL_MASK_SHADOW;
+                        break;
                     // Demonic Pact pet's aura
                     case 53646:
                         spellInfo->Attributes |= SPELL_ATTR0_CANT_CANCEL;
