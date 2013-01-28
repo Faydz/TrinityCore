@@ -182,6 +182,11 @@ enum EclipseSpells
     SPELL_DRUID_SOLAR_ECLIPSE_MARKER     = 67483, // Will make the yellow arrow on eclipse bar point to the yellow side (solar)
     SPELL_DRUID_SOLAR_ECLIPSE            = 48517,
     SPELL_DRUID_LUNAR_ECLIPSE            = 48518,
+    SPELL_DRUID_GLYPH_OF_TYPHOON            = 62135,
+    SPELL_DRUID_IDOL_OF_FERAL_SHADOWS       = 34241,
+    SPELL_DRUID_IDOL_OF_WORSHIP             = 60774,
+    SPELL_DRUID_LIVING_SEED_HEAL            = 48503,
+    SPELL_DRUID_LIVING_SEED_PROC            = 48504,
 };
 
 // 2912, 5176, 78674 - Starfire, Wrath, and Starsurge
@@ -294,6 +299,98 @@ class spell_dru_eclipse_energize : public SpellScriptLoader
         }
 };
 
+// -1850 - Dash
+class spell_dru_dash : public SpellScriptLoader
+{
+    public:
+        spell_dru_dash() : SpellScriptLoader("spell_dru_dash") { }
+
+        class spell_dru_dash_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dru_dash_AuraScript);
+
+            void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)
+            {
+                // do not set speed if not in cat form
+                if (GetUnitOwner()->GetShapeshiftForm() != FORM_CAT)
+                    amount = 0;
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dru_dash_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_MOD_INCREASE_SPEED);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dru_dash_AuraScript();
+        }
+};
+
+
+// 34246 - Idol of the Emerald Queen
+// 60779 - Idol of Lush Moss
+class spell_dru_idol_lifebloom : public SpellScriptLoader
+{
+    public:
+        spell_dru_idol_lifebloom() : SpellScriptLoader("spell_dru_idol_lifebloom") { }
+
+        class spell_dru_idol_lifebloom_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dru_idol_lifebloom_AuraScript);
+
+            void HandleEffectCalcSpellMod(AuraEffect const* aurEff, SpellModifier*& spellMod)
+            {
+                if (!spellMod)
+                {
+                    spellMod = new SpellModifier(GetAura());
+                    spellMod->op = SPELLMOD_DOT;
+                    spellMod->type = SPELLMOD_FLAT;
+                    spellMod->spellId = GetId();
+                    spellMod->mask = GetSpellInfo()->Effects[aurEff->GetEffIndex()].SpellClassMask;
+                }
+                spellMod->value = aurEff->GetAmount() / 7;
+            }
+
+            void Register()
+            {
+                DoEffectCalcSpellMod += AuraEffectCalcSpellModFn(spell_dru_idol_lifebloom_AuraScript::HandleEffectCalcSpellMod, EFFECT_0, SPELL_AURA_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dru_idol_lifebloom_AuraScript();
+        }
+};
+
+// 29166 - Innervate
+class spell_dru_innervate : public SpellScriptLoader
+{
+    public:
+        spell_dru_innervate() : SpellScriptLoader("spell_dru_innervate") { }
+
+        class spell_dru_innervate_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dru_innervate_AuraScript);
+
+            void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& /*canBeRecalculated*/)
+            {
+                amount = CalculatePct(int32(GetUnitOwner()->GetCreatePowers(POWER_MANA) / aurEff->GetTotalTicks()), amount);
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dru_innervate_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_PERIODIC_ENERGIZE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dru_innervate_AuraScript();
+        }
+};
 
 
 
@@ -379,6 +476,77 @@ class spell_dru_lifebloom : public SpellScriptLoader
         }
 };
 
+// -48496 - Living Seed
+class spell_dru_living_seed : public SpellScriptLoader
+{
+    public:
+        spell_dru_living_seed() : SpellScriptLoader("spell_dru_living_seed") { }
+
+        class spell_dru_living_seed_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dru_living_seed_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_DRUID_LIVING_SEED_PROC))
+                    return false;
+                return true;
+            }
+
+            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+            {
+                PreventDefaultAction();
+                int32 amount = CalculatePct(eventInfo.GetHealInfo()->GetHeal(), aurEff->GetAmount());
+                GetTarget()->CastCustomSpell(SPELL_DRUID_LIVING_SEED_PROC, SPELLVALUE_BASE_POINT0, amount, eventInfo.GetProcTarget(), true, NULL, aurEff);
+            }
+
+            void Register()
+            {
+                OnEffectProc += AuraEffectProcFn(spell_dru_living_seed_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dru_living_seed_AuraScript();
+        }
+};
+
+// 48504 - Living Seed (Proc)
+class spell_dru_living_seed_proc : public SpellScriptLoader
+{
+    public:
+        spell_dru_living_seed_proc() : SpellScriptLoader("spell_dru_living_seed_proc") { }
+
+        class spell_dru_living_seed_proc_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dru_living_seed_proc_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_DRUID_LIVING_SEED_HEAL))
+                    return false;
+                return true;
+            }
+
+            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& /*eventInfo*/)
+            {
+                PreventDefaultAction();
+                GetTarget()->CastCustomSpell(SPELL_DRUID_LIVING_SEED_HEAL, SPELLVALUE_BASE_POINT0, aurEff->GetAmount(), GetTarget(), true, NULL, aurEff);
+            }
+
+            void Register()
+            {
+                OnEffectProc += AuraEffectProcFn(spell_dru_living_seed_proc_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dru_living_seed_proc_AuraScript();
+        }
+};
+
 // 69366 - Moonkin Form passive
 class spell_dru_moonkin_form_passive : public SpellScriptLoader
 {
@@ -420,6 +588,33 @@ class spell_dru_moonkin_form_passive : public SpellScriptLoader
         AuraScript* GetAuraScript() const
         {
             return new spell_dru_moonkin_form_passive_AuraScript();
+        }
+};
+
+// 48391 - Owlkin Frenzy
+class spell_dru_owlkin_frenzy : public SpellScriptLoader
+{
+    public:
+        spell_dru_owlkin_frenzy() : SpellScriptLoader("spell_dru_owlkin_frenzy") { }
+
+        class spell_dru_owlkin_frenzy_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dru_owlkin_frenzy_AuraScript);
+
+            void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)
+            {
+                amount = CalculatePct(GetUnitOwner()->GetCreatePowers(POWER_MANA), amount);
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dru_owlkin_frenzy_AuraScript::CalculateAmount, EFFECT_2, SPELL_AURA_PERIODIC_ENERGIZE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dru_owlkin_frenzy_AuraScript();
         }
 };
 
@@ -493,6 +688,54 @@ class spell_dru_primal_tenacity : public SpellScriptLoader
         AuraScript* GetAuraScript() const
         {
             return new spell_dru_primal_tenacity_AuraScript();
+        }
+};
+
+// -1079 - Rip
+class spell_dru_rip : public SpellScriptLoader
+{
+    public:
+        spell_dru_rip() : SpellScriptLoader("spell_dru_rip") { }
+
+        class spell_dru_rip_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dru_rip_AuraScript);
+
+            bool Load()
+            {
+                Unit* caster = GetCaster();
+                return caster && caster->GetTypeId() == TYPEID_PLAYER;
+            }
+
+            void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = false;
+
+                if (Unit* caster = GetCaster())
+                {
+                    // 0.01 * $AP * cp
+                    uint8 cp = caster->ToPlayer()->GetComboPoints();
+
+                    // Idol of Feral Shadows. Can't be handled as SpellMod due its dependency from CPs
+                    if (AuraEffect const* idol = caster->GetAuraEffect(SPELL_DRUID_IDOL_OF_FERAL_SHADOWS, EFFECT_0))
+                        amount += cp * idol->GetAmount();
+                    // Idol of Worship. Can't be handled as SpellMod due its dependency from CPs
+                    else if (AuraEffect const* idol = caster->GetAuraEffect(SPELL_DRUID_IDOL_OF_WORSHIP, EFFECT_0))
+                        amount += cp * idol->GetAmount();
+
+                    amount += int32(CalculatePct(caster->GetTotalAttackPowerValue(BASE_ATTACK), cp));
+                }
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dru_rip_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dru_rip_AuraScript();
         }
 };
 
@@ -1022,6 +1265,34 @@ class spell_dru_feral_swiftness : public SpellScriptLoader
         }
 };
 
+class spell_dru_typhoon : public SpellScriptLoader
+{
+    public:
+        spell_dru_typhoon() : SpellScriptLoader("spell_dru_typhoon") { }
+
+        class spell_dru_typhoon_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_typhoon_SpellScript);
+
+            void HandleKnockBack(SpellEffIndex effIndex)
+            {
+                // Glyph of Typhoon
+                if (GetCaster()->HasAura(SPELL_DRUID_GLYPH_OF_TYPHOON))
+                    PreventHitDefaultEffect(effIndex);
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_dru_typhoon_SpellScript::HandleKnockBack, EFFECT_0, SPELL_EFFECT_KNOCK_BACK);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_typhoon_SpellScript();
+        }
+};
+
 class spell_dru_ravage : public SpellScriptLoader
 {
     public:
@@ -1229,20 +1500,28 @@ class spell_dru_berserk : public SpellScriptLoader
 
 void AddSC_druid_spell_scripts()
 {
+    new spell_dru_dash();
     new spell_dru_eclipse_energize();
     new spell_dru_enrage();
     new spell_dru_glyph_of_starfire();
+    new spell_dru_idol_lifebloom();
+    new spell_dru_innervate();
     new spell_dru_insect_swarm();
     new spell_dru_lifebloom();
+    new spell_dru_living_seed();
+    new spell_dru_living_seed_proc();
     new spell_dru_moonkin_form_passive();
+    new spell_dru_owlkin_frenzy();
     new spell_dru_predatory_strikes();
     new spell_dru_primal_tenacity();
+    new spell_dru_rip();
     new spell_dru_savage_defense();
     new spell_dru_savage_roar();
     new spell_dru_starfall_aoe();
     new spell_dru_starfall_dummy();
     new spell_dru_swift_flight_passive();
     new spell_dru_tiger_s_fury();
+    new spell_dru_typhoon();
     new spell_dru_t10_restoration_4p_bonus();
     new spell_dru_ferocious_bite();
     new spell_dru_eclipse();
