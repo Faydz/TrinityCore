@@ -22,16 +22,20 @@ public:
     {
         boss_tiefenwyrmAI (Creature *c) : ScriptedAI(c)
         { }
-
+		uint32 t_deep;
+		uint32 t_tail;
+		uint32 t_blizzard;
+		uint32 t_Frost;
+		uint32 t_enrage;
 
         void Reset()
         {
 				
-		uint32 t_deep = 20000;
-		uint32 t_tail = 8000;
-		uint32 t_blizzard = 25000;
-		uint32 t_Frost = 40000;
-		uint32 t_enrage = 600000;
+		t_deep = 20000;
+		t_tail = 8000;
+		t_blizzard = 25000;
+		t_Frost = 40000;
+		t_enrage = 600000;
 		}
 
         void EnterCombat(Unit* /*who*/)
