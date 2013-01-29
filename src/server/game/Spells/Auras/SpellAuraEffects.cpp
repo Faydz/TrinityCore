@@ -542,7 +542,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
             switch (GetSpellInfo()->SpellFamilyName)
             {
                 case SPELLFAMILY_MAGE:
-                    // Ice Barrier
+                    /* Ice Barrier TODO MOVE TO SPELL SCRIPT
                     if (GetSpellInfo()->SpellFamilyFlags[1] & 0x1 && GetSpellInfo()->SpellFamilyFlags[2] & 0x8)
                     {
                         // +87% from sp bonus
@@ -556,18 +556,18 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                     {
                         // +80.68% from sp bonus
                         DoneActualBenefit += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
-                    }
+                    }*/
                     break;
                 case SPELLFAMILY_WARLOCK:
-                    // Shadow Ward
+                    /* Shadow Ward TODO MOVE TO SPELL SCRIPT
                     if (m_spellInfo->SpellFamilyFlags[2] & 0x80000000)
                     {
                         // +80.68% from sp bonus
                         DoneActualBenefit += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
-                    }
+                    }*/
                     break;
                 case SPELLFAMILY_PRIEST:
-                    // Power Word: Shield
+                    /* Power Word: Shield TODO MOVE TO SPELL SCRIPTS
                     if (GetId() == 17)
                     {
                         //+80.68% from sp bonus
@@ -603,7 +603,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                             }
                         }
                         return amount;
-                    }
+                    }*/
                     break;
                 default:
                     break;
@@ -613,12 +613,12 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
             m_canBeRecalculated = false;
             if (!caster)
                 break;
-            // Mana Shield
+            /* Mana Shield TODO MOVE TO SPELL SCRIPTS
             if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_MAGE && GetSpellInfo()->SpellFamilyFlags[0] & 0x8000 && m_spellInfo->SpellFamilyFlags[2] & 0x8)
             {
                 // +80.7% from +spd bonus
                 DoneActualBenefit += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.807f;
-            }
+            }*/
             break;
         case SPELL_AURA_DUMMY:
             if (!caster)
