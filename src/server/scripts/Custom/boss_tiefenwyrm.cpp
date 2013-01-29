@@ -35,7 +35,7 @@ public:
 
         void EnterCombat(Unit* /*who*/)
         {
-		
+			me->MonsterYell("Ich werde euch verschlingen!", 0, 0);
 		}
 
         void JustDied(Unit* /*killer*/)
@@ -57,7 +57,7 @@ public:
 				break;
 
 				case 3:
-					me->MonsterYell("Schon muede?", 0, 0);
+					me->MonsterYell("Schon m\303\274de?", 0, 0);
 				break;
 			 }
 		}
@@ -96,8 +96,6 @@ public:
 				DoCast(me->getVictim(), SPELL_FROST);
 				t_frost = 40000;
 			} else t_frost -= diff;
-
-			DoMeleeAttackIfReady();
         }
     };
 

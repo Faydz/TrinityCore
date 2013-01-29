@@ -54,14 +54,14 @@ public:
 			
 			else
 			{
-				creature->MonsterWhisper("Du erf³llst leider nicht die Anforderungen!", player->GetGUID());
+				creature->MonsterWhisper("Du erfllst leider nicht die Anforderungen!", player->GetGUID());
 				player->CLOSE_GOSSIP_MENU();
 			}
 		}
 		
 		if (action == 500)
 		{
-			player->GetSession()->SendNotification("Bis zum nõchsten mal!");
+			player->GetSession()->SendNotification("Bis zum nchsten mal!");
 			player->CLOSE_GOSSIP_MENU();
 		}
 		
