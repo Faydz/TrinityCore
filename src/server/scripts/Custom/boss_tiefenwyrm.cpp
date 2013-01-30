@@ -73,29 +73,30 @@ public:
 				t_enrage = 300000;
 			} else t_enrage -= diff;
 
-			if (t_deep <= diff)
+			if (t_frost <= diff)
 			{
-                 DoCast(me->getVictim(), SPELL_DEEPFREEZE);
-                 t_deep = 20000;
-            } else t_deep -= diff;
-
-			if (t_tail <= diff)
-			{
-				DoCast(me->getVictim(), SPELL_TAIL);
-				t_tail = 4000;
-			} else t_tail -= diff;
+				DoCast(me->getVictim(), SPELL_FROSTATEM);
+				t_frost = 40000;
+			} else t_frost -= diff;
 
 			if (t_blizzard <= diff)
 			{
 				DoCast(me->getVictim(), SPELL_BLIZZARD);
 				t_blizzard = 16000;
 			} else t_blizzard -= diff;
-
-			if (t_frost <= diff)
+			
+			if (t_tail <= diff)
 			{
-				DoCast(me->getVictim(), SPELL_FROSTATEM);
-				t_frost = 40000;
-			} else t_frost -= diff;
+				DoCast(me->getVictim(), SPELL_TAIL);
+				t_tail = 4000;
+			} else t_tail -= diff;
+
+			if (t_deep <= diff)
+			{
+                 DoCast(me->getVictim(), SPELL_DEEPFREEZE);
+                 t_deep = 20000;
+            } else t_deep -= diff;
+
 			
 			DoMeleeAttackIfReady();
         }
