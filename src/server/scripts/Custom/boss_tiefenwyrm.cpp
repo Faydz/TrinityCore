@@ -13,10 +13,7 @@ class boss_tiefenwyrm : public CreatureScript
 public:
     boss_tiefenwyrm() : CreatureScript("boss_tiefenwyrm") { }
 
-    CreatureAI* GetAI(Creature* pCreature) const
-    {
-        return new boss_tiefenwyrmAI (pCreature);
-    }
+    
 
     struct boss_tiefenwyrmAI : public ScriptedAI
     {
@@ -30,7 +27,7 @@ public:
 
         void Reset()
         {
-				
+	     _Reset();
 		t_deep = 20000;
 		t_tail = 8000;
 		t_blizzard = 25000;
@@ -40,14 +37,15 @@ public:
 
         void EnterCombat(Unit* /*who*/)
         {
+		    _EnterCombat();
 			me->MonsterYell("Ich werde euch verschlingen!", 0, 0);
 		}
 
         void JustDied(Unit* /*killer*/)
         {
+          _JustDied();
 
-
-		}
+	}
       
         void KilledUnit(Unit *)
         { 
@@ -67,10 +65,10 @@ public:
 			 }
 		}
         
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 const diff)
         {
 			 if (!UpdateVictim())
-                return;
+                         return;
 
 			if (t_enrage <= diff)
 			{
@@ -80,8 +78,8 @@ public:
 
 			if (t_deep <= diff)
 			{
-                DoCast(me->getVictim(), SPELL_DEEPFREEZE);
-                t_deep = 20000;
+                 DoCast(me->getVictim(), SPELL_DEEPFREEZE);
+                 t_deep = 20000;
             } else t_deep -= diff;
 
 			if (t_tail <= diff)
@@ -101,8 +99,15 @@ public:
 				DoCast(me->getVictim(), SPELL_FROST);
 				t_frost = 40000;
 			} else t_frost -= diff;
+			
+			DoMeleeAttackIfReady();
         }
     };
+	
+CreatureAI* GetAI(Creature* pCreature) const
+{
+     return new boss_tiefenwyrmAI (pCreature);
+}
 
 };
 
