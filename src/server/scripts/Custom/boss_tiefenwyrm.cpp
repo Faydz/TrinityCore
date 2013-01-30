@@ -2,10 +2,10 @@
 
 enum Spells
 {
-	SPELL_DEEPFREEZE				= 60511,
-	SPELL_TAIL						= 58957,
+	SPELL_DEEPFREEZE				= 69712,
+	SPELL_TAIL						= 71077,
 	SPELL_BLIZZARD					= 41482,
-	SPELL_FROSTATEM					= 72641,
+	SPELL_FROSTATEM					= 69649,
 	SPELL_ENRAGE					= 41924		//Nach 10 Minuten
 };
 class boss_tiefenwyrm : public CreatureScript
@@ -27,11 +27,11 @@ public:
 
         void Reset()
         {
-		t_deep = 20000;
-		t_tail = 8000;
+		t_deep = 5000;
+		t_tail = 1000;
 		t_blizzard = 25000;
 		t_frost = 40000;
-		t_enrage = 600000;
+		t_enrage = 450000;
 		}
 
         void EnterCombat(Unit* /*who*/)
@@ -64,13 +64,16 @@ public:
         
         void UpdateAI(uint32 const diff)
         {
+			if (me->HasUnitState(UNIT_STATE_CASTING))
+                    return;
+
 			 if (!UpdateVictim())
                          return;
 
 			if (t_enrage <= diff)
 			{
 				DoCast(me, SPELL_ENRAGE);
-				t_enrage = 300000;
+				t_enrage = 450000;
 			} else t_enrage -= diff;
 
 			if (t_frost <= diff)
@@ -81,20 +84,20 @@ public:
 
 			if (t_blizzard <= diff)
 			{
-				DoCast(me->getVictim(), SPELL_BLIZZARD);
+				DoCastAOE(SPELL_BLIZZARD, true);
 				t_blizzard = 16000;
 			} else t_blizzard -= diff;
 			
 			if (t_tail <= diff)
 			{
 				DoCast(me->getVictim(), SPELL_TAIL);
-				t_tail = 4000;
+				t_tail = urand(2000, 4000);
 			} else t_tail -= diff;
 
 			if (t_deep <= diff)
 			{
                  DoCast(me->getVictim(), SPELL_DEEPFREEZE);
-                 t_deep = 20000;
+                 t_deep = 45000;
             } else t_deep -= diff;
 
 			
