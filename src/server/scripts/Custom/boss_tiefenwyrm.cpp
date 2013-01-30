@@ -88,11 +88,11 @@ public:
 				t_blizzard = 16000;
 			} else t_blizzard -= diff;
 			
-			if (t_tail <= diff)
+			/*if (t_tail <= diff)
 			{
 				DoCast(me->getVictim(), SPELL_TAIL);
 				t_tail = urand(2000, 4000);
-			} else t_tail -= diff;
+			} else t_tail -= diff;*/
 
 			if (t_deep <= diff)
 			{
