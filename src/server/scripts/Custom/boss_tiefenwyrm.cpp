@@ -22,28 +22,25 @@ public:
 		uint32 t_deep;
 		uint32 t_tail;
 		uint32 t_blizzard;
-		uint32 t_Frost;
+		uint32 t_frost;
 		uint32 t_enrage;
 
         void Reset()
         {
-	     _Reset();
 		t_deep = 20000;
 		t_tail = 8000;
 		t_blizzard = 25000;
-		t_Frost = 40000;
+		t_frost = 40000;
 		t_enrage = 600000;
 		}
 
         void EnterCombat(Unit* /*who*/)
         {
-		    _EnterCombat();
 			me->MonsterYell("Ich werde euch verschlingen!", 0, 0);
 		}
 
         void JustDied(Unit* /*killer*/)
         {
-          _JustDied();
 
 	}
       
@@ -90,13 +87,13 @@ public:
 
 			if (t_blizzard <= diff)
 			{
-				DoCast(me->getVictim(), SPELL_BLZZARD);
+				DoCast(me->getVictim(), SPELL_BLIZZARD);
 				t_blizzard = 16000;
 			} else t_blizzard -= diff;
 
 			if (t_frost <= diff)
 			{
-				DoCast(me->getVictim(), SPELL_FROST);
+				DoCast(me->getVictim(), SPELL_FROSTATEM);
 				t_frost = 40000;
 			} else t_frost -= diff;
 			
