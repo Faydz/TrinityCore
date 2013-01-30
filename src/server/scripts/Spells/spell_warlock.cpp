@@ -43,28 +43,26 @@ enum WarlockSpells
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS      = 54435,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER    = 54443,
     SPELL_WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE        = 89653,
+    SPELL_WARLOCK_HAUNT                             = 48181,
+    SPELL_WARLOCK_HAUNT_HEAL                        = 48210,
     SPELL_WARLOCK_IMMOLATE                          = 348,
     SPELL_WARLOCK_HAND_OF_GUL_DAN_AURA              = 86000,
     SPELL_WARLOCK_HAND_OF_GUL_DAN_GRAPHIC           = 85526,
-    SPELL_WARLOCK_HAUNT                             = 48181,
-    SPELL_WARLOCK_HAUNT_HEAL                        = 48210,
     SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1         = 18703,
     SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R2         = 18704,
-    SPELL_WARLOCK_LIFE_TAP_ENERGIZE                 = 31818,
-    SPELL_WARLOCK_LIFE_TAP_ENERGIZE_2               = 32553,
-    SPELL_WARLOCK_SIPHON_LIFE_HEAL                  = 63106,
-    SPELL_WARLOCK_SOULSHATTER                       = 32835,
     SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1    = 60955,
     SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2    = 60956,
-    SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R1           = 18692,
-	SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R2           = 18693,
     SPELL_WARLOCK_IMPROVED_LIFE_TAP_ICON_ID         = 208,
+    SPELL_WARLOCK_LIFE_TAP_ENERGIZE                 = 31818,
+    SPELL_WARLOCK_LIFE_TAP_ENERGIZE_2               = 32553,
     SPELL_WARLOCK_JINX_R1                           = 85541,
     SPELL_WARLOCK_JINX_R2                           = 86105,
     SPELL_WARLOCK_MANA_FEED_ICON_ID                 = 1982,
     SPELL_WARLOCK_NETHER_WARD                       = 91711,
     SPELL_WARLOCK_NETHER_WARD_TALENT                = 91713,
     SPELL_WARLOCK_SHADOW_WARD                       = 6229,
+    SPELL_WARLOCK_SIPHON_LIFE_HEAL                  = 63106,
+    SPELL_WARLOCK_SOULSHATTER                       = 32835,
     SPELL_WARLOCK_SOUL_SHARD_ENERGIZE               = 87388,
     SPELL_WARLOCK_SOUL_SWAP_COOLDOWN                = 94229,
     SPELL_WARLOCK_SOUL_SWAP_GLYPH                   = 56226,
@@ -74,8 +72,6 @@ enum WarlockSpells
     SPELL_WARLOCK_UNSTABLE_AFFLICTION               = 30108,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117,
 };
-
-bool _SeedOfCorruptionFlag = false;
 
 // 71521 spell_warl_Hand_of_Guldan
 class spell_warl_hand_of_guldan: public SpellScriptLoader 
@@ -697,7 +693,6 @@ class spell_warl_seed_of_corruption_dot : public SpellScriptLoader
                     //Checks for soulburn buff and soulburn: Seed of Corruption talent
                     if(caster->HasAura(SPELL_WARLOCK_SOULBURN) && caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 1932, 0))
                     {
-                        _SeedOfCorruptionFlag = true;
                         caster->RemoveAurasDueToSpell(SPELL_WARLOCK_SOULBURN);
                     }
                 }
@@ -1162,43 +1157,6 @@ class spell_warl_seed_of_corruption : public SpellScriptLoader
         SpellScript* GetSpellScript() const
         {
             return new spell_warl_seed_of_corruption_SpellScript();
-        }
-};
-
-// -7235 - Shadow Ward
-class spell_warl_shadow_ward : public SpellScriptLoader
-{
-    public:
-        spell_warl_shadow_ward() : SpellScriptLoader("spell_warl_shadow_ward") { }
-
-        class spell_warl_shadow_ward_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_warl_shadow_ward_AuraScript);
-
-            void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
-            {
-                canBeRecalculated = false;
-                if (Unit* caster = GetCaster())
-                {
-                    // +80.68% from sp bonus
-                    float bonus = 0.8068f;
-
-                    bonus *= caster->SpellBaseHealingBonusDone(GetSpellInfo()->GetSchoolMask());
-                    bonus *= caster->CalculateLevelPenalty(GetSpellInfo());
-
-                    amount += int32(bonus);
-                }
-            }
-
-            void Register()
-            {
-                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warl_shadow_ward_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
-            }
-        };
-
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_warl_shadow_ward_AuraScript();
         }
 };
 
