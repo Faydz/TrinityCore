@@ -5733,6 +5733,14 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
         {
             switch (GetSpellInfo()->Id)
             {
+                // Efflorescence
+                case 81262:
+                    if(caster && target)
+                    {
+                        int32 bp0 = GetAmount();
+                        caster->CastCustomSpell(target, 81269, &bp0, NULL, NULL, true);
+                    }
+                    break;
                 // Frenzied Regeneration
                 case 22842:
                 {
