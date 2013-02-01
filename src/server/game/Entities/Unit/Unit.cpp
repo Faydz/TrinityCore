@@ -6606,6 +6606,16 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->SpellIconID)
             {
+                // Lock and Load
+            case 3579:
+                {
+                    // Proc only from periodic (from trap activation proc another aura of this spell)
+                    if (!(procFlag & PROC_FLAG_DONE_PERIODIC)
+                            || !roll_chance_i(triggerAmount)) return false;
+                    triggered_spell_id = 56453;
+                    target = this;
+                    break;
+                }
                 // Wild Quiver Hunter Marksmanship Mastery 
                 case 76659:
                     if (Player* caster = ToPlayer())
@@ -7941,6 +7951,19 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
             {
                 switch (auraSpellInfo->Id)
                 {
+                    // Efflorescence
+                    case 81275:
+                        if(victim)
+                        {
+                            if(SpellInfo const* aoeAura = sSpellMgr->GetSpellInfo(81262))
+                            {
+                                int32 heal = (damage * triggerAmount / 100) 
+                                                / (aoeAura->DurationEntry->Duration[EFFECT_0]
+                                                / aoeAura->Effects[EFFECT_1].Amplitude);
+                                this->CastCustomSpell(victim, 81262, NULL, &heal, NULL, true);
+                            }
+                        }
+                        break;
                     // Druid Forms Trinket
                     case 37336:
                     {
