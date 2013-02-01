@@ -3056,6 +3056,13 @@ void SpellMgr::LoadSpellCustomAttr()
                     spellInfo->AttributesCu |= SPELL_ATTR0_CU_AURA_CC;
                 break;
             case SPELLFAMILY_DRUID:
+                switch(spellInfo->Id)
+                {
+                    // Efflorescence
+                    case 81275:
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+                        break;
+                }
                 // Roar
                 if (spellInfo->SpellFamilyFlags[0] & 0x8)
                     spellInfo->AttributesCu |= SPELL_ATTR0_CU_AURA_CC;
