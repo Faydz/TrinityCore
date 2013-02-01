@@ -5,3 +5,18 @@ Questo documento tiene traccia delle ottimizzazioni da fare una volta stabilizza
 3 Controllare se la chiamata alla funzione CanCastWhileWalking in InterruptSpell consuma troppa cpu. In caso inserire l'hackfix con if.
 4 Spostare i vari bonus di SpellAuraEffects dentro spellScript (vedi commit 54366d7723c7b0db07319f7c97153f3be4d0662d 29-01-2013)
 5 Controllare tutti i spell_classe.cpp in modo da verificare che tutte le classi siano definite anche in fondo al file dentro l' AddSc 
+6 Quando implementata la tabella spell_dbc, inserire la spell 62388, ora presente nei dbc spell.dbc e spellEffect.dbc con i seguenti dati:
+
+spell.dbc
+col		value
+0		62388
+13		21
+21		Demonic Circle: Teleport(48020) - allow cast auraspell
+
+spellEffect.dbc
+col		value
+0		62388
+1		6
+3		4
+22		1
+24		62388
