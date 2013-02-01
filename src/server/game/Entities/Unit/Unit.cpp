@@ -6606,6 +6606,16 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->SpellIconID)
             {
+                // Lock and Load
+            case 3579:
+                {
+                    // Proc only from periodic (from trap activation proc another aura of this spell)
+                    if (!(procFlag & PROC_FLAG_DONE_PERIODIC)
+                            || !roll_chance_i(triggerAmount)) return false;
+                    triggered_spell_id = 56453;
+                    target = this;
+                    break;
+                }
                 // Wild Quiver Hunter Marksmanship Mastery 
                 case 76659:
                     if (Player* caster = ToPlayer())

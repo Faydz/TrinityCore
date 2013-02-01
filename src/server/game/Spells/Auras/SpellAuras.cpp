@@ -1257,10 +1257,11 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                     {
                         if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 536, 0))
                         {
+                            int32 basepoints0;
                             if(caster->HasAura(19464))
-                                int32 basepoints0 = aurEff->GetAmount() * (caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.4f + (460 * 15 / 3)) / 100;
+                                basepoints0 = aurEff->GetAmount() * (caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.4f + (460 * 15 / 3)) / 100;
                             else
-                                int32 basepoints0 = aurEff->GetAmount() * (caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.4f + (460 * 30 / 3)) / 100;
+                                basepoints0 = aurEff->GetAmount() * (caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.4f + (460 * 30 / 3)) / 100;
                             caster->CastCustomSpell(target, 83077, &basepoints0, NULL, NULL, true, NULL, GetEffect(0));
                         }
                     }
