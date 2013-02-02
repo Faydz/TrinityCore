@@ -89,6 +89,7 @@ public:
 			{
 				if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
                    DoCast(target, SPELL_DEATH_AND_DECAY);
+				t_dad = urand (25000, 30000);
 			} else t_dad -= diff;
 
 			if (t_blizzard <= diff)
