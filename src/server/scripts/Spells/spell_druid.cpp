@@ -763,6 +763,15 @@ class spell_dru_savage_defense : public SpellScriptLoader
                 if (Unit* caster = GetCaster())
                 {
                     absAmount = uint32 (CalculatePct(caster->GetTotalAttackPowerValue(BASE_ATTACK), absorbPct));
+                        // Savage Defender (Mastery Druid Feral)
+                        if (caster->HasAura(86470))  
+                        {
+                            if (caster->ToPlayer()->GetPrimaryTalentTree(caster->ToPlayer()->GetActiveSpec()) == BS_DRUID_FERAL_COMBAT)
+                            {
+                                absAmount *= 1.0f + (0.04f *  caster->ToPlayer()->GetMasteryPoints());
+                            }
+                        }
+
                     amount = absAmount;
                 }
             }
@@ -1498,6 +1507,77 @@ class spell_dru_berserk : public SpellScriptLoader
         }
 };
 
+class spell_dru_lacerate : public SpellScriptLoader
+{
+    public:
+        spell_dru_lacerate() : SpellScriptLoader("spell_dru_lacerate") { }
+
+        class spell_dru_lacerate_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dru_lacerate_AuraScript);
+
+            bool Validate(SpellInfo const* /*spell*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(50334))
+                    return false;
+                return true;
+            }
+
+            void OnPeriodic(AuraEffect const* aurEff)
+            {
+                if (Player* caster = GetCaster()->ToPlayer())
+                {
+                    if (caster->HasAura(50334))
+                    {
+                        if(roll_chance_i(50))
+                        {
+                            caster->RemoveSpellCooldown(33878);
+                            sLog->outError(LOG_FILTER_GENERAL, "lacerate");
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_dru_lacerate_AuraScript::OnPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dru_lacerate_AuraScript();
+        }
+};
+
+class spell_dru_mangle_bear : public SpellScriptLoader
+{
+    public:
+        spell_dru_mangle_bear() : SpellScriptLoader("spell_dru_mangle_bear") { }
+
+        class spell_dru_mangle_bear_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_mangle_bear_SpellScript);
+
+            void OnHit()
+            {
+                if (Player* caster = GetCaster()->ToPlayer())
+                    if (caster->HasAura(50334))
+                        caster->AddSpellCooldown(33878, 0, time(NULL) + 6);          
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_dru_mangle_bear_SpellScript::OnHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_mangle_bear_SpellScript();
+        }
+};
+
 void AddSC_druid_spell_scripts()
 {
     new spell_dru_dash();
@@ -1533,4 +1613,6 @@ void AddSC_druid_spell_scripts()
     new spell_dru_feral_charge_cat();
     new spell_dru_pulverize();
     new spell_dru_berserk();
+    new spell_dru_lacerate();
+    new spell_dru_mangle_bear();
 }

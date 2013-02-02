@@ -2971,6 +2971,10 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->SpellFamilyName = SPELLFAMILY_WARLOCK;
                 spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(8); // 15 seconds
                 break;
+            // Savage Defender
+            case 77494:
+                spellInfo->SpellFamilyName = SPELLFAMILY_DRUID;
+                break;
             default:
                 break;
         }
