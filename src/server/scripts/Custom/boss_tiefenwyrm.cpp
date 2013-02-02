@@ -1,5 +1,10 @@
 #include "ScriptPCH.h"
 
+enum Texts
+{
+	EMOTE_SWARMING_SHADOWS			= 5,
+};
+
 enum Spells
 {
 	SPELL_DEEPFREEZE				= 27808,
@@ -7,6 +12,7 @@ enum Spells
 	SPELL_BLIZZARD					= 41482,
 	SPELL_FROSTATEM					= 69649,
 	SPELL_DEATH_AND_DECAY           = 71001,
+	SPELL_SWARMING_SHADOWS          = 71264,
 	SPELL_ENRAGE					= 41924		//Nach 10 Minuten
 };
 class boss_tiefenwyrm : public CreatureScript
@@ -26,6 +32,7 @@ public:
 		uint32 t_frost;
 		uint32 t_enrage;
 		uint32 t_dad;
+		uint32 t_shadows;
 
         void Reset()
         {
@@ -35,6 +42,7 @@ public:
 		t_frost = 40000;
 		t_enrage = 450000;
 		t_dad = 30000;
+		t_shadows = 60000;
 		}
 
         void EnterCombat(Unit* /*who*/)
@@ -91,6 +99,16 @@ public:
                    DoCast(target, SPELL_DEATH_AND_DECAY);
 				t_dad = urand (25000, 30000);
 			} else t_dad -= diff;
+
+			if (t_shadows <= diff)
+			{
+				if (Player* target = SelectRandomTarget(false))
+                   {
+                    Talk(EMOTE_SWARMING_SHADOWS, target->GetGUID());
+                    DoCast(target, SPELL_SWARMING_SHADOWS);
+                   }
+				t_shadows = 50000;
+			} else t_shadows -= diff;
 
 			if (t_blizzard <= diff)
 			{
