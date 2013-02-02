@@ -12,3 +12,5 @@ Questo documento tiene traccia delle ottimizzazioni da fare una volta stabilizza
 	SpellAuraOptions.dbc			id(9461)
 	SpellEquippedItems.dbc			id(2953)
 	SpellScaling.dbc				id(1277)
+
+7 Da sistemare il metodo GetHealth() e derivati. Restituisce più hp degli effetivi posseduti dal target.

@@ -2971,6 +2971,52 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->SpellFamilyName = SPELLFAMILY_WARLOCK;
                 spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(8); // 15 seconds
                 break;
+            // Heart of the Wild
+            case 17003:
+                spellInfo->SpellFamilyName = SPELLFAMILY_DRUID;
+
+                spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_ATTACK_POWER_PCT;
+                spellInfo->Effects[EFFECT_1].MiscValueB = 3;
+
+                spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                spellInfo->Effects[EFFECT_2].BasePoints = 0;
+                spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_PERCENT_STAT;
+                spellInfo->Effects[EFFECT_2].MiscValue = UNIT_MOD_STAT_STAMINA;
+                spellInfo->Effects[EFFECT_2].MiscValueB = 2;
+                break;
+            case 17004:
+                spellInfo->SpellFamilyName = SPELLFAMILY_DRUID;
+
+                spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_ATTACK_POWER_PCT;
+                spellInfo->Effects[EFFECT_1].MiscValueB = 7;
+
+                spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                spellInfo->Effects[EFFECT_2].BasePoints = 0;
+                spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_PERCENT_STAT;
+                spellInfo->Effects[EFFECT_2].MiscValue = UNIT_MOD_STAT_STAMINA;
+                spellInfo->Effects[EFFECT_2].MiscValueB = 4;
+                break;
+            case 17005:
+                spellInfo->SpellFamilyName = SPELLFAMILY_DRUID;
+
+                spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_ATTACK_POWER_PCT;
+                spellInfo->Effects[EFFECT_1].MiscValueB = 10;
+
+                spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                spellInfo->Effects[EFFECT_2].BasePoints = 0;
+                spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_PERCENT_STAT;
+                spellInfo->Effects[EFFECT_2].MiscValue = UNIT_MOD_STAT_STAMINA;
+                spellInfo->Effects[EFFECT_2].MiscValueB = 6;
+                break;
             default:
                 break;
         }
