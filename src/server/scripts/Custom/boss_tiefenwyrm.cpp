@@ -6,6 +6,7 @@ enum Spells
 	SPELL_TAIL						= 71077,
 	SPELL_BLIZZARD					= 41482,
 	SPELL_FROSTATEM					= 69649,
+	SPELL_DEATH_AND_DECAY           = 71001,
 	SPELL_ENRAGE					= 41924		//Nach 10 Minuten
 };
 class boss_tiefenwyrm : public CreatureScript
@@ -24,6 +25,7 @@ public:
 		uint32 t_blizzard;
 		uint32 t_frost;
 		uint32 t_enrage;
+		uint32 t_dad;
 
         void Reset()
         {
@@ -32,6 +34,7 @@ public:
 		t_blizzard = 25000;
 		t_frost = 40000;
 		t_enrage = 450000;
+		t_dad = 30000;
 		}
 
         void EnterCombat(Unit* /*who*/)
@@ -81,6 +84,12 @@ public:
 				DoCast(me->getVictim(), SPELL_FROSTATEM);
 				t_frost = 40000;
 			} else t_frost -= diff;
+
+			if (t_dad <= diff)
+			{
+				if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
+                   DoCast(target, SPELL_DEATH_AND_DECAY);
+			} else t_dad -= diff;
 
 			if (t_blizzard <= diff)
 			{
