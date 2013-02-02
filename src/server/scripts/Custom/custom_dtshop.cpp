@@ -56,7 +56,7 @@ bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uin
 			player->ADD_GOSSIP_ITEM(1, "Flammender Hyppogryph (300 Embleme)",				GOSSIP_SENDER_MAIN, 14);
 			player->ADD_GOSSIP_ITEM(1, "Eisenbeschlagener Protodrache (300 Embleme)",		GOSSIP_SENDER_MAIN, 15);
 			player->ADD_GOSSIP_ITEM(1, "Blutgebadeter Frostwyrm (600 Embleme)",				GOSSIP_SENDER_MAIN, 16);
-			player->ADD_GOSSIP_ITEM(1, "<<Zur\303\274ck",											GOSSIP_SENDER_MAIN, 499);
+			player->ADD_GOSSIP_ITEM(5, "<<Zur\303\274ck",											GOSSIP_SENDER_MAIN, 499);
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen",									GOSSIP_SENDER_MAIN, 500);
 			player->PlayerTalkClass->SendGossipMenu(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
 			break;
@@ -66,7 +66,7 @@ bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uin
 			player->ADD_GOSSIP_ITEM(1, "Rosa Murloc (75 Embleme)",							GOSSIP_SENDER_MAIN, 23);
 			player->ADD_GOSSIP_ITEM(1, "Hippogryphenjunges (100 Embleme)",					GOSSIP_SENDER_MAIN, 24);
 			player->ADD_GOSSIP_ITEM(1, "Kernhundwelpe (100 Embleme)",						GOSSIP_SENDER_MAIN, 25);
-			player->ADD_GOSSIP_ITEM(1, "<<Zur\303\274ck",											GOSSIP_SENDER_MAIN, 499);
+			player->ADD_GOSSIP_ITEM(5, "<<Zur\303\274ck",											GOSSIP_SENDER_MAIN, 499);
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen",									GOSSIP_SENDER_MAIN, 500);
 			player->PlayerTalkClass->SendGossipMenu(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
 			break;
@@ -76,7 +76,7 @@ bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uin
 			player->ADD_GOSSIP_ITEM(1, "Forors Kiste der endlosen Wiederstandsausstattung (23 Embleme)", GOSSIP_SENDER_MAIN, 33);
 			player->ADD_GOSSIP_ITEM(1, "Ogerpinata (30 Embleme)",							GOSSIP_SENDER_MAIN, 34);
 			player->ADD_GOSSIP_ITEM(1, "D-I-S-C-O (75 Embleme)",							GOSSIP_SENDER_MAIN, 35);
-			player->ADD_GOSSIP_ITEM(1, "<<Zur\303\274ck",											GOSSIP_SENDER_MAIN, 499);
+			player->ADD_GOSSIP_ITEM(5, "<<Zur\303\274ck",											GOSSIP_SENDER_MAIN, 499);
 			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen",									GOSSIP_SENDER_MAIN, 500);
 			player->PlayerTalkClass->SendGossipMenu(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
 			break;
@@ -90,130 +90,210 @@ bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uin
 	{
 	case 11:
 		if (!player->HasItemCount(Token, 100))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(Reittier1, 1);
 		player->DestroyItemCount(Token, 100, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 12:
 		if (!player->HasItemCount(Token, 400))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(Reittier2, 1);
 		player->DestroyItemCount(Token, 400, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 13:
 		if (!player->HasItemCount(Token, 350))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(Reittier3, 1);
 		player->DestroyItemCount(Token, 350, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 14:
 		if (!player->HasItemCount(Token, 300))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(Reittier4, 1);
 		player->DestroyItemCount(Token, 300, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 15:
 		if (!player->HasItemCount(Token, 300))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(Reittier5, 1);
 		player->DestroyItemCount(Token, 300, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 16:
 		if (!player->HasItemCount(Token, 600))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(Reittier6, 1);
 		player->DestroyItemCount(Token, 600, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 21:
 		if (!player->HasItemCount(Token, 50))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(Haustier1, 1);
 		player->DestroyItemCount(Token, 50, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 22:
 		if (!player->HasItemCount(Token, 75))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(Haustier2, 1);
 		player->DestroyItemCount(Token, 75, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 23:
 		if (!player->HasItemCount(Token, 75))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(Haustier3, 1);
 		player->DestroyItemCount(Token, 75, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 24:
 		if (!player->HasItemCount(Token, 100))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(Haustier4, 1);
 		player->DestroyItemCount(Token, 100, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 25:
 		if (!player->HasItemCount(Token, 100))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(Haustier5, 1);
 		player->DestroyItemCount(Token, 100, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 31:
 		if (!player->HasItemCount(Token, 1))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(FunItem1, 1);
 		player->DestroyItemCount(Token, 1, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 32:
 		if (!player->HasItemCount(Token, 10))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(FunItem2, 10);
 		player->DestroyItemCount(Token, 10, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 33:
 		if (!player->HasItemCount(Token, 23))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(FunItem3, 1);
 		player->DestroyItemCount(Token, 23, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 34:
 		if (!player->HasItemCount(Token, 30))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(FunItem4, 1);
 		player->DestroyItemCount(Token, 30, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 35:
 		if (!player->HasItemCount(Token, 75))
+		{
 		creature->MonsterWhisper("Du hast nicht genug Embleme von Darkthunder.", player->GetGUID());
-
+		}
+		else
+		{
 		player->AddItem(FunItem5, 1);
 		player->DestroyItemCount(Token, 75, true);
+		player->CLOSE_GOSSIP_MENU();
+		}
 		break;
 
 	case 499:
