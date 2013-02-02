@@ -68,6 +68,10 @@ class spell_rog_blade_flurry : public SpellScriptLoader
             bool CheckProc(ProcEventInfo& eventInfo)
             {
                 _procTarget = eventInfo.GetActor()->SelectNearbyTarget(eventInfo.GetProcTarget());
+                
+                if (!_procTarget)
+                    return false;
+
                 if (eventInfo.GetDamageInfo())
                 {
                     int32 damage = eventInfo.GetDamageInfo()->GetDamage();
