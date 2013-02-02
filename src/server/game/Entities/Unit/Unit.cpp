@@ -6558,13 +6558,13 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     break;
                 // Main gauche Combat Rogue Mastery 
                 case 76806:
+                {
                     if (procSpell)
                         return false;
 
                     if (Player* caster = ToPlayer())
                     { 
                         int32 chance = int32(2.0f * caster->GetMasteryPoints());
-                        sLog->outError(LOG_FILTER_GENERAL, "MERDA %d", chance);
                         if (roll_chance_i(chance))
                         {
                            int32 bp0 = damage;
@@ -6572,8 +6572,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         }
                     }
                     return true;
-                    break;
-                
+                }              
                 case 32748: // Deadly Throw Interrupt
                 {
                     // Prevent cast Deadly Throw Interrupt on self from last effect (apply dummy) of Deadly Throw
