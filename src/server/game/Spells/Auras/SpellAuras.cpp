@@ -1479,6 +1479,15 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                         target->CastCustomSpell(target, 31665, &basepoints0, NULL, NULL, true);
                     }
                 }
+
+                // Overkill
+                if (target->HasAura(58426))
+                {
+                    if (!apply)
+                        target->CastSpell(target, 58428, true);
+                    else
+                        target->CastSpell(target, 58427, true);
+                }
                 break;
             }
             break;
