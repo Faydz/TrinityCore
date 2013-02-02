@@ -73,7 +73,6 @@ enum SummonIds
     NPC_SPIKE    = 44765,
     NPC_STORM    = 40406,
     NPC_QUICKSAND = 40503,
-    InstanceScript* _instance;
 };
 
 class boss_ptah : public CreatureScript

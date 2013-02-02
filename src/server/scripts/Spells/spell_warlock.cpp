@@ -195,63 +195,6 @@ public:
     }
 };
 
-// 77799 - spell_warl_fel_flame
-class spell_warl_fel_flame: public SpellScriptLoader 
-{
-public:
-    spell_warl_fel_flame() : SpellScriptLoader("spell_warl_fel_flame") { }
-
-    class spell_warl_fel_flame_SpellScript: public SpellScript
-    {
-        PrepareSpellScript(spell_warl_fel_flame_SpellScript);
-
-        void HandleScriptEffect(SpellEffIndex /*effIndex*/) 
-        {
-            Unit* target = GetHitUnit();
-            Unit* caster = GetCaster();
-
-            if (!target)
-                return;
-
-            if (!caster)
-                return;
-            
-            // Immolate
-            if (target->HasAura(SPELL_WARLOCK_IMMOLATE, caster->GetGUID()))
-            {
-                int32 newDuration = target->GetAura(SPELL_WARLOCK_IMMOLATE, caster->GetGUID())->GetDuration();
-                if (newDuration >= GetEffectValue()*1000)
-                    newDuration = target->GetAura(SPELL_WARLOCK_IMMOLATE, caster->GetGUID())->GetMaxDuration();
-                else
-                    newDuration += (GetEffectValue()*1000);
-
-                target->GetAura(SPELL_WARLOCK_IMMOLATE, caster->GetGUID())->SetDuration(newDuration, true);
-            } 
-            // Unstable Affliction
-            else if (target->HasAura(SPELL_WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID()))
-            {
-                int32 newDuration = target->GetAura(SPELL_WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->GetDuration();
-                if (newDuration >= GetEffectValue()*1000)
-                    newDuration = target->GetAura(SPELL_WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->GetMaxDuration();
-                else
-                    newDuration += (GetEffectValue()*1000);
-
-                target->GetAura(SPELL_WARLOCK_UNSTABLE_AFFLICTION, caster->GetGUID())->SetDuration(newDuration, true);
-            }            
-        }
-
-        void Register()
-        {
-            OnEffectHitTarget += SpellEffectFn(spell_warl_fel_flame_SpellScript::HandleScriptEffect, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
-        }
-    };
-
-    SpellScript* GetSpellScript() const 
-    {
-        return new spell_warl_fel_flame_SpellScript();
-    }
-};
-
 // 29722 - Incinerate
 class spell_warl_incinerate : public SpellScriptLoader
 {
