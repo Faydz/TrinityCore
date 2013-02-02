@@ -502,6 +502,13 @@ class spell_rog_rupture : public SpellScriptLoader
                     if (cp > 5)
                         cp = 5;
 
+                    // Revealing Strike
+                    if (GetUnitOwner())
+                    {
+                        if (GetUnitOwner()->HasAura(84617))
+                            AddPct(amount, 35);
+                    }
+
                     amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * attackpowerPerCombo[cp]);
                 }
             }
