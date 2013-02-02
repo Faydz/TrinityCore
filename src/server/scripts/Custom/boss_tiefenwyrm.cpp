@@ -102,7 +102,7 @@ public:
 
 			if (t_shadows <= diff)
 			{
-				if (Player* target = SelectRandomTarget(false))
+				if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
                    {
                     Talk(EMOTE_SWARMING_SHADOWS, target->GetGUID());
                     DoCast(target, SPELL_SWARMING_SHADOWS);
