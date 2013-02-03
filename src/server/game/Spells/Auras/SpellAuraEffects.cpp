@@ -4928,6 +4928,23 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                                 break;
                         }
             }
+
+            switch (m_spellInfo->SpellFamilyName)
+            {
+                case SPELLFAMILY_DRUID:
+                    switch (GetId())
+                    {
+                        // Revitalize Replenishment
+                        case 33763:
+                            if(caster && caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE, SPELLFAMILY_DRUID,2862, EFFECT_0))
+                            {
+                                caster->CastSpell(caster, 57669, true);
+                            }
+                            break;
+                    }
+                    break;
+            }
+
             switch (GetId())
             {
                 case 1515:                                      // Tame beast
