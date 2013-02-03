@@ -6558,6 +6558,10 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     break;
                 // Main gauche Combat Rogue Mastery 
                 case 76806:
+                {
+                    if (procSpell)
+                        return false;
+
                     if (Player* caster = ToPlayer())
                     { 
                         int32 chance = int32(2.0f * caster->GetMasteryPoints());
@@ -6568,8 +6572,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         }
                     }
                     return true;
-                    break;
-                
+                }              
                 case 32748: // Deadly Throw Interrupt
                 {
                     // Prevent cast Deadly Throw Interrupt on self from last effect (apply dummy) of Deadly Throw
@@ -6606,6 +6609,16 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->SpellIconID)
             {
+                // Lock and Load
+            case 3579:
+                {
+                    // Proc only from periodic (from trap activation proc another aura of this spell)
+                    if (!(procFlag & PROC_FLAG_DONE_PERIODIC)
+                            || !roll_chance_i(triggerAmount)) return false;
+                    triggered_spell_id = 56453;
+                    target = this;
+                    break;
+                }
                 // Wild Quiver Hunter Marksmanship Mastery 
                 case 76659:
                     if (Player* caster = ToPlayer())
@@ -6649,10 +6662,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     basepoints0 = CalculatePct(GetMaxPower(POWER_FOCUS), triggerAmount);
                     break;
                 }
-            }
-
-            switch (dummySpell->Id)
-            {
             }
             break;
         }
@@ -10176,6 +10185,12 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_SURVIVAL)
                    DoneTotalMod *= 1.0f + 0.01f * owner->ToPlayer()->GetMasteryPoints();
             break;
+        case SPELLFAMILY_DRUID:
+            // Razor Claws (Mastery Druid Feral)
+            if (owner->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && spellProto->Mechanic == MECHANIC_BLEED)
+                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_DRUID_FERAL_COMBAT)
+                        DoneTotalMod *= 1.0f + 0.031f *  owner->ToPlayer()->GetMasteryPoints();
+            break;
     }
 
     // Done fixed damage bonus auras
@@ -10356,7 +10371,7 @@ int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask)
         DoneAdvertisedBenefit += ToPlayer()->GetBaseSpellPowerBonus();
 
         // Check if we are ever using mana - PaperDollFrame.lua
-        if (GetPowerIndexByClass(POWER_MANA, getClass()) != MAX_POWERS)
+        if (GetPowerIndex(POWER_MANA) != MAX_POWERS)
             DoneAdvertisedBenefit += std::max(0, int32(GetStat(STAT_INTELLECT)) - 10);  // spellpower from intellect
 
         // Damage bonus from stats
@@ -10931,7 +10946,7 @@ int32 Unit::SpellBaseHealingBonusDone(SpellSchoolMask schoolMask)
         AdvertisedBenefit += ToPlayer()->GetBaseSpellPowerBonus();
 
         // Check if we are ever using mana - PaperDollFrame.lua
-        if (GetPowerIndexByClass(POWER_MANA, getClass()) != MAX_POWERS)
+        if (GetPowerIndex(POWER_MANA) != MAX_POWERS)
             AdvertisedBenefit += std::max(0, int32(GetStat(STAT_INTELLECT)) - 10);  // spellpower from intellect
 
         // Healing bonus from stats
@@ -13554,7 +13569,7 @@ void Unit::SetMaxHealth(uint32 val)
 
 int32 Unit::GetPower(Powers power) const
 {
-    uint32 powerIndex = GetPowerIndexByClass(power, getClass());
+    uint32 powerIndex = GetPowerIndex(power);
     if (powerIndex == MAX_POWERS)
         return 0;
 
@@ -13563,7 +13578,7 @@ int32 Unit::GetPower(Powers power) const
 
 int32 Unit::GetMaxPower(Powers power) const
 {
-    uint32 powerIndex = GetPowerIndexByClass(power, getClass());
+    uint32 powerIndex = GetPowerIndex(power);
     if (powerIndex == MAX_POWERS)
         return 0;
 
@@ -13572,7 +13587,7 @@ int32 Unit::GetMaxPower(Powers power) const
 
 void Unit::SetPower(Powers power, int32 val)
 {
-    uint32 powerIndex = GetPowerIndexByClass(power, getClass());
+    uint32 powerIndex = GetPowerIndex(power);
     if (powerIndex == MAX_POWERS)
         return;
 
@@ -13611,7 +13626,7 @@ void Unit::SetPower(Powers power, int32 val)
 
 void Unit::SetMaxPower(Powers power, int32 val)
 {
-    uint32 powerIndex = GetPowerIndexByClass(power, getClass());
+    uint32 powerIndex = GetPowerIndex(power);
     if (powerIndex == MAX_POWERS)
         return;
 
@@ -13636,6 +13651,19 @@ void Unit::SetMaxPower(Powers power, int32 val)
 
     if (val < cur_power)
         SetPower(power, val);
+}
+
+uint32 Unit::GetPowerIndex(uint32 powerType) const
+{
+    /// This is here because hunter pets are of the warrior class.
+    /// With the current implementation, the core only gives them
+    /// POWER_RAGE, so we enforce the class to hunter so that they
+    /// effectively get focus power.
+    uint32 classId = getClass();
+    if (ToPet() && ToPet()->getPetType() == HUNTER_PET)
+        classId = CLASS_HUNTER;
+
+    return GetPowerIndexByClass(powerType, classId);
 }
 
 int32 Unit::GetCreatePowers(Powers power) const

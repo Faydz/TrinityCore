@@ -295,6 +295,9 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
     float base_attPower  = GetModifierValue(unitMod, BASE_VALUE) * GetModifierValue(unitMod, BASE_PCT);
     float attPowerMod = GetModifierValue(unitMod, TOTAL_VALUE);
 
+    // Check this
+    base_attPower *= GetModifierValue(unitMod, TOTAL_PCT);
+
     //add dynamic flat mods
     if (!ranged)
     {

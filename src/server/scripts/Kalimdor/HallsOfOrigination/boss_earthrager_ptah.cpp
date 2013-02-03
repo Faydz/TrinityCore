@@ -231,6 +231,7 @@ class boss_ptah : public CreatureScript
                 }
                 DoMeleeAttackIfReady();
             }
+        bool _hasDispersed;
         };
 
     CreatureAI* GetAI(Creature* creature) const

@@ -1249,6 +1249,25 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                         break;
                 }
                 break;
+            case SPELLFAMILY_HUNTER:
+                switch(GetId())
+                {
+                case 1978:
+                    if(caster->HasAura(19464) || caster->HasAura(82834))
+                    {
+                        if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 536, 0))
+                        {
+                            int32 basepoints0;
+                            if(caster->HasAura(19464))
+                                basepoints0 = aurEff->GetAmount() * (caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.4f + (460 * 15 / 3)) / 100;
+                            else
+                                basepoints0 = aurEff->GetAmount() * (caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.4f + (460 * 30 / 3)) / 100;
+                            caster->CastCustomSpell(target, 83077, &basepoints0, NULL, NULL, true, NULL, GetEffect(0));
+                        }
+                    }
+                    break;
+                }
+                break;
             case SPELLFAMILY_PRIEST:
                 if (!caster)
                     break;
@@ -1459,6 +1478,15 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                         int32 basepoints0 = aurEff->GetAmount();
                         target->CastCustomSpell(target, 31665, &basepoints0, NULL, NULL, true);
                     }
+                }
+
+                // Overkill
+                if (target->HasAura(58426))
+                {
+                    if (!apply)
+                        target->CastSpell(target, 58428, true);
+                    else
+                        target->CastSpell(target, 58427, true);
                 }
                 break;
             }
@@ -1797,14 +1825,14 @@ float Aura::CalcProcChance(SpellProcEntry const& procEntry, ProcEventInfo& event
 
 void Aura::TriggerProcOnEvent(AuraApplication* aurApp, ProcEventInfo& eventInfo)
 {
-    CallScriptProcHandlers(const_cast<AuraApplication const*>(aurApp), eventInfo);
+    CallScriptProcHandlers(aurApp, eventInfo);
 
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
         if (aurApp->HasEffect(i))
             // OnEffectProc / AfterEffectProc hooks handled in AuraEffect::HandleProc()
             GetEffect(i)->HandleProc(aurApp, eventInfo);
 
-    CallScriptAfterProcHandlers(const_cast<AuraApplication const*>(aurApp), eventInfo);
+    CallScriptAfterProcHandlers(aurApp, eventInfo);
 
     // Remove aura if we've used last charge to proc
     if (IsUsingCharges() && !GetCharges())
