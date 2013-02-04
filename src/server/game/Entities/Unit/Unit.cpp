@@ -6553,18 +6553,19 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         victim->RemoveAura(84746);
                     }
                     else if (victim->HasAura(84747))
-                    {
                         buffId = 84747;
-                        victim->RemoveAura(84747);
-                    }
 
                     switch (buffId)
                     {
                         case 84745: triggered_spell_id = 84746; bp0 = 20; break;
                         case 84746: triggered_spell_id = 84747; bp0 = 30; break; 
-                        case 84747: triggered_spell_id = 84745; bp0 = 10; break; 
+                        case 84747: triggered_spell_id = 0; break; 
                     }
 
+                    if (triggered_spell_id == 0)
+                        return false;
+
+                    victim->RemoveAura(84748);
                     CastCustomSpell(victim, 84748, &bp0, NULL, NULL, true);
                     AddAura(triggered_spell_id, victim);
                     return true;
