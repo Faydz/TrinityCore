@@ -41,6 +41,42 @@ enum DruidSpells
     SPELL_ENRAGE_MOD_DAMAGE             = 51185,
 };
 
+// 5185 8936 50464 Empowered Touch
+class spell_dru_empowered_touch: public SpellScriptLoader 
+{
+public:
+    spell_dru_empowered_touch() :SpellScriptLoader("spell_dru_empowered_touch") {}
+
+    class spell_dru_empowered_touch_SpellScript: public SpellScript 
+    {
+        PrepareSpellScript(spell_dru_empowered_touch_SpellScript);
+
+        void BeforeEffect(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetHitUnit();
+
+            if (!target || !caster)
+                return;
+
+            if (Aura* aur = target->GetAura(33763))
+                if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2251, EFFECT_1))
+                    if (roll_chance_i(aurEff->GetAmount()))
+                        aur->RefreshDuration();
+        }
+
+        void Register() 
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_dru_empowered_touch_SpellScript::BeforeEffect, EFFECT_0, SPELL_EFFECT_HEAL);
+        }
+    };
+
+    SpellScript* GetSpellScript() const 
+    {
+        return new spell_dru_empowered_touch_SpellScript();
+    }
+};
+
 class spell_dru_enrage : public SpellScriptLoader
 {
     public:
@@ -1580,6 +1616,7 @@ class spell_dru_mangle_bear : public SpellScriptLoader
 
 void AddSC_druid_spell_scripts()
 {
+    new spell_dru_empowered_touch();
     new spell_dru_dash();
     new spell_dru_eclipse_energize();
     new spell_dru_enrage();

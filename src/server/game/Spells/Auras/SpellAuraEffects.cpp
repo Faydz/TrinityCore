@@ -664,6 +664,20 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                 float mwb = ((mwb_min + mwb_max) / 2 + ap * mws / 14000) * 0.25f * 6.0f;
                 amount += int32(caster->ApplyEffectModifiers(m_spellInfo, m_effIndex, mwb));
             }
+            // Razor Claws (Mastery Druid Feral)
+            if (caster->ToPlayer())
+            {
+                if (caster->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && GetMiscValue() == FORM_CAT)
+                {
+                    if (m_spellInfo->Mechanic == MECHANIC_BLEED)
+                    {
+                        if (caster->ToPlayer()->GetPrimaryTalentTree(caster->ToPlayer()->GetActiveSpec()) == BS_DRUID_FERAL_COMBAT)
+                        {
+                            amount += int32(amount * (0.031f *  caster->ToPlayer()->GetMasteryPoints()));
+                        }
+                    }
+                }
+            }
 			break;
         case SPELL_AURA_PERIODIC_ENERGIZE:
             switch (m_spellInfo->Id)
@@ -1334,13 +1348,14 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
     uint32 spellId = 0;
     uint32 spellId2 = 0;
     //uint32 spellId3 = 0;
-    uint32 HotWSpellId = 0;
+
+    if(!target)
+        return;
 
     switch (GetMiscValue())
     {
         case FORM_CAT:
             spellId = 3025;
-            HotWSpellId = 24900;
             break;
         case FORM_TREE:
             spellId = 34123;
@@ -1354,7 +1369,6 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
         case FORM_BEAR:
             spellId = 1178;
             spellId2 = 21178;
-            HotWSpellId = 24899;
             break;
         case FORM_BATTLESTANCE:
             spellId = 21156;
@@ -1475,25 +1489,15 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                     target->CastSpell(target, 66530, true);
             }
 
-            // Heart of the Wild
-            if (HotWSpellId)
-            {   // hacky, but the only way as spell family is not SPELLFAMILY_DRUID
-                Unit::AuraEffectList const& mModTotalStatPct = target->GetAuraEffectsByType(SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE);
-                for (Unit::AuraEffectList::const_iterator i = mModTotalStatPct.begin(); i != mModTotalStatPct.end(); ++i)
-                {
-                    // Heart of the Wild
-                    if ((*i)->GetSpellInfo()->SpellIconID == 240 && (*i)->GetMiscValue() == 3)
-                    {
-                        int32 HotWMod = (*i)->GetAmount() / 2; // For each 2% Intelligence, you get 1% stamina and 1% attack power.
-
-                        target->CastCustomSpell(target, HotWSpellId, &HotWMod, NULL, NULL, true, NULL, this);
-                        break;
-                    }
-                }
-            }
             switch (GetMiscValue())
             {
                 case FORM_CAT:
+                    // Heart of the Wild attack power boost
+                    if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_ATTACK_POWER_PCT, SPELLFAMILY_DRUID, 240, EFFECT_1))
+                    {
+                        aurEff->ChangeAmount(aurEff->GetMiscValueB()); 
+                    }
+
                     // Savage Roar
                     if (target->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, 0, 0x10000000, 0))
                         target->CastSpell(target, 62071, true);
@@ -1520,6 +1524,12 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                     }
                 break;
                 case FORM_BEAR:
+                    // Heart of the Wild stamina boost
+                    if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_PERCENT_STAT, SPELLFAMILY_DRUID, 240, EFFECT_2))
+                    {
+                        aurEff->ChangeAmount(aurEff->GetMiscValueB());
+                    }
+
                     // Master Shapeshifter - Bear
                     if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
                     {
@@ -1554,6 +1564,12 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
     }
     else
     {
+        // Heart of the Wild boosts remove
+        if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_ATTACK_POWER_PCT, SPELLFAMILY_DRUID, 240, EFFECT_1))
+            aurEff->ChangeAmount(0);
+        if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_PERCENT_STAT, SPELLFAMILY_DRUID, 240, EFFECT_2))
+            aurEff->ChangeAmount(0);
+
         if (spellId)
             target->RemoveAurasDueToSpell(spellId);
         if (spellId2)
@@ -4912,6 +4928,23 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                                 break;
                         }
             }
+
+            switch (m_spellInfo->SpellFamilyName)
+            {
+                case SPELLFAMILY_DRUID:
+                    switch (GetId())
+                    {
+                        // Revitalize Replenishment
+                        case 33763:
+                            if(caster && caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE, SPELLFAMILY_DRUID,2862, EFFECT_0))
+                            {
+                                caster->CastSpell(caster, 57669, true);
+                            }
+                            break;
+                    }
+                    break;
+            }
+
             switch (GetId())
             {
                 case 1515:                                      // Tame beast
