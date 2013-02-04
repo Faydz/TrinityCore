@@ -2063,8 +2063,16 @@ void Spell::prepareDataForTriggerSystem(AuraEffect const* /*triggeredByAura*/)
         (m_spellInfo->SpellFamilyFlags[0] & 0x18 ||     // Freezing and Frost Trap, Freezing Arrow
         m_spellInfo->Id == 57879 ||                     // Snake Trap - done this way to avoid double proc
         m_spellInfo->SpellFamilyFlags[2] & 0x00024000)) // Explosive and Immolation Trap
-
+    {
+        if(Player* pl = m_caster->ToPlayer())
+        {
+            if(pl->HasAura(19184))
+                m_targets.GetUnitTarget()->AddAura(19185, m_targets.GetUnitTarget());
+            if(pl->HasAura(19387))
+                m_targets.GetUnitTarget()->AddAura(64803, m_targets.GetUnitTarget());
+        }
         m_procAttacker |= PROC_FLAG_DONE_TRAP_ACTIVATION;
+    }
 
     /* Effects which are result of aura proc from triggered spell cannot proc
         to prevent chain proc of these spells */
