@@ -86,7 +86,9 @@ public:
 		if (winner->GetAreaId() == 11 && type != DUEL_INTERRUPTED) 
 		{
 			winner->RemoveArenaSpellCooldowns();
+			winner->RegenerateHealth();
 			looser->RemoveArenaSpellCooldowns();
+			looser->RegenerateHealth();
 		}
 	}
 };

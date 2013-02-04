@@ -122,8 +122,27 @@ const char *ChatHandler::GetTrinityString(int32 entry) const
 
 bool ChatHandler::isAvailable(ChatCommand const& cmd) const
 {
-    // check security level only for simple  command (without child commands)
-    return m_session->GetSecurity() >= AccountTypes(cmd.SecurityLevel);
+    uint32 permission = 0;
+
+    ///@Workaround:: Fast adaptation to RBAC system till all commands are moved to permissions
+    switch (AccountTypes(cmd.SecurityLevel))
+    {
+        case SEC_ADMINISTRATOR:
+            permission = RBAC_PERM_ADMINISTRATOR_COMMANDS;
+            break;
+        case SEC_GAMEMASTER:
+            permission = RBAC_PERM_GAMEMASTER_COMMANDS;
+            break;
+        case SEC_MODERATOR:
+            permission = RBAC_PERM_MODERATOR_COMMANDS;
+            break;
+        case SEC_PLAYER:
+        default:
+            permission = RBAC_PERM_PLAYER_COMMANDS;
+            break;
+    }
+
+    return m_session->HasPermission(permission);
 }
 
 bool ChatHandler::HasLowerSecurity(Player* target, uint64 guid, bool strong)
