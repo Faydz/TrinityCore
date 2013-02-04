@@ -6526,9 +6526,53 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
-               // Venomous Wounds
-               case 79133:
-               case 79134:
+                // Bandit's Guile
+                case 84654:
+                case 84653:
+                case 84652:
+                {
+                    if (!procSpell)
+                        return false;
+                    
+                    if (procSpell->Id != 1752 && procSpell->Id != 84617)
+                        return false;
+                    
+                    triggered_spell_id = 84745;
+                    int32 bp0 = 10;
+
+                    uint32 buffId = 0;
+
+                    if (victim->HasAura(84745))
+                    {
+                        buffId = 84745;
+                        victim->RemoveAura(84745);
+                    }
+                    else if (victim->HasAura(84746))
+                    {
+                        buffId = 84746;
+                        victim->RemoveAura(84746);
+                    }
+                    else if (victim->HasAura(84747))
+                    {
+                        buffId = 84747;
+                        victim->RemoveAura(84747);
+                    }
+
+                    switch (buffId)
+                    {
+                        case 84745: triggered_spell_id = 84746; bp0 = 20; break;
+                        case 84746: triggered_spell_id = 84747; bp0 = 30; break; 
+                        case 84747: triggered_spell_id = 84745; bp0 = 10; break; 
+                    }
+
+                    CastCustomSpell(victim, 84748, &bp0, NULL, NULL, true);
+                    AddAura(triggered_spell_id, victim);
+                    return true;
+                    break;
+                }
+                // Venomous Wounds
+                case 79133:
+                case 79134:
                    if (procSpell->Id == 1943 || procSpell->Id == 703)
                    {
                        if (Player* caster = ToPlayer())
