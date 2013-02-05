@@ -7027,6 +7027,49 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Resurgence
+                case 16180:
+                case 16196:
+                    if (procEx & PROC_EX_CRITICAL_HIT)
+                    {
+                        if (!procSpell)
+                            return false;
+
+                        if (!HasAura(52127))
+                            return false;
+                        
+                        int32 bp0 = 0;
+
+                        switch (procSpell->Id)
+                        {
+                            // Healing Wave, Greater Healing Wave
+                            case 331:
+                            case 77472:
+                                bp0 = 2293;
+                                break;
+                            // Healing Surge, Riptide, Unleash Life
+                            case 8004:
+                            case 61295:
+                            case 73685:
+                                bp0 = 1376;
+                                break;
+                            // Chain Heal
+                            case 1064:
+                                bp0 = 764;
+                                break;
+                        }
+
+                        if (bp0 == 0)
+                            return false;
+
+                        if (dummySpell->Id == 16180)
+                            bp0 *= 0.5f;
+
+                        // ToDo: Fin out why proper spell (101033) Don't takes correct bp0
+                        CastCustomSpell(this, 23571, &bp0, NULL, NULL, true);
+                        return true;
+                    }
+                    break;
                 // Elemental Overload (Shaman Elemental mastery)
                 case 77222:
                    if (Player* caster = ToPlayer())
