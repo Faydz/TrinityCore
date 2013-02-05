@@ -22079,6 +22079,25 @@ void Player::UpdatePvP(bool state, bool override)
     }
 }
 
+// Amount in milliseconds
+void Player::ReduceSpellCooldown(uint32 spellid, int32 amount)
+{
+    if (HasSpellCooldown(spellid))
+    {
+       int32 newCooldownDelay = GetSpellCooldownDelay(spellid);
+       if (newCooldownDelay <= amount / 1000)
+            newCooldownDelay = 0;
+        else
+            newCooldownDelay -= amount / 1000;
+
+       AddSpellCooldown(spellid, 0, uint32(time(NULL) + newCooldownDelay));
+       WorldPacket data(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
+       data << uint32(spellid);
+       data << uint64(GetGUID());
+       data << int32(-amount);
+       GetSession()->SendPacket(&data);
+    }
+}
 void Player::AddSpellAndCategoryCooldowns(SpellInfo const* spellInfo, uint32 itemId, Spell* spell, bool infinityCooldown)
 {
     // init cooldown values

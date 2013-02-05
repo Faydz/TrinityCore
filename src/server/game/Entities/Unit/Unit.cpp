@@ -6526,6 +6526,24 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Restless Blade
+                case 79095:
+                case 79096:
+                    if (procSpell->Id != 2098 && procSpell->Id != 32645 && procSpell->Id != 26679)
+                        return false;
+
+                    if (Player* player = ToPlayer())
+                    {
+                        triggerAmount *= player->GetComboPoints();
+
+                        // Reduce Cooldown od Adrenaline Rush, Killing Spree, Redirect and Sprint 
+                        player->ReduceSpellCooldown(13750, triggerAmount);
+                        player->ReduceSpellCooldown(51690, triggerAmount);
+                        player->ReduceSpellCooldown(73981, triggerAmount);
+                        player->ReduceSpellCooldown(2983,  triggerAmount);
+                        return true;
+                    }
+                    break;
                 // Bandit's Guile
                 case 84654:
                 case 84653:
