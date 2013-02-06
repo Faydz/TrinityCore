@@ -86,9 +86,13 @@ public:
 		if (winner->GetAreaId() == 11 && type != DUEL_INTERRUPTED) 
 		{
 			winner->RemoveArenaSpellCooldowns();
-			winner->RegenerateHealth();
 			looser->RemoveArenaSpellCooldowns();
-			looser->RegenerateHealth();
+			winner->SetHealth(winner->GetMaxHealth());
+            if ( winner->getPowerType() == POWER_MANA )
+                 winner->SetPower(POWER_MANA, winner->GetMaxPower(POWER_MANA));
+            looser->SetHealth(looser->GetMaxHealth());
+            if ( looser->getPowerType() == POWER_MANA )
+                 looser->SetPower(POWER_MANA, looser->GetMaxPower(POWER_MANA));
 		}
 	}
 };
