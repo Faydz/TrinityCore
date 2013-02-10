@@ -1571,6 +1571,7 @@ class instance_icecrown_citadel : public InstanceMapScript
             bool IsOozeDanceEligible;
             bool IsNauseaEligible;
             bool IsOrbWhispererEligible;
+			bool isPrepared;
         };
 
         InstanceScript* GetInstanceScript(InstanceMap* map) const
