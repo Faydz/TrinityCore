@@ -178,7 +178,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                 if (!TeamInInstance)
                     TeamInInstance = player->GetTeam();
 
-                PrepareGunshipEvent(); // Spawn Gunship Event
+                //PrepareGunshipEvent(); // Spawn Gunship Event
             }
 
             void OnCreatureCreate(Creature* creature)
@@ -1309,7 +1309,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                         break;
                 }
             }
-
+			/*
             void PrepareGunshipEvent()
             {
                 if (isPrepared || GetBossState(DATA_GUNSHIP_EVENT) == DONE)
@@ -1499,6 +1499,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                 }
                 isPrepared = true;
             }
+			*/
 
 
         protected:
