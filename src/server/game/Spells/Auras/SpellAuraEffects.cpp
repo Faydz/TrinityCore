@@ -5266,15 +5266,16 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
             {
                 case 61336: // Survival Instincts
                 {
-                if (!(mode & AURA_EFFECT_HANDLE_REAL))
-                    break;
+                    if (!(mode & AURA_EFFECT_HANDLE_REAL))
+                        break;
 
-                if (apply) 
-                {
-                    if (target->IsInFeralForm())
-                    target->CastSpell(target, 50322, true);
-                } else                    
-                    target->RemoveAurasDueToSpell(50322);
+                    if (apply) 
+                    {
+                        if (target->IsInFeralForm())
+                        target->CastSpell(target, 50322, true);
+                    }
+                    else                    
+                        target->RemoveAurasDueToSpell(50322);
                 break;
                 }
             }
