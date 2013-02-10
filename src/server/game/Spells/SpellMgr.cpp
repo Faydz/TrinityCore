@@ -3111,6 +3111,10 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 81275:
                         spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
                         break;
+                    // Berserk: Mangle cooldown
+                    case 50334:
+                        spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                        break;
                 }
                 // Roar
                 if (spellInfo->SpellFamilyFlags[0] & 0x8)

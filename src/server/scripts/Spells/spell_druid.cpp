@@ -1567,7 +1567,7 @@ class spell_dru_lacerate : public SpellScriptLoader
                     {
                         if(roll_chance_i(50))
                         {
-                            caster->RemoveSpellCooldown(33878);
+                            caster->RemoveSpellCooldown(33878, true);
                             sLog->outError(LOG_FILTER_GENERAL, "lacerate");
                         }
                     }
@@ -1613,6 +1613,7 @@ class spell_dru_mangle_bear : public SpellScriptLoader
             return new spell_dru_mangle_bear_SpellScript();
         }
 };
+
 
 void AddSC_druid_spell_scripts()
 {
