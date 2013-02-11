@@ -1258,7 +1258,6 @@ class instance_icecrown_citadel : public InstanceMapScript
                 }
             }
 			/*
-			*/
         protected:
             EventMap Events;
             uint64 LadyDeathwisperElevatorGUID;
