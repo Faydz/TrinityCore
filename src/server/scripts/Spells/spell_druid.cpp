@@ -1562,16 +1562,9 @@ class spell_dru_lacerate : public SpellScriptLoader
             void OnPeriodic(AuraEffect const* aurEff)
             {
                 if (Player* caster = GetCaster()->ToPlayer())
-                {
                     if (caster->HasAura(50334))
-                    {
                         if(roll_chance_i(50))
-                        {
                             caster->RemoveSpellCooldown(33878, true);
-                            sLog->outError(LOG_FILTER_GENERAL, "lacerate");
-                        }
-                    }
-                }
             }
 
             void Register()
@@ -1614,6 +1607,96 @@ class spell_dru_mangle_bear : public SpellScriptLoader
         }
 };
 
+class spell_dru_lunar_shower : public SpellScriptLoader
+{
+    public:
+        spell_dru_lunar_shower() : SpellScriptLoader("spell_dru_lunar_shower") { }
+
+        class spell_dru_lunar_shower_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_lunar_shower_SpellScript);
+
+            int32 energizeAmount;
+
+            bool Load()
+            {
+                if (GetCaster()->GetTypeId() != TYPEID_PLAYER)
+                    return false;
+
+                if (GetCaster()->ToPlayer()->getClass() != CLASS_DRUID)
+                    return false;
+
+                energizeAmount = 0;
+
+                return true;
+            }
+
+            void HandleEnergize(SpellEffIndex effIndex)
+            {
+                Player* caster = GetCaster()->ToPlayer();
+
+                // No boomy, no deal.
+                if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) != TALENT_TREE_DRUID_BALANCE)
+                    return;
+
+                switch (GetSpellInfo()->Id)
+                {
+                    case 8921:
+                    {
+                        if (caster->HasAura(81006) || caster->HasAura(81191) || caster->HasAura(81192))
+                        {
+                            // Lunar Shower
+                            energizeAmount = 8;
+                            // If we are set to fill the solar side or we've just logged in with 0 power..
+                            if ((!caster->HasAura(SPELL_DRUID_LUNAR_ECLIPSE_MARKER) && caster->HasAura(SPELL_DRUID_SOLAR_ECLIPSE_MARKER))
+                                || caster->GetPower(POWER_ECLIPSE) == 0)
+                            {
+                                caster->CastCustomSpell(caster, SPELL_DRUID_ECLIPSE_GENERAL_ENERGIZE, &energizeAmount, 0, 0, true);
+                                // If the energize was due to 0 power, cast the eclipse marker aura
+                                if (!caster->HasAura(SPELL_DRUID_SOLAR_ECLIPSE_MARKER))
+                                    caster->CastSpell(caster, SPELL_DRUID_SOLAR_ECLIPSE_MARKER, true);
+                            }
+                            // The energizing effect brought us out of the lunar eclipse, remove the aura
+                            if (caster->HasAura(SPELL_DRUID_LUNAR_ECLIPSE) && caster->GetPower(POWER_ECLIPSE) >= 0)
+                                caster->RemoveAura(SPELL_DRUID_LUNAR_ECLIPSE);
+                        }
+                        break;
+                    }
+                    case 93402:
+                    {
+                        // Lunar Shower
+                        if (caster->HasAura(81006) || caster->HasAura(81191) || caster->HasAura(81192)) 
+                        {
+                            energizeAmount = -8;
+                        // If we are set to fill the lunar side or we've just logged in with 0 power..
+                        if ((!caster->HasAura(SPELL_DRUID_SOLAR_ECLIPSE_MARKER) && caster->HasAura(SPELL_DRUID_LUNAR_ECLIPSE_MARKER))
+                            || caster->GetPower(POWER_ECLIPSE) == 0)
+                        {
+                            caster->CastCustomSpell(caster, SPELL_DRUID_ECLIPSE_GENERAL_ENERGIZE, &energizeAmount, 0, 0, true);
+                            // If the energize was due to 0 power, cast the eclipse marker aura
+                            if (!caster->HasAura(SPELL_DRUID_LUNAR_ECLIPSE_MARKER))
+                                caster->CastSpell(caster, SPELL_DRUID_LUNAR_ECLIPSE_MARKER, true);
+                        }
+                        // The energizing effect brought us out of the solar eclipse, remove the aura
+                        if (caster->HasAura(SPELL_DRUID_SOLAR_ECLIPSE) && caster->GetPower(POWER_ECLIPSE) <= 0)
+                            caster->RemoveAurasDueToSpell(SPELL_DRUID_SOLAR_ECLIPSE);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_dru_lunar_shower_SpellScript::HandleEnergize, EFFECT_1, SPELL_EFFECT_SCHOOL_DAMAGE);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_lunar_shower_SpellScript;
+        }
+};
 
 void AddSC_druid_spell_scripts()
 {
@@ -1653,4 +1736,5 @@ void AddSC_druid_spell_scripts()
     new spell_dru_berserk();
     new spell_dru_lacerate();
     new spell_dru_mangle_bear();
+    new spell_dru_lunar_shower();
 }
