@@ -689,7 +689,29 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                 amount = GetBase()->GetUnitOwner()->GetMaxPower(POWER_MANA) * 0.0025f;
                 break;
             case 29166: // Innervate
-                ApplyPct(amount, float(GetBase()->GetUnitOwner()->GetCreatePowers(POWER_MANA)) / GetTotalTicks());
+            {
+                if(GetBase()->GetCaster() == GetBase()->GetUnitOwner())
+                    {   
+                        // Dreamstate
+                        if (AuraEffect* aurEff = GetBase()->GetCaster()->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2255, EFFECT_0))
+                        {
+                            amount += aurEff->GetAmount();
+                        }
+                    }
+
+                int32 energizePct = amount;
+                amount = int32((GetBase()->GetUnitOwner()->GetMaxPower(POWER_MANA) * amount / 100) / GetTotalTicks());
+
+                if (GetBase()->GetCaster() != GetBase()->GetUnitOwner())
+				{
+                    // Glyph of Innervate
+					if (AuraEffect* aurEff = GetBase()->GetCaster()->GetDummyAuraEffect(SPELLFAMILY_DRUID, 62, 0))
+					{
+						int32 bp0 = energizePct / 2 / 10;
+						GetBase()->GetCaster()->CastCustomSpell(GetBase()->GetCaster(), 54833, &bp0, 0, 0, true, 0, 0, 0);
+					}
+				}
+            }
                 break;
             case 48391: // Owlkin Frenzy
                 ApplyPct(amount, GetBase()->GetUnitOwner()->GetCreatePowers(POWER_MANA));
@@ -1349,6 +1371,8 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
     uint32 spellId2 = 0;
     //uint32 spellId3 = 0;
 
+    int32 form = 0;
+
     if(!target)
         return;
 
@@ -1524,6 +1548,12 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                     }
                 break;
                 case FORM_BEAR:
+                    if (AuraEffect* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 1558, 1))
+                    {
+                        target->HandleStatModifier(UNIT_MOD_ARMOR, BASE_PCT, float(aurEff->GetAmount()), apply);
+                        form = 1;
+                    }
+
                     // Heart of the Wild stamina boost
                     if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_PERCENT_STAT, SPELLFAMILY_DRUID, 240, EFFECT_2))
                     {
@@ -1564,6 +1594,16 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
     }
     else
     {
+        if (AuraEffect* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 1558, 1))
+        {
+            if (form == 1)
+            {
+            target->HandleStatModifier(UNIT_MOD_ARMOR, BASE_PCT, -(aurEff->GetAmount()), apply);
+            sLog->outError(LOG_FILTER_GENERAL, "thick hide remove %d", aurEff->GetAmount());
+            form = 0;
+            }
+        }
+
         // Heart of the Wild boosts remove
         if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_ATTACK_POWER_PCT, SPELLFAMILY_DRUID, 240, EFFECT_1))
             aurEff->ChangeAmount(0);
