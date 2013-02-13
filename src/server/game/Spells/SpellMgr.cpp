@@ -3115,6 +3115,10 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 50334:
                         spellInfo->Effects[EFFECT_1].BasePoints = 0;
                         break;
+                    // Sunfire
+                    case 94338:
+                        spellInfo->Effects[EFFECT_0].BasePoints =93402;
+                        break;
                 }
                 // Roar
                 if (spellInfo->SpellFamilyFlags[0] & 0x8)
