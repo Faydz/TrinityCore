@@ -5066,8 +5066,8 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                 {
                     case 0:
                     {
-                        // Do not proc if proc spell isnt starfire and starsurge
-                        if (procSpell->Id != 2912 && procSpell->Id != 78674)
+                        // Do not proc if proc spell isnt starfire, starsurge and moonfire
+                        if (procSpell->Id != 2912 && procSpell->Id != 78674 && procSpell->Id != 8921)
                             return false;
 
                         if (HasAura(solarEclipseMarker))
@@ -5079,8 +5079,8 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                     }
                     case 1:
                     {
-                        // Do not proc if proc spell isnt wrath and starsurge
-                        if (procSpell->Id != 5176 && procSpell->Id != 78674)
+                        // Do not proc if proc spell isnt wrath, starsurge and sunfire
+                        if (procSpell->Id != 5176 && procSpell->Id != 78674 && procSpell->Id != 93402)
                             return false;
 
                         if (HasAura(lunarEclipseMarker))
@@ -8074,15 +8074,15 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 switch (auraSpellInfo->Id)
                 {
                     // Efflorescence
+                    case 34151:
+                    case 81274:
                     case 81275:
                         if(victim)
                         {
                             if(SpellInfo const* aoeAura = sSpellMgr->GetSpellInfo(81262))
                             {
-                                int32 heal = (damage * triggerAmount / 100) 
-                                                / (aoeAura->DurationEntry->Duration[EFFECT_0]
-                                                / aoeAura->Effects[EFFECT_1].Amplitude);
-                                this->CastCustomSpell(victim, 81262, NULL, &heal, NULL, true);
+                                int32 heal = damage * triggerAmount / 100;
+                                this->CastCustomSpell(victim, 81262, &heal, NULL, NULL, true);
                             }
                         }
                         break;
@@ -8329,6 +8329,15 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Shooting Stars
+       case 93398: // Rank 1
+       case 93399: // Rank 2
+       {
+           if (GetTypeId() == TYPEID_PLAYER)
+               ToPlayer()->RemoveSpellCooldown(78674, true); // Remove cooldown of Starsurge
+           break;
+       }
+
         // impact
         case 12357:
         case 11103:
@@ -10906,6 +10915,26 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                     {
                         healamount = uint32(0.45f * victim->GetCreateHealth());
                         return healamount;
+                    }
+                    break;
+            }
+            break;
+        case SPELLFAMILY_DRUID:
+            switch(spellProto->Id)
+            {
+                case 81269: // Efflorescence hot
+                    if(victim)
+                    {
+                        if (DynamicObject* dynObj = this->GetDynObject(81262))
+                        {
+                            if(Aura* aur = dynObj->GetAura())
+                            {
+                                if(AuraEffect* aurEff = aur->GetEffect(EFFECT_0))
+                                {
+                                    DoneTotal += aurEff->GetAmount();
+                                }
+                            }
+                        }
                     }
                     break;
             }

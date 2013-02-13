@@ -689,7 +689,29 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                 amount = GetBase()->GetUnitOwner()->GetMaxPower(POWER_MANA) * 0.0025f;
                 break;
             case 29166: // Innervate
-                ApplyPct(amount, float(GetBase()->GetUnitOwner()->GetCreatePowers(POWER_MANA)) / GetTotalTicks());
+            {
+                if(GetBase()->GetCaster() == GetBase()->GetUnitOwner())
+                    {   
+                        // Dreamstate
+                        if (AuraEffect* aurEff = GetBase()->GetCaster()->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2255, EFFECT_0))
+                        {
+                            amount += aurEff->GetAmount();
+                        }
+                    }
+
+                int32 energizePct = amount;
+                amount = int32((GetBase()->GetUnitOwner()->GetMaxPower(POWER_MANA) * amount / 100) / GetTotalTicks());
+
+                if (GetBase()->GetCaster() != GetBase()->GetUnitOwner())
+				{
+                    // Glyph of Innervate
+					if (AuraEffect* aurEff = GetBase()->GetCaster()->GetDummyAuraEffect(SPELLFAMILY_DRUID, 62, 0))
+					{
+						int32 bp0 = energizePct / 2 / 10;
+						GetBase()->GetCaster()->CastCustomSpell(GetBase()->GetCaster(), 54833, &bp0, 0, 0, true, 0, 0, 0);
+					}
+				}
+            }
                 break;
             case 48391: // Owlkin Frenzy
                 ApplyPct(amount, GetBase()->GetUnitOwner()->GetCreatePowers(POWER_MANA));
@@ -5266,15 +5288,16 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
             {
                 case 61336: // Survival Instincts
                 {
-                if (!(mode & AURA_EFFECT_HANDLE_REAL))
-                    break;
+                    if (!(mode & AURA_EFFECT_HANDLE_REAL))
+                        break;
 
-                if (apply) 
-                {
-                    if (target->IsInFeralForm())
-                    target->CastSpell(target, 50322, true);
-                } else                    
-                    target->RemoveAurasDueToSpell(50322);
+                    if (apply) 
+                    {
+                        if (target->IsInFeralForm())
+                        target->CastSpell(target, 50322, true);
+                    }
+                    else                    
+                        target->RemoveAurasDueToSpell(50322);
                 break;
                 }
             }
@@ -5755,14 +5778,6 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
         {
             switch (GetSpellInfo()->Id)
             {
-                // Efflorescence
-                case 81262:
-                    if(caster && target)
-                    {
-                        int32 bp0 = GetAmount();
-                        caster->CastCustomSpell(target, 81269, &bp0, NULL, NULL, true);
-                    }
-                    break;
                 // Frenzied Regeneration
                 case 22842:
                 {
