@@ -2779,8 +2779,14 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
     {
         case CURRENT_GENERIC_SPELL:
         {
+            bool isHellFire = false;
+            if (m_currentSpells[CURRENT_CHANNELED_SPELL])
+                if (m_currentSpells[CURRENT_CHANNELED_SPELL]->GetSpellInfo())
+                    if (m_currentSpells[CURRENT_CHANNELED_SPELL]->GetSpellInfo()->Id == 1949)
+                        isHellFire = true;
+
             // generic spells always break channeled not delayed spells
-            InterruptSpell(CURRENT_CHANNELED_SPELL, false);
+            InterruptSpell(CURRENT_CHANNELED_SPELL, false, true, isHellFire);
 
             // autorepeat breaking
             if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL])
@@ -2838,7 +2844,7 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
     pSpell->m_selfContainer = &(m_currentSpells[pSpell->GetCurrentContainer()]);
 }
 
-void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed, bool withInstant)
+void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed, bool withInstant, bool clientCalled)
 {
     ASSERT(spellType < CURRENT_MAX_SPELL);
 
@@ -2851,6 +2857,17 @@ void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed, bool wi
         // for example, do not let self-stun aura interrupt itself
         if (!spell->IsInterruptable())
             return;
+
+        // Check if currently spell can be casted while walking
+        if (clientCalled == false)
+        {
+            if (Unit* caster = spell->GetCaster())
+            {
+                if (const SpellInfo* spellProto = spell->GetSpellInfo())
+                    if (spellProto->Id == 1949 && caster->HasAura(85105))
+                        return;
+            }
+        }
 
         // send autorepeat cancel message for autorepeat spells
         if (spellType == CURRENT_AUTOREPEAT_SPELL)
@@ -2908,19 +2925,19 @@ bool Unit::IsNonMeleeSpellCasted(bool withDelayed, bool skipChanneled, bool skip
     return false;
 }
 
-void Unit::InterruptNonMeleeSpells(bool withDelayed, uint32 spell_id, bool withInstant)
+void Unit::InterruptNonMeleeSpells(bool withDelayed, uint32 spell_id, bool withInstant, bool clientCalled)
 {
     // generic spells are interrupted if they are not finished or delayed
     if (m_currentSpells[CURRENT_GENERIC_SPELL] && (!spell_id || m_currentSpells[CURRENT_GENERIC_SPELL]->m_spellInfo->Id == spell_id))
-        InterruptSpell(CURRENT_GENERIC_SPELL, withDelayed, withInstant);
+        InterruptSpell(CURRENT_GENERIC_SPELL, withDelayed, withInstant, clientCalled);
 
     // autorepeat spells are interrupted if they are not finished or delayed
     if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL] && (!spell_id || m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo->Id == spell_id))
-        InterruptSpell(CURRENT_AUTOREPEAT_SPELL, withDelayed, withInstant);
+        InterruptSpell(CURRENT_AUTOREPEAT_SPELL, withDelayed, withInstant, clientCalled);
 
     // channeled spells are interrupted if they are not finished, even if they are delayed
     if (m_currentSpells[CURRENT_CHANNELED_SPELL] && (!spell_id || m_currentSpells[CURRENT_CHANNELED_SPELL]->m_spellInfo->Id == spell_id))
-        InterruptSpell(CURRENT_CHANNELED_SPELL, true, true);
+        InterruptSpell(CURRENT_CHANNELED_SPELL, true, true, clientCalled);
 }
 
 Spell* Unit::FindCurrentSpellBySpellId(uint32 spell_id) const
@@ -6131,9 +6148,9 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                            {
                                uint32 newCooldownDelay = caster->GetSpellCooldownDelay(47540);
                                if (newCooldownDelay <= 0.5)
-		                            newCooldownDelay = 0;
-	                            else
-		                            newCooldownDelay -= 0.5;
+                                    newCooldownDelay = 0;
+                                else
+                                    newCooldownDelay -= 0.5;
 
                                caster->AddSpellCooldown(47540, 0, uint32(time(NULL) + newCooldownDelay));
                                WorldPacket data(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
@@ -8531,9 +8548,9 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                {
                    uint32 newCooldownDelay = victim->GetAura(6788)->GetDuration();
                    if (newCooldownDelay <= uint32((triggeredByAura->GetSpellInfo()->Effects[0].BasePoints)*1000))
-	                    newCooldownDelay = 0;
+                        newCooldownDelay = 0;
                     else
-	                    newCooldownDelay -= ((triggeredByAura->GetSpellInfo()->Effects[0].BasePoints)*1000);
+                        newCooldownDelay -= ((triggeredByAura->GetSpellInfo()->Effects[0].BasePoints)*1000);
 
                    victim->GetAura(6788)->SetDuration(newCooldownDelay, true);
                }
