@@ -1371,8 +1371,6 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
     uint32 spellId2 = 0;
     //uint32 spellId3 = 0;
 
-    int32 form = 0;
-
     if(!target)
         return;
 
@@ -1548,12 +1546,6 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                     }
                 break;
                 case FORM_BEAR:
-                    if (AuraEffect* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 1558, 1))
-                    {
-                        target->HandleStatModifier(UNIT_MOD_ARMOR, BASE_PCT, float(aurEff->GetAmount()), apply);
-                        form = 1;
-                    }
-
                     // Heart of the Wild stamina boost
                     if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_PERCENT_STAT, SPELLFAMILY_DRUID, 240, EFFECT_2))
                     {
@@ -1594,16 +1586,6 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
     }
     else
     {
-        if (AuraEffect* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 1558, 1))
-        {
-            if (form == 1)
-            {
-            target->HandleStatModifier(UNIT_MOD_ARMOR, BASE_PCT, -(aurEff->GetAmount()), apply);
-            sLog->outError(LOG_FILTER_GENERAL, "thick hide remove %d", aurEff->GetAmount());
-            form = 0;
-            }
-        }
-
         // Heart of the Wild boosts remove
         if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_ATTACK_POWER_PCT, SPELLFAMILY_DRUID, 240, EFFECT_1))
             aurEff->ChangeAmount(0);
