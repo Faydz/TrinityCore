@@ -3108,6 +3108,8 @@ void SpellMgr::LoadSpellCustomAttr()
                 switch(spellInfo->Id)
                 {
                     // Efflorescence
+                    case 34151:
+                    case 81274:
                     case 81275:
                         spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
                         break;

@@ -8057,15 +8057,15 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 switch (auraSpellInfo->Id)
                 {
                     // Efflorescence
+                    case 34151:
+                    case 81274:
                     case 81275:
                         if(victim)
                         {
                             if(SpellInfo const* aoeAura = sSpellMgr->GetSpellInfo(81262))
                             {
-                                int32 heal = (damage * triggerAmount / 100) 
-                                                / (aoeAura->DurationEntry->Duration[EFFECT_0]
-                                                / aoeAura->Effects[EFFECT_1].Amplitude);
-                                this->CastCustomSpell(victim, 81262, NULL, &heal, NULL, true);
+                                int32 heal = damage * triggerAmount / 100;
+                                this->CastCustomSpell(victim, 81262, &heal, NULL, NULL, true);
                             }
                         }
                         break;
@@ -10898,6 +10898,26 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                     {
                         healamount = uint32(0.45f * victim->GetCreateHealth());
                         return healamount;
+                    }
+                    break;
+            }
+            break;
+        case SPELLFAMILY_DRUID:
+            switch(spellProto->Id)
+            {
+                case 81269: // Efflorescence hot
+                    if(victim)
+                    {
+                        if (DynamicObject* dynObj = this->GetDynObject(81262))
+                        {
+                            if(Aura* aur = dynObj->GetAura())
+                            {
+                                if(AuraEffect* aurEff = aur->GetEffect(EFFECT_0))
+                                {
+                                    DoneTotal += aurEff->GetAmount();
+                                }
+                            }
+                        }
                     }
                     break;
             }

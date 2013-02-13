@@ -29,16 +29,52 @@
 
 enum DruidSpells
 {
-    SPELL_DRUID_INCREASED_MOONFIRE_DURATION   = 38414,
-    SPELL_DRUID_NATURES_SPLENDOR              = 57865,
-    SPELL_DRUID_LIFEBLOOM_FINAL_HEAL          = 33778,
-    SPELL_DRUID_LIFEBLOOM_ENERGIZE            = 64372,
-    SPELL_DRUID_SURVIVAL_INSTINCTS            = 50322,
-    SPELL_DRUID_SAVAGE_ROAR                   = 62071,
-    SPELL_DRUID_ITEM_T8_BALANCE_RELIC   = 64950,
-    SPELL_KING_OF_THE_JUNGLE            = 48492,
-    SPELL_TIGER_S_FURY_ENERGIZE         = 51178,
-    SPELL_ENRAGE_MOD_DAMAGE             = 51185,
+    SPELL_DRUID_EFFLORESCENCE                   = 81262,
+    SPELL_DRUID_EFFLORESCENCE_HOT               = 81269,
+    SPELL_DRUID_INCREASED_MOONFIRE_DURATION     = 38414,
+    SPELL_DRUID_ITEM_T8_BALANCE_RELIC           = 64950,
+    SPELL_DRUID_LIFEBLOOM_HOT                   = 33763,
+    SPELL_DRUID_LIFEBLOOM_FINAL_HEAL            = 33778,
+    SPELL_DRUID_LIFEBLOOM_ENERGIZE              = 64372,
+    SPELL_DRUID_NATURES_SPLENDOR                = 57865,
+    SPELL_DRUID_SAVAGE_ROAR                     = 62071,
+    SPELL_DRUID_SURVIVAL_INSTINCTS              = 50322,
+    SPELL_ENRAGE_MOD_DAMAGE                     = 51185,
+    SPELL_KING_OF_THE_JUNGLE                    = 48492,
+    SPELL_TIGER_S_FURY_ENERGIZE                 = 51178,
+};
+
+// 81262 - Efflorescence
+class spell_dru_efflorescence : public SpellScriptLoader
+{
+public:
+    spell_dru_efflorescence() : SpellScriptLoader("spell_dru_efflorescence") { }
+
+    class spell_dru_efflorescence_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_dru_efflorescence_AuraScript);
+
+        void OnPeriodic(AuraEffect const* /*aurEff*/)
+        {
+            if(!GetCaster())
+                return;
+
+            if (DynamicObject* dynObj = GetCaster()->GetDynObject(SPELL_DRUID_EFFLORESCENCE))
+            {
+                GetCaster()->CastSpell(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ(), SPELL_DRUID_EFFLORESCENCE_HOT, true);
+            }
+        }
+
+        void Register()
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_dru_efflorescence_AuraScript::OnPeriodic, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+        }
+    };
+
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_dru_efflorescence_AuraScript();
+    }
 };
 
 // 5185 8936 50464 Empowered Touch
@@ -59,7 +95,7 @@ public:
             if (!target || !caster)
                 return;
 
-            if (Aura* aur = target->GetAura(33763))
+            if (Aura* aur = target->GetAura(SPELL_DRUID_LIFEBLOOM_HOT))
                 if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2251, EFFECT_1))
                     if (roll_chance_i(aurEff->GetAmount()))
                         aur->RefreshDuration();
@@ -1700,6 +1736,7 @@ class spell_dru_lunar_shower : public SpellScriptLoader
 
 void AddSC_druid_spell_scripts()
 {
+    new spell_dru_efflorescence();
     new spell_dru_empowered_touch();
     new spell_dru_dash();
     new spell_dru_eclipse_energize();
