@@ -1538,11 +1538,14 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                         }
                         target->CastSpell(target, spellId3, true, NULL, this);
                     }
+
                     // Master Shapeshifter - Cat
-                    if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
+                    if (Aura const* aur = target->GetAura(48411))
                     {
-                        int32 bp = aurEff->GetAmount();
-                        target->CastCustomSpell(target, 48420, &bp, NULL, NULL, true);
+                        // Resets tree of life healing bonus
+                        aur->GetEffect(EFFECT_0)->ChangeAmount(0);
+
+                        target->CastSpell(target, 48420);
                     }
                 break;
                 case FORM_BEAR:
@@ -1551,13 +1554,16 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                     {
                         aurEff->ChangeAmount(aurEff->GetMiscValueB());
                     }
-
+                    
                     // Master Shapeshifter - Bear
-                    if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
+                    if (Aura const* aur = target->GetAura(48411))
                     {
-                        int32 bp = aurEff->GetAmount();
-                        target->CastCustomSpell(target, 48418, &bp, NULL, NULL, true);
+                        // Resets tree of life healing bonus
+                        aur->GetEffect(EFFECT_0)->ChangeAmount(0);
+
+                        target->CastSpell(target, 48418);
                     }
+
                     // Survival of the Fittest
                     if (AuraEffect const* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE, SPELLFAMILY_DRUID, 961, 0))
                     {
@@ -1567,18 +1573,19 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                 break;
                 case FORM_MOONKIN:
                     // Master Shapeshifter - Moonkin
-                    if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
+                    if (Aura const* aur = target->GetAura(48411))
                     {
-                        int32 bp = aurEff->GetAmount();
-                        target->CastCustomSpell(target, 48421, &bp, NULL, NULL, true);
+                        // Resets tree of life healing bonus
+                        aur->GetEffect(EFFECT_0)->ChangeAmount(0);
+
+                        target->CastSpell(target, 48421);
                     }
                 break;
-                    // Master Shapeshifter - Tree of Life
                 case FORM_TREE:
-                    if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
+                    // Master Shapeshifter - Tree of Life
+                    if (Aura const* aur = target->GetAura(48411))
                     {
-                        int32 bp = aurEff->GetAmount();
-                        target->CastCustomSpell(target, 48422, &bp, NULL, NULL, true);
+                        aur->GetEffect(EFFECT_0)->ChangeAmount(4);
                     }
                 break;
             }
@@ -1586,6 +1593,12 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
     }
     else
     {
+        // Master Shapeshifter - Caster form
+        if (Aura const* aur = target->GetAura(48411))
+        {
+            aur->GetEffect(EFFECT_0)->ChangeAmount(4);
+        }
+
         // Heart of the Wild boosts remove
         if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_ATTACK_POWER_PCT, SPELLFAMILY_DRUID, 240, EFFECT_1))
             aurEff->ChangeAmount(0);
