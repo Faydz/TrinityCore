@@ -44,6 +44,50 @@ enum DruidSpells
     SPELL_TIGER_S_FURY_ENERGIZE                 = 51178,
 };
 
+// 774 - Rejuvenation
+class spell_dru_rejuvenation : public SpellScriptLoader
+{
+public:
+    spell_dru_rejuvenation() : SpellScriptLoader("spell_dru_rejuvenation") { }
+
+    class spell_dru_rejuvenation_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_dru_rejuvenation_AuraScript);
+
+        void OnApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetTarget();
+
+            if(!caster || !target)
+                return;
+            
+            if(AuraEffect* earthmother = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, 3186, EFFECT_0))
+            {
+                // Calculates Rejuvenation total heal
+                int32 rejuvenationTickHeal = caster->SpellHealingBonusDone(target, GetSpellInfo(), aurEff->GetAmount(), HEAL);
+                int32 bp0 = rejuvenationTickHeal * (aurEff->GetBase()->GetMaxDuration() / GetSpellInfo()->Effects[EFFECT_0].Amplitude);
+
+                // Applies talent mod
+                ApplyPct(bp0, earthmother->GetAmount());
+
+                // Casts istant heal
+                caster->CastCustomSpell(target, 64801, &bp0, NULL, NULL, true);
+            }
+        }
+
+        void Register()
+        {
+            OnEffectApply += AuraEffectApplyFn(spell_dru_rejuvenation_AuraScript::OnApply, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+        }
+    };
+
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_dru_rejuvenation_AuraScript();
+    }
+};
+
 // 81262 - Efflorescence
 class spell_dru_efflorescence : public SpellScriptLoader
 {
@@ -1736,6 +1780,7 @@ class spell_dru_lunar_shower : public SpellScriptLoader
 
 void AddSC_druid_spell_scripts()
 {
+    new spell_dru_rejuvenation();
     new spell_dru_efflorescence();
     new spell_dru_empowered_touch();
     new spell_dru_dash();

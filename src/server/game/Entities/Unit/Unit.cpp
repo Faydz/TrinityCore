@@ -10922,6 +10922,12 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
         case SPELLFAMILY_DRUID:
             switch(spellProto->Id)
             {
+                case 33778: // Lifebloom final heal
+                    if(AuraEffect* aurEff = this->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, 3186, EFFECT_1))
+                    {
+                        AddPct(DoneTotalMod, aurEff->GetAmount());
+                    }
+                    break;
                 case 81269: // Efflorescence hot
                     if(victim)
                     {
