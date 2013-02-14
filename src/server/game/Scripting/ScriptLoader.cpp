@@ -1315,6 +1315,7 @@ void AddBattlegroundScripts()
 	void AddSC_boss_arkton();
 	void AddSC_arena_link_battle();
 	void AddSC_boss_tiefenwyrm();
+	void AddSC_npc_donation();
 #endif
 
 void AddCustomScripts()
@@ -1346,5 +1347,6 @@ void AddCustomScripts()
 	AddSC_boss_arkton();
 	AddSC_arena_link_battle();
 	AddSC_boss_tiefenwyrm();
+	AddSC_npc_donation();
 #endif
 }

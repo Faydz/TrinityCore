@@ -973,12 +973,12 @@ void AddSC_npc_startup()
 	new npc_startup();
 }
 
-/*
+
 #include <cstring>
-#define t9_token			= 44209,
-#define nonset_token		= 44209,
-#define racechange_token	= 44209,
-#define factionchange_token	= 44209
+#define t9_token			 44209
+#define nonset_token		 44209
+#define racechange_token	 44209
+#define factionchange_token	 44209
 
 class npc_donation : public CreatureScript
 {
@@ -1001,12 +1001,12 @@ public: npc_donation() : CreatureScript("npc_donation") { }
 				return true;
 			}
 
-		bool OnGossipSelect(Player * player, Creature * creature, uint32 /*sender/, uint32 action)
+		bool OnGossipSelect(Player * player, Creature * creature, uint32 /*sender*/, uint32 action)
 		{
 			switch(action)
 			{
 			case 1:
-				if (player->HasItem(factionchange_token)
+				if (player->HasItemCount(factionchange_token, 1))
 				{
 
 				}
@@ -1026,31 +1026,29 @@ public: npc_donation() : CreatureScript("npc_donation") { }
 			return true;
 		}
 
-		bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, const uint32* entry)
+		bool OnGossipSelectCode(Player *player, Creature *creature, uint32 sender, uint32 action, const char *ent)
 		{
 			switch (action)
 			{
 			case 4:
-				if (player->HasItem(nonset_token);
+				if (player->HasItemCount(nonset_token, 1))
 				{
 					QueryResult result;
-					result = WorldDatabase.PQuery("SELECT `entry`, `ItemLevel` FROM `item_template`  WHERE `entry` LIKE '%s'", entry);
+					result = WorldDatabase.PQuery("SELECT `entry` FROM `item_template`  WHERE `entry` = 'ent'", ent);
 					
 					if (result)
 					{
-						fields = result->Fetch();
+						QueryResult result2;
+						result2 = WorldDatabase.PQuery("SELECT `ItemLevel` FROM `item_template` WHERE `entry`='result'", result);
 
-						entry = fields[1].GetInt32();
-						uint32 ItemLevel = fields[2].GetInt32();
-
-						if (ItemLevel > 258)
+						if (result2 > 258)
 						{
 							creature->MonsterWhisper("Dieser Gegenstand hat eine zu hohe Gegenstandsstufe.", player->GetGUID());
 						}
 
 						else
 						{
-							player->AddItem(entry, 1);
+							player->AddItem(result, 1);
 						}
 					}
 					else
@@ -1065,11 +1063,10 @@ public: npc_donation() : CreatureScript("npc_donation") { }
 				}
 				break;
 			}
-			return true;
+			return false;
 		}
 };
 void AddSC_npc_donation()
 {
 	new npc_donation();
 }
-*/
