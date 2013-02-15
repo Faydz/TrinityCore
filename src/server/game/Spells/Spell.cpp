@@ -1312,6 +1312,11 @@ void Spell::SelectImplicitAreaTargets(SpellEffIndex effIndex, SpellImplicitTarge
                     maxSize = m_caster->HasAura(62970) ? 6 : 5; // Glyph of Wild Growth
                     power = POWER_HEALTH;
                 }
+                else if (m_spellInfo->Id == 81269) // Efflorescence
+                {
+                   maxSize = 3;
+                   power = POWER_HEALTH;
+                }
                 else
                     break;
 

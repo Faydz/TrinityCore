@@ -689,7 +689,29 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                 amount = GetBase()->GetUnitOwner()->GetMaxPower(POWER_MANA) * 0.0025f;
                 break;
             case 29166: // Innervate
-                ApplyPct(amount, float(GetBase()->GetUnitOwner()->GetCreatePowers(POWER_MANA)) / GetTotalTicks());
+            {
+                if(GetBase()->GetCaster() == GetBase()->GetUnitOwner())
+                    {   
+                        // Dreamstate
+                        if (AuraEffect* aurEff = GetBase()->GetCaster()->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2255, EFFECT_0))
+                        {
+                            amount += aurEff->GetAmount();
+                        }
+                    }
+
+                int32 energizePct = amount;
+                amount = int32((GetBase()->GetUnitOwner()->GetMaxPower(POWER_MANA) * amount / 100) / GetTotalTicks());
+
+                if (GetBase()->GetCaster() != GetBase()->GetUnitOwner())
+				{
+                    // Glyph of Innervate
+					if (AuraEffect* aurEff = GetBase()->GetCaster()->GetDummyAuraEffect(SPELLFAMILY_DRUID, 62, 0))
+					{
+						int32 bp0 = energizePct / 2 / 10;
+						GetBase()->GetCaster()->CastCustomSpell(GetBase()->GetCaster(), 54833, &bp0, 0, 0, true, 0, 0, 0);
+					}
+				}
+            }
                 break;
             case 48391: // Owlkin Frenzy
                 ApplyPct(amount, GetBase()->GetUnitOwner()->GetCreatePowers(POWER_MANA));
@@ -1516,11 +1538,14 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                         }
                         target->CastSpell(target, spellId3, true, NULL, this);
                     }
+
                     // Master Shapeshifter - Cat
-                    if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
+                    if (Aura const* aur = target->GetAura(48411))
                     {
-                        int32 bp = aurEff->GetAmount();
-                        target->CastCustomSpell(target, 48420, &bp, NULL, NULL, true);
+                        // Resets tree of life healing bonus
+                        aur->GetEffect(EFFECT_0)->ChangeAmount(0);
+
+                        target->CastSpell(target, 48420);
                     }
                 break;
                 case FORM_BEAR:
@@ -1529,13 +1554,16 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                     {
                         aurEff->ChangeAmount(aurEff->GetMiscValueB());
                     }
-
+                    
                     // Master Shapeshifter - Bear
-                    if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
+                    if (Aura const* aur = target->GetAura(48411))
                     {
-                        int32 bp = aurEff->GetAmount();
-                        target->CastCustomSpell(target, 48418, &bp, NULL, NULL, true);
+                        // Resets tree of life healing bonus
+                        aur->GetEffect(EFFECT_0)->ChangeAmount(0);
+
+                        target->CastSpell(target, 48418);
                     }
+
                     // Survival of the Fittest
                     if (AuraEffect const* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE, SPELLFAMILY_DRUID, 961, 0))
                     {
@@ -1545,18 +1573,19 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                 break;
                 case FORM_MOONKIN:
                     // Master Shapeshifter - Moonkin
-                    if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
+                    if (Aura const* aur = target->GetAura(48411))
                     {
-                        int32 bp = aurEff->GetAmount();
-                        target->CastCustomSpell(target, 48421, &bp, NULL, NULL, true);
+                        // Resets tree of life healing bonus
+                        aur->GetEffect(EFFECT_0)->ChangeAmount(0);
+
+                        target->CastSpell(target, 48421);
                     }
                 break;
-                    // Master Shapeshifter - Tree of Life
                 case FORM_TREE:
-                    if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
+                    // Master Shapeshifter - Tree of Life
+                    if (Aura const* aur = target->GetAura(48411))
                     {
-                        int32 bp = aurEff->GetAmount();
-                        target->CastCustomSpell(target, 48422, &bp, NULL, NULL, true);
+                        aur->GetEffect(EFFECT_0)->ChangeAmount(4);
                     }
                 break;
             }
@@ -1564,6 +1593,12 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
     }
     else
     {
+        // Master Shapeshifter - Caster form
+        if (Aura const* aur = target->GetAura(48411))
+        {
+            aur->GetEffect(EFFECT_0)->ChangeAmount(4);
+        }
+
         // Heart of the Wild boosts remove
         if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_ATTACK_POWER_PCT, SPELLFAMILY_DRUID, 240, EFFECT_1))
             aurEff->ChangeAmount(0);
@@ -5756,14 +5791,6 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
         {
             switch (GetSpellInfo()->Id)
             {
-                // Efflorescence
-                case 81262:
-                    if(caster && target)
-                    {
-                        int32 bp0 = GetAmount();
-                        caster->CastCustomSpell(target, 81269, &bp0, NULL, NULL, true);
-                    }
-                    break;
                 // Frenzied Regeneration
                 case 22842:
                 {

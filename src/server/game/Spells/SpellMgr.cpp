@@ -3020,6 +3020,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case 77494:
                 spellInfo->SpellFamilyName = SPELLFAMILY_DRUID;
                 break;
+            // Master Shapeshifter
+            case 48411:
+            case 48418:
+                spellInfo->Effects[EFFECT_0].BasePoints = 4;
+                break;
             default:
                 break;
         }
@@ -3107,13 +3112,24 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Master Shapeshifter
+                    case 48420:
+                    case 48421:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 4;
+                        break;
                     // Efflorescence
+                    case 34151:
+                    case 81274:
                     case 81275:
                         spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
                         break;
                     // Berserk: Mangle cooldown
                     case 50334:
                         spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                        break;
+                    // Sunfire
+                    case 94338:
+                        spellInfo->Effects[EFFECT_0].BasePoints =93402;
                         break;
                 }
                 // Roar
@@ -3356,9 +3372,6 @@ void SpellMgr::LoadSpellInfoCorrections()
                 break;
             case 48421:
                 spellInfo->Stances = 1 << (FORM_MOONKIN - 1);
-                break;
-            case 48422:
-                spellInfo->Stances = 1 << (FORM_TREE - 1);
                 break;
             case 51466: // Elemental Oath (Rank 1)
             case 51470: // Elemental Oath (Rank 2)
