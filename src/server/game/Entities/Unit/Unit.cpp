@@ -18809,3 +18809,14 @@ void Unit::DarkIntentHandler()
         this->CastCustomSpell(target, darkIntentId, &bp0, NULL, NULL, true);
     }
 }
+//set the last casted spell for Improved steady shot talent
+void Unit::SetLastSpell(uint32 id)
+{
+    sLog->outError(LOG_FILTER_GENERAL, "ultima spell: %d", id);
+    this->m_lastSpell=id;
+}
+//get the last casted spell for Improved steady shot talent
+uint32 Unit::GetLastSpell()
+{
+    return m_lastSpell;
+}
