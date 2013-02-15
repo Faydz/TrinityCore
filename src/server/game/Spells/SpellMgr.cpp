@@ -3025,6 +3025,23 @@ void SpellMgr::LoadSpellCustomAttr()
             case 48418:
                 spellInfo->Effects[EFFECT_0].BasePoints = 4;
                 break;
+            // Thick Hide
+            case 16929:     // Rank 1
+                spellInfo->Effects[EFFECT_1].BasePoints =0;
+                spellInfo->Effects[EFFECT_1].MiscValue =1;
+                spellInfo->Effects[EFFECT_1].MiscValueB =22;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName =SPELL_AURA_MOD_BASE_RESISTANCE_PCT;
+            case 16930:     // Rank 2
+                spellInfo->Effects[EFFECT_1].BasePoints =0;
+                spellInfo->Effects[EFFECT_1].MiscValue =1;
+                spellInfo->Effects[EFFECT_1].MiscValueB =43;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName =SPELL_AURA_MOD_BASE_RESISTANCE_PCT;
+            case 16931:     // Rank 3
+                spellInfo->Effects[EFFECT_1].BasePoints =0;
+                spellInfo->Effects[EFFECT_1].MiscValue =1;
+                spellInfo->Effects[EFFECT_1].MiscValueB =65;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName =SPELL_AURA_MOD_BASE_RESISTANCE_PCT;
+                break;
             default:
                 break;
         }

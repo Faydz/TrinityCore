@@ -1549,6 +1549,10 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                     }
                 break;
                 case FORM_BEAR:
+                    // Thick Hide
+                    if (AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_BASE_RESISTANCE_PCT, SPELLFAMILY_GENERIC, 1558, EFFECT_1))
+                        aurEff->ChangeAmount(aurEff->GetMiscValueB());
+                     
                     // Heart of the Wild stamina boost
                     if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_PERCENT_STAT, SPELLFAMILY_DRUID, 240, EFFECT_2))
                     {
@@ -1593,6 +1597,10 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
     }
     else
     {
+        // Thick Hide remove
+        if (AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_MOD_BASE_RESISTANCE_PCT, SPELLFAMILY_GENERIC, 1558, EFFECT_1))
+            aurEff->ChangeAmount(0);
+
         // Master Shapeshifter - Caster form
         if (Aura const* aur = target->GetAura(48411))
         {
