@@ -3112,6 +3112,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Tree of Life entangling cast time bonus
+                    case 81097:
+                        spellInfo->Effects[EFFECT_1].BasePoints = -50;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_CASTING_TIME;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x1);
+                        break;
                     // Master Shapeshifter
                     case 48420:
                     case 48421:
