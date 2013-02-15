@@ -3098,7 +3098,13 @@ void Unit::_AddAura(UnitAura* aura, Unit* caster)
     if (aura->IsRemoved())
         return;
 
-    aura->SetIsSingleTarget(caster && aura->GetSpellInfo()->IsSingleTarget());
+    bool isSingle = aura->GetSpellInfo()->IsSingleTarget();
+    
+    if (aura->GetSpellInfo()->Id == 33763)
+        if (!caster->HasAura(33891))
+            isSingle = true;
+
+    aura->SetIsSingleTarget(caster && isSingle);
     if (aura->IsSingleTarget())
     {
         ASSERT((IsInWorld() && !IsDuringRemoveFromWorld()) || (aura->GetCasterGUID() == GetGUID()));
