@@ -3358,6 +3358,9 @@ void Spell::cast(bool skipCheck)
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
     {
+        // Set Last spell casted;
+        m_caster->SetLastSpell(m_spellInfo->Id);
+
         m_caster->ToPlayer()->SetSpellModTakingSpell(this, false);
 
         //Clear spell cooldowns after every spell is cast if .cheat cooldown is enabled.
