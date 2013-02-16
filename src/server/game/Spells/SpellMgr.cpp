@@ -3031,11 +3031,13 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_1].MiscValue =1;
                 spellInfo->Effects[EFFECT_1].MiscValueB =12;
                 spellInfo->Effects[EFFECT_1].ApplyAuraName =SPELL_AURA_MOD_BASE_RESISTANCE_PCT;
+                break;
             case 16930:     // Rank 2
                 spellInfo->Effects[EFFECT_1].BasePoints =0;
                 spellInfo->Effects[EFFECT_1].MiscValue =1;
                 spellInfo->Effects[EFFECT_1].MiscValueB =24;
                 spellInfo->Effects[EFFECT_1].ApplyAuraName =SPELL_AURA_MOD_BASE_RESISTANCE_PCT;
+                break;
             case 16931:     // Rank 3
                 spellInfo->Effects[EFFECT_1].BasePoints =0;
                 spellInfo->Effects[EFFECT_1].MiscValue =1;
@@ -3154,6 +3156,11 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Sunfire
                     case 94338:
                         spellInfo->Effects[EFFECT_0].BasePoints =93402;
+                        break;
+                    // Force of Nature
+                    case 33831:
+                        spellInfo->Effects[EFFECT_0].MiscValue =36070;
+                        spellInfo->Effects[EFFECT_0].MiscValueB =1562;
                         break;
                 }
                 // Roar
