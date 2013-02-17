@@ -7839,7 +7839,7 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
                     return true;
                 }
                 // Hungering Cold aura drop
-                case 51209:
+                case 49203:
                     *handled = true;
                     // Drop only in not disease case
                     if (procSpell && procSpell->Dispel == DISPEL_DISEASE)
