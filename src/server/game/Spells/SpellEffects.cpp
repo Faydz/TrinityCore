@@ -4299,21 +4299,49 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
         }
         case SPELLFAMILY_DEATHKNIGHT:
         {
-            // Pestilence
-            if (m_spellInfo->SpellFamilyFlags[1]&0x10000)
+            switch (m_spellInfo->Id)
             {
-                // Get diseases on target of spell
-                if (m_targets.GetUnitTarget() &&  // Glyph of Disease - cast on unit target too to refresh aura
-                    (m_targets.GetUnitTarget() != unitTarget || m_caster->GetAura(63334)))
+                // Festering Strike
+                case 85948:
                 {
-                    // And spread them on target
-                    // Blood Plague
-                    if (m_targets.GetUnitTarget()->GetAura(55078))
-                        m_caster->CastSpell(unitTarget, 55078, true);
-                    // Frost Fever
-                    if (m_targets.GetUnitTarget()->GetAura(55095))
-                        m_caster->CastSpell(unitTarget, 55095, true);
+                    Unit* caster = GetCaster();
+
+                    if(!caster)
+                        return;
+
+                    // Frost Fever, Chains of Ice, Blood Plague
+                    int ids[3] = {55095, 45524, 55078};
+
+                    for(int i = 0; i < 3; i++)
+                    {
+                        Aura* aura = unitTarget->GetAura(ids[i], caster->GetGUID());
+
+                        if (!aura)
+                            continue;
+
+                        int32 newDuration = aura->GetDuration() + m_spellInfo->Effects[EFFECT_2].BasePoints * 1000;
+                        aura->SetDuration(std::min(newDuration, aura->GetMaxDuration()));
+                    }
                 }
+                    break;
+                // Pestilence
+                case 50842:
+                    if (m_spellInfo->SpellFamilyFlags[1]&0x10000)
+                    {
+                        // Get diseases on target of spell
+                        if (m_targets.GetUnitTarget() &&  // Glyph of Disease - cast on unit target too to refresh aura
+                            (m_targets.GetUnitTarget() != unitTarget || m_caster->GetAura(63334)))
+                        {
+                            // And spread them on target
+                            // Blood Plague
+                            if (m_targets.GetUnitTarget()->GetAura(55078))
+                                m_caster->CastSpell(unitTarget, 55078, true);
+                            // Frost Fever
+                            if (m_targets.GetUnitTarget()->GetAura(55095))
+                                m_caster->CastSpell(unitTarget, 55095, true);
+                        }
+                    }
+                    break;
             }
             break;
         }
