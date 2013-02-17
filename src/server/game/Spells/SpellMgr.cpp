@@ -3126,6 +3126,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Howling Blast
+                    case 49184:
+                        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_SCHOOL_DAMAGE;
+                        spellInfo->Effects[EFFECT_0].BasePoints = 1322;
+                        break;
                     // Chillblains rank 1
                     case 50040:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;

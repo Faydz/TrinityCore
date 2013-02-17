@@ -620,6 +620,22 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             }
             case SPELLFAMILY_DEATHKNIGHT:
             {
+                switch (m_spellInfo->Id)
+                {
+                    // Howling Blast
+                    case 49184:
+                        float mod = 1.0f;
+
+                        if (Unit* caster = GetCaster())
+                        {
+                            if (effIndex == EFFECT_1)
+                                mod = 0.5f;
+
+                            damage = mod * (damage + (caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.44));
+                        }
+                        break;
+                }
+
                 // Blood Boil - bonus for diseased targets
                 if (m_spellInfo->SpellFamilyFlags[0] & 0x00040000)
                 {

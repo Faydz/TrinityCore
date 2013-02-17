@@ -56,6 +56,34 @@ enum DeathKnightSpellIcons
     DK_ICON_ID_IMPROVED_DEATH_STRIKE            = 2751
 };
 
+// 49184 - Howling Blast
+class spell_dk_howling_blast : public SpellScriptLoader
+{
+    public:
+        spell_dk_howling_blast() : SpellScriptLoader("spell_dk_howling_blast") { }
+
+        class spell_dk_howling_blast_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dk_howling_blast_SpellScript);
+
+            void FilterTargets(std::list<WorldObject*>& targets)
+            {
+                if(GetExplTargetUnit())
+                    targets.remove(GetExplTargetUnit());
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_dk_howling_blast_SpellScript::FilterTargets, EFFECT_1, TARGET_UNIT_DEST_AREA_ENEMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dk_howling_blast_SpellScript();
+        }
+};
+
 // 50462 - Anti-Magic Shell (on raid member)
 class spell_dk_anti_magic_shell_raid : public SpellScriptLoader
 {
@@ -1097,6 +1125,7 @@ class spell_dk_dreadblade : public SpellScriptLoader
 
 void AddSC_deathknight_spell_scripts()
 {
+    new spell_dk_howling_blast();
     new spell_dk_anti_magic_shell_raid();
     new spell_dk_anti_magic_shell_self();
     new spell_dk_anti_magic_zone();
