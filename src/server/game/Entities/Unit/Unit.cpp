@@ -5080,6 +5080,13 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                         {
                             RemoveAurasDueToSpell(solarEclipseMarker);
                             CastSpell(this, lunarEclipseMarker, true);
+
+                            // Euphoria
+                           if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DRUID, 4431, 2))
+                           {
+                               int32 bp0 = aurEff->GetAmount();
+                               CastCustomSpell(this, 81070, &bp0, 0, 0, true, 0, 0, 0);
+                           }
                         }
                         break;
                     }
@@ -5093,6 +5100,13 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                         {
                             RemoveAurasDueToSpell(lunarEclipseMarker);
                             CastSpell(this, solarEclipseMarker, true);
+
+                            // Euphoria
+                           if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DRUID, 4431, 2))
+                           {
+                               int32 bp0 = aurEff->GetAmount();
+                               CastCustomSpell(this, 81070, &bp0, 0, 0, true, 0, 0, 0);
+                           }
                         }
 
                         break;
