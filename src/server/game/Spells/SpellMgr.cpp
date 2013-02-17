@@ -3123,6 +3123,29 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                 }
                 break;
+            case SPELLFAMILY_DEATHKNIGHT:
+                switch(spellInfo->Id)
+                {
+                    // Chillblains rank 1
+                    case 50040:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].BasePoints = 100;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_TARGET_TRIGGER;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].TriggerSpell = 96293;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x4, 0xC000, 0x0);
+                        break;
+                    // Chillblains rank 2
+                    case 50041:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].BasePoints = 100;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_TARGET_TRIGGER;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].TriggerSpell = 96294;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x4, 0xC000, 0x0);
+                        break;
+                }
+                break;
             case SPELLFAMILY_WARRIOR:
                 // Shout
                 if (spellInfo->SpellFamilyFlags[0] & 0x20000 || spellInfo->SpellFamilyFlags[1] & 0x20)
