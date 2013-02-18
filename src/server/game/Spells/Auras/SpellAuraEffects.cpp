@@ -1547,6 +1547,10 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
 
                         target->CastSpell(target, 48420);
                     }
+
+                    // Remove Vengeance when go in cat form
+                    if (target->HasAura(76691))
+                        target->RemoveAura(76691);
                 break;
                 case FORM_BEAR:
                     // Thick Hide

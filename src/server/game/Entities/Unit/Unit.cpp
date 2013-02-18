@@ -7622,6 +7622,39 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             break;
     }
 
+    // Interclass Spells
+    switch (dummySpell->Id)
+    {
+        // Vengeance (Pally - Warrior - Druid - Death Knight)
+        case 84839:
+        case 84840:
+        case 93098:
+        case 93099:
+            // For druid don't proc if we aren't in bear form
+            if (dummySpell->Id == 84840 && GetShapeshiftForm() != FORM_BEAR)
+                return false;
+
+            int32 bp = int32(damage * 0.05f);
+            if (AuraApplication* aurApp = GetAuraApplication(76691, GetGUID(), 0, 0, 0))
+            {
+                bp += aurApp->GetBase()->GetEffect(0)->GetAmount();
+                if (bp <= (GetMaxHealth() / 10.0f))
+                {
+                    aurApp->GetBase()->GetEffect(0)->ChangeAmount(bp,  false);
+                    aurApp->GetBase()->GetEffect(1)->ChangeAmount(bp,  false);
+                    aurApp->ClientUpdate(false);
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (bp <= (GetMaxHealth() / 10.0f))
+                CastCustomSpell(this, 76691, &bp, &bp, 0, true);
+            return true;
+            break;
+    }
+
     // if not handled by custom case, get triggered spell from dummySpell proto
     if (!triggered_spell_id)
         triggered_spell_id = dummySpell->Effects[triggeredByAura->GetEffIndex()].TriggerSpell;

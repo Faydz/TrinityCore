@@ -1900,7 +1900,7 @@ AuraStateType SpellInfo::GetAuraState() const
         return AURA_STATE_DEADLY_POISON;
 
     // Enrage aura state
-    if (Dispel == DISPEL_ENRAGE)
+    if (Dispel == DISPEL_ENRAGE && Id != 76691)
         return AURA_STATE_ENRAGE;
 
     // Bleeding aura state

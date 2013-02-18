@@ -3647,6 +3647,48 @@ class spell_gen_darkflight : public SpellScriptLoader
         }
 };
 
+class spell_gen_vengeance : public SpellScriptLoader 
+{
+public:
+   spell_gen_vengeance() : SpellScriptLoader("spell_gen_vengeance") 
+   { }
+
+   class spell_gen_vengeance_AuraScript: public AuraScript 
+   {
+       PrepareAuraScript(spell_gen_vengeance_AuraScript)
+
+       void HandleEffectPeriodic(AuraEffect const * /*aurEff*/) 
+       {
+           Unit* target = GetTarget();
+           if (AuraApplication* aurApp = target->GetAuraApplication(GetId(), target->GetGUID(), 0, 0, 0))
+               aurApp->ClientUpdate(false);
+           if (!target->isInCombat())
+           {
+               int32 curAmount = GetEffect(0)->GetAmount();
+               if (curAmount >= 1000)
+               {
+                   GetEffect(0)->ChangeAmount(curAmount / 2, false);
+                   GetEffect(1)->ChangeAmount(curAmount / 2, false);
+                   if (AuraApplication* aurApp = target->GetAuraApplication(GetId(), target->GetGUID(), 0, 0, 0))
+                       aurApp->ClientUpdate(false);
+               } else
+                   target->RemoveAura(GetId());
+           }
+       }
+
+       void Register() 
+       {
+           OnEffectPeriodic += AuraEffectPeriodicFn(spell_gen_vengeance_AuraScript::HandleEffectPeriodic, EFFECT_2, SPELL_AURA_PERIODIC_DUMMY);
+       }
+   };
+
+   AuraScript *GetAuraScript() const 
+   {
+       return new spell_gen_vengeance_AuraScript();
+   }
+};
+
+
 void AddSC_generic_spell_scripts()
 {
     new spell_gen_absorb0_hitlimit1();
@@ -3735,4 +3777,5 @@ void AddSC_generic_spell_scripts()
     new spell_gen_running_wild();
     new spell_gen_two_forms();
     new spell_gen_darkflight();
+    new spell_gen_vengeance();
 }
