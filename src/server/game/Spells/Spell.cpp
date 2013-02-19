@@ -1312,6 +1312,11 @@ void Spell::SelectImplicitAreaTargets(SpellEffIndex effIndex, SpellImplicitTarge
                     maxSize = m_caster->HasAura(62970) ? 6 : 5; // Glyph of Wild Growth
                     power = POWER_HEALTH;
                 }
+                else if (m_spellInfo->Id == 81269) // Efflorescence
+                {
+                   maxSize = 3;
+                   power = POWER_HEALTH;
+                }
                 else
                     break;
 
@@ -3353,6 +3358,9 @@ void Spell::cast(bool skipCheck)
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
     {
+        // Set Last spell casted;
+        m_caster->SetLastSpell(m_spellInfo->Id);
+
         m_caster->ToPlayer()->SetSpellModTakingSpell(this, false);
 
         //Clear spell cooldowns after every spell is cast if .cheat cooldown is enabled.

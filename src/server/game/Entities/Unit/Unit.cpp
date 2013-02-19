@@ -2779,8 +2779,14 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
     {
         case CURRENT_GENERIC_SPELL:
         {
+            bool isHellFire = false;
+            if (m_currentSpells[CURRENT_CHANNELED_SPELL])
+                if (m_currentSpells[CURRENT_CHANNELED_SPELL]->GetSpellInfo())
+                    if (m_currentSpells[CURRENT_CHANNELED_SPELL]->GetSpellInfo()->Id == 1949)
+                        isHellFire = true;
+
             // generic spells always break channeled not delayed spells
-            InterruptSpell(CURRENT_CHANNELED_SPELL, false);
+            InterruptSpell(CURRENT_CHANNELED_SPELL, false, true, isHellFire);
 
             // autorepeat breaking
             if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL])
@@ -2838,7 +2844,7 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
     pSpell->m_selfContainer = &(m_currentSpells[pSpell->GetCurrentContainer()]);
 }
 
-void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed, bool withInstant)
+void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed, bool withInstant, bool clientCalled)
 {
     ASSERT(spellType < CURRENT_MAX_SPELL);
 
@@ -2851,6 +2857,17 @@ void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed, bool wi
         // for example, do not let self-stun aura interrupt itself
         if (!spell->IsInterruptable())
             return;
+
+        // Check if currently spell can be casted while walking
+        if (clientCalled == false)
+        {
+            if (Unit* caster = spell->GetCaster())
+            {
+                if (const SpellInfo* spellProto = spell->GetSpellInfo())
+                    if (spellProto->Id == 1949 && caster->HasAura(85105))
+                        return;
+            }
+        }
 
         // send autorepeat cancel message for autorepeat spells
         if (spellType == CURRENT_AUTOREPEAT_SPELL)
@@ -2908,19 +2925,19 @@ bool Unit::IsNonMeleeSpellCasted(bool withDelayed, bool skipChanneled, bool skip
     return false;
 }
 
-void Unit::InterruptNonMeleeSpells(bool withDelayed, uint32 spell_id, bool withInstant)
+void Unit::InterruptNonMeleeSpells(bool withDelayed, uint32 spell_id, bool withInstant, bool clientCalled)
 {
     // generic spells are interrupted if they are not finished or delayed
     if (m_currentSpells[CURRENT_GENERIC_SPELL] && (!spell_id || m_currentSpells[CURRENT_GENERIC_SPELL]->m_spellInfo->Id == spell_id))
-        InterruptSpell(CURRENT_GENERIC_SPELL, withDelayed, withInstant);
+        InterruptSpell(CURRENT_GENERIC_SPELL, withDelayed, withInstant, clientCalled);
 
     // autorepeat spells are interrupted if they are not finished or delayed
     if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL] && (!spell_id || m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo->Id == spell_id))
-        InterruptSpell(CURRENT_AUTOREPEAT_SPELL, withDelayed, withInstant);
+        InterruptSpell(CURRENT_AUTOREPEAT_SPELL, withDelayed, withInstant, clientCalled);
 
     // channeled spells are interrupted if they are not finished, even if they are delayed
     if (m_currentSpells[CURRENT_CHANNELED_SPELL] && (!spell_id || m_currentSpells[CURRENT_CHANNELED_SPELL]->m_spellInfo->Id == spell_id))
-        InterruptSpell(CURRENT_CHANNELED_SPELL, true, true);
+        InterruptSpell(CURRENT_CHANNELED_SPELL, true, true, clientCalled);
 }
 
 Spell* Unit::FindCurrentSpellBySpellId(uint32 spell_id) const
@@ -3081,7 +3098,13 @@ void Unit::_AddAura(UnitAura* aura, Unit* caster)
     if (aura->IsRemoved())
         return;
 
-    aura->SetIsSingleTarget(caster && aura->GetSpellInfo()->IsSingleTarget());
+    bool isSingle = aura->GetSpellInfo()->IsSingleTarget();
+    
+    if (aura->GetSpellInfo()->Id == 33763)
+        if (!caster->HasAura(33891))
+            isSingle = true;
+
+    aura->SetIsSingleTarget(caster && isSingle);
     if (aura->IsSingleTarget())
     {
         ASSERT((IsInWorld() && !IsDuringRemoveFromWorld()) || (aura->GetCasterGUID() == GetGUID()));
@@ -5049,27 +5072,41 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                 {
                     case 0:
                     {
-                        // Do not proc if proc spell isnt starfire and starsurge
-                        if (procSpell->Id != 2912 && procSpell->Id != 78674)
+                        // Do not proc if proc spell isnt starfire, starsurge and moonfire
+                        if (procSpell->Id != 2912 && procSpell->Id != 78674 && procSpell->Id != 8921)
                             return false;
 
                         if (HasAura(solarEclipseMarker))
                         {
                             RemoveAurasDueToSpell(solarEclipseMarker);
                             CastSpell(this, lunarEclipseMarker, true);
+
+                            // Euphoria
+                           if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DRUID, 4431, 2))
+                           {
+                               int32 bp0 = aurEff->GetAmount();
+                               CastCustomSpell(this, 81070, &bp0, 0, 0, true, 0, 0, 0);
+                           }
                         }
                         break;
                     }
                     case 1:
                     {
-                        // Do not proc if proc spell isnt wrath and starsurge
-                        if (procSpell->Id != 5176 && procSpell->Id != 78674)
+                        // Do not proc if proc spell isnt wrath, starsurge and sunfire
+                        if (procSpell->Id != 5176 && procSpell->Id != 78674 && procSpell->Id != 93402)
                             return false;
 
                         if (HasAura(lunarEclipseMarker))
                         {
                             RemoveAurasDueToSpell(lunarEclipseMarker);
                             CastSpell(this, solarEclipseMarker, true);
+
+                            // Euphoria
+                           if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DRUID, 4431, 2))
+                           {
+                               int32 bp0 = aurEff->GetAmount();
+                               CastCustomSpell(this, 81070, &bp0, 0, 0, true, 0, 0, 0);
+                           }
                         }
 
                         break;
@@ -6131,9 +6168,9 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                            {
                                uint32 newCooldownDelay = caster->GetSpellCooldownDelay(47540);
                                if (newCooldownDelay <= 0.5)
-		                            newCooldownDelay = 0;
-	                            else
-		                            newCooldownDelay -= 0.5;
+                                    newCooldownDelay = 0;
+                                else
+                                    newCooldownDelay -= 0.5;
 
                                caster->AddSpellCooldown(47540, 0, uint32(time(NULL) + newCooldownDelay));
                                WorldPacket data(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
@@ -7585,6 +7622,39 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             break;
     }
 
+    // Interclass Spells
+    switch (dummySpell->Id)
+    {
+        // Vengeance (Pally - Warrior - Druid - Death Knight)
+        case 84839:
+        case 84840:
+        case 93098:
+        case 93099:
+            // For druid don't proc if we aren't in bear form
+            if (dummySpell->Id == 84840 && GetShapeshiftForm() != FORM_BEAR)
+                return false;
+
+            int32 bp = int32(damage * 0.05f);
+            if (AuraApplication* aurApp = GetAuraApplication(76691, GetGUID(), 0, 0, 0))
+            {
+                bp += aurApp->GetBase()->GetEffect(0)->GetAmount();
+                if (bp <= (GetMaxHealth() / 10.0f))
+                {
+                    aurApp->GetBase()->GetEffect(0)->ChangeAmount(bp,  false);
+                    aurApp->GetBase()->GetEffect(1)->ChangeAmount(bp,  false);
+                    aurApp->ClientUpdate(false);
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (bp <= (GetMaxHealth() / 10.0f))
+                CastCustomSpell(this, 76691, &bp, &bp, 0, true);
+            return true;
+            break;
+    }
+
     // if not handled by custom case, get triggered spell from dummySpell proto
     if (!triggered_spell_id)
         triggered_spell_id = dummySpell->Effects[triggeredByAura->GetEffIndex()].TriggerSpell;
@@ -7816,7 +7886,7 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
                     return true;
                 }
                 // Hungering Cold aura drop
-                case 51209:
+                case 49203:
                     *handled = true;
                     // Drop only in not disease case
                     if (procSpell && procSpell->Dispel == DISPEL_DISEASE)
@@ -8057,15 +8127,15 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 switch (auraSpellInfo->Id)
                 {
                     // Efflorescence
+                    case 34151:
+                    case 81274:
                     case 81275:
                         if(victim)
                         {
                             if(SpellInfo const* aoeAura = sSpellMgr->GetSpellInfo(81262))
                             {
-                                int32 heal = (damage * triggerAmount / 100) 
-                                                / (aoeAura->DurationEntry->Duration[EFFECT_0]
-                                                / aoeAura->Effects[EFFECT_1].Amplitude);
-                                this->CastCustomSpell(victim, 81262, NULL, &heal, NULL, true);
+                                int32 heal = damage * triggerAmount / 100;
+                                this->CastCustomSpell(victim, 81262, &heal, NULL, NULL, true);
                             }
                         }
                         break;
@@ -8312,6 +8382,15 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Shooting Stars
+       case 93398: // Rank 1
+       case 93399: // Rank 2
+       {
+           if (GetTypeId() == TYPEID_PLAYER)
+               ToPlayer()->RemoveSpellCooldown(78674, true); // Remove cooldown of Starsurge
+           break;
+       }
+
         // impact
         case 12357:
         case 11103:
@@ -8531,9 +8610,9 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                {
                    uint32 newCooldownDelay = victim->GetAura(6788)->GetDuration();
                    if (newCooldownDelay <= uint32((triggeredByAura->GetSpellInfo()->Effects[0].BasePoints)*1000))
-	                    newCooldownDelay = 0;
+                        newCooldownDelay = 0;
                     else
-	                    newCooldownDelay -= ((triggeredByAura->GetSpellInfo()->Effects[0].BasePoints)*1000);
+                        newCooldownDelay -= ((triggeredByAura->GetSpellInfo()->Effects[0].BasePoints)*1000);
 
                    victim->GetAura(6788)->SetDuration(newCooldownDelay, true);
                }
@@ -10229,6 +10308,12 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             if (spellProto->SpellFamilyFlags[0] & 0x2000)
                 if (AuraEffect* aurEff = GetAuraEffect(64962, EFFECT_1))
                     DoneTotal += aurEff->GetAmount();
+            
+            // Merciless Combat (Icy Touch, Howling Blast)
+            if (victim && this->getClass() == CLASS_DEATH_KNIGHT && spellProto->SpellFamilyFlags & flag96(0x2, 0x2, 0x0))
+                if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2656, EFFECT_0))
+                    if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
+                        DoneTotalMod += float(aurEff->GetAmount() / 100.0f);
             break;
         case SPELLFAMILY_ROGUE:
             if (spellProto->Id == 2098 || spellProto->Id == 32645)
@@ -10893,6 +10978,32 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                     break;
             }
             break;
+        case SPELLFAMILY_DRUID:
+            switch(spellProto->Id)
+            {
+                case 33778: // Lifebloom final heal
+                    if(AuraEffect* aurEff = this->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, 3186, EFFECT_1))
+                    {
+                        AddPct(DoneTotalMod, aurEff->GetAmount());
+                    }
+                    break;
+                case 81269: // Efflorescence hot
+                    if(victim)
+                    {
+                        if (DynamicObject* dynObj = this->GetDynObject(81262))
+                        {
+                            if(Aura* aur = dynObj->GetAura())
+                            {
+                                if(AuraEffect* aurEff = aur->GetEffect(EFFECT_0))
+                                {
+                                    DoneTotal += aurEff->GetAmount();
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+            break;
         case SPELLFAMILY_SHAMAN:
                if (ToPlayer() && HasAuraType(SPELL_AURA_MASTERY))
                {
@@ -11291,6 +11402,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
 
     // Some spells don't benefit from pct done mods
     if (spellProto)
+    {
         if (!(spellProto->AttributesEx6 & SPELL_ATTR6_NO_DONE_PCT_DAMAGE_MODS) && !spellProto->IsRankOf(sSpellMgr->GetSpellInfo(12162)))
         {
             AuraEffectList const& mModDamagePercentDone = GetAuraEffectsByType(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
@@ -11307,6 +11419,18 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                 }
             }
         }
+
+        switch (spellProto->SpellFamilyName)
+        {
+            case SPELLFAMILY_DEATHKNIGHT:
+                // Merciless Combat (Obliterate, Frost Strike)
+                if (victim && this->getClass() == CLASS_DEATH_KNIGHT && spellProto->SpellFamilyFlags & flag96(0x0, 0x20004, 0x0))
+                    if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2656, EFFECT_0))
+                        if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
+                            DoneTotalMod += float(aurEff->GetAmount() / 100.0f);
+                break;
+        }
+    }
 
     AuraEffectList const& mDamageDoneVersus = GetAuraEffectsByType(SPELL_AURA_MOD_DAMAGE_DONE_VERSUS);
     for (AuraEffectList::const_iterator i = mDamageDoneVersus.begin(); i != mDamageDoneVersus.end(); ++i)
@@ -18808,4 +18932,10 @@ void Unit::DarkIntentHandler()
     {
         this->CastCustomSpell(target, darkIntentId, &bp0, NULL, NULL, true);
     }
+}
+
+// Set the last casted spell
+void Unit::SetLastSpell(uint32 spellId)
+{
+    m_lastSpell = spellId;
 }

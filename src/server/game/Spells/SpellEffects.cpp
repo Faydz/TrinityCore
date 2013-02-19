@@ -516,6 +516,17 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     int32 energy = -(m_caster->ModifyPower(POWER_ENERGY, -25));
                     // 25 energy = 100% more damage
                     AddPct(damage, energy * 4);
+                    // Maul - Rend And Tear
+                    if (m_spellInfo->Id == 6807 && unitTarget->HasAuraState(AURA_STATE_BLEEDING))
+                    {
+                        if (AuraEffect const* rendAndTear = m_caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2859, 0))
+                        {
+                            uint32 dmg;
+                            dmg = m_originalCaster->SpellDamageBonusDone(unitTarget, m_spellInfo, (uint32)damage, SPELL_DIRECT_DAMAGE);
+                            dmg = unitTarget->SpellDamageBonusTaken(m_originalCaster, m_spellInfo, (uint32)dmg, SPELL_DIRECT_DAMAGE);
+                            damage += CalculatePct(dmg, rendAndTear->GetAmount());
+                        }
+                    }
                 }
                 break;
             }
@@ -609,6 +620,22 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             }
             case SPELLFAMILY_DEATHKNIGHT:
             {
+                switch (m_spellInfo->Id)
+                {
+                    // Howling Blast
+                    case 49184:
+                        float mod = 1.0f;
+
+                        if (Unit* caster = GetCaster())
+                        {
+                            if (effIndex == EFFECT_1)
+                                mod = 0.5f;
+
+                            damage = mod * (damage + (caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.44));
+                        }
+                        break;
+                }
+
                 // Blood Boil - bonus for diseased targets
                 if (m_spellInfo->SpellFamilyFlags[0] & 0x00040000)
                 {
@@ -4272,21 +4299,49 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
         }
         case SPELLFAMILY_DEATHKNIGHT:
         {
-            // Pestilence
-            if (m_spellInfo->SpellFamilyFlags[1]&0x10000)
+            switch (m_spellInfo->Id)
             {
-                // Get diseases on target of spell
-                if (m_targets.GetUnitTarget() &&  // Glyph of Disease - cast on unit target too to refresh aura
-                    (m_targets.GetUnitTarget() != unitTarget || m_caster->GetAura(63334)))
+                // Festering Strike
+                case 85948:
                 {
-                    // And spread them on target
-                    // Blood Plague
-                    if (m_targets.GetUnitTarget()->GetAura(55078))
-                        m_caster->CastSpell(unitTarget, 55078, true);
-                    // Frost Fever
-                    if (m_targets.GetUnitTarget()->GetAura(55095))
-                        m_caster->CastSpell(unitTarget, 55095, true);
+                    Unit* caster = GetCaster();
+
+                    if(!caster)
+                        return;
+
+                    // Frost Fever, Chains of Ice, Blood Plague
+                    int ids[3] = {55095, 45524, 55078};
+
+                    for(int i = 0; i < 3; i++)
+                    {
+                        Aura* aura = unitTarget->GetAura(ids[i], caster->GetGUID());
+
+                        if (!aura)
+                            continue;
+
+                        int32 newDuration = aura->GetDuration() + m_spellInfo->Effects[EFFECT_2].BasePoints * 1000;
+                        aura->SetDuration(std::min(newDuration, aura->GetMaxDuration()));
+                    }
                 }
+                    break;
+                // Pestilence
+                case 50842:
+                    if (m_spellInfo->SpellFamilyFlags[1]&0x10000)
+                    {
+                        // Get diseases on target of spell
+                        if (m_targets.GetUnitTarget() &&  // Glyph of Disease - cast on unit target too to refresh aura
+                            (m_targets.GetUnitTarget() != unitTarget || m_caster->GetAura(63334)))
+                        {
+                            // And spread them on target
+                            // Blood Plague
+                            if (m_targets.GetUnitTarget()->GetAura(55078))
+                                m_caster->CastSpell(unitTarget, 55078, true);
+                            // Frost Fever
+                            if (m_targets.GetUnitTarget()->GetAura(55095))
+                                m_caster->CastSpell(unitTarget, 55095, true);
+                        }
+                    }
+                    break;
             }
             break;
         }
