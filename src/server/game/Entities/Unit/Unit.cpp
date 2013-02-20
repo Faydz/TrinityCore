@@ -6707,6 +6707,23 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         }
         case SPELLFAMILY_HUNTER:
         {
+            switch (dummySpell->Id)
+            {
+                //Sic 'em Rank 1
+                case 53340:
+                {
+                    triggered_spell_id = 83359;
+                    target = this;
+                    break;
+                }
+            // Sic 'Em Rank 2
+                case 83356:
+                {
+                    triggered_spell_id = 89388;
+                    target = this;
+                    break;
+                }
+            }
             switch (dummySpell->SpellIconID)
             {
                 // Lock and Load
