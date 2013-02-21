@@ -3361,6 +3361,12 @@ void Spell::cast(bool skipCheck)
         // Set Last spell casted;
         m_caster->SetLastSpell(m_spellInfo->Id);
 
+        if(m_caster->getClass() == CLASS_HUNTER)
+            if(m_spellInfo->Id == 3044 || m_spellInfo->Id == 53209)
+                if(AuraEffect* auraEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 3524, EFFECT_0))
+                    if(roll_chance_i(auraEff->GetAmount()))
+                        m_caster->CastSpell(m_caster->getVictim(), 88691, NULL);
+
         m_caster->ToPlayer()->SetSpellModTakingSpell(this, false);
 
         //Clear spell cooldowns after every spell is cast if .cheat cooldown is enabled.
