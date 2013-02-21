@@ -3123,6 +3123,41 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                 }
                 break;
+            case SPELLFAMILY_PALADIN:
+                switch(spellInfo->Id)
+                {
+                    // Judgements of the Pure Rank 1
+                    case 53655:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK;
+                        spellInfo->Effects[EFFECT_0].MiscValue = 0;
+                        spellInfo->Effects[EFFECT_0].SpellClassMask = flag96();
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_2].BasePoints = 3;
+                        spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_MELEE_HASTE;
+                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        break;
+                    // Judgements of the Pure Rank 2
+                    case 53656:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK;
+                        spellInfo->Effects[EFFECT_0].MiscValue = 0;
+                        spellInfo->Effects[EFFECT_0].SpellClassMask = flag96();
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_2].BasePoints = 6;
+                        spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_MELEE_HASTE;
+                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        break;
+                    // Judgements of the Pure Rank 3
+                    case 53657:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK;
+                        spellInfo->Effects[EFFECT_0].MiscValue = 0;
+                        spellInfo->Effects[EFFECT_0].SpellClassMask = flag96();
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_2].BasePoints = 9;
+                        spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_MELEE_HASTE;
+                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        break;
+                }
+                break;
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
