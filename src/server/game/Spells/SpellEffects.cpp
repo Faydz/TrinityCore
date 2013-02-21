@@ -648,7 +648,11 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 // Deep Freeze should deal damage to permanently stun-immune targets.
                 if (m_spellInfo->Id == 71757){
                     if (unitTarget->GetTypeId() != TYPEID_UNIT || !(unitTarget->IsImmunedToSpellEffect(sSpellMgr->GetSpellInfo(44572), 0)))
+                    {
+                        if (m_caster->HasAura(44544) ) // Fingers of Frost buff remotion
+                            m_caster->RemoveAuraFromStack(44544);
                         return;
+                    }
                 }
                 break;
             }

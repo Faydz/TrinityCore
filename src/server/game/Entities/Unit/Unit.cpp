@@ -5533,6 +5533,20 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         }
         case SPELLFAMILY_MAGE:
         {
+            // Piercing Chill
+            if (dummySpell->SpellIconID == 4625)
+            {
+                if (!ToPlayer() || !victim)
+                    return false;
+                Player* player = ToPlayer();
+                player->Say("piercing chill", LANG_UNIVERSAL);
+                int32 bh=2;
+                //if (dummySpell->Id == 83156)
+                //    bh=1;
+                player->CastCustomSpell(victim, 83154, &bh, NULL, NULL, true);
+                
+            }
+            
             //this will prevent the remotion of the arcane missiles aura when casting a spell that is not arcane missiles
             if (dummySpell->Id == 79683)
                 return false;
@@ -10092,23 +10106,8 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 if (victim->HasAuraState(AURA_STATE_FROZEN, spellProto, this))
                     DoneTotalMod *= 2.0f;
 
-            // Mana Adept - Arcane Mastery
-            if (owner->getClass() == CLASS_MAGE)
-            {
-               if (owner->HasAuraType(SPELL_AURA_MASTERY))
-               {
-                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_ARCANE)
-                   {
-                       // [1 + (0.12 + 0.015*M)*(mana atm)/(max mana)]*100%
-                       float manaPct = 100.f * owner->GetPower(POWER_MANA) / owner->GetMaxPower(POWER_MANA);
-                       DoneTotalMod *= (1+ (((owner->ToPlayer()->GetMasteryPoints() * 0.015f)) * manaPct/100));
-                   }
-               }
-            }
-
-            // Frostburn Frost Mastery
-            if (owner->getClass() == CLASS_MAGE && (victim->HasAura(82691) || victim->HasAura(44572) 
-                   || victim->HasAura(22645) || victim->HasAura(83302) || victim->HasAura(83301)))
+            // Frostburn - Frost Mastery
+            if (owner->getClass() == CLASS_MAGE && victim->HasAuraState(AURA_STATE_FROZEN, spellProto, this))
             {
                if (owner->HasAuraType(SPELL_AURA_MASTERY))
                {
@@ -10117,9 +10116,23 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                        DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -6.0f) * 0.025f); // frost base mastery is 2
                    }
                }
+               if (spellProto->Id == 44572 || spellProto->Id == 44614 || spellProto->Id == 30455)
+                   if (owner->HasAura(44544)) // Fingers of Frost buff remotion
+                       owner->RemoveAuraFromStack(44544);
             }
 
-            // Flashburn Fire Mastery
+            // Mana Adept - Arcane Mastery
+            if (owner->getClass() == CLASS_MAGE && owner->HasAuraType(SPELL_AURA_MASTERY))
+            {
+                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_ARCANE)
+                {
+                    // [1 + (0.12 + 0.015*M)*(mana atm)/(max mana)]*100%
+                    float manaPct = 100.f * owner->GetPower(POWER_MANA) / owner->GetMaxPower(POWER_MANA);
+                    DoneTotalMod *= (1+ (((owner->ToPlayer()->GetMasteryPoints() * 0.015f)) * manaPct/100));
+                }
+            }
+
+            // Flashburn - Fire Mastery
             if (owner->getClass() == CLASS_MAGE && spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_FIRE && damagetype == DOT )
             {
                if (owner->HasAuraType(SPELL_AURA_MASTERY))

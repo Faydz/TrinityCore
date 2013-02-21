@@ -3025,6 +3025,9 @@ void SpellMgr::LoadSpellCustomAttr()
             case 48418:
                 spellInfo->Effects[EFFECT_0].BasePoints = 4;
                 break;
+            case 83154:
+                spellInfo->MaxAffectedTargets = 3;
+                break;
             default:
                 break;
         }
@@ -3339,7 +3342,7 @@ void SpellMgr::LoadSpellInfoCorrections()
                 spellInfo->ProcCharges = 1;
                 break;
             case 44544: // Fingers of Frost
-                spellInfo->Effects[EFFECT_0].SpellClassMask = flag96(685904631, 1151048, 0);
+                spellInfo->Effects[EFFECT_0].SpellClassMask = flag96(131072, 1052672, 8);
                 break;
             case 74396: // Fingers of Frost visual buff
                 spellInfo->ProcCharges = 2;

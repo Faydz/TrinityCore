@@ -583,9 +583,24 @@ class spell_mage_ice_barrier : public SpellScriptLoader
                    GetTarget()->CastSpell(GetTarget(), SPELL_MAGE_SHATTERED_BARRIER_FREEZE_R2, true);
            }
 
+           void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = false;
+                if (Unit* caster = GetCaster())
+                {
+                    // +80.68% from sp bonus
+                    float bonus = 0.8068f;
+                    bonus *= caster->SpellBaseDamageBonusDone(GetSpellInfo()->GetSchoolMask());
+                    amount += int32(bonus);
+                    //Glyph of ice barrier
+                    if (caster->HasAura(63095)) amount *= 1.3f;
+                }
+            }
+
            void Register()
            {
-                AfterEffectRemove += AuraEffectRemoveFn(spell_mage_ice_barrier_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB, AURA_EFFECT_HANDLE_REAL);
+               DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mage_ice_barrier_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB); 
+               AfterEffectRemove += AuraEffectRemoveFn(spell_mage_ice_barrier_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB, AURA_EFFECT_HANDLE_REAL);
            }
        };
 
@@ -638,26 +653,39 @@ class spell_mage_mana_shield : public SpellScriptLoader
 /// Updated 4.3.4
 class spell_mage_mage_ward : public SpellScriptLoader
 {
-   public:
-       spell_mage_mage_ward() : SpellScriptLoader("spell_mage_mage_ward") { }
+    public:
+        spell_mage_mage_ward() : SpellScriptLoader("spell_mage_mage_ward") { }
 
-       class spell_mage_mage_ward_AuraScript : public AuraScript
-       {
-           PrepareAuraScript(spell_mage_mage_ward_AuraScript);
+        class spell_mage_mage_ward_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_mage_mage_ward_AuraScript);
 
-           void HandleAbsorb(AuraEffect* /*aurEff*/, DamageInfo & /*dmgInfo*/, uint32 & absorbAmount)
-           {
-               if (AuraEffect* aurEff = GetTarget()->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_GENERIC, ICON_MAGE_INCANTER_S_ABSORPTION, EFFECT_0))
-               {
-                   int32 bp = CalculatePct(absorbAmount, aurEff->GetAmount());
-                   GetTarget()->CastCustomSpell(GetTarget(), SPELL_MAGE_INCANTER_S_ABSORPTION_TRIGGERED, &bp, NULL, NULL, true);
-               }
-           }
+            void HandleAbsorb(AuraEffect* /*aurEff*/, DamageInfo & /*dmgInfo*/, uint32 & absorbAmount)
+            {
+                if (AuraEffect* aurEff = GetTarget()->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_GENERIC, ICON_MAGE_INCANTER_S_ABSORPTION, EFFECT_0))
+                {
+                    int32 bp = CalculatePct(absorbAmount, aurEff->GetAmount());
+                    GetTarget()->CastCustomSpell(GetTarget(), SPELL_MAGE_INCANTER_S_ABSORPTION_TRIGGERED, &bp, NULL, NULL, true);
+                }
+            }
+             
+            void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = false;
+                if (Unit* caster = GetCaster())
+                {
+                    // +80.68% from sp bonus
+                    float bonus = 0.8068f;
+                    bonus *= caster->SpellBaseDamageBonusDone(GetSpellInfo()->GetSchoolMask());
+                    amount += int32(bonus);
+                }
+            }
 
-           void Register()
-           {
-               AfterEffectAbsorb += AuraEffectAbsorbFn(spell_mage_mage_ward_AuraScript::HandleAbsorb, EFFECT_0);
-           }
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mage_mage_ward_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB); 
+                AfterEffectAbsorb += AuraEffectAbsorbFn(spell_mage_mage_ward_AuraScript::HandleAbsorb, EFFECT_0);
+            }
        };
 
        AuraScript* GetAuraScript() const
