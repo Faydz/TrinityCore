@@ -2256,6 +2256,10 @@ class Unit : public WorldObject
 
             m_darkIntentUnit = target;
         }
+        //used for Improved steady shot (ID 53224)
+        uint32 m_lastSpell;
+        void SetLastSpell(uint32 id);
+        uint32 GetLastSpell() { return m_lastSpell; }
 
         // Handling caster facing during spellcast
         void FocusTarget(Spell const* focusSpell, uint64 target);

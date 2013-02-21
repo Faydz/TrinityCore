@@ -3025,8 +3025,28 @@ void SpellMgr::LoadSpellCustomAttr()
             case 48418:
                 spellInfo->Effects[EFFECT_0].BasePoints = 4;
                 break;
+            // Piercing Chill
             case 83154:
                 spellInfo->MaxAffectedTargets = 3;
+                break;
+            // Thick Hide
+            case 16929:     // Rank 1
+                spellInfo->Effects[EFFECT_1].BasePoints =0;
+                spellInfo->Effects[EFFECT_1].MiscValue =1;
+                spellInfo->Effects[EFFECT_1].MiscValueB =12;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName =SPELL_AURA_MOD_BASE_RESISTANCE_PCT;
+                break;
+            case 16930:     // Rank 2
+                spellInfo->Effects[EFFECT_1].BasePoints =0;
+                spellInfo->Effects[EFFECT_1].MiscValue =1;
+                spellInfo->Effects[EFFECT_1].MiscValueB =24;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName =SPELL_AURA_MOD_BASE_RESISTANCE_PCT;
+                break;
+            case 16931:     // Rank 3
+                spellInfo->Effects[EFFECT_1].BasePoints =0;
+                spellInfo->Effects[EFFECT_1].MiscValue =1;
+                spellInfo->Effects[EFFECT_1].MiscValueB =36;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName =SPELL_AURA_MOD_BASE_RESISTANCE_PCT;
                 break;
             default:
                 break;
@@ -3107,6 +3127,69 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                 }
                 break;
+            case SPELLFAMILY_PALADIN:
+                switch(spellInfo->Id)
+                {
+                    // Judgements of the Pure Rank 1
+                    case 53655:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK;
+                        spellInfo->Effects[EFFECT_0].MiscValue = 0;
+                        spellInfo->Effects[EFFECT_0].SpellClassMask = flag96();
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_2].BasePoints = 3;
+                        spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_MELEE_HASTE;
+                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        break;
+                    // Judgements of the Pure Rank 2
+                    case 53656:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK;
+                        spellInfo->Effects[EFFECT_0].MiscValue = 0;
+                        spellInfo->Effects[EFFECT_0].SpellClassMask = flag96();
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_2].BasePoints = 6;
+                        spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_MELEE_HASTE;
+                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        break;
+                    // Judgements of the Pure Rank 3
+                    case 53657:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK;
+                        spellInfo->Effects[EFFECT_0].MiscValue = 0;
+                        spellInfo->Effects[EFFECT_0].SpellClassMask = flag96();
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_2].BasePoints = 9;
+                        spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_MELEE_HASTE;
+                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        break;
+                }
+                break;
+            case SPELLFAMILY_DEATHKNIGHT:
+                switch(spellInfo->Id)
+                {
+                    // Howling Blast
+                    case 49184:
+                        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_SCHOOL_DAMAGE;
+                        spellInfo->Effects[EFFECT_0].BasePoints = 1322;
+                        break;
+                    // Chillblains rank 1
+                    case 50040:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].BasePoints = 100;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_TARGET_TRIGGER;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].TriggerSpell = 96293;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x4, 0xC000, 0x0);
+                        break;
+                    // Chillblains rank 2
+                    case 50041:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].BasePoints = 100;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_TARGET_TRIGGER;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].TriggerSpell = 96294;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x4, 0xC000, 0x0);
+                        break;
+                }
+                break;
             case SPELLFAMILY_WARRIOR:
                 // Shout
                 if (spellInfo->SpellFamilyFlags[0] & 0x20000 || spellInfo->SpellFamilyFlags[1] & 0x20)
@@ -3115,6 +3198,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Tree of Life entangling cast time bonus
+                    case 81097:
+                        spellInfo->Effects[EFFECT_1].BasePoints = -50;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_CASTING_TIME;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x1);
+                        break;
                     // Master Shapeshifter
                     case 48420:
                     case 48421:
@@ -3133,6 +3223,11 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Sunfire
                     case 94338:
                         spellInfo->Effects[EFFECT_0].BasePoints =93402;
+                        break;
+                    // Force of Nature
+                    case 33831:
+                        spellInfo->Effects[EFFECT_0].MiscValue =36070;
+                        spellInfo->Effects[EFFECT_0].MiscValueB =1562;
                         break;
                 }
                 // Roar

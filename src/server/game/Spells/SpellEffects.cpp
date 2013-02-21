@@ -620,6 +620,22 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             }
             case SPELLFAMILY_DEATHKNIGHT:
             {
+                switch (m_spellInfo->Id)
+                {
+                    // Howling Blast
+                    case 49184:
+                        float mod = 1.0f;
+
+                        if (Unit* caster = GetCaster())
+                        {
+                            if (effIndex == EFFECT_1)
+                                mod = 0.5f;
+
+                            damage = mod * (damage + (caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.44));
+                        }
+                        break;
+                }
+
                 // Blood Boil - bonus for diseased targets
                 if (m_spellInfo->SpellFamilyFlags[0] & 0x00040000)
                 {
@@ -711,6 +727,45 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
             }
             break;
         case SPELLFAMILY_PALADIN:
+            // Judgement (seal trigger)
+            if (m_spellInfo->Category == SPELLCATEGORY_JUDGEMENT)
+            {
+                if (!unitTarget->isAlive())
+                    return;
+
+                Unit::AuraApplicationMap & sealAuras = m_caster->GetAppliedAuras();
+                for (Unit::AuraApplicationMap::iterator iter = sealAuras.begin(); iter != sealAuras.end();)
+                {
+                    Aura* aura = iter->second->GetBase();
+                    if (aura->GetSpellInfo()->GetSpellSpecific() == SPELL_SPECIFIC_SEAL)
+                    {
+                        // Seal of Righteousness and Truth have id spell in 2 effect
+                        if (AuraEffect* aureff = aura->GetEffect(EFFECT_2))
+                        {
+                            if (aureff->GetAuraType() == SPELL_AURA_DUMMY)
+                            {
+                                if (sSpellMgr->GetSpellInfo(aureff->GetAmount()))
+                                    spell_id = aureff->GetAmount();
+                                break;
+                            }
+                        }
+
+                        if (!spell_id)
+                        {
+                            switch (iter->first)
+                            {
+                                // Seal of justice, Seal of Insight
+                                case 20164:
+                                case 20165:
+                                    spell_id = 54158;
+                            }
+                        }
+                        break;
+                    }
+                    else
+                        ++iter;
+                }
+            }
             switch (m_spellInfo->Id)
             {
                 case 31789:                                 // Righteous Defense (step 1)
@@ -4229,79 +4284,52 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
             break;
         case SPELLFAMILY_PALADIN:
         {
-            // Judgement (seal trigger)
-            if (m_spellInfo->Category == SPELLCATEGORY_JUDGEMENT)
-            {
-                if (!unitTarget || !unitTarget->isAlive())
-                    return;
-                uint32 spellId1 = 0;
-                uint32 spellId2 = 0;
-
-                // Judgement self add switch
-                switch (m_spellInfo->Id)
-                {
-                    case 53407: spellId1 = 20184; break;    // Judgement of Justice
-                    case 20271:                             // Judgement of Light
-                    case 57774: spellId1 = 20185; break;    // Judgement of Light
-                    case 53408: spellId1 = 20186; break;    // Judgement of Wisdom
-                    default:
-                        sLog->outError(LOG_FILTER_SPELLS_AURAS, "Unsupported Judgement (seal trigger) spell (Id: %u) in Spell::EffectScriptEffect", m_spellInfo->Id);
-                        return;
-                }
-                // all seals have aura dummy in 2 effect
-                Unit::AuraApplicationMap & sealAuras = m_caster->GetAppliedAuras();
-                for (Unit::AuraApplicationMap::iterator iter = sealAuras.begin(); iter != sealAuras.end();)
-                {
-                    Aura* aura = iter->second->GetBase();
-                    if (aura->GetSpellInfo()->GetSpellSpecific() == SPELL_SPECIFIC_SEAL)
-                    {
-                        if (AuraEffect* aureff = aura->GetEffect(2))
-                            if (aureff->GetAuraType() == SPELL_AURA_DUMMY)
-                            {
-                                if (sSpellMgr->GetSpellInfo(aureff->GetAmount()))
-                                    spellId2 = aureff->GetAmount();
-                                break;
-                            }
-                        if (!spellId2)
-                        {
-                            switch (iter->first)
-                            {
-                                // Seal of light, Seal of wisdom, Seal of justice
-                                case 20165:
-                                case 20166:
-                                case 20164:
-                                    spellId2 = 54158;
-                            }
-                        }
-                        break;
-                    }
-                    else
-                        ++iter;
-                }
-                if (spellId1)
-                    m_caster->CastSpell(unitTarget, spellId1, true);
-                if (spellId2)
-                    m_caster->CastSpell(unitTarget, spellId2, true);
-                return;
-            }
         }
         case SPELLFAMILY_DEATHKNIGHT:
         {
-            // Pestilence
-            if (m_spellInfo->SpellFamilyFlags[1]&0x10000)
+            switch (m_spellInfo->Id)
             {
-                // Get diseases on target of spell
-                if (m_targets.GetUnitTarget() &&  // Glyph of Disease - cast on unit target too to refresh aura
-                    (m_targets.GetUnitTarget() != unitTarget || m_caster->GetAura(63334)))
+                // Festering Strike
+                case 85948:
                 {
-                    // And spread them on target
-                    // Blood Plague
-                    if (m_targets.GetUnitTarget()->GetAura(55078))
-                        m_caster->CastSpell(unitTarget, 55078, true);
-                    // Frost Fever
-                    if (m_targets.GetUnitTarget()->GetAura(55095))
-                        m_caster->CastSpell(unitTarget, 55095, true);
+                    Unit* caster = GetCaster();
+
+                    if(!caster)
+                        return;
+
+                    // Frost Fever, Chains of Ice, Blood Plague
+                    int ids[3] = {55095, 45524, 55078};
+
+                    for(int i = 0; i < 3; i++)
+                    {
+                        Aura* aura = unitTarget->GetAura(ids[i], caster->GetGUID());
+
+                        if (!aura)
+                            continue;
+
+                        int32 newDuration = aura->GetDuration() + m_spellInfo->Effects[EFFECT_2].BasePoints * 1000;
+                        aura->SetDuration(std::min(newDuration, aura->GetMaxDuration()));
+                    }
                 }
+                    break;
+                // Pestilence
+                case 50842:
+                    if (m_spellInfo->SpellFamilyFlags[1]&0x10000)
+                    {
+                        // Get diseases on target of spell
+                        if (m_targets.GetUnitTarget() &&  // Glyph of Disease - cast on unit target too to refresh aura
+                            (m_targets.GetUnitTarget() != unitTarget || m_caster->GetAura(63334)))
+                        {
+                            // And spread them on target
+                            // Blood Plague
+                            if (m_targets.GetUnitTarget()->GetAura(55078))
+                                m_caster->CastSpell(unitTarget, 55078, true);
+                            // Frost Fever
+                            if (m_targets.GetUnitTarget()->GetAura(55095))
+                                m_caster->CastSpell(unitTarget, 55095, true);
+                        }
+                    }
+                    break;
             }
             break;
         }
