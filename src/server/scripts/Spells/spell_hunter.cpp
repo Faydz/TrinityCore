@@ -215,9 +215,24 @@ class spell_hun_disengage : public SpellScriptLoader
                 return SPELL_CAST_OK;
             }
 
+            void PostHaste()
+            {
+                if(!GetCaster())
+                    return;
+                if(Player* pl = GetCaster()->ToPlayer())
+                {
+                    if(AuraEffect* auraEff = pl->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 5094, EFFECT_1))
+                    {
+                        int32 bp0 = auraEff->GetAmount();
+                        pl->CastCustomSpell(pl, 83559, &bp0, NULL, NULL, true);
+                    }
+                }
+            }
+
             void Register()
             {
                 OnCheckCast += SpellCheckCastFn(spell_hun_disengage_SpellScript::CheckCast);
+                AfterCast += SpellCastFn(spell_hun_disengage_SpellScript::PostHaste);
             }
         };
 
