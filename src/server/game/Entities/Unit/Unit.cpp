@@ -10320,6 +10320,30 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                }
             }
             break;
+        case SPELLFAMILY_PALADIN:
+            switch(spellProto->Id)
+            {
+                // Judgement of Truth
+                case 31804:
+                    // Get stacks of Censure on the target added by caster
+                    uint32 stacks = 0;
+                    Unit::AuraEffectList const& auras = victim->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+
+                    for (Unit::AuraEffectList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                    {
+                        if ((*itr)->GetId() == 31803 && (*itr)->GetCasterGUID() == GetGUID())
+                        {
+                            stacks = (*itr)->GetBase()->GetStackAmount();
+                            break;
+                        }
+                    }
+                        
+                    // + 20% for each application of Censure on the target
+                    if (stacks) 
+                        AddPct(DoneTotalMod, float(20.0f * stacks));
+                    break;
+            }
+            break;
         case SPELLFAMILY_DEATHKNIGHT:
             // Sigil of the Vengeful Heart
             if (spellProto->SpellFamilyFlags[0] & 0x2000)
