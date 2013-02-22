@@ -8439,7 +8439,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 
                 // Mando in cd la spell del sacred triggered
                 pally->AddSpellCooldown(trigger_spell_id, 0, time(NULL)+60000);
-                return TRUE;
+                return true;
             }
             break;
         }
