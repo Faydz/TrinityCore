@@ -6862,10 +6862,17 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 return false;
             }
             // Judgements of the Wise
-            if (dummySpell->SpellIconID == 3017)
+            if (dummySpell->Id == 31878)
             {
                 target = this;
                 triggered_spell_id = 31930;
+                break;
+            }
+            //Judgements of the Bold
+            if (dummySpell->Id == 89901)
+            {
+                target = this;
+                triggered_spell_id = 89906;
                 break;
             }
             switch (dummySpell->Id)

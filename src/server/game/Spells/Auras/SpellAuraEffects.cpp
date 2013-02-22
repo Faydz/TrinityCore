@@ -682,6 +682,10 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
         case SPELL_AURA_PERIODIC_ENERGIZE:
             switch (m_spellInfo->Id)
             {
+            case 31930: // Judgements of the Wise
+            case 89906: // Judgements of the Bold
+                amount = int32(GetBase()->GetUnitOwner()->GetCreateMana() * amount /100);
+                break;
             case 57669: // Replenishment (0.2% from max)
                 amount = CalculatePct(GetBase()->GetUnitOwner()->GetMaxPower(POWER_MANA), amount);
                 break;
