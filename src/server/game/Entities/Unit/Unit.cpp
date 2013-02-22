@@ -8413,6 +8413,29 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Sacred Shield
+        case 85285:
+        {
+            // Controllo se il caster è un player e lo salvo nel puntatore "pally"
+            if (Player* pally = ToPlayer())
+            {
+                // Se il pally non è sotto al 30% di vita o se il pally ha in cd la spell del sacred (triggered) esco dalla funzione
+                if (!pally->HealthBelowPctDamaged(30, damage) || pally->HasSpellCooldown(trigger_spell_id))
+                    return false;
+
+
+                // Calcolo l'ammontare dell'absorb dello scudo
+                int32 ap = int32(pally->GetTotalAttackPowerValue(BASE_ATTACK) * 0.9f);
+                basepoints0 = int32(CalculatePct(ap, 280));
+                // Casto la spell triggered su me stesso (pally) con l'ammontare calcolato prima (basepoints0)
+                pally->CastCustomSpell(pally, trigger_spell_id, &basepoints0, NULL, NULL, true, 0, 0);
+                
+                // Mando in cd la spell del sacred triggered
+                pally->AddSpellCooldown(trigger_spell_id, 0, time(NULL)+60000);
+                return TRUE;
+            }
+            break;
+        }
         // Shooting Stars
        case 93398: // Rank 1
        case 93399: // Rank 2
