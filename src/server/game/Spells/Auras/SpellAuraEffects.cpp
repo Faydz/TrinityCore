@@ -4803,6 +4803,11 @@ void AuraEffect::HandleModDamagePercentDone(AuraApplication const* aurApp, uint8
     {
         // done in Player::_ApplyWeaponDependentAuraMods for SPELL_SCHOOL_MASK_NORMAL && EquippedItemClass != -1 and also for wand case
     }
+
+    // Sanctified Wrath
+    if (m_spellInfo->Id == 31884)
+        if (AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_PALADIN, 3029, EFFECT_0))
+            target->CastSpell(target, 57318);
 }
 
 void AuraEffect::HandleModSpellPowerPct(AuraApplication const* aurApp, uint8 mode, bool apply) const
