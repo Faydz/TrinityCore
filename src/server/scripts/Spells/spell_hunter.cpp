@@ -159,8 +159,7 @@ class spell_hun_chimera_shot : public SpellScriptLoader
             void HandleScript()
             {
                 Unit* caster = GetCaster();
-                sLog->outError(LOG_FILTER_GENERAL, "script");
-                if (Unit* unitTarget = GetExplTargetUnit()/*GetHitUnit()*/)
+                if (Unit* unitTarget = GetExplTargetUnit())
                 {
                     uint32 spellId = 0;
                     int32 basePoint = 0;
@@ -169,7 +168,6 @@ class spell_hun_chimera_shot : public SpellScriptLoader
                         if (AuraEffect const* aurEff = aura->GetEffect(0))
                         {
                             // Serpent Sting - Instantly deals 40% of the damage done by your Serpent Sting.
-                            sLog->outError(LOG_FILTER_GENERAL, "sdasdsa");
                             int32 TickCount = aurEff->GetTotalTicks();
                             spellId = SPELL_HUNTER_CHIMERA_SHOT_SERPENT;
                             basePoint = caster->SpellDamageBonusDone(unitTarget, aura->GetSpellInfo(), aurEff->GetAmount(), DOT, aura->GetStackAmount());
