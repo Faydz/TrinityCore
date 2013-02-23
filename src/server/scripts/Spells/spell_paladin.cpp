@@ -55,6 +55,11 @@ enum PaladinSpells
     SPELL_PALADIN_HAND_OF_SACRIFICE              = 6940,
     SPELL_PALADIN_DIVINE_SACRIFICE               = 64205,
 
+    SPELL_PALADIN_BEACON_OF_LIGHT                = 53563,
+    SPELL_PALADIN_BEACON_OF_LIGHT_HEAL           = 53652,
+
+    SPELL_PALADIN_TOWER_OF_RADIANCE              = 88852,
+
     SPELL_PALADIN_DIVINE_PURPOSE_PROC            = 90174,
     
     SPELL_PALADIN_GLYPH_OF_SALVATION             = 63225,
@@ -161,24 +166,26 @@ class spell_pal_lights_beacon : public SpellScriptLoader
             {
                 PreventDefaultAction();
 
-                Unit * beaconOwner = GetCaster();
-                Unit * healTarget = GetTarget();
-                Unit * paladinMaster = eventInfo.GetProcTarget();
+                Unit* beaconOwner = GetCaster();
+                Unit* healTarget = GetTarget();
+                Unit* paladinMaster = eventInfo.GetProcTarget();
 
                 if (!beaconOwner || !healTarget || !paladinMaster)
                     return;
 
                 //Check if it was heal by paladin which casted this beacon of light
-                if (beaconOwner->GetAura(53563, paladinMaster->GetGUID()))
+                if (beaconOwner->GetAura(SPELL_PALADIN_BEACON_OF_LIGHT, paladinMaster->GetGUID()))
                 {
                     if (beaconOwner->IsWithinLOSInMap(paladinMaster))
                     {
                         int32 mod = 100;
+                        bool towerOfRadiance = false;
                         
                         switch (eventInfo.GetDamageInfo()->GetSpellInfo()->Id)
                         {
                             case 19750: // Flash of Light
                             case 82326: // Divine Light
+                                towerOfRadiance = true;
                             case 85673: // Word of Glory
                             case 25914: // Holy Shock
                             case 85222: // Light of Dawn
@@ -193,11 +200,18 @@ class spell_pal_lights_beacon : public SpellScriptLoader
 
                         // False when target of heal is beaconed
                         if (beaconOwner == healTarget)
+                        {
+                            // Tower of Radiance talent
+                            if(towerOfRadiance)
+                                if(AuraEffect* aurEff = paladinMaster->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3402, EFFECT_0))
+                                    if(roll_chance_i(aurEff->GetAmount()))
+                                        paladinMaster->CastSpell(paladinMaster, SPELL_PALADIN_TOWER_OF_RADIANCE, true);
                             return;
+                        }
 
                         int32 basepoints0 = CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), mod);
 
-                        paladinMaster->CastCustomSpell(beaconOwner, 53652, &basepoints0, NULL, NULL, true);
+                        paladinMaster->CastCustomSpell(beaconOwner, SPELL_PALADIN_BEACON_OF_LIGHT_HEAL, &basepoints0, NULL, NULL, true);
                     }
                 }
             }
