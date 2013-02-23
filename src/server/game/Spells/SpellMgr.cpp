@@ -3130,6 +3130,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    // Speed of Light buff
+                    case 85497:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 60;
+                        break;
                     // Judgements of the Pure Rank 1
                     case 53655:
                         spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK;

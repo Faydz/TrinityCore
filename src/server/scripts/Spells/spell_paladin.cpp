@@ -63,6 +63,8 @@ enum PaladinSpells
 
     SPELL_PALADIN_SEAL_OF_RIGHTEOUSNESS          = 25742,
 
+    SPELL_PALADIN_SPEED_OF_LIGHT                 = 85497,
+
     SPELL_GENERIC_ARENA_DAMPENING                = 74410,
     SPELL_GENERIC_BATTLEGROUND_DAMPENING         = 74411
 };
@@ -142,6 +144,40 @@ enum PaladinSpells
             return new spell_pal_ardent_defender_AuraScript();
         }
 };*/
+
+//498 - Divine Protection
+class spell_pal_divine_protection : public SpellScriptLoader
+{
+public:
+    spell_pal_divine_protection() : SpellScriptLoader("spell_pal_divine_protection") { }
+
+    class spell_pal_divine_protection_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_pal_divine_protection_SpellScript);
+
+        void HandleOnCast()
+        {
+            Unit * caster = GetCaster();
+
+            if (!caster)
+                return;
+            
+            // Speed of Light
+            if (caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_PALADIN, 5062, EFFECT_1))
+                caster->CastSpell(caster, SPELL_PALADIN_SPEED_OF_LIGHT, false);
+        }
+
+        void Register()
+        {
+            OnCast += SpellCastFn(spell_pal_divine_protection_SpellScript::HandleOnCast);
+        }
+    };
+
+    SpellScript *GetSpellScript() const
+    {
+        return new spell_pal_divine_protection_SpellScript();
+    }
+};
 
 // 37877 - Blessing of Faith
 class spell_pal_blessing_of_faith : public SpellScriptLoader
@@ -967,6 +1003,7 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 void AddSC_paladin_spell_scripts()
 {
     //new spell_pal_ardent_defender();
+    new spell_pal_divine_protection();
     new spell_pal_blessing_of_faith();
     new spell_pal_blessing_of_sanctuary();
     new spell_pal_divine_sacrifice();
