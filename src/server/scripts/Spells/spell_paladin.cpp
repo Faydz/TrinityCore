@@ -147,6 +147,39 @@ enum PaladinSpells
         }
 };*/
 
+
+// 89023 - Blessed Life
+class spell_pal_blessed_life : public SpellScriptLoader
+{
+public:
+    spell_pal_blessed_life() : SpellScriptLoader("spell_pal_blessed_life") { }
+
+    class spell_pal_blessed_life_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_pal_blessed_life_SpellScript);
+
+        void HandleAfterCast()
+        {
+            Unit * caster = GetCaster();
+
+            if (!caster || !caster->ToPlayer())
+                return;
+            
+            caster->ToPlayer()->AddSpellCooldown(GetSpellInfo()->Id, 0, time(NULL) + 8);
+        }
+
+        void Register()
+        {
+            AfterCast += SpellCastFn(spell_pal_blessed_life_SpellScript::HandleAfterCast);
+        }
+    };
+
+    SpellScript *GetSpellScript() const
+    {
+        return new spell_pal_blessed_life_SpellScript();
+    }
+};
+
 // 31821 - Aura Mastery
 class spell_pal_aura_mastery: public SpellScriptLoader
 {
@@ -208,7 +241,7 @@ public:
     }
 };
 
-//498 - Divine Protection
+// 498 - Divine Protection
 class spell_pal_divine_protection : public SpellScriptLoader
 {
 public:
@@ -1066,6 +1099,7 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 void AddSC_paladin_spell_scripts()
 {
     //new spell_pal_ardent_defender();
+    new spell_pal_blessed_life();
     new spell_pal_aura_mastery();
     new spell_pal_divine_protection();
     new spell_pal_blessing_of_faith();
