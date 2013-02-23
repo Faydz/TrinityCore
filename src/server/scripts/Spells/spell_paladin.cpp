@@ -65,6 +65,8 @@ enum PaladinSpells
 
     SPELL_PALADIN_SPEED_OF_LIGHT                 = 85497,
 
+    SPELL_PALADIN_AURA_MASTERY                   = 19891,
+
     SPELL_GENERIC_ARENA_DAMPENING                = 74410,
     SPELL_GENERIC_BATTLEGROUND_DAMPENING         = 74411
 };
@@ -144,6 +146,67 @@ enum PaladinSpells
             return new spell_pal_ardent_defender_AuraScript();
         }
 };*/
+
+// 31821 - Aura Mastery
+class spell_pal_aura_mastery: public SpellScriptLoader
+{
+public:
+    spell_pal_aura_mastery() : SpellScriptLoader("spell_pal_aura_mastery"){ }
+
+    class spell_pal_aura_mastery_AuraScript: public AuraScript
+    {
+        PrepareAuraScript(spell_pal_aura_mastery_AuraScript);
+
+        void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+        {
+            if(Unit* caster = GetCaster())
+            {
+                if(AuraEffect* auraMasteryAurEff = caster->GetAuraEffect(SPELL_PALADIN_AURA_MASTERY, EFFECT_0, caster->GetGUID()))
+                {
+                    int32 resist = caster->getLevel();
+
+                    if (resist > 70 && resist < 81)
+                        resist += (resist - 70) * 5;
+                    else if (resist > 80)
+                        resist += ((resist-70) * 5 + (resist - 80) * 7);
+
+                    AddPct(resist, aurEff->GetAmount());
+
+                    auraMasteryAurEff->ChangeAmount(resist);
+                }
+            }
+        }
+
+        void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if(Unit* caster = GetCaster())
+            {
+                if(AuraEffect* auraMasteryAurEff = caster->GetAuraEffect(SPELL_PALADIN_AURA_MASTERY, EFFECT_0, caster->GetGUID()))
+                {
+                    int32 resist = caster->getLevel();
+
+                    if (resist > 70 && resist < 81)
+                        resist += (resist - 70) * 5;
+                    else if (resist > 80)
+                        resist += ((resist-70) * 5 + (resist - 80) * 7);
+
+                    auraMasteryAurEff->ChangeAmount(resist);
+                }
+            }
+        }
+
+        void Register()
+        {
+            OnEffectApply += AuraEffectApplyFn(spell_pal_aura_mastery_AuraScript::HandleApply, EFFECT_0, SPELL_AURA_ADD_PCT_MODIFIER, AURA_EFFECT_HANDLE_REAL);
+            OnEffectRemove += AuraEffectRemoveFn(spell_pal_aura_mastery_AuraScript::HandleRemove, EFFECT_0, SPELL_AURA_ADD_PCT_MODIFIER, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_pal_aura_mastery_AuraScript();
+    }
+};
 
 //498 - Divine Protection
 class spell_pal_divine_protection : public SpellScriptLoader
@@ -1003,6 +1066,7 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 void AddSC_paladin_spell_scripts()
 {
     //new spell_pal_ardent_defender();
+    new spell_pal_aura_mastery();
     new spell_pal_divine_protection();
     new spell_pal_blessing_of_faith();
     new spell_pal_blessing_of_sanctuary();
