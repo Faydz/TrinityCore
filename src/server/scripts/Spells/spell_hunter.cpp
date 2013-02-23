@@ -35,7 +35,7 @@ enum HunterSpells
     SPELL_HUNTER_ASPECT_OF_THE_BEAST_PET            = 61669,
     SPELL_HUNTER_ASPECT_OF_THE_VIPER_ENERGIZE       = 34075,
     SPELL_HUNTER_BESTIAL_WRATH                      = 19574,
-    SPELL_HUNTER_CHIMERA_SHOT_SERPENT               = 53353,
+    SPELL_HUNTER_CHIMERA_SHOT_HEAL                  = 53353,
     SPELL_HUNTER_CHIMERA_SHOT_VIPER                 = 53358,
     SPELL_HUNTER_CHIMERA_SHOT_SCORPID               = 53359,
     SPELL_HUNTER_GLYPH_OF_ASPECT_OF_THE_VIPER       = 56851,
@@ -161,7 +161,6 @@ class spell_hun_chimera_shot : public SpellScriptLoader
                 Unit* caster = GetCaster();
                 if (Unit* unitTarget = GetExplTargetUnit())
                 {
-                    uint32 spellId = 0;
                     int32 basePoint = 0;
                     if(Aura* aura = unitTarget->GetAura(1978, caster->GetGUID()))
                     {                        
@@ -169,16 +168,14 @@ class spell_hun_chimera_shot : public SpellScriptLoader
                         {
                             // Serpent Sting - Instantly deals 40% of the damage done by your Serpent Sting.
                             int32 TickCount = aurEff->GetTotalTicks();
-                            spellId = SPELL_HUNTER_CHIMERA_SHOT_SERPENT;
                             basePoint = caster->SpellDamageBonusDone(unitTarget, aura->GetSpellInfo(), aurEff->GetAmount(), DOT, aura->GetStackAmount());
                             ApplyPct(basePoint, TickCount * 40);
                             basePoint = unitTarget->SpellDamageBonusTaken(caster, aura->GetSpellInfo(), basePoint, DOT, aura->GetStackAmount());         
                             // Refresh aura duration
                             aura->RefreshDuration();
                         }
-                        if (spellId)
-                            caster->CastCustomSpell(unitTarget, spellId, &basePoint, 0, 0, true);
                     }
+                    caster->CastSpell(unitTarget, SPELL_HUNTER_CHIMERA_SHOT_HEAL, true);
                 }
             }
 
