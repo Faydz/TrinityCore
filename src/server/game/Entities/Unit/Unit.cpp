@@ -10839,6 +10839,12 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
 							if(victim->GetHealthPct() > 80.0f)
 								crit_chance += auraEff->GetAmount();
 						break;
+                    //Serpent Sting - Black Arrow (Toxicology - 82833)
+                    case 3674:
+                    case 1978:
+                        if(AuraEffect* auraEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 4478, 0))
+                            crit_chance += auraEff->GetAmount();
+                        break;
 				}
             }
             break;
