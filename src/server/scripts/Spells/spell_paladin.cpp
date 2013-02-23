@@ -152,6 +152,99 @@ enum PaladinSpells
         }
 };*/
 
+// 85222 - Light of Dawn
+class spell_pal_light_of_dawn: public SpellScriptLoader
+{
+    public:
+        spell_pal_light_of_dawn() : SpellScriptLoader("spell_pal_light_of_dawn") { }
+
+        class spell_pal_light_of_dawn_SpellScript : public SpellScript 
+        {
+            PrepareSpellScript(spell_pal_light_of_dawn_SpellScript);
+
+            bool Load() 
+            {
+                if (GetCaster()->GetTypeId() != TYPEID_PLAYER)
+                    return false;
+
+                return true;
+            }
+
+            void ChangeHeal0(SpellEffIndex /*effIndex*/) 
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetHitUnit();
+                
+                if (!caster || caster == target)
+                    return;
+
+                switch (caster->GetPower(POWER_HOLY_POWER)) 
+                {
+                    case 0: // 1 Holy Power
+                    {
+                        totalheal = GetHitHeal();
+                        break;
+                    }
+                    case 1: // 2 Holy Power
+                    {
+                        totalheal = GetHitHeal() * 2;
+                        break;
+                    }
+                    case 2: // 3 Holy Power
+                    {
+                        totalheal = GetHitHeal() * 3;
+                        break;
+                    }
+                }
+
+                SetHitHeal(totalheal);
+            }
+            
+            void ChangeHeal1(SpellEffIndex /*effIndex*/) 
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    switch (caster->GetPower(POWER_HOLY_POWER)) 
+                    {
+                        case 0: // 1 Holy Power
+                        {
+                            totalheal = GetHitHeal();
+                            break;
+                        }
+                        case 1: // 2 Holy Power
+                        {
+                            totalheal = GetHitHeal() * 2;
+                            break;
+                        }
+                        case 2: // 3 Holy Power
+                        {
+                            totalheal = GetHitHeal() * 3;
+                            break;
+                        }
+                    }
+                    SetHitHeal(totalheal);
+
+                    caster->SetPower(POWER_HOLY_POWER, 0);
+                }
+            }
+
+
+        private:
+            uint32 totalheal;
+
+            void Register() 
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_pal_light_of_dawn_SpellScript::ChangeHeal0, EFFECT_0, SPELL_EFFECT_HEAL);
+                OnEffectHitTarget += SpellEffectFn(spell_pal_light_of_dawn_SpellScript::ChangeHeal1, EFFECT_1, SPELL_EFFECT_HEAL);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pal_light_of_dawn_SpellScript();
+        }
+};
+
 // 53651 - Light's Beacon - Beacon of Light
 class spell_pal_lights_beacon : public SpellScriptLoader
 {
@@ -1215,6 +1308,7 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 void AddSC_paladin_spell_scripts()
 {
     //new spell_pal_ardent_defender();
+    new spell_pal_light_of_dawn();
     new spell_pal_lights_beacon();
     new spell_pal_protector_of_the_innocent();
     new spell_pal_blessed_life();
