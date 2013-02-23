@@ -3130,6 +3130,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    // Zealotry
+                    case 84535:
+                        spellInfo->Effects[EFFECT_1].BasePoints = 1;
+                        break;
                     // Protector of the Innocent Rank 1
                     case 20138:
                         spellInfo->Effects[EFFECT_0].BasePoints = 94286;
