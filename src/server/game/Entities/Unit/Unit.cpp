@@ -10799,16 +10799,28 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                             crit_chance = 0.0f;
                         break;
                     case SPELLFAMILY_PALADIN:
-                        // Flash of light
-                        if (spellProto->SpellFamilyFlags[0] & 0x40000000)
+                        switch(spellProto->Id)
                         {
-                            // Sacred Shield
-                            if (AuraEffect const* aura = victim->GetAuraEffect(58597, 1, GetGUID()))
-                                crit_chance += aura->GetAmount();
-                            break;
+                            // World of Glory
+                            case 85673:
+                                if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
+                                {
+                                    if (AuraEffect* aurEff = this->GetAuraEffect(SPELL_AURA_DUMMY,SPELLFAMILY_PALADIN , 2139, EFFECT_0))
+                                    {
+                                        crit_chance += aurEff->GetAmount();
+                                    }
+                                }
+                                break;
+                            // Flash of light
+                            case 19750:
+                                // Sacred Shield
+                                if (AuraEffect const* aura = victim->GetAuraEffect(58597, 1, GetGUID()))
+                                    crit_chance += aura->GetAmount();
+                                break;
                         }
+
                         // Exorcism
-                        else if (spellProto->Category == 19)
+                        if (spellProto->Category == 19)
                         {
                             if (victim->GetCreatureTypeMask() & CREATURE_TYPEMASK_DEMON_OR_UNDEAD)
                                 return true;
