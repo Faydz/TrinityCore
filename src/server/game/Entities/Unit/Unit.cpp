@@ -6800,42 +6800,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
-                // Light's Beacon - Beacon of Light
-                case 53651:
-                    // Get target of beacon of light
-                    if (Unit * beaconTarget = triggeredByAura->GetBase()->GetCaster())
-                    {
-                        // False when target of heal is beaconed
-                        if (beaconTarget == this)
-                            return false;
-
-                        // Check if it was heal by paladin which casted this beacon of light
-                        if (victim && beaconTarget->GetAura(53563, victim->GetGUID()))
-                        {
-                            if (beaconTarget->IsWithinLOSInMap(victim))
-                            {
-                                int32 mod = 100;
-                                switch (procSpell->Id)
-                                {
-                                    case 85673: // Word of Glory
-                                    case 25914: // Holy Shock
-                                    case 19750: // Flash of Light
-                                    case 82326: // Divine Light
-                                    case 85222: // Light of Dawn
-                                        mod = 50; // 50% heal from these spells
-                                        break;
-                                    case 635:   // Holy Light
-                                        mod = 100; // 100% heal from Holy Light
-                                        break;
-                                }
-
-                                basepoints0 = CalculatePct(damage, mod);
-                                victim->CastCustomSpell(beaconTarget, 53652, &basepoints0, NULL, NULL, true, 0, triggeredByAura);
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
                 // Judgements of the Wise
                 case 31878:
                     target = this;

@@ -3130,7 +3130,25 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
-                    //Convinction Rank 1
+                    // Protector of the Innocent Rank 1
+                    case 20138:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 94286;
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+                        break;
+                    // Protector of the Innocent Rank 2
+                    case 20139:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 94288;
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+                        break;
+                    // Protector of the Innocent Rank 3
+                    case 20140:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 94289;
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+                        break;
+                    // Convinction Rank 1
                     case 20050:
                         spellInfo->Effects[EFFECT_0].MiscValue = 3;
                         break;

@@ -147,6 +147,108 @@ enum PaladinSpells
         }
 };*/
 
+// 53651 - Light's Beacon - Beacon of Light
+class spell_pal_lights_beacon : public SpellScriptLoader
+{
+    public:
+        spell_pal_lights_beacon() : SpellScriptLoader("spell_pal_lights_beacon") { }
+
+        class spell_pal_lights_beacon_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_pal_lights_beacon_AuraScript);
+
+            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+            {
+                PreventDefaultAction();
+
+                Unit * beaconOwner = GetCaster();
+                Unit * healTarget = GetTarget();
+                Unit * paladinMaster = eventInfo.GetProcTarget();
+
+                if (!beaconOwner || !healTarget || !paladinMaster)
+                    return;
+
+                //Check if it was heal by paladin which casted this beacon of light
+                if (beaconOwner->GetAura(53563, paladinMaster->GetGUID()))
+                {
+                    if (beaconOwner->IsWithinLOSInMap(paladinMaster))
+                    {
+                        int32 mod = 100;
+                        
+                        switch (eventInfo.GetDamageInfo()->GetSpellInfo()->Id)
+                        {
+                            case 19750: // Flash of Light
+                            case 82326: // Divine Light
+                            case 85673: // Word of Glory
+                            case 25914: // Holy Shock
+                            case 85222: // Light of Dawn
+                                mod = 50; // 50% heal from these spells
+                                break;
+                            case 635:   // Holy Light
+                                mod = 100; // 100% heal from Holy Light
+                                break;
+                            default:
+                                return;
+                        }
+
+                        // False when target of heal is beaconed
+                        if (beaconOwner == healTarget)
+                            return;
+
+                        int32 basepoints0 = CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), mod);
+
+                        paladinMaster->CastCustomSpell(beaconOwner, 53652, &basepoints0, NULL, NULL, true);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectProc += AuraEffectProcFn(spell_pal_lights_beacon_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_pal_lights_beacon_AuraScript();
+        }
+};
+
+// 20138/20139/20140 - Protector of the Innocent
+class spell_pal_protector_of_the_innocent : public SpellScriptLoader
+{
+    public:
+        spell_pal_protector_of_the_innocent() : SpellScriptLoader("spell_pal_protector_of_the_innocent") { }
+
+        class spell_pal_protector_of_the_innocent_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_pal_protector_of_the_innocent_AuraScript);
+
+            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+            {
+                PreventDefaultAction();
+
+                Unit * caster = GetCaster();
+                Unit * target = eventInfo.GetProcTarget();
+
+                if (!caster || !target)
+                    return;
+
+                if(caster != target)
+                    caster->CastSpell(caster, GetSpellInfo()->Effects[EFFECT_0].BasePoints, true);
+            }
+
+            void Register()
+            {
+                OnEffectProc += AuraEffectProcFn(spell_pal_protector_of_the_innocent_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_pal_protector_of_the_innocent_AuraScript();
+        }
+};
 
 // 89023 - Blessed Life
 class spell_pal_blessed_life : public SpellScriptLoader
@@ -1099,6 +1201,8 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 void AddSC_paladin_spell_scripts()
 {
     //new spell_pal_ardent_defender();
+    new spell_pal_lights_beacon();
+    new spell_pal_protector_of_the_innocent();
     new spell_pal_blessed_life();
     new spell_pal_aura_mastery();
     new spell_pal_divine_protection();
