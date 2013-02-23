@@ -3130,6 +3130,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    //Convinction Rank 1
+                    case 20050:
+                        spellInfo->Effects[EFFECT_0].MiscValue = 3;
+                        break;
                     // Speed of Light buff
                     case 85497:
                         spellInfo->Effects[EFFECT_0].BasePoints = 60;
