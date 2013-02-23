@@ -14,3 +14,4 @@ Questo documento tiene traccia delle ottimizzazioni da fare una volta stabilizza
 	SpellScaling.dbc				id(1277)
 
 7 Da sistemare il metodo GetHealth() e derivati. Restituisce più hp degli effetivi posseduti dal target.
+8 Inserire lo script per SPELL_AURA_MOD_AUTOATTACK_DAMAGE e SPELL_AURA_MOD_SPELL_COOLDOWN_BY_HASTE.
