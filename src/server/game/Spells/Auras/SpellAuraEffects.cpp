@@ -5800,6 +5800,16 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
                 break;
             }
         break;
+        case SPELLFAMILY_PALADIN:
+            switch (GetSpellInfo()->Id)
+            {
+                // Holy Radiance
+                case 82327:
+                    if(caster && target)
+                        caster->CastSpell(target, 86452);
+                    break;
+            }
+            break;
         case SPELLFAMILY_MAGE:
         {
             // Mirror Image
