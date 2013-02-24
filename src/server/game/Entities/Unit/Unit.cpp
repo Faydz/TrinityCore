@@ -5553,87 +5553,64 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         }
         case SPELLFAMILY_MAGE:
         {
-            // Piercing Chill
-            if (dummySpell->SpellIconID == 4625)
+            switch (dummySpell->SpellIconID)
             {
-                if (!ToPlayer() || !victim)
-                    return false;
-                Player* player = ToPlayer();
-                player->Say("piercing chill", LANG_UNIVERSAL);
-                int32 bh=2;
-                //if (dummySpell->Id == 83156)
-                //    bh=1;
-                player->CastCustomSpell(victim, 83154, &bh, NULL, NULL, true);
-                
-            }
-            
-            //this will prevent the remotion of the arcane missiles aura when casting a spell that is not arcane missiles
-            if (dummySpell->Id == 79683)
-                return false;
-            
-            // Magic Absorption
-            if (dummySpell->SpellIconID == 459)             // only this spell has SpellIconID == 459 and dummy aura
-            {
-                if (getPowerType() != POWER_MANA)
-                    return false;
-
-                // mana reward
-                basepoints0 = CalculatePct(GetMaxPower(POWER_MANA), triggerAmount);
-                target = this;
-                triggered_spell_id = 29442;
-                break;
-            }
-            // Arcane Potency
-            if (dummySpell->SpellIconID == 2120)
-            {
-                if (!procSpell)
-                    return false;
-
-                target = this;
-                switch (dummySpell->Id)
-                {
-                    case 31571: triggered_spell_id = 57529; break;
-                    case 31572: triggered_spell_id = 57531; break;
-                    default:
-                        sLog->outError(LOG_FILTER_UNITS, "Unit::HandleDummyAuraProc: non handled spell id: %u", dummySpell->Id);
+                // Piercing Chill
+                case 4625:
+                    triggered_spell_id = 83154;
+                    break;
+                // Magic Absorption
+                case 459: // only this spell has SpellIconID == 459 and dummy aura
+                    if (getPowerType() != POWER_MANA)
                         return false;
-                }
-                break;
-            }
-            // Hot Streak & Improved Hot Streak
-            if (dummySpell->SpellIconID == 2999)
-            {
-                if (effIndex != 0)
-                    return false;
-                AuraEffect* counter = triggeredByAura->GetBase()->GetEffect(EFFECT_1);
-                if (!counter)
-                    return true;
 
-                // Count spell criticals in a row in second aura
-                if (procEx & PROC_EX_CRITICAL_HIT)
-                {
-                    counter->SetAmount(counter->GetAmount() * 2);
-                    if (counter->GetAmount() < 100 && dummySpell->Id != 44445) // not enough or Hot Streak spell
+                    // mana reward
+                    basepoints0 = CalculatePct(GetMaxPower(POWER_MANA), triggerAmount);
+                    target = this;
+                    triggered_spell_id = 29442;
+                    break;
+                // Arcane Potency
+                case 2120:
+                    if (!procSpell)
+                        return false;
+
+                    target = this;
+                    switch (dummySpell->Id)
+                    {
+                        case 31571: triggered_spell_id = 57529; break;
+                        case 31572: triggered_spell_id = 57531; break;
+                        default:
+                            sLog->outError(LOG_FILTER_UNITS, "Unit::HandleDummyAuraProc: non handled spell id: %u", dummySpell->Id);
+                            return false;
+                    }
+                    break;
+                // Hot Streak & Improved Hot Streak
+                case 2999:
+                    if (effIndex != 0)
+                        return false;
+                    AuraEffect* counter = triggeredByAura->GetBase()->GetEffect(EFFECT_1);
+                    if (!counter)
                         return true;
-                    // Crititcal counted -> roll chance
-                    if (roll_chance_i(triggerAmount))
-                        CastSpell(this, 48108, true, castItem, triggeredByAura);
-                }
-                counter->SetAmount(25);
-                return true;
-            }
-            // Incanter's Regalia set (add trigger chance to Mana Shield)
-            if (dummySpell->SpellFamilyFlags[0] & 0x8000)
-            {
-                if (GetTypeId() != TYPEID_PLAYER)
-                    return false;
 
-                target = this;
-                triggered_spell_id = 37436;
-                break;
+                    // Count spell criticals in a row in second aura
+                    if (procEx & PROC_EX_CRITICAL_HIT)
+                    {
+                        counter->SetAmount(counter->GetAmount() * 2);
+                        if (counter->GetAmount() < 100 && dummySpell->Id != 44445) // not enough or Hot Streak spell
+                            return true;
+                        // Crititcal counted -> roll chance
+                        if (roll_chance_i(triggerAmount))
+                            CastSpell(this, 48108, true, castItem, triggeredByAura);
+                    }
+                    counter->SetAmount(25);
+                    return true;
             }
+
             switch (dummySpell->Id)
             {
+                // This will prevent the remotion of the arcane missiles aura when casting a spell that is not arcane missiles
+                case 79383:
+                    return false;
                 // Glyph of Polymorph
                 case 56375:
                 {
@@ -5707,6 +5684,17 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     triggered_spell_id = 91394;
                     break;
                 }
+            }
+
+            // Incanter's Regalia set (add trigger chance to Mana Shield)
+            if (dummySpell->SpellFamilyFlags[0] & 0x8000)
+            {
+                if (GetTypeId() != TYPEID_PLAYER)
+                    return false;
+
+                target = this;
+                triggered_spell_id = 37436;
+                break;
             }
             break;
         }

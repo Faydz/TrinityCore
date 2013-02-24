@@ -78,13 +78,70 @@ enum MageIcons
     ICON_MAGE_IMPROVED_FLAMESTRIKE               = 37,
     ICON_MAGE_IMPROVED_FREEZE                    = 94,
     ICON_MAGE_INCANTER_S_ABSORPTION              = 2941,
-    ICON_MAGE_IMPROVED_MANA_GEM                  = 1036
+    ICON_MAGE_IMPROVED_MANA_GEM                  = 1036,
+    SPELL_MAGE_PIERCING_CHILL                    = 4625,
 };
 
 enum ArcaneBlastSpells
 {
     SPELL_ARCANE_BLAST                      = 30451,    
     SPELL_SLOW                              = 31589,
+};
+
+// 83154 - Piercing Chill
+class spell_mage_piercing_chill : public SpellScriptLoader
+{
+    public:
+        spell_mage_piercing_chill() : SpellScriptLoader("spell_mage_piercing_chill") { }
+
+        class spell_mage_piercing_chill_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_mage_piercing_chill_SpellScript);
+
+            void HandleTargetSelectEff0(std::list<WorldObject*>& targets)
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    targets.remove(GetExplTargetUnit());
+
+                   if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_MAGE, SPELL_MAGE_PIERCING_CHILL, EFFECT_0))
+                   {
+                       Trinity::Containers::RandomResizeList(targets, aurEff->GetAmount());
+                       choosenTargets = targets;
+                   }
+                }
+            }
+
+            void RemoveTargetEffect(WorldObject*& target)
+            {
+                target = NULL;
+            }
+
+            void HandleTargetSelectEff2(std::list<WorldObject*>& targets)
+            {
+                targets.clear();
+
+                if(!choosenTargets.empty())
+                {
+                    targets = choosenTargets;
+                }
+            }
+
+        private:
+            std::list<WorldObject*> choosenTargets;
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_mage_piercing_chill_SpellScript::HandleTargetSelectEff0, EFFECT_0, TARGET_UNIT_DEST_AREA_ENEMY);
+                OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_mage_piercing_chill_SpellScript::RemoveTargetEffect, EFFECT_2, TARGET_UNIT_TARGET_ENEMY);
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_mage_piercing_chill_SpellScript::HandleTargetSelectEff2, EFFECT_2, TARGET_UNIT_DEST_AREA_ENEMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_mage_piercing_chill_SpellScript();
+        }
 };
 
 // 82676 - Ring of Frost
@@ -999,6 +1056,7 @@ public:
 
 void AddSC_mage_spell_scripts()
 {
+    new spell_mage_piercing_chill();
     new spell_mage_ring_of_frost();
     new spell_mage_arcane_blast();
     new spell_mage_blast_wave();
