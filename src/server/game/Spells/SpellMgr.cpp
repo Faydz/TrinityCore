@@ -3130,6 +3130,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    // Word of Glory
+                    case 85673:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_DUMMY;
+                        break;
                     // Zealotry
                     case 84535:
                         spellInfo->Effects[EFFECT_1].BasePoints = 1;

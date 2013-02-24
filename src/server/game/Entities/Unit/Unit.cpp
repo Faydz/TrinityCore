@@ -11026,6 +11026,15 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                     break;
             }
             break;
+        case SPELLFAMILY_PALADIN:
+            switch(spellProto->Id)
+            {
+                // Word of Glory
+                case 85673:
+                    DoneTotalMod += this->GetPower(POWER_HOLY_POWER);
+                    break;
+            }
+            break;
         case SPELLFAMILY_DRUID:
             switch(spellProto->Id)
             {
