@@ -6368,6 +6368,18 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
                         break;
                 }
                 break;
+            case SPELLFAMILY_MAGE:
+                switch (GetId())
+                {
+                    // Frostfire Bolt
+                    case 44614:
+                        if(!caster->HasAura(61205))
+                        {
+                            return;
+                        }
+                        break;
+                }
+                break;
         }
 
         // Potent Afflictions (Warlock Affliction Mastery)

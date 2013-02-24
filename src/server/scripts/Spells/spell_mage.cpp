@@ -88,6 +88,51 @@ enum ArcaneBlastSpells
     SPELL_SLOW                              = 31589,
 };
 
+// 44614 - Frostfire Bolt
+class spell_mage_frostfire_bolt : public SpellScriptLoader
+{
+    public:
+        spell_mage_frostfire_bolt() : SpellScriptLoader("spell_mage_frostfire_bolt") { }
+        
+        class spell_mage_frostfire_bolt_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_mage_frostfire_bolt_AuraScript);
+
+            void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& /*canBeRecalculated*/)
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    if(caster->HasAura(61205))
+                    {
+                        amount = 0;
+                    }
+                }
+            }
+            
+            void UpdateAmount(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    if(!caster->HasAura(61205))
+                    {
+                        aurEff->GetBase()->SetStackAmount(1);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mage_frostfire_bolt_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_MOD_DECREASE_SPEED);
+                AfterEffectApply += AuraEffectApplyFn(spell_mage_frostfire_bolt_AuraScript::UpdateAmount, EFFECT_0, SPELL_AURA_MOD_DECREASE_SPEED, AURA_EFFECT_HANDLE_CHANGE_AMOUNT_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_mage_frostfire_bolt_AuraScript();
+        }
+};
+
 // 83154 - Piercing Chill
 class spell_mage_piercing_chill : public SpellScriptLoader
 {
@@ -154,7 +199,7 @@ class spell_mage_ring_of_frost : public SpellScriptLoader
         {
             PrepareSpellScript(spell_mage_ring_of_frost_SpellScript);
 
-            void HandleAfterHit()
+            void HandleBeforeCast()
             {
                 if (Unit* caster = GetCaster())
                 {
@@ -174,7 +219,7 @@ class spell_mage_ring_of_frost : public SpellScriptLoader
 
             void Register()
             {
-                BeforeCast += SpellCastFn(spell_mage_ring_of_frost_SpellScript::HandleAfterHit);
+                BeforeCast += SpellCastFn(spell_mage_ring_of_frost_SpellScript::HandleBeforeCast);
             }
         };
 
@@ -1056,6 +1101,7 @@ public:
 
 void AddSC_mage_spell_scripts()
 {
+    new spell_mage_frostfire_bolt();
     new spell_mage_piercing_chill();
     new spell_mage_ring_of_frost();
     new spell_mage_arcane_blast();
