@@ -68,6 +68,8 @@ enum MageSpells
 
     SPELL_MAGE_FINGERS_OF_FROST                  = 44544,
     MAGE_SPELL_CAUTERIZE_HEAL                    = 87023,
+
+    SPELL_MAGE_RING_OF_FROST_OBJ_ENTRY           = 44199,
 };
 
 enum MageIcons
@@ -83,6 +85,46 @@ enum ArcaneBlastSpells
 {
     SPELL_ARCANE_BLAST                      = 30451,    
     SPELL_SLOW                              = 31589,
+};
+
+// 82676 - Ring of Frost
+class spell_mage_ring_of_frost : public SpellScriptLoader
+{
+    public:
+        spell_mage_ring_of_frost() : SpellScriptLoader("spell_mage_ring_of_frost") { }
+
+        class spell_mage_ring_of_frost_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_mage_ring_of_frost_SpellScript);
+
+            void HandleAfterHit()
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    std::list<Creature*> unitList;
+                    caster->GetCreatureListWithEntryInGrid(unitList, SPELL_MAGE_RING_OF_FROST_OBJ_ENTRY, 100.0f);
+
+                    for (std::list<Creature*>::const_iterator itr = unitList.begin(); itr != unitList.end(); ++itr)
+                    {
+                        if (TempSummon* tSummon = (*itr)->ToTempSummon())
+                        {
+                            if (tSummon->GetSummonerGUID() == caster->GetGUID())
+                                tSummon->UnSummon();
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                BeforeCast += SpellCastFn(spell_mage_ring_of_frost_SpellScript::HandleAfterHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_mage_ring_of_frost_SpellScript();
+        }
 };
 
 class spell_mage_arcane_blast : public SpellScriptLoader
@@ -957,6 +999,7 @@ public:
 
 void AddSC_mage_spell_scripts()
 {
+    new spell_mage_ring_of_frost();
     new spell_mage_arcane_blast();
     new spell_mage_blast_wave();
     new spell_pyromaniac();
