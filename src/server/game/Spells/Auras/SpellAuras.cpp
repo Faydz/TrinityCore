@@ -1253,18 +1253,11 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                 switch(GetId())
                 {
                 case 1978:
-                    if(caster->HasAura(19464) || caster->HasAura(82834))
-                    {
-                        if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 536, 0))
+                    if (AuraEffect* auraEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 536, 0))
                         {
-                            int32 basepoints0;
-                            if(caster->HasAura(19464))
-                                basepoints0 = aurEff->GetAmount() * (caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.4f + (460 * 15 / 3)) / 100;
-                            else
-                                basepoints0 = aurEff->GetAmount() * (caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.4f + (460 * 30 / 3)) / 100;
-                            caster->CastCustomSpell(target, 83077, &basepoints0, NULL, NULL, true, NULL, GetEffect(0));
+                            int32 bp0 = (GetEffect(EFFECT_0)->CalculateAmount(caster) * GetEffect(EFFECT_0)->GetTotalTicks()) / 100 * auraEff->GetAmount();
+                            caster->CastCustomSpell(target, 83077, &bp0, NULL, NULL, true, NULL, GetEffect(0));
                         }
-                    }
                     break;
                 }
                 break;
