@@ -1302,10 +1302,6 @@ void AddBattlegroundScripts()
 	void AddSC_npc_dtinireset();
 	void AddSC_CHANGE_NPC();
 	void AddSC_dt_shop();
-    void AddSC_Morph_NPC();
-    void AddSC_DuelCD_Reset();
-    void AddSC_AV_NPC();
-	void AddSC_npc_startup();
     void AddSC_instance_dtprison();
     void AddSC_dtprison();
     void AddSC_boss_der_schwarzedoktor();
@@ -1315,7 +1311,7 @@ void AddBattlegroundScripts()
 	void AddSC_boss_arkton();
 	void AddSC_arena_link_battle();
 	void AddSC_boss_tiefenwyrm();
-	void AddSC_npc_donation();
+	void AddSC_custom_misc();
 #endif
 
 void AddCustomScripts()
@@ -1333,11 +1329,7 @@ void AddCustomScripts()
     AddSC_NPC_Transmogrify();
 	AddSC_npc_dtinireset();
 	AddSC_CHANGE_NPC();
-	AddSC_dt_shop();
-    AddSC_Morph_NPC();
-    AddSC_DuelCD_Reset();
-    AddSC_AV_NPC();
-	AddSC_npc_startup();    
+	AddSC_dt_shop();  
     AddSC_instance_dtprison();
     AddSC_dtprison();
     AddSC_boss_der_schwarzedoktor();
@@ -1347,6 +1339,6 @@ void AddCustomScripts()
 	AddSC_boss_arkton();
 	AddSC_arena_link_battle();
 	AddSC_boss_tiefenwyrm();
-	AddSC_npc_donation();
+	AddSC_custom_misc();
 #endif
 }
