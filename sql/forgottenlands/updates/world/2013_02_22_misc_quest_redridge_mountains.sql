@@ -149,7 +149,7 @@ DELETE FROM `creature_questrelation` WHERE (`id`='43733') AND (`quest`='26708');
 -- Quest 26708 AHHHHHHHHHHHH! AHHHHHHHHH!!! CHAIN TIMELINE FIX
 UPDATE `quest_template` SET `NextQuestIdChain`='26714' WHERE (`Id`='26713');
 UPDATE `quest_template` SET `NextQuestIdChain`='26726' WHERE (`Id`='26714');
-UPDATE `quest_template` SET `PrevQuestId`='' WHERE (`Id`='26713');
+UPDATE `quest_template` SET `PrevQuestId`='0' WHERE (`Id`='26713');
 UPDATE `quest_template` SET `PrevQuestId`='26713' WHERE (`Id`='26714');
 UPDATE `quest_template` SET `PrevQuestId`='26714' WHERE (`Id`='26726');
 
@@ -187,11 +187,11 @@ INSERT INTO `creature` VALUES (null, 43459, 0, 1, 1, 0, 0, -9471.45, -2829.83, 6
 DELETE FROM `creature_questrelation` WHERE (`id`='43184') AND (`quest`='26616');
 
 -- Quest 26616 It's Never Over CHAIN TIMELINE FIX
-UPDATE `quest_template` SET `NextQuestIdChain`='' WHERE (`Id`='26616');
+UPDATE `quest_template` SET `NextQuestIdChain`='0' WHERE (`Id`='26616');
 UPDATE `quest_template` SET `NextQuestIdChain`='26640' WHERE (`Id`='26639');
 UPDATE `quest_template` SET `NextQuestIdChain`='26646' WHERE (`Id`='26640');
 UPDATE `quest_template` SET `NextQuestIdChain`='26651' WHERE (`Id`='26646');
-UPDATE `quest_template` SET `PrevQuestId`='' WHERE (`Id`='26639');
+UPDATE `quest_template` SET `PrevQuestId`='0' WHERE (`Id`='26639');
 UPDATE `quest_template` SET `PrevQuestId`='26639' WHERE (`Id`='26640');
 UPDATE `quest_template` SET `PrevQuestId`='26640' WHERE (`Id`='26646');
 UPDATE `quest_template` SET `PrevQuestId`='26646' WHERE (`Id`='26651');

@@ -133,7 +133,7 @@ INSERT INTO `creature` VALUES (null, 46869, 0, 1, 1, 0, 0, -10437.4, -3325.2, 20
 UPDATE `quest_template` SET `NextQuestIdChain`='27600' WHERE (`Id`='27598');
 UPDATE `quest_template` SET `NextQuestIdChain`='27600' WHERE (`Id`='27599');
 UPDATE `quest_template` SET `NextQuestIdChain`='27740' WHERE (`Id`='27600');
-UPDATE `quest_template` SET `PrevQuestId`='' WHERE (`Id`='27600');
+UPDATE `quest_template` SET `PrevQuestId`='0' WHERE (`Id`='27600');
 UPDATE `quest_template` SET `PrevQuestId`='27600' WHERE (`Id`='27740');
 
 -- Quest 27599 Can't Take It With Them
