@@ -185,7 +185,7 @@ class boss_drakkari_colossus : public CreatureScript
                     {
                         damage = 0;
                         phase = (phase == COLOSSUS_PHASE_NORMAL ? COLOSSUS_PHASE_FIRST_ELEMENTAL_SUMMON : COLOSSUS_PHASE_SECOND_ELEMENTAL_SUMMON);
-                        DoAction(ACTION_FREEZE_COLOSSUS);
+                        //DoAction(ACTION_FREEZE_COLOSSUS);
                         DoAction(ACTION_SUMMON_ELEMENTAL);
 
                     }
