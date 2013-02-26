@@ -456,6 +456,19 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 }
                 break;
             }
+            case SPELLFAMILY_MAGE:
+            {
+                switch (m_spellInfo->Id)
+                {
+                    // Deep Freeze
+                    case 71757:
+                        if (unitTarget->GetTypeId() != TYPEID_UNIT || !(unitTarget->IsImmunedToSpellEffect(sSpellMgr->GetSpellInfo(44572), EFFECT_0)))
+                        {
+                            return;
+                        }
+                        break;
+                }
+            }
             case SPELLFAMILY_PRIEST:
             {
                 // Mind blast and Mind Spike
