@@ -70,6 +70,8 @@ enum MageSpells
     MAGE_SPELL_CAUTERIZE_HEAL                    = 87023,
 
     SPELL_MAGE_RING_OF_FROST_OBJ_ENTRY           = 44199,
+
+    SPELL_MAGE_FROSTFIRE_BOLT                    = 44614,
 };
 
 enum MageIcons
@@ -86,6 +88,85 @@ enum ArcaneBlastSpells
 {
     SPELL_ARCANE_BLAST                      = 30451,    
     SPELL_SLOW                              = 31589,
+};
+
+// 44544 - Fingers of Frost
+class spell_fingers_of_frost : public SpellScriptLoader
+{
+    public:
+        spell_fingers_of_frost() : SpellScriptLoader("spell_fingers_of_frost") { }
+
+        class spell_fingers_of_frost_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_fingers_of_frost_SpellScript);
+            
+            void HandleBeforeHit()
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetExplTargetUnit();
+                
+                if(caster && target && caster->HasAura(SPELL_MAGE_FINGERS_OF_FROST))
+                {
+                    if(GetSpellInfo()->Id == SPELL_MAGE_FROSTFIRE_BOLT && GetSpell()->GetCastTime() != 0)
+                        return;
+
+                    target->ModifyAuraState(AURA_STATE_FROZEN, true);
+                }
+            }
+
+            void HandleAfterHit()
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetExplTargetUnit();
+
+                if(caster && target && caster->HasAura(SPELL_MAGE_FINGERS_OF_FROST))
+                {
+                    if(GetSpellInfo()->Id == SPELL_MAGE_FROSTFIRE_BOLT && GetSpell()->GetCastTime() != 0)
+                        return;
+
+                    target->ModifyAuraState(AURA_STATE_FROZEN, false);
+                }
+            }
+
+            void Register()
+            {
+                BeforeCast += SpellCastFn(spell_fingers_of_frost_SpellScript::HandleBeforeHit);
+                AfterHit += SpellHitFn(spell_fingers_of_frost_SpellScript::HandleAfterHit);
+            }
+        };
+
+        class spell_fingers_of_frost_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_fingers_of_frost_AuraScript);
+            
+            void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+            {
+                aurEff->GetBase()->SetStackAmount(aurEff->GetAmount());
+            }
+
+            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& /*eventInfo*/)
+            {
+                PreventDefaultAction();
+
+                aurEff->GetBase()->ModStackAmount(-1);
+            }
+
+            void Register()
+            {
+                AfterEffectApply += AuraEffectApplyFn(spell_fingers_of_frost_AuraScript::HandleApply, EFFECT_0, SPELL_AURA_ABILITY_IGNORE_AURASTATE, AURA_EFFECT_HANDLE_REAL);
+                OnEffectProc += AuraEffectProcFn(spell_fingers_of_frost_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_ABILITY_IGNORE_AURASTATE);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_fingers_of_frost_SpellScript();
+        }
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_fingers_of_frost_AuraScript();
+        }
 };
 
 // 44614 - Frostfire Bolt
@@ -1101,6 +1182,7 @@ public:
 
 void AddSC_mage_spell_scripts()
 {
+    new spell_fingers_of_frost();
     new spell_mage_frostfire_bolt();
     new spell_mage_piercing_chill();
     new spell_mage_ring_of_frost();

@@ -10137,9 +10137,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                        DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -6.0f) * 0.025f); // frost base mastery is 2
                    }
                }
-               if (spellProto->Id == 44572 || spellProto->Id == 44614 || spellProto->Id == 30455)
-                   if (owner->HasAura(44544)) // Fingers of Frost buff remotion
-                       owner->RemoveAuraFromStack(44544);
             }
 
             // Mana Adept - Arcane Mastery

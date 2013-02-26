@@ -3470,13 +3470,6 @@ void SpellMgr::LoadSpellInfoCorrections()
             case 44401: // Missile Barrage
                 spellInfo->ProcCharges = 1;
                 break;
-            case 44544: // Fingers of Frost
-                spellInfo->Effects[EFFECT_0].SpellClassMask = flag96(131072, 1052672, 8);
-                break;
-            case 74396: // Fingers of Frost visual buff
-                spellInfo->ProcCharges = 2;
-                spellInfo->StackAmount = 0;
-                break;
             case 28200: // Ascendance (Talisman of Ascendance trinket)
                 spellInfo->ProcCharges = 6;
                 break;
