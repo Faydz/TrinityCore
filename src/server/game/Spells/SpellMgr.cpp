@@ -3130,6 +3130,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    // Seal of Insight
+                    case 20167:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_ENERGIZE_PCT;
+                        break;
                     // Word of Glory
                     case 85673:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_DUMMY;
