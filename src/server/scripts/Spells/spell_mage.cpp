@@ -139,11 +139,6 @@ class spell_fingers_of_frost : public SpellScriptLoader
         {
             PrepareAuraScript(spell_fingers_of_frost_AuraScript);
             
-            void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
-            {
-                aurEff->GetBase()->SetStackAmount(aurEff->GetAmount());
-            }
-
             void HandleProc(AuraEffect const* aurEff, ProcEventInfo& /*eventInfo*/)
             {
                 PreventDefaultAction();
@@ -153,7 +148,6 @@ class spell_fingers_of_frost : public SpellScriptLoader
 
             void Register()
             {
-                AfterEffectApply += AuraEffectApplyFn(spell_fingers_of_frost_AuraScript::HandleApply, EFFECT_0, SPELL_AURA_ABILITY_IGNORE_AURASTATE, AURA_EFFECT_HANDLE_REAL);
                 OnEffectProc += AuraEffectProcFn(spell_fingers_of_frost_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_ABILITY_IGNORE_AURASTATE);
             }
         };

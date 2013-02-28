@@ -7929,7 +7929,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
 
     Item* castItem = triggeredByAura->GetBase()->GetCastItemGUID() && GetTypeId() == TYPEID_PLAYER
         ? ToPlayer()->GetItemByGuid(triggeredByAura->GetBase()->GetCastItemGUID()) : NULL;
-
+    
     // Try handle unknown trigger spells
     if (sSpellMgr->GetSpellInfo(trigger_spell_id) == NULL)
     {
@@ -8575,6 +8575,12 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // dummy basepoints or other customs
     switch (trigger_spell_id)
     {
+        // Brain Freeze and Fingers of Frost should proc via Frosfire Orb only with rank 2
+        case 57761: 
+        case 44544:
+            if (procSpell && procSpell->Id == 95969)
+                return false;
+            break;
         // Focused Will 
         case 45242:
         case 45241:

@@ -3048,6 +3048,8 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_1].MiscValueB =36;
                 spellInfo->Effects[EFFECT_1].ApplyAuraName =SPELL_AURA_MOD_BASE_RESISTANCE_PCT;
                 break;
+            case 92294: // infinite duration for Frostfire Orb Override
+                spellInfo->DurationEntry= sSpellDurationStore.LookupEntry(21);
             default:
                 break;
         }

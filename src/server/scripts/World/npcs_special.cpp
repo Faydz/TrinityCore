@@ -3317,7 +3317,7 @@ public:
             if (damageTimer <= diff){
                 Unit* target = me->SelectNearestTarget(20);
                 Unit* oldtarget = target;
-                if (target->HasAuraTypeWithFamilyFlags(SPELL_AURA_MOD_CONFUSE,SPELLFAMILY_MAGE, 0x01000000))
+                if (target && target->HasAuraTypeWithFamilyFlags(SPELL_AURA_MOD_CONFUSE,SPELLFAMILY_MAGE, 0x01000000))
                     {
                     Aura* poly = NULL;
                     if (target->HasAura(118))            //polymorph sheep
