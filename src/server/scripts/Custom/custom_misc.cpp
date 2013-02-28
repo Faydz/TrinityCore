@@ -1050,7 +1050,7 @@ public: npc_donation() : CreatureScript("npc_donation") { }
 		}
 };
 
-#include "ScriptPch.h"
+#include "ScriptPCH.h"
 #include <cstring>
 #include <stdio.h>
 #include <time.h>
