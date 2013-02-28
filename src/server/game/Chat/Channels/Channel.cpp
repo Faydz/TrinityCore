@@ -610,7 +610,7 @@ void Channel::Say(uint64 guid, std::string const& what, uint32 lang)
 
     // TODO: Add proper RBAC check
 
-    if (sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_CHANNEL) || AccountMgr::IsGMAccount)
+    //if (sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_CHANNEL) || AccountMgr::IsGMAccount)
         lang = LANG_UNIVERSAL;
     if (!IsOn(guid))
     {

@@ -1299,7 +1299,7 @@ void AddBattlegroundScripts()
     void AddSC_custom_dtevent();
     void AddSC_LEVEL_NPC();
     void AddSC_NPC_Transmogrify();
-	void AddSC_npc_dtinireset();
+	//void AddSC_npc_dtinireset();
 	void AddSC_CHANGE_NPC();
 	void AddSC_dt_shop();
     void AddSC_instance_dtprison();
@@ -1326,7 +1326,7 @@ void AddCustomScripts()
     AddSC_custom_dtevent();
     AddSC_LEVEL_NPC();
     AddSC_NPC_Transmogrify();
-	AddSC_npc_dtinireset();
+	//AddSC_npc_dtinireset();
 	AddSC_CHANGE_NPC();
 	AddSC_dt_shop();  
     AddSC_instance_dtprison();

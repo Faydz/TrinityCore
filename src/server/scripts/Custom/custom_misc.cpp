@@ -1024,15 +1024,15 @@ public: npc_donation() : CreatureScript("npc_donation") { }
 						QueryResult result2;
 						result2 = WorldDatabase.PQuery("SELECT `ItemLevel` FROM `item_template` WHERE `entry`='result'", result);
 
-						if (result2 > 258)
-						{
-							creature->MonsterWhisper("Dieser Gegenstand hat eine zu hohe Gegenstandsstufe.", player->GetGUID());
-						}
+						//if (result2 > 258)
+						//{
+						//	creature->MonsterWhisper("Dieser Gegenstand hat eine zu hohe Gegenstandsstufe.", player->GetGUID());
+						//}
 
-						else
-						{
-							player->AddItem(result, 1);
-						}
+						//else
+						//{
+						//	player->AddItem(result, 1);
+						//}
 					}
 					else
 					{
