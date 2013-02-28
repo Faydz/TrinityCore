@@ -27316,6 +27316,9 @@ void Player::SpawnArchaeologyScope()
                 treasureEntryList.push_back(206836); // Fossil Find
                 break;
         }
+        if (treasureEntryList.empty())
+            return;
+
         uint8 randomFind = urand(1, treasureEntryList.size());
         uint32 findEntry = 0;
         uint8 count = 1;
