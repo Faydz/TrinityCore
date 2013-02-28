@@ -10380,7 +10380,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             break;
         case SPELLFAMILY_DRUID:
             // Razor Claws (Mastery Druid Feral)
-            if (owner->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && spellProto->Mechanic == MECHANIC_BLEED)
+            if (owner->ToPlayer() && owner->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && spellProto->Mechanic == MECHANIC_BLEED)
                     if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_DRUID_FERAL_COMBAT)
                         DoneTotalMod *= 1.0f + 0.031f *  owner->ToPlayer()->GetMasteryPoints();
             break;
