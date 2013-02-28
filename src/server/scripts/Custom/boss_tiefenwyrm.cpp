@@ -73,7 +73,7 @@ public:
 			 }
 		}
         
-        void UpdateAI(uint32 const diff)
+        void UpdateAI(uint32 diff)
         {
 			if (me->HasUnitState(UNIT_STATE_CASTING))
                     return;

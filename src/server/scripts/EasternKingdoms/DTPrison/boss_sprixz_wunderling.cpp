@@ -102,7 +102,7 @@ class boss_sprixz_wunderling : public CreatureScript
                 Talk(SAY_DEATH);
             }
        
-            void UpdateAI(const uint32 diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                     return;
@@ -228,7 +228,7 @@ class boss_sprixz_wunderling_add : public CreatureScript
                 events.ScheduleEvent(EVENT_DEBUFF, 6000);
             }
        
-            void UpdateAI(const uint32 diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                     return;    

@@ -79,7 +79,7 @@ public:
             uiReset_Timer = 20*IN_MILLISECONDS;
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (uiRace_Timer <= diff)
             {

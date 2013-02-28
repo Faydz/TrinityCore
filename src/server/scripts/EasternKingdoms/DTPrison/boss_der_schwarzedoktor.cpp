@@ -91,7 +91,7 @@ class boss_der_schwarzedoktor : public CreatureScript
                 Talk(SAY_KILL);
             }
             
-            void UpdateAI(const uint32 diff)
+            void UpdateAI(uint32 diff)
             {
                 if (_phase == 1 && HealthBelowPct(55))
                 {

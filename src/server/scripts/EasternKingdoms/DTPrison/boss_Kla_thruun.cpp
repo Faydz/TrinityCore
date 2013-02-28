@@ -63,7 +63,7 @@ class boss_2_Kla_thruun : public CreatureScript
                 events.ScheduleEvent(EVENT_PHASE_ZWEI, 50000, 0, 1);                
             }
         
-            void EnterCombat(Unit*)
+            void EnterCombat(Unit* who)
             {
                 me->setActive(true);
                 Talk(SAY_COMBAT);           
@@ -79,7 +79,7 @@ class boss_2_Kla_thruun : public CreatureScript
                 Talk(SAY_DEATH);
             }
             
-            void UpdateAI(const uint32 diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                     return;  

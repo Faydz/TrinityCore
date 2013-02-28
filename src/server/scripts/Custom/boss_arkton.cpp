@@ -56,7 +56,7 @@ public:
 			me->MonsterYell("Das war viel zu einfach!", 0, 0);
 		}
         
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;
