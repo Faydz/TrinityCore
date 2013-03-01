@@ -3474,8 +3474,9 @@ class spell_gen_replenishment : public SpellScriptLoader
 
             void HandleCaster2(AuraEffect* aurEff)
             {// the only Replenishment given by mage is Enduring Winter wich lasts 10 seconds
-                if(aurEff->GetCaster() && aurEff->GetCaster()->getClass() == CLASS_MAGE && aurEff->GetBase())
-                    aurEff->GetBase()->SetDuration(9000); //after first tick
+                if(this->GetDuration() > 10000 && this->GetCaster() && this->GetCaster()->getClass() == CLASS_MAGE)
+                    if(this->GetAura()->GetDuration() > 10000)
+                        aurEff->GetBase()->SetDuration(9000); //after first tick
             }
 
             void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)
