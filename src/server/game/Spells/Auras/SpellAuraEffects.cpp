@@ -6590,6 +6590,20 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
 
         damage = uint32(target->CountPctFromMaxHealth(damage));
         damage = uint32(damage * TakenTotalMod);
+        
+        switch (m_spellInfo->SpellFamilyName)
+        {
+            case SPELLFAMILY_WARRIOR:
+                switch (GetId())
+                {
+			        case 16488: 
+			        case 16490: 
+			        case 16491: // Blood Craze
+                        damage = caster->CountPctFromMaxHealth(GetAmount()) / (GetBase()->GetMaxDuration() / IN_MILLISECONDS);
+                        break;
+                }
+                break;
+        }
     }
     else
     {
