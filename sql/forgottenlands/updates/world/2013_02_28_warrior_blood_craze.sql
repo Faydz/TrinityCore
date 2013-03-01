@@ -1,1 +1,5 @@
-UPDATE spell_proc_event SET procFlags=1048576, procEx=3, CustomChance=10, Cooldown=6 WHERE entry IN (16487,16489,16492);
+DELETE FROM spell_proc_event WHERE entry in(16487,16489,16492);
+
+INSERT INTO `spell_proc_event` VALUES (16487, 0, 0, 0, 0, 0, 1048576, 3, 0, 10, 6);
+INSERT INTO `spell_proc_event` VALUES (16489, 0, 0, 0, 0, 0, 1048576, 3, 0, 10, 6);
+INSERT INTO `spell_proc_event` VALUES (16492, 0, 0, 0, 0, 0, 1048576, 3, 0, 10, 6);

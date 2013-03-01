@@ -3231,6 +3231,22 @@ void SpellMgr::LoadSpellCustomAttr()
                 }
                 break;
             case SPELLFAMILY_WARRIOR:
+                switch(spellInfo->Id)
+                {
+                    // Blood Craze Rank 1
+                    case 16488:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 1;
+                        break;
+                    // Blood Craze Rank 2
+                    case 16490:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 2;
+                        break;
+                    // Blood Craze Rank 3
+                    case 16491:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 3;
+                        break;
+                }
+
                 // Shout
                 if (spellInfo->SpellFamilyFlags[0] & 0x20000 || spellInfo->SpellFamilyFlags[1] & 0x20)
                     spellInfo->AttributesCu |= SPELL_ATTR0_CU_AURA_CC;
