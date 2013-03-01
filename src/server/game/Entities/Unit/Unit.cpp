@@ -8341,6 +8341,12 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Enduring Winter
+        case 44561:
+        case 86500:
+        case 86508:
+            this->CastSpell(this, 57669, true);
+            return false;
         // Sacred Shield
         case 85285:
         {
