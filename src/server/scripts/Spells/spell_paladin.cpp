@@ -152,6 +152,38 @@ enum PaladinSpells
         }
 };*/
 
+// 2812 - Holy Wrath
+class spell_pal_holy_wrath : public SpellScriptLoader
+{
+    public:
+        spell_pal_holy_wrath() : SpellScriptLoader("spell_pal_holy_wrath") { }
+        
+        class spell_pal_holy_wrath_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_pal_holy_wrath_AuraScript);
+
+            bool CheckAreaTarget(Unit* target)
+            {
+                if(target &&
+                    !(target->GetCreatureType() == CREATURE_TYPE_DEMON || target->GetCreatureType() == CREATURE_TYPE_UNDEAD))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            void Register()
+            {
+                DoCheckAreaTarget += AuraCheckAreaTargetFn(spell_pal_holy_wrath_AuraScript::CheckAreaTarget);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_pal_holy_wrath_AuraScript();
+        }
+};
+
 // 85222 - Light of Dawn
 class spell_pal_light_of_dawn: public SpellScriptLoader
 {
@@ -1308,6 +1340,7 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 void AddSC_paladin_spell_scripts()
 {
     //new spell_pal_ardent_defender();
+    new spell_pal_holy_wrath();
     new spell_pal_light_of_dawn();
     new spell_pal_lights_beacon();
     new spell_pal_protector_of_the_innocent();
