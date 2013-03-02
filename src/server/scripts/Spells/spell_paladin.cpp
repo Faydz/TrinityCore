@@ -47,7 +47,9 @@ enum PaladinSpells
     SPELL_PALADIN_DIVINE_STORM_HEAL              = 54172,
 
     SPELL_PALADIN_EYE_FOR_AN_EYE_DAMAGE          = 25997,
-
+    
+    SPELL_PALADIN_LAY_ON_HANDS                   = 633,
+    SPELL_PALADIN_DIVINE_SHIELD                  = 642,
     SPELL_PALADIN_FORBEARANCE                    = 25771,
     SPELL_PALADIN_AVENGING_WRATH_MARKER          = 61987,
     SPELL_PALADIN_IMMUNE_SHIELD_MARKER           = 61988,
@@ -151,6 +153,65 @@ enum PaladinSpells
             return new spell_pal_ardent_defender_AuraScript();
         }
 };*/
+
+// 633-642-1022 - Forberance handler
+class spell_pal_forberance_handler : public SpellScriptLoader
+{
+    public:
+        spell_pal_forberance_handler() : SpellScriptLoader("spell_pal_forberance_handler") { }
+
+        class spell_pal_forberance_handler_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_pal_forberance_handler_SpellScript);
+
+            SpellCastResult CheckCast()
+            {
+                Unit* target = GetExplTargetUnit();
+                Unit* caster = GetCaster();
+
+                if(!caster)
+                    return SPELL_FAILED_NO_VALID_TARGETS;
+
+                if(GetSpellInfo()->Id == SPELL_PALADIN_DIVINE_SHIELD)
+                    target = caster;
+
+                // Unit check is done in two steps because for Divine Shield GetExplTargetUnit() doesn't return the real spell target (the paladin himself)
+                if(!target)
+                    return SPELL_FAILED_NO_VALID_TARGETS;
+
+                if (target->HasAura(SPELL_PALADIN_FORBEARANCE))
+                    return SPELL_FAILED_NO_VALID_TARGETS;
+
+                return SPELL_CAST_OK;
+            }
+            
+            void HandleAfterHit()
+            {
+                Unit* target = GetHitUnit();
+                Unit* caster = GetCaster();
+
+                if(!caster || !target)
+                    return;
+
+                // Avoid Forberance application if target is not the paladin himself
+                if(GetSpellInfo()->Id == SPELL_PALADIN_LAY_ON_HANDS && caster != target)
+                    return;
+
+                caster->CastSpell(target, SPELL_PALADIN_FORBEARANCE, true);
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_pal_forberance_handler_SpellScript::CheckCast);
+                AfterHit += SpellHitFn(spell_pal_forberance_handler_SpellScript::HandleAfterHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pal_forberance_handler_SpellScript();
+        }
+};
 
 // 2812 - Holy Wrath
 class spell_pal_holy_wrath : public SpellScriptLoader
@@ -1340,6 +1401,7 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 void AddSC_paladin_spell_scripts()
 {
     //new spell_pal_ardent_defender();
+    new spell_pal_forberance_handler();
     new spell_pal_holy_wrath();
     new spell_pal_light_of_dawn();
     new spell_pal_lights_beacon();
