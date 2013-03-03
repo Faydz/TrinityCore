@@ -1851,7 +1851,7 @@ public:
         {
             if (checkTimer <= diff)
             {
-                if (!me->GetOwner() || me->GetOwner()->ToPlayer())
+                if (!me->GetOwner() || !me->GetOwner()->ToPlayer())
                     return;
                 Player* owner = me->GetOwner()->ToPlayer();
                 //actions by mirror images
