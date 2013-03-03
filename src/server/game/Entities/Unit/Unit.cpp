@@ -5707,7 +5707,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     if (triggerAmount == 0)
                         return false;
 
-                    if (procSpell->Id == 76858)
+                    if (procSpell && procSpell->Id == 76858)
                         return false;
 
                     if (Player* caster = ToPlayer())
