@@ -1147,6 +1147,7 @@ class Theme_NPC : public CreatureScript
 					break;
 				case GOSSIP_ACTION_INFO_DEF + 2:
 					GossipObjects(player, m_creature);
+					player->CLOSE_GOSSIP_MENU();
 					break;
 				}
 			}
