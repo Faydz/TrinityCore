@@ -3233,6 +3233,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Second Wind
+                    case 29842:
+                    case 29841:
+                        spellInfo->DmgClass = SPELL_DAMAGE_CLASS_MELEE;
+                        break;
                     // Blood Craze Rank 1
                     case 16488:
                         spellInfo->Effects[EFFECT_0].BasePoints = 1;

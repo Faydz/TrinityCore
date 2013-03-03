@@ -5753,7 +5753,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 {
                     case 29838: triggered_spell_id=29842; break;
                     case 29834: triggered_spell_id=29841; break;
-                    case 42770: triggered_spell_id=42771; break;
                     default:
                         sLog->outError(LOG_FILTER_UNITS, "Unit::HandleDummyAuraProc: non handled spell id: %u (SW)", dummySpell->Id);
                     return false;
@@ -11076,6 +11075,19 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                        DoneTotalMod *= 1.0f + ((1-healtPct) * (3.0f * ToPlayer()->GetMasteryPoints())) / 100;
                    }
                }
+            break;
+        case SPELLFAMILY_WARRIOR:
+            switch(spellProto->Id)
+            {
+                // Second Wind
+                case 29842:
+                case 29841:
+                    if(victim)
+                    {
+                        healamount = CalculatePct(GetMaxHealth(), float(spellProto->Effects[EFFECT_1].BasePoints) / 5);
+                    }
+                    break;
+            }
             break;
     }
 
