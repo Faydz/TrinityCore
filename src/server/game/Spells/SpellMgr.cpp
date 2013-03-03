@@ -3308,6 +3308,18 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo();
                         spellInfo->Effects[EFFECT_1].TargetB = SpellImplicitTargetInfo();
                         break;
+                    // Immolation Trap
+                    case 13795:
+                        spellInfo->Effects[0].Effect = SPELL_EFFECT_SUMMON_OBJECT_SLOT3;
+                        break;
+                    // Explosive Trap
+                    case 13813:
+                        spellInfo->Effects[0].Effect = SPELL_EFFECT_SUMMON_OBJECT_SLOT3;
+                        break;
+                    // Snake Trap
+                    case 34600:
+                        spellInfo->Effects[0].Effect = SPELL_EFFECT_SUMMON_OBJECT_SLOT4;
+                        break;
                 }
                 break;
             default:
