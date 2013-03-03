@@ -6596,9 +6596,9 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
             case SPELLFAMILY_WARRIOR:
                 switch (GetId())
                 {
-			        case 16488: 
-			        case 16490: 
-			        case 16491: // Blood Craze
+                    case 16488: 
+                    case 16490: 
+                    case 16491: // Blood Craze
                         damage = caster->CountPctFromMaxHealth(GetAmount()) / (GetBase()->GetMaxDuration() / IN_MILLISECONDS);
                         break;
                 }

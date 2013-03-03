@@ -3290,6 +3290,26 @@ void SpellMgr::LoadSpellCustomAttr()
                 if (spellInfo->SpellFamilyFlags[0] & 0x8)
                     spellInfo->AttributesCu |= SPELL_ATTR0_CU_AURA_CC;
                 break;
+            case SPELLFAMILY_HUNTER:
+                switch(spellInfo->Id)
+                {
+                    // Serpent Spread Rank 1
+                    case 87934:
+                        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName= SPELL_AURA_DUMMY;
+                        break;
+                    // Serpent Spread Rank 2
+                    case 87935:
+                        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName= SPELL_AURA_DUMMY;
+                        break;
+                    // Serpent Spread applied buff rank 1
+                    case 88453:
+                        spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo();
+                        spellInfo->Effects[EFFECT_1].TargetB = SpellImplicitTargetInfo();
+                        break;
+                }
+                break;
             default:
                 break;
         }

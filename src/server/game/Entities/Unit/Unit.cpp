@@ -6711,6 +6711,14 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Serpent Spread Rank 1
+                case 87934:
+                    triggered_spell_id = 88453;
+                    break;
+                // Serpent Spread Rank 2
+                case 87935:
+                    triggered_spell_id = 88466;
+                    break;
                 //Sic 'em Rank 1
                 case 53340:
                 {
