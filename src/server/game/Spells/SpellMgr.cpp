@@ -3233,6 +3233,15 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    case 12162:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 16;
+                        break;
+                    case 12850:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 32;
+                        break;
+                    case 12867:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 48;
+                        break;
                     // Second Wind
                     case 29842:
                     case 29841:

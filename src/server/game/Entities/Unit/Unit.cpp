@@ -7891,6 +7891,19 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
         {
             switch (dummySpell->Id)
             {
+                // Deep Wounds
+                case 12162:
+                case 12850:
+                case 12867:
+                    if(victim)
+                    {
+                        int32 basepoints0 = CalculatePct(this->CalculateDamage(BASE_ATTACK, false, true), dummySpell->Effects[EFFECT_0]. BasePoints);
+
+                        // Per tick heal
+                        basepoints0 /= 6;
+                        CastCustomSpell(victim, 12721, &basepoints0, NULL, NULL, true);
+                    }
+                    break;
                 // Item - Warrior T10 Protection 4P Bonus
                 case 70844:
                 {
