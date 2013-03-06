@@ -3238,6 +3238,20 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    case 12162:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 16;
+                        break;
+                    case 12850:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 32;
+                        break;
+                    case 12867:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 48;
+                        break;
+                    // Second Wind
+                    case 29842:
+                    case 29841:
+                        spellInfo->DmgClass = SPELL_DAMAGE_CLASS_MELEE;
+                        break;
                     // Blood Craze Rank 1
                     case 16488:
                         spellInfo->Effects[EFFECT_0].BasePoints = 1;
@@ -3312,6 +3326,18 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 88453:
                         spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo();
                         spellInfo->Effects[EFFECT_1].TargetB = SpellImplicitTargetInfo();
+                        break;
+                    // Immolation Trap
+                    case 13795:
+                        spellInfo->Effects[0].Effect = SPELL_EFFECT_SUMMON_OBJECT_SLOT3;
+                        break;
+                    // Explosive Trap
+                    case 13813:
+                        spellInfo->Effects[0].Effect = SPELL_EFFECT_SUMMON_OBJECT_SLOT3;
+                        break;
+                    // Snake Trap
+                    case 34600:
+                        spellInfo->Effects[0].Effect = SPELL_EFFECT_SUMMON_OBJECT_SLOT4;
                         break;
                 }
                 break;

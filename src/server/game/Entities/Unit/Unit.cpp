@@ -5707,7 +5707,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     if (triggerAmount == 0)
                         return false;
 
-                    if (procSpell->Id == 76858)
+                    if (procSpell && procSpell->Id == 76858)
                         return false;
 
                     if (Player* caster = ToPlayer())
@@ -5753,7 +5753,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 {
                     case 29838: triggered_spell_id=29842; break;
                     case 29834: triggered_spell_id=29841; break;
-                    case 42770: triggered_spell_id=42771; break;
                     default:
                         sLog->outError(LOG_FILTER_UNITS, "Unit::HandleDummyAuraProc: non handled spell id: %u (SW)", dummySpell->Id);
                     return false;
@@ -7892,6 +7891,19 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
         {
             switch (dummySpell->Id)
             {
+                // Deep Wounds
+                case 12162:
+                case 12850:
+                case 12867:
+                    if(victim)
+                    {
+                        int32 basepoints0 = CalculatePct(this->CalculateDamage(BASE_ATTACK, false, true), dummySpell->Effects[EFFECT_0]. BasePoints);
+
+                        // Per tick heal
+                        basepoints0 /= 6;
+                        CastCustomSpell(victim, 12721, &basepoints0, NULL, NULL, true);
+                    }
+                    break;
                 // Item - Warrior T10 Protection 4P Bonus
                 case 70844:
                 {
@@ -11079,6 +11091,19 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                        DoneTotalMod *= 1.0f + ((1-healtPct) * (3.0f * ToPlayer()->GetMasteryPoints())) / 100;
                    }
                }
+            break;
+        case SPELLFAMILY_WARRIOR:
+            switch(spellProto->Id)
+            {
+                // Second Wind
+                case 29842:
+                case 29841:
+                    if(victim)
+                    {
+                        healamount = CalculatePct(GetMaxHealth(), float(spellProto->Effects[EFFECT_1].BasePoints) / 5);
+                    }
+                    break;
+            }
             break;
     }
 
