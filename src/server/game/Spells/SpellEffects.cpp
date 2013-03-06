@@ -3554,7 +3554,6 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
                 switch (m_spellInfo->SpellFamilyName)
                 {
                     case SPELLFAMILY_MAGE:
-                    {
                         // Invocation
                         if (m_spellInfo->Id == 2139) 
                             if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(84723)) 
@@ -3564,7 +3563,6 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
                                 m_caster->CastCustomSpell(m_caster, 87098, &basePoints, NULL, NULL, true);
                             }
                         break;
-                    }
                     case SPELLFAMILY_DRUID:
                         // Skull Bash
                         if (m_spellInfo->Id == 93985)
@@ -3575,6 +3573,17 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
                                 m_caster->CastSpell(unitTarget,82365, true);
                         }
                         break;
+                    case SPELLFAMILY_WARRIOR:
+                        //Rude Interruption
+			            if (m_spellInfo->Id == 6552) 
+			            {
+				            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61216))
+					            m_caster->AddAura(86662, m_caster); //Rank 1
+				            else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61221))
+					            m_caster->AddAura(86663, m_caster); //Rank 2
+                        }
+			            break;
+		            }
                 }
             }
         }
