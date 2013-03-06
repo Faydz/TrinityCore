@@ -8442,8 +8442,11 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 return false;
             break;
             break;
+        //those procs should be ignored
         case 84722: //Invocation rank 1
         case 84723: //           rank 2
+        case 61216: //Rude Interruption rank 1
+        case 61221: //                  rank 2
             return false;
             break;
         // Masochism
