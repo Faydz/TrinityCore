@@ -3050,6 +3050,11 @@ void SpellMgr::LoadSpellCustomAttr()
                 break;
             case 92294: // infinite duration for Frostfire Orb Override
                 spellInfo->DurationEntry= sSpellDurationStore.LookupEntry(21);
+                break;
+            case 63093: // Glyph oh Mirror Image force aura dummy
+                spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
+                spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
+                break;
             default:
                 break;
         }

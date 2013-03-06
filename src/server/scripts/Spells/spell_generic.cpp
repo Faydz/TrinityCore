@@ -3468,15 +3468,10 @@ class spell_gen_replenishment : public SpellScriptLoader
 
             void HandleCaster(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
             {// the only Replenishment given by mage is Enduring Winter wich lasts 10 seconds
-                if(aurEff->GetCaster() && aurEff->GetCaster()->getClass() == CLASS_MAGE && aurEff->GetBase())
-                    aurEff->GetBase()->SetDuration(10000);
-            }
-
-            void HandleCaster2(AuraEffect* aurEff)
-            {// the only Replenishment given by mage is Enduring Winter wich lasts 10 seconds
-                if(this->GetDuration() > 10000 && this->GetCaster() && this->GetCaster()->getClass() == CLASS_MAGE)
-                    if(this->GetAura()->GetDuration() > 10000)
-                        aurEff->GetBase()->SetDuration(9000); //after first tick
+                if(aurEff->GetBase() && aurEff->GetCaster() && aurEff->GetCaster()->getClass() == CLASS_MAGE)
+                { //there's also an hackfix in "int32 Unit::CalcSpellDuration(SpellInfo const* spellProto)"
+                    SetDuration(10000);
+                }
             }
 
             void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)
@@ -3496,8 +3491,8 @@ class spell_gen_replenishment : public SpellScriptLoader
 
             void Register()
             {
-                AfterEffectApply += AuraEffectApplyFn(spell_gen_replenishment_AuraScript::HandleCaster, EFFECT_0, SPELL_AURA_PERIODIC_ENERGIZE, AURA_EFFECT_HANDLE_REAL);
-                OnEffectUpdatePeriodic += AuraEffectUpdatePeriodicFn(spell_gen_replenishment_AuraScript::HandleCaster2, EFFECT_0, SPELL_AURA_PERIODIC_ENERGIZE);
+                OnEffectApply += AuraEffectApplyFn(spell_gen_replenishment_AuraScript::HandleCaster, EFFECT_0, SPELL_AURA_PERIODIC_ENERGIZE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+                //AfterEffectApply += AuraEffectApplyFn(spell_gen_replenishment_AuraScript::HandleCaster, EFFECT_0, SPELL_AURA_PERIODIC_ENERGIZE, AURA_EFFECT_HANDLE_REAPPLY);
                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_gen_replenishment_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_PERIODIC_ENERGIZE);
             }
         };

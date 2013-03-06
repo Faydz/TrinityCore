@@ -5635,7 +5635,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 {
                     if (procSpell->Id == 34913) //ignite should ignore molten armor critical hits
                         return false;
-                    basepoints0 = (CalculatePct(damage, triggerAmount)/2);
+                    basepoints0 = (CalculatePct(damage, triggerAmount)/2 /1.2f);
                     triggered_spell_id = 12654;
                     basepoints0 += victim->GetRemainingPeriodicAmount(GetGUID(), triggered_spell_id, SPELL_AURA_PERIODIC_DAMAGE);
                     break;
@@ -10171,8 +10171,8 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             }
 
             // Flashburn - Fire Mastery
-            if (owner->getClass() == CLASS_MAGE && spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_FIRE && damagetype == DOT )
-            {
+            if (owner->getClass() == CLASS_MAGE && spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_FIRE && damagetype == DOT && spellProto->SpellIconID == 33)
+            {//will not affect combustion
                if (owner->HasAuraType(SPELL_AURA_MASTERY))
                {
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FIRE)
@@ -10183,7 +10183,10 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             }
 
             //Molten Fury
-            if (victim->GetHealthPct() <= 35.0f && owner->ToPlayer() && owner->getClass() == CLASS_MAGE && GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0)){
+            if (victim->GetHealthPct() <= 35.0f && owner->ToPlayer() && owner->getClass() == CLASS_MAGE && 
+                GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0) &&
+                spellProto->SpellIconID == 33 && spellProto->SpellIconID == 937)
+            { //should not affect ignite nor combustion
                 if (Aura* aura = GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0)->GetBase()){
                     uint32 BP = 12;
                     if (aura->GetId() == 31680)      //rank 2
@@ -13312,6 +13315,9 @@ int32 Unit::CalcSpellDuration(SpellInfo const* spellProto)
         duration = minduration + int32((maxduration - minduration) * comboPoints / 5);
     else
         duration = minduration;
+
+    if (spellProto->Id == 57669 && m_movedPlayer && m_movedPlayer->getClass() == CLASS_MAGE)
+            duration = 10000; // hackfix for enduring winter
 
     return duration;
 }
