@@ -443,15 +443,27 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 break;
             case SPELLFAMILY_WARRIOR:
             {
-                // Victory Rush
-                if (m_spellInfo->Id == 34428)
-                    ApplyPct(damage, m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
-                // Shockwave
-                else if (m_spellInfo->Id == 46968)
+                switch(m_spellInfo->Id)
                 {
-                    int32 pct = m_caster->CalculateSpellDamage(unitTarget, m_spellInfo, 2);
-                    if (pct > 0)
-                        damage += int32(CalculatePct(m_caster->GetTotalAttackPowerValue(BASE_ATTACK), pct));
+                    // Victory Rush
+                    case 34428:
+                        ApplyPct(damage, m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
+                        break;
+                    // Heroic Strike
+                    case 78:
+                        damage = 8 + m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.6f;
+                        break;
+                    // Cleave
+                    case 845:
+                        damage += int32(6 + m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.45f);
+                        break;
+                    // Shockwave
+                    case 46968: 
+                    {
+                        int32 pct = m_caster->CalculateSpellDamage(unitTarget, m_spellInfo, EFFECT_2);
+                        if (pct > 0)
+                            damage += int32(CalculatePct(m_caster->GetTotalAttackPowerValue(BASE_ATTACK), pct));
+                    }
                     break;
                 }
                 break;
