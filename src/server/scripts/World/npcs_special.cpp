@@ -1899,8 +1899,8 @@ public:
                             }
                             else 
                             {
-                                if (blastcd<=diff && roll_chance_i(30))
-                                { //while in combat and not moving will randomly cast fire blast if avaible
+                                if (blastcd<=diff && damagespellid == 59638 && roll_chance_i(30))
+                                { //while in combat and not moving will randomly cast fire blast if avaible (if glyphed will no longer cast Fire Blast)
                                     me->CastSpell(target, istantspellid);
                                     blastcd=6000;
                                     checkTimer=1500;
