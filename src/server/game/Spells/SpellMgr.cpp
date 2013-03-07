@@ -3238,12 +3238,20 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Improved Hamstring
+                    case 12289:
+                    case 12668:
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+                        break;
+                    // Deep Wounds Rank 1
                     case 12162:
                         spellInfo->Effects[EFFECT_0].BasePoints = 16;
                         break;
+                    // Deep Wounds Rank 2
                     case 12850:
                         spellInfo->Effects[EFFECT_0].BasePoints = 32;
                         break;
+                    // Deep Wounds Rank 3
                     case 12867:
                         spellInfo->Effects[EFFECT_0].BasePoints = 48;
                         break;

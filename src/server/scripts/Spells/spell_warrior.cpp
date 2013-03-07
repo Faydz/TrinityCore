@@ -38,6 +38,7 @@ enum WarriorSpells
     SPELL_WARRIOR_EXECUTE                           = 20647,
     SPELL_WARRIOR_GLYPH_OF_EXECUTION                = 58367,
     SPELL_WARRIOR_GLYPH_OF_VIGILANCE                = 63326,
+    SPELL_WARRIOR_IMPROVED_HAMSTRING                = 23694,
     SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_BUFF        = 65156,
     SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_TALENT      = 64976,
     SPELL_WARRIOR_LAST_STAND_TRIGGERED              = 12976,
@@ -60,6 +61,54 @@ enum WarriorSpells
 enum WarriorSpellIcons
 {
     WARRIOR_ICON_ID_SUDDEN_DEATH                    = 1989,
+    WARRIOR_ICON_ID_IMPROVED_HAMSTRING              = 23,
+};
+
+// 1715 - Hamstring
+class spell_warr_hamstring : public SpellScriptLoader
+{
+    public:
+        spell_warr_hamstring() : SpellScriptLoader("spell_warr_hamstring") { }
+
+        class spell_warr_hamstring_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warr_hamstring_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_WARRIOR_IMPROVED_HAMSTRING))
+                    return false;
+                return true;
+            }
+
+            void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetTarget();
+
+                if(!caster || !caster->ToPlayer() || !target)
+                    return;
+
+                if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_WARRIOR, WARRIOR_ICON_ID_IMPROVED_HAMSTRING, EFFECT_0))
+                {
+                    if(!caster->ToPlayer()->HasSpellCooldown(SPELL_WARRIOR_IMPROVED_HAMSTRING))
+                    {
+                        caster->CastSpell(target, SPELL_WARRIOR_IMPROVED_HAMSTRING, true);
+                        caster->ToPlayer()->AddSpellCooldown(SPELL_WARRIOR_IMPROVED_HAMSTRING, NULL, time(NULL) + aurEff->GetAmount());
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_warr_hamstring_AuraScript::HandleApply, EFFECT_0, SPELL_AURA_MOD_DECREASE_SPEED, AURA_EFFECT_HANDLE_REAPPLY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_warr_hamstring_AuraScript();
+        }
 };
 
 /// Updated 4.3.4
@@ -793,6 +842,7 @@ class spell_warr_vigilance_trigger : public SpellScriptLoader
 
 void AddSC_warrior_spell_scripts()
 {
+    new spell_warr_hamstring();
     new spell_warr_bloodthirst();
     new spell_warr_bloodthirst_heal();
     new spell_warr_critical_block();
