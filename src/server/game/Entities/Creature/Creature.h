@@ -506,10 +506,7 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
 			return 1.0f;
 		}
 
-        uint32 GetShieldBlockValue() const                  //dunno mob block value
-        {
-            return (getLevel()/2 + uint32(GetStat(STAT_STRENGTH)/20));
-        }
+        uint32 GetShieldBlockValue() const;                  //dunno mob block value
 
         SpellSchoolMask GetMeleeDamageSchoolMask() const { return m_meleeDamageSchoolMask; }
         void SetMeleeDamageSchool(SpellSchools school) { m_meleeDamageSchoolMask = SpellSchoolMask(1 << school); }
@@ -519,12 +516,7 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
         void AddCreatureSpellCooldown(uint32 spellid);
         bool HasSpellCooldown(uint32 spell_id) const;
         bool HasCategoryCooldown(uint32 spell_id) const;
-        uint32 GetCreatureSpellCooldownDelay(uint32 spellId) const
-        {
-            CreatureSpellCooldowns::const_iterator itr = m_CreatureSpellCooldowns.find(spellId);
-            time_t t = time(NULL);
-            return uint32(itr != m_CreatureSpellCooldowns.end() && itr->second > t ? itr->second - t : 0);
-        }
+        uint32 GetCreatureSpellCooldownDelay(uint32 spellId) const;
         virtual void ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs);
 
         bool HasSpell(uint32 spellID) const;
@@ -654,14 +646,7 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
         bool isRegeneratingHealth() { return m_regenHealth; }
         void setRegeneratingHealth(bool regenHealth) { m_regenHealth = regenHealth; }
         virtual uint8 GetPetAutoSpellSize() const { return MAX_SPELL_CHARM; }
-        virtual uint32 GetPetAutoSpellOnPos(uint8 pos) const
-        {
-            if (pos >= MAX_SPELL_CHARM || m_charmInfo->GetCharmSpell(pos)->GetType() != ACT_ENABLED)
-                return 0;
-            else
-                return m_charmInfo->GetCharmSpell(pos)->GetAction();
-        }
-
+        virtual uint32 GetPetAutoSpellOnPos(uint8 pos) const;
         void SetPosition(float x, float y, float z, float o);
         void SetPosition(const Position &pos) { SetPosition(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), pos.GetOrientation()); }
 
@@ -690,11 +675,7 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
         void SetDisableReputationGain(bool disable) { DisableReputationGain = disable; }
         bool IsReputationGainDisabled() { return DisableReputationGain; }
         bool IsDamageEnoughForLootingAndReward() const { return m_PlayerDamageReq == 0; }
-        void LowerPlayerDamageReq(uint32 unDamage)
-        {
-            if (m_PlayerDamageReq)
-                m_PlayerDamageReq > unDamage ? m_PlayerDamageReq -= unDamage : m_PlayerDamageReq = 0;
-        }
+        void LowerPlayerDamageReq(uint32 unDamage);
         void ResetPlayerDamageReq() { m_PlayerDamageReq = GetHealth() / 2; }
         uint32 m_PlayerDamageReq;
 
