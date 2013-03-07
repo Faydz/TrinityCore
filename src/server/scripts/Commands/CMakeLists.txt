@@ -12,6 +12,7 @@ set(scripts_STAT_SRCS
   ${scripts_STAT_SRCS}
   Commands/cs_account.cpp
   Commands/cs_achievement.cpp
+  Commands/cs_ah_bot.cpp
   Commands/cs_ban.cpp
   Commands/cs_bf.cpp
   Commands/cs_cast.cpp
@@ -110,5 +111,7 @@ set(scripts_STAT_SRCS
 #  Commands/cs_unbindsight.cpp
 #  Commands/cs_playall.cpp
 )
+
+SOURCE_GROUP(Commands REGULAR_EXPRESSION .*/Commands/.*)
 
 message("  -> Prepared: Commands")

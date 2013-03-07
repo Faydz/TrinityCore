@@ -379,6 +379,7 @@ void LFGMgr::InitializeLockedDungeons(Player* player, uint8 level /* = 0 */)
         level = player->getLevel();
     uint8 expansion = player->GetSession()->Expansion();
     LfgDungeonSet const& dungeons = GetDungeonsByRandom(0);
+    float averageItemLevel = player->GetAverageItemLevel();
     LfgLockMap lock;
     bool denyJoin = !player->GetSession()->HasPermission(RBAC_PERM_JOIN_DUNGEON_FINDER);
 
@@ -427,6 +428,31 @@ void LFGMgr::InitializeLockedDungeons(Player* player, uint8 level /* = 0 */)
             lockData = LFG_LOCKSTATUS_ATTUNEMENT_TOO_LOW_LEVEL;
             lockData = LFG_LOCKSTATUS_ATTUNEMENT_TOO_HIGH_LEVEL;
         */
+
+        float requiredItemLevel = 0.0f;
+        if (dungeon->expansion == 2 && dungeon->difficulty == DUNGEON_DIFFICULTY_HEROIC)
+            requiredItemLevel = 160.0f;
+
+        switch (dungeon->id)
+        {
+            case 245: // Trial of the Champion
+            case 251: // The Forge of Souls
+            case 253: // Pit of Saron
+            case 255: // Halls of Reflection
+                requiredItemLevel = 180;
+                break;
+            case 249: // Heroic: Trial of the Champion
+            case 252: // Heroic: The Forge of Souls
+            case 254: // Heroic: Pit of Saron
+                requiredItemLevel = 200;
+                break;
+            case 256: // Heroic: Halls of Reflection
+                requiredItemLevel = 219;
+                break;
+        }
+
+        if (averageItemLevel < requiredItemLevel)
+            lockData = LFG_LOCKSTATUS_TOO_LOW_GEAR_SCORE;
 
         if (lockData)
             lock[dungeon->Entry()] = lockData;

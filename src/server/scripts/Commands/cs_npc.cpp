@@ -171,23 +171,13 @@ public:
 
         if (chr->GetTransport())
         {
-            uint32 tguid = chr->GetTransport()->AddNPCPassenger(0, id, chr->GetTransOffsetX(), chr->GetTransOffsetY(), chr->GetTransOffsetZ(), chr->GetTransOffsetO());
-            if (tguid > 0)
+            Creature* creature = chr->GetTransport()->AddNPCPassenger(0, id, chr->GetTransOffsetX(), chr->GetTransOffsetY(), chr->GetTransOffsetZ(), chr->GetTransOffsetO());
+            if (creature)
             {
                 PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_TRANSPORT);
-
-                stmt->setInt32(0, int32(tguid));
-                stmt->setInt32(1, int32(id));
-                stmt->setInt32(2, int32(chr->GetTransport()->GetEntry()));
-                stmt->setFloat(3, chr->GetTransOffsetX());
-                stmt->setFloat(4, chr->GetTransOffsetY());
-                stmt->setFloat(5, chr->GetTransOffsetZ());
-                stmt->setFloat(6, chr->GetTransOffsetO());
-
-                WorldDatabase.Execute(stmt);
-            }
-
+				WorldDatabase.PExecute("INSERT INTO creature_transport (guid, npc_entry, transport_entry,  TransOffsetX, TransOffsetY, TransOffsetZ, TransOffsetO) values (%u, %u, %f, %f, %f, %f, %u)", creature->GetGUIDTransport(), id, chr->GetTransport()->GetEntry(), chr->GetTransOffsetX(), chr->GetTransOffsetY(), chr->GetTransOffsetZ(), chr->GetTransOffsetO());
             return true;
+			}
         }
 
         Creature* creature = new Creature();
@@ -252,7 +242,8 @@ public:
             return false;
         }
 
-        uint32 vendor_entry = vendor ? vendor->GetEntry() : 0;
+        char* addMulti = strtok(NULL, " ");
+        uint32 vendor_entry = addMulti ? handler->GetSession()->GetCurrentVendor() : vendor ? vendor->GetEntry() : 0;
 
         if (!sObjectMgr->IsVendorItemValid(vendor_entry, itemId, maxcount, incrtime, extendedcost, handler->GetSession()->GetPlayer()))
         {
@@ -475,7 +466,8 @@ public:
         }
         uint32 itemId = atol(pitem);
 
-        if (!sObjectMgr->RemoveVendorItem(vendor->GetEntry(), itemId))
+        char* addMulti = strtok(NULL, " ");
+        if (!sObjectMgr->RemoveVendorItem(addMulti ? handler->GetSession()->GetCurrentVendor() : vendor->GetEntry(), itemId))
         {
             handler->PSendSysMessage(LANG_ITEM_NOT_IN_LIST, itemId);
             handler->SetSentErrorMessage(true);

@@ -45,7 +45,8 @@ class Transport : public GameObject, public TransportBase
 
         typedef std::set<Creature*> CreatureSet;
         CreatureSet m_NPCPassengerSet;
-        uint32 AddNPCPassenger(uint32 tguid, uint32 entry, float x, float y, float z, float o, uint32 anim=0);
+        Creature* AddNPCPassenger(uint32 tguid, uint32 entry, float x, float y, float z, float o, uint32 anim=0);
+    	Creature* AddNPCPassengerInInstance(uint32 entry, float x, float y, float z, float o, uint32 anim=0);
         void UpdatePosition(MovementInfo* mi);
         void UpdateNPCPositions();
 
@@ -100,5 +101,6 @@ class Transport : public GameObject, public TransportBase
         void DoEventIfAny(WayPointMap::value_type const& node, bool departure);
         WayPointMap::const_iterator GetNextWayPoint();
 };
-#endif
 
+
+#endif

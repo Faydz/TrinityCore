@@ -185,7 +185,7 @@ class boss_drakkari_colossus : public CreatureScript
                     {
                         damage = 0;
                         phase = (phase == COLOSSUS_PHASE_NORMAL ? COLOSSUS_PHASE_FIRST_ELEMENTAL_SUMMON : COLOSSUS_PHASE_SECOND_ELEMENTAL_SUMMON);
-                        DoAction(ACTION_FREEZE_COLOSSUS);
+                        //DoAction(ACTION_FREEZE_COLOSSUS);
                         DoAction(ACTION_SUMMON_ELEMENTAL);
 
                     }
@@ -283,6 +283,8 @@ class boss_drakkari_elemental : public CreatureScript
                     if (Creature* colossus = Unit::GetCreature(*me, instance->GetData64(DATA_DRAKKARI_COLOSSUS)))
                         killer->Kill(colossus);
                 }
+
+				me->RemoveAllAuras();
             }
 
             void UpdateAI(uint32 diff)

@@ -115,14 +115,14 @@ INSERT INTO `rbac_permissions` (`id`, `name`) VALUES
 (5, 'Join Arenas'),
 (6, 'Join Dungeon Finder'),
 (7, 'Player Commands (Temporal till commands moved to rbac)'),
-(8, 'Moderator Commands (Temporal till commands moved to rbac)'),
+(8, 'VIP Commands (Temporal till commands moved to rbac)'),
 (9, 'GameMaster Commands (Temporal till commands moved to rbac)'),
 (10, 'Administrator Commands (Temporal till commands moved to rbac)');
 
 DELETE FROM `rbac_roles` WHERE `id` BETWEEN 1 AND 7;
 INSERT INTO `rbac_roles` (`id`, `name`) VALUES
 (1, 'Player Commands'),
-(2, 'Moderator Commands'),
+(2, 'VIP Commands'),
 (3, 'GameMaster Commands'),
 (4, 'Administrator Commands'),
 (5, 'Quick Login/Logout'),
@@ -132,7 +132,7 @@ INSERT INTO `rbac_roles` (`id`, `name`) VALUES
 DELETE FROM `rbac_groups` WHERE `id` BETWEEN 1 AND 4;
 INSERT INTO `rbac_groups` (`id`, `name`) VALUES
 (1, 'Player'),
-(2, 'Moderator'),
+(2, 'VIP'),
 (3, 'GameMaster'),
 (4, 'Administrator');
 

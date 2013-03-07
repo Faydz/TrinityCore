@@ -78,6 +78,7 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#include "../../../scripts/Custom/Transmogrification.h"
 
 #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
 
@@ -5183,7 +5184,7 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
     //Characters level 20 and up suffer from ten minutes of sickness.
     int32 startLevel = sWorld->getIntConfig(CONFIG_DEATH_SICKNESS_LEVEL);
 
-    if (int32(getLevel()) >= startLevel)
+    if (int32(getLevel()) >= startLevel && GetAreaId() != 298 && GetAreaId() != 2079 && GetAreaId() != 15)
     {
         // set resurrection sickness
         CastSpell(this, 15007, true);
@@ -5754,9 +5755,14 @@ float Player::GetTotalBaseModValue(BaseModGroup modGroup) const
     return m_auraBaseMod[modGroup][FLAT_MOD] * m_auraBaseMod[modGroup][PCT_MOD];
 }
 
+float Player::GetShieldBlockValuePctMod() const
+{
+	return m_auraBaseMod[SHIELD_BLOCK_VALUE][PCT_MOD];
+}
+
 uint32 Player::GetShieldBlockValue() const
 {
-    float value = (m_auraBaseMod[SHIELD_BLOCK_VALUE][FLAT_MOD] + GetStat(STAT_STRENGTH) * 0.5f - 10)*m_auraBaseMod[SHIELD_BLOCK_VALUE][PCT_MOD];
+	float value = (m_auraBaseMod[SHIELD_BLOCK_VALUE][FLAT_MOD] + GetStat(STAT_STRENGTH) * 0.5f - 10) * GetShieldBlockValuePctMod();
 
     value = (value < 0) ? 0 : value;
 
@@ -6887,6 +6893,9 @@ void Player::CheckAreaExploreAndOutdoor()
                     XP = uint32(sObjectMgr->GetBaseXP(areaEntry->area_level)*sWorld->getRate(RATE_XP_EXPLORE));
                 }
 
+                if (GetSession()->GetSecurity() > SEC_PLAYER)
+                    XP *= sWorld->getRate(RATE_XP_EXPLORE_VIP);
+
                 GiveXP(XP, NULL);
                 SendExplorationExperience(area, XP);
             }
@@ -7153,6 +7162,7 @@ bool Player::RewardHonor(Unit* victim, uint32 groupsize, int32 honor, bool pvpto
 
     uint64 victim_guid = 0;
     uint32 victim_rank = 0;
+    uint32 rank_diff = 0;
 
     // need call before fields update to have chance move yesterday data to appropriate fields before today data change.
     UpdateHonorFields();
@@ -7195,17 +7205,53 @@ bool Player::RewardHonor(Unit* victim, uint32 groupsize, int32 honor, bool pvpto
             //  title[1..14]  -> rank[5..18]
             //  title[15..28] -> rank[5..18]
             //  title[other]  -> 0
+            // PLAYER__FIELD_KNOWN_TITLES describe which titles player can use,
+            // so we must find biggest pvp title , even for killer to find extra honor value
+            uint32 vtitle = victim->GetUInt32Value(PLAYER__FIELD_KNOWN_TITLES);
+            //uint32 victim_title = 0;
+            uint32 ktitle = GetUInt32Value(PLAYER__FIELD_KNOWN_TITLES);
+            uint32 killer_title = 0;
+            if (PLAYER_TITLE_MASK_ALL_PVP & ktitle)
+            {
+                for (int i = ((GetTeam() == ALLIANCE) ? 1:HKRANKMAX);i!=((GetTeam() == ALLIANCE) ? HKRANKMAX : (2*HKRANKMAX-1));i++)
+                {
+                    if (ktitle & (1<<i))
+                        killer_title = i;
+                }
+            }
+            if (PLAYER_TITLE_MASK_ALL_PVP & vtitle)
+            {
+                for (int i = ((victim->ToPlayer()->GetTeam() == ALLIANCE) ? 1:HKRANKMAX);i!=((victim->ToPlayer()->GetTeam() == ALLIANCE) ? HKRANKMAX : (2*HKRANKMAX-1));i++)
+                {
+                    if (vtitle & (1<<i))
+                        victim_title = i;
+                }
+            }
+
+            // Get Killer titles, CharTitlesEntry::bit_index
+            // Ranks:
+            // title[1..14] -> rank[5..18]
+            // title[15..28] -> rank[5..18]
+            // title[other] -> 0
             if (victim_title == 0)
                 victim_guid = 0;                        // Don't show HK: <rank> message, only log.
-            else if (victim_title < 15)
+            else if (victim_title < HKRANKMAX)
                 victim_rank = victim_title + 4;
-            else if (victim_title < 29)
-                victim_rank = victim_title - 14 + 4;
+            else if (victim_title < (2*HKRANKMAX-1))
+                victim_rank = victim_title - (HKRANKMAX-1) + 4;
             else
                 victim_guid = 0;                        // Don't show HK: <rank> message, only log.
 
-            honor_f = ceil(Trinity::Honor::hk_honor_at_level_f(k_level) * (v_level - k_grey) / (k_level - k_grey));
+            // now find rank difference
+            if (killer_title == 0 && victim_rank>4)
+                rank_diff = victim_rank - 4;
+            else if (killer_title < HKRANKMAX)
+                rank_diff = (victim_rank>(killer_title + 4))? (victim_rank - (killer_title + 4)) : 0;
+            else if (killer_title < (2*HKRANKMAX-1))
+                rank_diff = (victim_rank>(killer_title - (HKRANKMAX-1) +4))? (victim_rank - (killer_title - (HKRANKMAX-1) + 4)) : 0;
 
+            honor_f = ceil(Trinity::Honor::hk_honor_at_level_f(k_level) * (v_level - k_grey) / (k_level - k_grey));
+                       honor *= 1 + sWorld->getRate(RATE_PVP_RANK_EXTRA_HONOR)*(((float)rank_diff) / 10.0f);
             // count the number of playerkills in one day
             ApplyModUInt32Value(PLAYER_FIELD_KILLS, 1, true);
             // and those in a lifetime
@@ -7213,6 +7259,7 @@ bool Player::RewardHonor(Unit* victim, uint32 groupsize, int32 honor, bool pvpto
             UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EARN_HONORABLE_KILL);
             UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HK_CLASS, victim->getClass());
             UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HK_RACE, victim->getRace());
+            UpdateKnownTitles();
             UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL_AT_AREA, GetAreaId());
             UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL, 1, 0, victim);
         }
@@ -7304,6 +7351,30 @@ void Player::SetArenaPoints(uint32 value)
     SetUInt32Value(PLAYER_FIELD_ARENA_CURRENCY, value);
     if (value)
         AddKnownCurrency(ITEM_ARENA_POINTS_ID);
+}
+
+void Player::UpdateKnownTitles()
+{
+    uint32 new_title = 0;
+    uint32 honor_kills = GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS);
+    uint32 old_title = GetUInt32Value(PLAYER_CHOSEN_TITLE);
+    RemoveFlag64(PLAYER__FIELD_KNOWN_TITLES,PLAYER_TITLE_MASK_ALL_PVP);
+    if (honor_kills < 0)
+        return;
+    bool max_rank = ((honor_kills >= sWorld->pvp_ranks[HKRANKMAX-1]) ? true : false);
+    for (int i = HKRANK01; i != HKRANKMAX; ++i)
+    {
+        if (honor_kills < sWorld->pvp_ranks[i] || (max_rank))
+        {
+            new_title = ((max_rank) ? (HKRANKMAX-1) : (i-1));
+            if (new_title > 0)
+                new_title += ((GetTeam() == ALLIANCE) ? 0 : (HKRANKMAX-1));
+            break;
+        }
+    }
+    SetFlag64(PLAYER__FIELD_KNOWN_TITLES,uint64(1) << new_title);
+    if (old_title > 0 && old_title < (2*HKRANKMAX-1) && new_title > old_title)
+        SetUInt32Value(PLAYER_CHOSEN_TITLE,new_title);
 }
 
 void Player::ModifyHonorPoints(int32 value, SQLTransaction* trans /*=NULL*/)
@@ -12442,7 +12513,10 @@ void Player::SetVisibleItemSlot(uint8 slot, Item* pItem)
 {
     if (pItem)
     {
-        SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), pItem->GetEntry());
+        if (pItem->GetFakeEntry())
+            SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), pItem->GetFakeEntry());
+        else
+            SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), pItem->GetEntry());
         SetUInt16Value(PLAYER_VISIBLE_ITEM_1_ENCHANTMENT + (slot * 2), 0, pItem->GetEnchantmentId(PERM_ENCHANTMENT_SLOT));
         SetUInt16Value(PLAYER_VISIBLE_ITEM_1_ENCHANTMENT + (slot * 2), 1, pItem->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT));
     }
@@ -12568,6 +12642,7 @@ void Player::MoveItemFromInventory(uint8 bag, uint8 slot, bool update)
 {
     if (Item* it = GetItemByPos(bag, slot))
     {
+        it->DeleteFakeFromDB(it->GetGUIDLow());
         ItemRemovedQuestCheck(it->GetEntry(), it->GetCount());
         RemoveItem(bag, slot, update);
         it->SetNotRefundable(this, false);
@@ -14355,7 +14430,7 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId /*= 0*/, bool 
                     break;
                 case GOSSIP_OPTION_VENDOR:
                 {
-                    VendorItemData const* vendorItems = creature->GetVendorItems();
+                    VendorItemData const* vendorItems = itr->second.ActionMenuId ? sObjectMgr->GetNpcVendorItemList(itr->second.ActionMenuId) : creature->GetVendorItems();
                     if (!vendorItems || vendorItems->Empty())
                     {
                         sLog->outError(LOG_FILTER_SQL, "Creature (GUID: %u, Entry: %u) have UNIT_NPC_FLAG_VENDOR but have empty trading item list.", creature->GetGUIDLow(), creature->GetEntry());
@@ -14547,7 +14622,7 @@ void Player::OnGossipSelect(WorldObject* source, uint32 gossipListId, uint32 men
             break;
         case GOSSIP_OPTION_VENDOR:
         case GOSSIP_OPTION_ARMORER:
-            GetSession()->SendListInventory(guid);
+            GetSession()->SendListInventory(guid, menuItemData->GossipActionMenuId);
             break;
         case GOSSIP_OPTION_STABLEPET:
             GetSession()->SendStablePet(guid);
@@ -15242,6 +15317,9 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
     Unit::AuraEffectList const& ModXPPctAuras = GetAuraEffectsByType(SPELL_AURA_MOD_XP_QUEST_PCT);
     for (Unit::AuraEffectList::const_iterator i = ModXPPctAuras.begin(); i != ModXPPctAuras.end(); ++i)
         AddPct(XP, (*i)->GetAmount());
+
+    if (GetSession()->GetSecurity() > SEC_PLAYER)
+        XP *= sWorld->getRate(RATE_XP_QUEST_VIP);
 
     int32 moneyRew = 0;
     if (getLevel() < sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
@@ -21366,7 +21444,7 @@ bool Player::BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 
         return false;
     }
 
-    VendorItemData const* vItems = creature->GetVendorItems();
+    VendorItemData const* vItems = GetSession()->GetCurrentVendor() ? sObjectMgr->GetNpcVendorItemList(GetSession()->GetCurrentVendor()) : creature->GetVendorItems();
     if (!vItems || vItems->Empty())
     {
         SendBuyError(BUY_ERR_CANT_FIND_ITEM, creature, item, 0);
@@ -22120,7 +22198,7 @@ bool Player::IsVisibleGloballyFor(Player const* u) const
         return true;
 
     // GMs are visible for higher gms (or players are visible for gms)
-    if (!AccountMgr::IsPlayerAccount(u->GetSession()->GetSecurity()))
+    if (AccountMgr::IsGMAccount(u->GetSession()->GetSecurity()))
         return GetSession()->GetSecurity() <= u->GetSession()->GetSecurity();
 
     // non faction visibility non-breakable for non-GMs
@@ -22150,6 +22228,17 @@ inline void UpdateVisibilityOf_helper(std::set<uint64>& s64, Creature* target, s
 {
     s64.insert(target->GetGUID());
     v.insert(target);
+}
+
+inline void UpdateVisibilityOf_helper(std::set<uint64>& s64, GameObject* target, std::set<Unit*>& /*v*/)
+{
+    // From old trinity revision
+    //if (!target->IsTransport() && !(target->GetGOInfo()->type == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING))
+    // s64.insert(target->GetGUID());
+
+    // Don't update only GAMEOBJECT_TYPE_TRANSPORT (or all transports and destructible buildings?)
+    if (!(target->GetGOInfo()->type == GAMEOBJECT_TYPE_TRANSPORT))
+        s64.insert(target->GetGUID());
 }
 
 template<>
@@ -26201,7 +26290,7 @@ float Player::GetCollisionHeight(bool mounted) const
 Guild* Player::GetGuild()
 {
     uint32 guildId = GetGuildId();
-    return guildId ? sGuildMgr->GetGuildById(guildId) : NULL;
+	return guildId ? sGuildMgr->GetGuildById(guildId) : NULL;
 }
 
 Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 duration)
@@ -26315,4 +26404,49 @@ Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetTy
     //ObjectAccessor::UpdateObjectVisibility(pet);
 
     return pet;
+}
+
+uint32 Player::SuitableForTransmogrification(Item* oldItem, Item* newItem)
+{
+    // not possibly the best structure here, but atleast I got my head around this
+    if (!sTransmogrification->AllowedQuality(newItem->GetTemplate()->Quality))
+        return ERR_FAKE_NEW_BAD_QUALITY;
+    if (!sTransmogrification->AllowedQuality(oldItem->GetTemplate()->Quality))
+        return ERR_FAKE_OLD_BAD_QUALITY;
+
+    if (oldItem->GetTemplate()->DisplayInfoID == newItem->GetTemplate()->DisplayInfoID)
+        return ERR_FAKE_SAME_DISPLAY;
+    if (oldItem->GetFakeEntry())
+        if (const ItemTemplate* fakeItemTemplate = sObjectMgr->GetItemTemplate(oldItem->GetFakeEntry()))
+            if (fakeItemTemplate->DisplayInfoID == newItem->GetTemplate()->DisplayInfoID)
+                return ERR_FAKE_SAME_DISPLAY_FAKE;
+    if (CanUseItem(newItem, false) != EQUIP_ERR_OK)
+        return ERR_FAKE_CANT_USE;
+    uint32 newClass = newItem->GetTemplate()->Class;
+    uint32 oldClass = oldItem->GetTemplate()->Class;
+    uint32 newSubClass = newItem->GetTemplate()->SubClass;
+    uint32 oldSubClass = oldItem->GetTemplate()->SubClass;
+    uint32 newInventorytype = newItem->GetTemplate()->InventoryType;
+    uint32 oldInventorytype = oldItem->GetTemplate()->InventoryType;
+    if (newClass != oldClass)
+        return ERR_FAKE_NOT_SAME_CLASS;
+    if (newClass == ITEM_CLASS_WEAPON && newSubClass != ITEM_SUBCLASS_WEAPON_FISHING_POLE && oldSubClass != ITEM_SUBCLASS_WEAPON_FISHING_POLE)
+    {
+        if (newSubClass == oldSubClass || ((newSubClass == ITEM_SUBCLASS_WEAPON_BOW || newSubClass == ITEM_SUBCLASS_WEAPON_GUN || newSubClass == ITEM_SUBCLASS_WEAPON_CROSSBOW) && (oldSubClass == ITEM_SUBCLASS_WEAPON_BOW || oldSubClass == ITEM_SUBCLASS_WEAPON_GUN || oldSubClass == ITEM_SUBCLASS_WEAPON_CROSSBOW)))
+            if (newInventorytype == oldInventorytype || (newInventorytype == INVTYPE_WEAPON && (oldInventorytype == INVTYPE_WEAPONMAINHAND || oldInventorytype == INVTYPE_WEAPONOFFHAND)))
+                return ERR_FAKE_OK;
+            else
+                return ERR_FAKE_BAD_INVENTORYTYPE;
+        else
+            return ERR_FAKE_BAD_SUBLCASS;
+    }
+    else if (newClass == ITEM_CLASS_ARMOR)
+        if (newSubClass == oldSubClass)
+            if (newInventorytype == oldInventorytype || (newInventorytype == INVTYPE_CHEST && oldInventorytype == INVTYPE_ROBE) || (newInventorytype == INVTYPE_ROBE && oldInventorytype == INVTYPE_CHEST))
+                return ERR_FAKE_OK;
+            else
+                return ERR_FAKE_BAD_INVENTORYTYPE;
+        else
+            return ERR_FAKE_BAD_SUBLCASS;
+    return ERR_FAKE_BAD_CLASS;
 }

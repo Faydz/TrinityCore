@@ -904,6 +904,34 @@ void Battleground::EndBattleground(uint32 winner)
             }
 
             player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_WIN_BG, 1);
+            
+            if (isBattleground())
+            {
+                switch ((IsRandom()) ? GetTypeID(true) : GetTypeID())
+                {
+                    case BATTLEGROUND_AV:
+                        if (player->GetQuestStatus(988090) == QUEST_STATUS_INCOMPLETE)
+                            player->CompleteQuest(988090);
+                        break;
+                    case BATTLEGROUND_WS:
+                        if (player->GetQuestStatus(988091) == QUEST_STATUS_INCOMPLETE)
+                            player->CompleteQuest(988091);
+                        break;
+                    case BATTLEGROUND_AB:
+                        if (player->GetQuestStatus(988092) == QUEST_STATUS_INCOMPLETE)
+                            player->CompleteQuest(988092);
+                        break;
+                    case BATTLEGROUND_EY:
+                        if (player->GetQuestStatus(988093) == QUEST_STATUS_INCOMPLETE)
+                            player->CompleteQuest(988093);
+                        break;
+                    case BATTLEGROUND_SA:
+                        if (player->GetQuestStatus(988094) == QUEST_STATUS_INCOMPLETE)
+                            player->CompleteQuest(988094);
+                        break;
+                }
+            }
+
         }
         else
         {

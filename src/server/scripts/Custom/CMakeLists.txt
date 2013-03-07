@@ -10,6 +10,23 @@
 
 set(scripts_STAT_SRCS
   ${scripts_STAT_SRCS}
+  Custom/custom_dtinireset.cpp
+  Custom/custom_dtlostskills.cpp
+  Custom/custom_dtporter.cpp
+  Custom/custom_dtvipvendor.cpp
+  Custom/custom_dtrace.cpp
+  Custom/custom_dtplayertreff.cpp
+  Custom/custom_dtevent.cpp
+  Custom/custom_misc.cpp
+  Custom/custom_level_npc.cpp
+  Custom/Transmogrification.cpp
+  Custom/Transmogrification.h
+  Custom/Pro_Max.cpp
+  Custom/boss_arkton.cpp
+  Custom/boss_tiefenwyrm.cpp
+  Custom/custom_dtshop.cpp
 )
+
+SOURCE_GROUP(Custom REGULAR_EXPRESSION .*/Custom/.*)
 
 message("  -> Prepared: Custom")

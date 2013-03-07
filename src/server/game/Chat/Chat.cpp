@@ -362,7 +362,6 @@ bool ChatHandler::ExecuteCommandInTable(ChatCommand* table, const char* text, co
         if ((table[i].Handler)(this, table[i].Name[0] != '\0' ? text : oldtext))
         {
             // FIXME: When Command system is moved to RBAC this check must be changed
-            if (!AccountMgr::IsPlayerAccount(table[i].SecurityLevel))
             {
                 // chat case
                 if (m_session)
@@ -452,7 +451,7 @@ bool ChatHandler::ParseCommands(char const* text)
 
     std::string fullcmd = text;
 
-    if (m_session && !m_session->HasPermission(RBAC_PERM_PLAYER_COMMANDS))
+    if (m_session && !AccountMgr::IsGMAccount(m_session->GetSecurity()) && !sWorld->getBoolConfig(CONFIG_ALLOW_PLAYER_COMMANDS))
        return false;
 
     /// chat case (.command or !command format)

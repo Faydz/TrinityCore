@@ -1458,9 +1458,15 @@ class Unit : public WorldObject
         int32 GetMechanicResistChance(const SpellInfo* spell);
         bool CanUseAttackType(uint8 attacktype) const;
 
+		virtual float GetShieldBlockValuePctMod() const =0;
         virtual uint32 GetShieldBlockValue() const =0;
         uint32 GetShieldBlockValue(uint32 soft_cap, uint32 hard_cap) const;
         uint32 GetUnitMeleeSkill(Unit const* target = NULL) const;
+			float pctMod = GetShieldBlockValuePctMod();
+
+			soft_cap *= pctMod;
+			hard_cap *= pctMod;
+
         uint32 GetDefenseSkillValue(Unit const* target = NULL) const;
         uint32 GetWeaponSkillValue(WeaponAttackType attType, Unit const* target = NULL) const;
         float GetWeaponProcChance() const;
@@ -1870,7 +1876,7 @@ class Unit : public WorldObject
         bool isInBackInMap(Unit const* target, float distance, float arc = M_PI) const;
 
         // Visibility system
-        bool IsVisible() const;
+        bool IsVisible() const { return (m_serverSideVisibility.GetValue(SERVERSIDE_VISIBILITY_GM) > SEC_PLAYER) ? false : true; }
         void SetVisible(bool x);
 
         // common function for visibility checks for player/creatures with detection code
@@ -1893,9 +1899,15 @@ class Unit : public WorldObject
         HostileRefManager& getHostileRefManager() { return m_HostileRefManager; }
 
         VisibleAuraMap const* GetVisibleAuras() { return &m_visibleAuras; }
-        AuraApplication * GetVisibleAura(uint8 slot) const;
-        void SetVisibleAura(uint8 slot, AuraApplication * aur);
-        void RemoveVisibleAura(uint8 slot);
+        AuraApplication * GetVisibleAura(uint8 slot)
+        {
+            VisibleAuraMap::iterator itr = m_visibleAuras.find(slot);
+            if (itr != m_visibleAuras.end())
+                return itr->second;
+            return 0;
+        }
+        void SetVisibleAura(uint8 slot, AuraApplication * aur){ m_visibleAuras[slot]=aur; UpdateAuraForGroup(slot);}
+        void RemoveVisibleAura(uint8 slot){ m_visibleAuras.erase(slot); UpdateAuraForGroup(slot);}
 
         uint32 GetInterruptMask() const { return m_interruptMask; }
         void AddInterruptMask(uint32 mask) { m_interruptMask |= mask; }
@@ -2013,6 +2025,14 @@ class Unit : public WorldObject
         void SetExtraUnitMovementFlags(uint16 f) { m_movementInfo.flags2 = f; }
 
         float GetPositionZMinusOffset() const;
+        float GetPositionZMinusOffset() const
+        {
+            float offset = 0.0f;
+            if (HasUnitMovementFlag(MOVEMENTFLAG_HOVER))
+                offset = GetFloatValue(UNIT_FIELD_HOVERHEIGHT);
+
+            return GetPositionZ() - offset;
+        }
 
         void SetControlled(bool apply, UnitState state);
 
@@ -2038,8 +2058,17 @@ class Unit : public WorldObject
         void UpdateAuraForGroup(uint8 slot);
 
         // proc trigger system
-        bool CanProc() const {return !m_procDeep;}
-        void SetCantProc(bool apply);
+        bool CanProc(){return !m_procDeep;}
+        void SetCantProc(bool apply)
+        {
+            if (apply)
+                ++m_procDeep;
+            else
+            {
+                ASSERT(m_procDeep);
+                --m_procDeep;
+            }
+        }
 
         // pet auras
         typedef std::set<PetAura const*> PetAuraSet;
@@ -2108,7 +2137,11 @@ class Unit : public WorldObject
         TempSummon* ToTempSummon() { if (isSummon()) return reinterpret_cast<TempSummon*>(this); else return NULL; }
         const TempSummon* ToTempSummon() const { if (isSummon()) return reinterpret_cast<const TempSummon*>(this); else return NULL; }
 
-        void SetTarget(uint64 guid);
+        void SetTarget(uint64 guid)
+        {
+            if (!_focusSpell)
+                SetUInt64Value(UNIT_FIELD_TARGET, guid);
+        }
 
         // Handling caster facing during spellcast
         void FocusTarget(Spell const* focusSpell, WorldObject const* target);

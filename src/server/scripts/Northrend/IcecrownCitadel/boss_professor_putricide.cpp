@@ -733,19 +733,23 @@ class npc_putricide_oozeAI : public ScriptedAI
         void SpellHitTarget(Unit* /*target*/, SpellInfo const* spell)
         {
             if (!_newTargetSelectTimer && spell->Id == sSpellMgr->GetSpellIdForDifficulty(_hitTargetSpellId, me))
-                _newTargetSelectTimer = 1000;
+                    _newTargetSelectTimer = 2000;
         }
 
         void SpellHit(Unit* /*caster*/, SpellInfo const* spell)
         {
             if (spell->Id == SPELL_TEAR_GAS_CREATURE)
-                _newTargetSelectTimer = 1000;
+                    _newTargetSelectTimer = 2000;
         }
 
         void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim() && !_newTargetSelectTimer)
+                {
+                    if (!me->HasUnitState(UNIT_STATE_CASTING))
+                        _newTargetSelectTimer = 1000;
                 return;
+                }
 
             if (!_newTargetSelectTimer && !me->IsNonMeleeSpellCasted(false, false, true, false, true))
                 _newTargetSelectTimer = 1000;
@@ -840,7 +844,7 @@ class spell_putricide_gaseous_bloat : public SpellScriptLoader
                 {
                     target->RemoveAuraFromStack(GetSpellInfo()->Id, GetCasterGUID());
                     if (!target->HasAura(GetId()))
-                        caster->CastCustomSpell(SPELL_GASEOUS_BLOAT, SPELLVALUE_AURA_STACK, 10, caster, false);
+                        caster->CastCustomSpell(SPELL_GASEOUS_BLOAT, SPELLVALUE_AURA_STACK, 5, caster, false);
                 }
             }
 

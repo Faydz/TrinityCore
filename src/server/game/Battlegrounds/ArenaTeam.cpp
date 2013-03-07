@@ -24,6 +24,7 @@
 #include "ArenaTeamMgr.h"
 #include "Player.h"
 #include "WorldSession.h"
+#include "Configuration/Config.h"
 #include "Opcodes.h"
 
 ArenaTeam::ArenaTeam()
@@ -822,7 +823,7 @@ void ArenaTeam::UpdateArenaPointsHelper(std::map<uint32, uint32>& playerPoints)
         // The player participated in enough games, update his points
         uint32 pointsToAdd = 0;
         if (itr->WeekGames >= requiredGames)
-            pointsToAdd = GetPoints(itr->PersonalRating);
+            pointsToAdd = GetPoints(itr->PersonalRating)*ConfigMgr::GetIntDefault("DT.Arena", 1);
 
         std::map<uint32, uint32>::iterator plr_itr = playerPoints.find(GUID_LOPART(itr->Guid));
         if (plr_itr != playerPoints.end())
