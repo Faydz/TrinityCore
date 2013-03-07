@@ -3595,7 +3595,6 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
 					            m_caster->AddAura(86663, m_caster); //Rank 2
                         }
 			            break;
-		            }
                 }
             }
         }
