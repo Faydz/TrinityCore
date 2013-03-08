@@ -7891,6 +7891,15 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
         {
             switch (dummySpell->Id)
             {
+                case 84583:
+                case 84587:
+                case 84588:
+                    if(victim)
+                    {
+                        if(Aura* aura = victim->GetAura(94009, this->GetGUID()))
+                            aura->RefreshDuration();
+                    }
+                    break;
                 // Deep Wounds
                 case 12162:
                 case 12850:
