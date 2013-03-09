@@ -3281,6 +3281,36 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Nature's Bounty Rank 1
+                    case 17074:
+                        spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_CASTING_TIME;
+                        spellInfo->Effects[EFFECT_1].MiscValueB = -10;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x0, 0x2000000, 0x0);
+                        break;
+                    // Nature's Bounty Rank 2
+                    case 17075:
+                        spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_CASTING_TIME;
+                        spellInfo->Effects[EFFECT_1].MiscValueB = -20;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x0, 0x2000000, 0x0);
+                        break;
+                    // Nature's Bounty Rank 3
+                    case 17076:
+                        spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_CASTING_TIME;
+                        spellInfo->Effects[EFFECT_1].MiscValueB = -30;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x0, 0x2000000, 0x0);
+                        break;
                     // Tree of Life entangling cast time bonus
                     case 81097:
                         spellInfo->Effects[EFFECT_1].BasePoints = -50;

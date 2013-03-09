@@ -54,7 +54,7 @@ public:
     {
         PrepareAuraScript(spell_dru_rejuvenation_AuraScript);
 
-        void OnApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+        void OnApplyAndReapply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
         {
             Unit* caster = GetCaster();
             Unit* target = GetTarget();
@@ -62,6 +62,7 @@ public:
             if(!caster || !target)
                 return;
             
+            // Gift of the Earthmother
             if(AuraEffect* earthmother = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, 3186, EFFECT_0))
             {
                 // Calculates Rejuvenation total heal
@@ -76,9 +77,58 @@ public:
             }
         }
 
+        void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetTarget();
+
+            if(!caster || !target)
+                return;
+
+            // Update the rejvenation counter for the druid caster
+            // Due to AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK this new function has been created
+            caster->ModRejuvenationCounter(true);
+
+            // Nature's Bounty calculation (add)
+            if(AuraEffect* naturesBounty = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DRUID, 197, EFFECT_1))
+            {
+                if(caster->GetRejuvenationCounter() >= 3)
+                {
+                    // Here the miscValueB is used like a variable for keeping the real basepoint to change is 3 rej are present
+                    int32 newAmount = naturesBounty->GetSpellInfo()->Effects[EFFECT_1].MiscValueB;
+
+                    if(naturesBounty->GetAmount() != newAmount)
+                    {
+                        naturesBounty->ChangeAmount(newAmount);
+                    }
+                }
+            }
+        }
+
+        void AfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* caster = GetCaster();
+
+            if(!caster)
+                return;
+            
+            caster->ModRejuvenationCounter(false);
+            
+            // Nature's Bounty calculation (remove)
+            if(AuraEffect* naturesBounty = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DRUID, 197, EFFECT_1))
+            {
+                if(caster->GetRejuvenationCounter() < 3 && naturesBounty->GetAmount() != 0)
+                {
+                    naturesBounty->ChangeAmount(0);
+                }
+            }
+        }
+
         void Register()
         {
-            OnEffectApply += AuraEffectApplyFn(spell_dru_rejuvenation_AuraScript::OnApply, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            OnEffectApply += AuraEffectApplyFn(spell_dru_rejuvenation_AuraScript::OnApplyAndReapply, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            OnEffectApply += AuraEffectApplyFn(spell_dru_rejuvenation_AuraScript::OnApply, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
+            AfterEffectRemove += AuraEffectRemoveFn(spell_dru_rejuvenation_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
         }
     };
 
