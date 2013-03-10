@@ -1024,7 +1024,7 @@ bool ScriptMgr::OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger)
 
 Battleground* ScriptMgr::CreateBattleground(BattlegroundTypeId /*typeId*/)
 {
-    // TODO: Implement script-side battlegrounds.
+    /// @todo Implement script-side battlegrounds.
     ASSERT(false);
     return NULL;
 }
