@@ -31,6 +31,7 @@ enum WarriorSpells
     SPELL_WARRIOR_BLOODTHIRST                       = 23885,
     SPELL_WARRIOR_BLOODTHIRST_DAMAGE                = 23881,
     SPELL_WARRIOR_CHARGE                            = 34846,
+    SPELL_WARRIOR_CHARGE_SPELLBOOK_SPELL            = 100,
     SPELL_WARRIOR_DEEP_WOUNDS_RANK_1                = 12162,
     SPELL_WARRIOR_DEEP_WOUNDS_RANK_2                = 12850,
     SPELL_WARRIOR_DEEP_WOUNDS_RANK_3                = 12868,
@@ -39,6 +40,7 @@ enum WarriorSpells
     SPELL_WARRIOR_GLYPH_OF_EXECUTION                = 58367,
     SPELL_WARRIOR_GLYPH_OF_VIGILANCE                = 63326,
     SPELL_WARRIOR_IMPROVED_HAMSTRING                = 23694,
+    SPELL_WARRIOR_INTERCEPT                         = 20252,
     SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_BUFF        = 65156,
     SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_TALENT      = 64976,
     SPELL_WARRIOR_LAST_STAND_TRIGGERED              = 12976,
@@ -62,6 +64,51 @@ enum WarriorSpellIcons
 {
     WARRIOR_ICON_ID_SUDDEN_DEATH                    = 1989,
     WARRIOR_ICON_ID_IMPROVED_HAMSTRING              = 23,
+};
+
+class spell_warr_intercept : public SpellScriptLoader
+{
+    public:
+        spell_warr_intercept() : SpellScriptLoader("spell_warr_intercept") { }
+
+        class spell_warr_intercept_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warr_intercept_SpellScript);
+
+            void HandleOnHit()
+            {
+                SpellInfo const* chargeProto = sSpellMgr->GetSpellInfo(SPELL_WARRIOR_CHARGE_SPELLBOOK_SPELL);
+                Unit* caster = GetCaster();
+
+                if (chargeProto && caster && caster->ToPlayer())
+                {
+                    Player* player = caster->ToPlayer();
+
+                    // Juggernaut charge cd
+                    if (caster->HasAura(SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_TALENT) && !player->HasSpellCooldown(SPELL_WARRIOR_CHARGE_SPELLBOOK_SPELL))
+                    {
+                        WorldPacket data(SMSG_SPELL_COOLDOWN, 8 + 1 + 4);
+                        data << uint64(player->GetGUID());
+                        data << uint8(0x1);                               // flags (0x1, 0x2)
+                        data << uint32(chargeProto->Id);
+                        // 15 base sec - 2 from talent
+                        data << uint32(13000);                              // in m.secs
+                        player->GetSession()->SendPacket(&data);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                
+                OnHit += SpellHitFn(spell_warr_intercept_SpellScript::HandleOnHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warr_intercept_SpellScript();
+        }
 };
 
 // 1715 - Hamstring
@@ -213,13 +260,34 @@ class spell_warr_charge : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
+                SpellInfo const* interceptProto = sSpellMgr->GetSpellInfo(SPELL_WARRIOR_INTERCEPT);
                 int32 chargeBasePoints0 = GetEffectValue();
                 Unit* caster = GetCaster();
+
+                if(!interceptProto || !caster || !caster->ToPlayer())
+                    return;
+
                 caster->CastCustomSpell(caster, SPELL_WARRIOR_CHARGE, &chargeBasePoints0, NULL, NULL, true);
 
-                // Juggernaut crit bonus
+                // Juggernaut crit bonus and intercept cd
                 if (caster->HasAura(SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_TALENT))
+                {
+                    Player* player = caster->ToPlayer();
+
                     caster->CastSpell(caster, SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_BUFF, true);
+
+                    // Cooldown sharing
+                    if(!player->HasSpellCooldown(SPELL_WARRIOR_INTERCEPT))
+                    {
+                        WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4);
+                        data << uint64(player->GetGUID());
+                        data << uint8(0x1);                               // flags (0x1, 0x2)
+                        data << uint32(interceptProto->Id);
+                        // Same cooldown as charge
+                        data << uint32(13000);                              // in m.secs
+                        player->GetSession()->SendPacket(&data);
+                    }
+                }
             }
 
             void Register()
@@ -842,6 +910,7 @@ class spell_warr_vigilance_trigger : public SpellScriptLoader
 
 void AddSC_warrior_spell_scripts()
 {
+    new spell_warr_intercept();
     new spell_warr_hamstring();
     new spell_warr_bloodthirst();
     new spell_warr_bloodthirst_heal();
