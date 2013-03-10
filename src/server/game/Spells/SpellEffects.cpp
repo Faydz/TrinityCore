@@ -445,6 +445,10 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             {
                 switch(m_spellInfo->Id)
                 {
+                    // Heroic Leap
+                    case 52174:
+                        damage = m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.5f;
+                        break;
                     // Victory Rush
                     case 34428:
                         ApplyPct(damage, m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
