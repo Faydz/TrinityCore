@@ -397,26 +397,36 @@ class spell_warr_execute : public SpellScriptLoader
             void HandleEffect(SpellEffIndex /*effIndex*/)
             {
                 Unit* caster = GetCaster();
-                if (GetHitUnit())
-                {
-                    SpellInfo const* spellInfo = GetSpellInfo();
-                    int32 rageUsed = std::min<int32>(200 - spellInfo->CalcPowerCost(caster, SpellSchoolMask(spellInfo->SchoolMask)), caster->GetPower(POWER_RAGE));
-                    int32 newRage = std::max<int32>(0, caster->GetPower(POWER_RAGE) - rageUsed);
 
-                    // Sudden Death rage save
-                    if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_GENERIC, WARRIOR_ICON_ID_SUDDEN_DEATH, EFFECT_0))
+                if(caster)
+                {
+                    float ap = caster->GetTotalAttackPowerValue(BASE_ATTACK);
+                    int32 damage = 0;
+
+                    // Formula taken from the DBC: "${10+$AP*0.437*$m1/100}"
+                    damage = int32(10 + ap * 0.437 * GetEffectValue() / 100);
+
+                    // Normalized rage (why do we need to do that?)
+                    uint32 power = (caster->GetPower(POWER_RAGE) + 100) /10;
+
+                    if(power > 0)
                     {
-                        int32 ragesave = aurEff->GetSpellInfo()->Effects[EFFECT_0].CalcValue() * 10;
-                        newRage = std::max(newRage, ragesave);
+                        uint32 mod = power > 20 ? 20 : power;
+                        uint32 newPowerAmount = power - mod;
+
+                        // Sudden Death rage saving
+                        if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_GENERIC, WARRIOR_ICON_ID_SUDDEN_DEATH, EFFECT_0))
+                            newPowerAmount += aurEff->GetAmount();
+
+                        // Add bonus damage
+                        // Formula taken from the DBC: "${$ap*0.874*$m1/100-1} = 20 rage"// Formula taken from the DBC: "${$ap*0.874*$m1/100-1} = 20 rage"
+                        damage += int32 (ap * 0.874 * GetEffectValue() / 100 - 1);
+
+                        // Sets new rage
+                        caster->SetPower(POWER_RAGE, newPowerAmount);
                     }
 
-                    caster->SetPower(POWER_RAGE, uint32(newRage));
-
-                    /// Formula taken from the DBC: "${10+$AP*0.437*$m1/100}"
-                    int32 baseDamage = int32(10 + caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.437f * GetEffectValue() / 100.0f);
-                    /// Formula taken from the DBC: "${$ap*0.874*$m1/100-1} = 20 rage"
-                    int32 moreDamage = int32(rageUsed * (caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.874f * GetEffectValue() / 100.0f - 1) / 200);
-                    SetHitDamage(baseDamage + moreDamage);
+                    SetHitDamage(damage);
                 }
             }
 

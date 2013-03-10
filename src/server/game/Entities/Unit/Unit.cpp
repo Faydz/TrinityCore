@@ -7891,6 +7891,19 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
         {
             switch (dummySpell->Id)
             {
+                // Sudden Death
+                case 29723:
+                case 29725:
+                    if(Player* player = this->ToPlayer())
+                    {
+                        // Colossus Smash reset
+                        if(player->HasSpellCooldown(86346))
+                        {
+                            player->RemoveSpellCooldown(86346, true);
+                        }
+                    }
+                    break;
+                // Lambs to the Slaughter
                 case 84583:
                 case 84587:
                 case 84588:

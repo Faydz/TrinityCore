@@ -3055,6 +3055,11 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
                 spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
                 break;
+            // Sudden Death
+            case 29723:
+            case 29725:
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
+                break;
             default:
                 break;
         }
