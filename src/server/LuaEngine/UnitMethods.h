@@ -13,6 +13,132 @@
 class LuaUnit
 {
 public:
+    //GetCurrentSpell(type)
+    static int GetCurrentSpell(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        uint32 type = luaL_checkunsigned(L, 1);
+        if(type >= CURRENT_MAX_SPELL)
+        {
+            sLog->outError(LOG_FILTER_GENERAL, "Eluna::Invalid spell type (%u) for GetCurrentSpell", type);
+            return 0;
+        }
+        Eluna::get()->PushSpell(L, unit->GetCurrentSpell(type));
+        return 1;
+    }
+
+    //EquipItem(entry/item, slot)
+    static int EquipItem(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        uint16 dest = 0;
+        Item* item = Eluna::get()->CHECK_ITEM(L, 1);
+        uint32 slot = luaL_checkunsigned(L, 2);
+
+        if(slot >= EQUIPMENT_SLOT_END)
+            return 0;
+
+        if(!item)
+        {
+            uint32 entry = luaL_checkunsigned(L, 1);
+            item = Item::CreateItem(entry, 1, player);
+            if(!item)
+                return 0;
+
+            InventoryResult result = player->CanEquipItem(slot, dest, item, false);
+            if(result != EQUIP_ERR_OK)
+            {
+                delete item;
+                return 0;
+            }
+            player->ItemAddedQuestCheck(entry, 1);
+            player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_RECEIVE_EPIC_ITEM, entry, 1);
+        }
+        else
+        {
+            InventoryResult result = player->CanEquipItem(slot, dest, item, false);
+            if(result != EQUIP_ERR_OK)
+                return 0;
+            player->RemoveItem(item->GetBagSlot(), item->GetSlot(), true);
+        }
+
+        Eluna::get()->PushItem(L, player->EquipItem(dest, item, true));
+        return 1;
+    }
+
+    //CanEquipItem(entry/item, slot)
+    static int CanEquipItem(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER_BOOL();
+
+        Item* item = Eluna::get()->CHECK_ITEM(L, 1);
+        uint32 slot = luaL_checkunsigned(L, 2);
+        if(slot >= EQUIPMENT_SLOT_END)
+        {
+            Eluna::get()->PushBoolean(L, false);
+            return 1;
+        }
+
+        if (!item)
+        {
+            uint32 entry = luaL_checkunsigned(L, 1);
+            uint16 dest;
+            InventoryResult msg = player->CanEquipNewItem(slot, dest, entry, false);
+            if (msg != EQUIP_ERR_OK)
+            {
+                Eluna::get()->PushBoolean(L, false);
+                return 1;
+            }
+        }
+        else
+        {
+            uint16 dest;
+            InventoryResult msg = player->CanEquipItem(slot, dest, item, false);
+            if (msg != EQUIP_ERR_OK)
+            {
+                Eluna::get()->PushBoolean(L, false);
+                return 1;
+            }
+        }
+        Eluna::get()->PushBoolean(L, true);
+        return 1;
+    }
+
+    //GetInventoryItem(slot)
+    static int GetInventoryItem(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        uint8 slot = luaL_checkunsigned(L, 1);
+        if (slot >= INVENTORY_SLOT_ITEM_END)
+            return 0;
+
+        Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
+        Eluna::get()->PushItem(L, item);
+        return 1;
+    }
+
+    //GetBagItem(bagslot, slot)
+    static int GetBagItem(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        uint8 bagslot = luaL_checkunsigned(L, 1);
+        uint8 slot = luaL_checkunsigned(L, 2);
+
+        if (bagslot < INVENTORY_SLOT_BAG_START && bagslot >= INVENTORY_SLOT_BAG_END)
+            return 0;
+
+        Bag* bag = player->GetBagByPos(bagslot);
+        if (!bag || slot >= bag->GetBagSize())
+            return 0;
+
+        Item* item = player->GetItemByPos(bagslot, slot);
+        Eluna::get()->PushItem(L, item);
+        return 1;
+    }
 
     //SpawnGameObject(entry, x, y, z, o[, respawnDelay])
     static int SummonGameObject(lua_State* L, Unit* unit)
@@ -595,6 +721,15 @@ public:
         return 1;
     }
 
+	// GetCreatureType()
+	static int GetCreatureType(lua_State* L, Unit* unit)
+	{
+		TO_UNIT();
+
+		Eluna::get()->PushUnsigned(L, unit->GetCreatureType());
+		return 1;
+	}
+
     // GetClassAsString()
     static int GetClassAsString(lua_State* L, Unit* unit)
     {
@@ -660,6 +795,33 @@ public:
 
 		uint32 currentKills = player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS);
 		Eluna::get()->PushUnsigned(L, currentKills);
+		return 1;
+	}
+
+	// GetPlayerIP()
+	static int GetPlayerIP(lua_State* L, Unit* unit)
+	{
+		TO_PLAYER();
+
+		Eluna::get()->PushString(L, player->GetSession()->GetRemoteAddress().c_str());
+		return 1;
+	}
+
+	// GetLevelPlayedTime()
+	static int GetLevelPlayedTime(lua_State* L, Unit* unit)
+	{
+		TO_PLAYER();
+
+		Eluna::get()->PushUnsigned(L, player->GetLevelPlayedTime());
+		return 1;
+	}
+
+	// GetTotalPlayedTime()
+	static int GetTotalPlayedTime(lua_State* L, Unit* unit)
+	{
+		TO_PLAYER();
+
+		Eluna::get()->PushUnsigned(L, player->GetTotalPlayedTime());
 		return 1;
 	}
 
@@ -1047,6 +1209,51 @@ public:
 		return 1;
 	}
 
+	// IsBanker()
+	static int IsBanker(lua_State* L, Unit* unit)
+	{
+		TO_UNIT_BOOL();
+
+		Eluna::get()->PushBoolean(L, unit->isBanker());
+		return 1;
+	}
+
+	// IsBattleMaster()
+	static int IsBattleMaster(lua_State* L, Unit* unit)
+	{
+		TO_UNIT_BOOL();
+
+		Eluna::get()->PushBoolean(L, unit->isBattleMaster());
+		return 1;
+	}
+
+	// IsCharmed()
+	static int IsCharmed(lua_State* L, Unit* unit)
+	{
+		TO_UNIT_BOOL();
+
+		Eluna::get()->PushBoolean(L, unit->isCharmed());
+		return 1;
+	}
+
+	// IsArmorer()
+	static int IsArmorer(lua_State* L, Unit* unit)
+	{
+		TO_UNIT_BOOL();
+
+		Eluna::get()->PushBoolean(L, unit->isArmorer());
+		return 1;
+	}
+
+	// IsAttackingPlayer()
+	static int IsAttackingPlayer(lua_State* L, Unit* unit)
+	{
+		TO_UNIT_BOOL();
+
+		Eluna::get()->PushBoolean(L, unit->isAttackingPlayer());
+		return 1;
+	}
+
     //IsInArenaTeam(type) type : 0 = 2v2, 1 = 3v3, 2 = 5v5
     static int IsInArenaTeam(lua_State* L, Unit* unit)
     {
@@ -1209,6 +1416,37 @@ public:
 			return 0;
 		}
 		player->SetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS, currentKills - val);
+		return 0;
+	}
+
+	// ResetSpellCooldown(spellId, update(bool~optional))
+	static int ResetSpellCooldown(lua_State* L, Unit* unit)
+	{
+		TO_PLAYER();
+
+		uint32 spellId = luaL_checkunsigned(L, 1);
+		bool update = luaL_optbool(L, 2, true);
+		player->RemoveSpellCooldown(spellId, update);
+		return 0;
+	}
+
+	// ResetTypeCooldowns(category, update(bool~optional))
+	static int ResetTypeCooldowns(lua_State* L, Unit* unit)
+	{
+		TO_PLAYER();
+
+		uint32 category = luaL_checkunsigned(L, 1);
+		bool update = luaL_optbool(L, 2, true);
+		player->RemoveSpellCategoryCooldown(category, update);
+		return 0;
+	}
+
+	// ResetAllCooldowns()
+	static int ResetAllCooldowns(lua_State* L, Unit* unit)
+	{
+		TO_PLAYER();
+
+		player->RemoveAllSpellCooldown();
 		return 0;
 	}
 
@@ -1521,6 +1759,26 @@ public:
         return 1;
     }
 
+	// Booleans
+
+	// IsDungeonBoss()
+	static int IsDungeonBoss(lua_State* L, Unit* unit)
+	{
+		TO_CREATURE_BOOL();
+
+		Eluna::get()->PushBoolean(L, creature->IsDungeonBoss());
+        return 1;
+	}
+
+	// IsWorldBoss()
+	static int IsWorldBoss(lua_State* L, Unit* unit)
+	{
+		TO_CREATURE_BOOL();
+
+		Eluna::get()->PushBoolean(L, creature->isWorldBoss());
+		return 1;
+	}
+
     // GetAura(spellID)
     static int GetAura(lua_State* L, Unit* unit)
     {
@@ -1555,6 +1813,75 @@ public:
 		TO_UNIT();
 
 		unit->ClearInCombat();
+		return 0;
+	}
+
+	// StopSpellCast(spellId(optional))
+	static int StopSpellCast(lua_State* L, Unit* unit)
+	{
+		TO_UNIT();
+
+		uint32 spellId = luaL_optunsigned(L, 1, 0);
+		unit->CastStop(spellId);
+		return 0;
+	}
+
+	// InterruptSpell(spellType, delayed(optional), instant(optional))
+	static int InterruptSpell(lua_State* L, Unit* unit)
+	{
+		TO_UNIT();
+
+		int spellType = luaL_checkint(L, 1);
+		bool delayed = luaL_optbool(L, 2, true);
+		bool instant = luaL_optbool(L, 3, true);
+		switch(spellType)
+		{
+		case 0:
+			spellType = CURRENT_MELEE_SPELL;
+			break;
+		case 1:
+			spellType = CURRENT_GENERIC_SPELL;
+			break;
+		case 2:
+			spellType = CURRENT_CHANNELED_SPELL;
+			break;
+		case 3:
+			spellType = CURRENT_AUTOREPEAT_SPELL;
+			break;
+		}
+		unit->InterruptSpell((CurrentSpellTypes)spellType, delayed, instant);
+		return 0;
+	}
+
+	// AddAura(spellId)
+	static int AddAura(lua_State* L, Unit* unit)
+	{
+		TO_UNIT();
+
+		uint32 spellId = luaL_checkunsigned(L, 1);
+		Unit* target = Eluna::get()->CHECK_UNIT(L, 2);
+		if (!target)
+			return 0;
+		unit->AddAura(spellId, target);
+		return 0;
+	}
+
+	// RemoveAura(spellId, casterGuid(optional))
+	static int RemoveAura(lua_State* L, Unit* unit)
+	{
+		TO_UNIT();
+
+		uint32 spellId = luaL_checkunsigned(L, 1);
+		unit->RemoveAurasDueToSpell(spellId);
+		return 0;
+	}
+
+	// RemoveAllAuras()
+	static int RemoveAllAuras(lua_State* L, Unit* unit)
+	{
+		TO_UNIT();
+
+		unit->RemoveAllAuras();
 		return 0;
 	}
 

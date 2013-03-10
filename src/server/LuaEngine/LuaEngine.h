@@ -18,6 +18,7 @@
 #include "Vehicle.h"
 #include "SystemConfig.h"
 #include "MapManager.h"
+#include "Language.h"
 
 using namespace std;
 
@@ -456,6 +457,14 @@ public:
             return ElunaTemplate<WorldObject>::check(LuaState, narg);
         else
             return ElunaTemplate<WorldObject>::check(L, narg);
+    }
+
+    Item* CHECK_ITEM(lua_State* L, int narg)
+    {
+        if (!L)
+            return ElunaTemplate<Item>::check(LuaState, narg);
+        else
+            return ElunaTemplate<Item>::check(L, narg);
     }
 
 protected:
