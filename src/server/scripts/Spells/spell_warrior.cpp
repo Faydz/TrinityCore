@@ -66,6 +66,41 @@ enum WarriorSpellIcons
     WARRIOR_ICON_ID_IMPROVED_HAMSTRING              = 23,
 };
 
+// 86346 - Colossus Smash
+class spell_warr_colussus_smash : public SpellScriptLoader
+{
+    public:
+        spell_warr_colussus_smash() : SpellScriptLoader("spell_warr_colussus_smash") { }
+
+        class spell_warr_colussus_smash_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warr_colussus_smash_AuraScript);
+
+            void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
+            {
+                if (Unit* target = GetUnitOwner())
+                {
+                    if(target->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        // 50% arpen for player
+                        amount /= 2;
+                    }
+                }
+            }
+
+            void Register()
+            {
+                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_colussus_smash_AuraScript::CalculateAmount, EFFECT_1, SPELL_AURA_BYPASS_ARMOR_FOR_CASTER);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_warr_colussus_smash_AuraScript();
+        }
+};
+
+// 20252 - Intercept
 class spell_warr_intercept : public SpellScriptLoader
 {
     public:
@@ -920,6 +955,7 @@ class spell_warr_vigilance_trigger : public SpellScriptLoader
 
 void AddSC_warrior_spell_scripts()
 {
+    new spell_warr_colussus_smash();
     new spell_warr_intercept();
     new spell_warr_hamstring();
     new spell_warr_bloodthirst();
