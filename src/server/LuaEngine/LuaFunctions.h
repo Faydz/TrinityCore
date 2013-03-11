@@ -22,6 +22,10 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetPlayerIP", &LuaUnit::GetPlayerIP},                         // :GetPlayerIP() -- Returns the player's IP Address
     {"GetLevelPlayedTime", &LuaUnit::GetLevelPlayedTime},           // :GetLevelPlayedTime() -- Returns the player's played time at that level
     {"GetTotalPlayedTime", &LuaUnit::GetTotalPlayedTime},           // :GetTotalPlayedTime() -- Returns the total played time of that player
+    {"GetInventoryItem", &LuaUnit::GetInventoryItem},               // :GetInventoryItem(slot) -  Returns item at given inventory slot (0, 1, 2.. for equipment 19-23 for bags, 23-39 for backpack) UNDOCUMENTED
+    {"GetBagItem", &LuaUnit::GetBagItem},                           // :GetBagItem(bagSlot, slot) -  Returns item at given slot (0, 1, 2 .. max slots for bag) in a bag (19-23). UNDOCUMENTED
+    {"GetObjectGlobally", &LuaUnit::GetObjectGlobally},             // :GetObjectGlobally(guid, entry) - Returns the gameobject of given guid and entry if in world. UNDOCUMENTED
+    {"GetNearbyGameObject", &LuaUnit::GetNearbyGameObject},         // :GetNearbyGameObject() - Returns nearby gameobject if found. UNDOCUMENTED
 
     // Setters
     {"AdvanceSkillsToMax", &LuaUnit::AdvanceSkillsToMax},           // :AdvanceSkillsToMax() -- Advances all currently known skills to the currently known max level
@@ -76,8 +80,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"ResurrectPlayer", &LuaUnit::ResurrectPlayer},                 // :ResurrectPlayer([percent[, sickness(bool)]]) - Resurrects the player at percentage, player gets resurrection sickness if sickness set to true.
     {"PlaySoundToPlayer", &LuaUnit::PlaySoundToPlayer},             // :PlaySoundToPlayer(soundId) - Plays the specified sound to the player
     {"EquipItem", &LuaUnit::EquipItem},                             // :EquipItem(entry/item, slot) -  Equips given item or item entry for player to given slot. Returns the equipped item or nil. UNDOCUMENTED
-    {"GetInventoryItem", &LuaUnit::GetInventoryItem},               // :GetInventoryItem(slot) -  Returns item at given inventory slot (0, 1, 2.. for equipment 19-23 for bags, 23-39 for backpack) UNDOCUMENTED
-    {"GetBagItem", &LuaUnit::GetBagItem},                           // :GetBagItem(bagSlot, slot) -  Returns item at given slot (0, 1, 2 .. max slots for bag) in a bag (19-23). UNDOCUMENTED
     {"ResetSpellCooldown", &LuaUnit::ResetSpellCooldown},           // :ResetSpellCooldown(spellId, update(bool~optional)) -- Resets cooldown of the specified spellId. If update is true, it will send WorldPacket SMSG_CLEAR_COOLDOWN to the player, else it will just clear the spellId from m_spellCooldowns. This is true by default.
     {"ResetTypeCooldowns", &LuaUnit::ResetTypeCooldowns},           // :ResetTypeCooldowns(category, update(bool~optional)) -- Resets all cooldowns for the spell category(type). If update is true, it will send WorldPacket SMSG_CLEAR_COOLDOWN to the player, else it will just clear the spellId from m_spellCooldowns. This is true by default.
     {"ResetAllCooldowns", &LuaUnit::ResetAllCooldowns},             // :ResetAllCooldowns() -- Resets all spell cooldowns.
@@ -87,8 +89,13 @@ ElunaRegister<Unit> UnitMethods[] =
     // Getters
     {"GetAITargets", &LuaUnit::GetAITargets},                       // :GetAITargets() - Get units in threat list
     {"GetAITargetsCount", &LuaUnit::GetAITargetsCount},             // :GetAITargetsCount() - Get threat list size
+    {"GetVictim", &LuaUnit::GetVictim},                             // :GetVictim() - Returns creature's current target. UNDOCUMENTED
+    {"GetNearestTargetInAttackDistance", &LuaUnit::GetNearestTargetInAttackDistance}, // :GetNearestTargetInAttackDistance([radius]) - Returns nearest target in attack distance and within given radius, if set. UNDOCUMENTED
+    {"GetNearestTarget", &LuaUnit::GetNearestTarget},               // :GetNearestTarget([radius]) - Returns nearest target in sight or given radius. UNDOCUMENTED
+    {"GetNearestPlayer", &LuaUnit::GetNearestPlayer},               // :GetNearestPlayer([radius]) - Returns nearest player in sight or given radius. UNDOCUMENTED
+    {"GetNearestHostileTargetInAggroRange", &LuaUnit::GetNearestHostileUnitInAggroRange}, // :GetNearestHostileTargetInAggroRange([checkLOS]) - Returns closest hostile target in aggro range of the creature. UNDOCUMENTED
 
-	// Booleans
+    // Booleans
     {"IsWorldBoss", &LuaUnit::IsWorldBoss},                         // :IsWorldBoss() -- Returns true if the creature is a WorldBoss, false if not.
     {"IsDungeonBoss", &LuaUnit::IsDungeonBoss},                     // :IsDungeonBoss() -- Returns true if the creature is a DungeonBoss, false if not.
 
@@ -138,6 +145,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetFaction", &LuaUnit::GetFaction},                           // :GetFaction() -- Returns the unit's factionId
     {"GetCurrentSpell", &LuaUnit::GetCurrentSpell},                 // :GetCurrentSpell(type) -- Returns the currently casted spell of given type if any UNDOCUMENTED
     {"GetCreatureType", &LuaUnit::GetCreatureType},                 // :GetCreatureType() -- Returns the unit's type
+    {"GetNearbyTarget", &LuaUnit::GetNearbyTarget},                 // :GetNearbyTarget([radius[, exclude]]) - Returns nearby target within sight or given radius. Excludes current target and given unit. UNDOCUMENTED
 
     // Setters
     {"SetFaction", &LuaUnit::SetFaction},                           // :SetFaction(factionId) -- Sets the unit's faction
@@ -211,6 +219,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SpawnCreature", &LuaUnit::SpawnCreature},                     // :SpawnCreature(entry, x, y, z, o[, despawnDelay]) - Spawns a creature to location that despawns after given time (0 for infinite). Returns the creature or nil UNDOCUMENTED
     {"StopSpellCast", &LuaUnit::StopSpellCast},                     // :StopSpellCast(spellId(optional)) -- Stops the unit from casting a spell. If a spellId is defined, it will stop that unit from casting that spell
     {"InterruptSpell", &LuaUnit::InterruptSpell},                   // :InterruptSpell(spellType, delayed(optional), instant(optional)) -- Interrupts the unit's spell by the spellType. If delayed is true it will skip if the spell is delayed. If instant is true, it will skip that the spell has a cast time.
+    {"SendChatMessageToPlayer", &LuaUnit::SendChatMessageToPlayer}, // :SendChatMessageToPlayer(type, lang, msg, target) -- Unit sends a chat message to the given target player UNDOCUMENTED
 
     /* Vehicle */
     {"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger},         // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
@@ -377,7 +386,8 @@ ElunaRegister<Spell> SpellMethods[] =
     {"Cancel", &LuaSpell::cancel},                                  // :Cancel() -- Cancels the spell casting                       UNDOCUMENTED
     {"Cast", &LuaSpell::Cast},                                      // :Cast(skipCheck) -- Casts the spell (if true, removes the check for instant spells, etc)      UNDOCUMENTED
     {"Finish", &LuaSpell::Finish},                                  // :Finish() -- Finishes the spell (SPELL_STATE_FINISH)         UNDOCUMENTED
-	{NULL, NULL},
+
+    {NULL, NULL},
 };
 
 ElunaRegister<Quest> QuestMethods[] =

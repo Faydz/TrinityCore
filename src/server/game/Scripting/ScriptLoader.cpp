@@ -1294,6 +1294,7 @@ void AddBattlegroundScripts()
 /* This is where custom scripts' loading functions should be declared. */
 
     void AddSC_npc_dtporter();
+    void Eluna_AddScriptHooks();
     void AddSC_npc_dtlostskills();
     void AddSC_npc_dtvipvendor();
     void AddSC_custom_dtrace();
@@ -1321,6 +1322,7 @@ void AddCustomScripts()
     /* This is where custom scripts should be added. */
 
     AddSC_npc_dtporter();
+    Eluna_AddScriptHooks();
     AddSC_npc_dtlostskills();
     AddSC_npc_dtvipvendor();
     AddSC_custom_dtrace();
