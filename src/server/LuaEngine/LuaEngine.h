@@ -222,6 +222,9 @@ struct ElunaRegister
     int(*mfunc)(lua_State*, T*);
 };
 
+template<typename T> ElunaRegister<T>* GetMethodTable();
+template<typename T> const char* GetTName();
+
 class Eluna
 {
 public:
@@ -249,6 +252,7 @@ public:
     ElunaBind* playerGossipBindings;
 
     void StartEluna(bool restart = false);
+    void AddScriptHooks();
     static void report(lua_State*);
     void Register(uint8 reg, uint32 id, uint32 evt, int func);
     void BeginCall(int fReference);
