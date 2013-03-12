@@ -904,6 +904,15 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
         // special cases
         switch (triggered_spell_id)
         {
+            // Rend
+            case 94009:
+                if(Aura* aura = unitTarget->GetAura(triggered_spell_id, m_caster->GetGUID()))
+                {
+                    // Refresh current aura and disable the incoming rend cast
+                    aura->RefreshDuration();
+                    triggered_spell_id = 0;
+                }
+                break;
             // Vanish (not exist)
             case 18461:
             {
