@@ -2294,14 +2294,14 @@ public:
     }
 
     // DismissVehicle()
-    static int DismissVehicle(lua_State* L, Unit* unit)
-    {
-        TO_UNIT();
+    //static int DismissVehicle(lua_State* L, Unit* unit)
+    //{
+    //    TO_UNIT();
 
-        if (unit->GetVehicle())
-            unit->GetVehicle()->Dismiss();
-        return 0;
-    }
+    //    if (unit->GetVehicle())
+    //        unit->GetVehicle()->Dismiss();
+    //    return 0;
+    //}
 
     // AddVehiclePassenger(unit, seatId)
     static int AddVehiclePassenger(lua_State* L, Unit* unit)
