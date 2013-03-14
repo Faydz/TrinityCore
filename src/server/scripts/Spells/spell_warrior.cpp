@@ -632,6 +632,9 @@ class spell_warr_rend : public SpellScriptLoader
                     float mwbMin = caster->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE);
                     float mwbMax = caster->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE);
                     float mwb = ((mwbMin + mwbMax) / 2 + ap * mws / 14000) * 0.25f * 6.0f;
+
+                    mwb /= 5.0f; // Per tick amount
+
                     amount += int32(caster->ApplyEffectModifiers(GetSpellInfo(), aurEff->GetEffIndex(), mwb));
                 }
             }
