@@ -3100,9 +3100,12 @@ void Unit::_AddAura(UnitAura* aura, Unit* caster)
 
     bool isSingle = aura->GetSpellInfo()->IsSingleTarget();
     
-    if (aura->GetSpellInfo()->Id == 33763)
-        if (!caster->HasAura(33891))
-            isSingle = true;
+    if (caster)
+    {
+        if (aura->GetSpellInfo()->Id == 33763)
+            if (!caster->HasAura(33891))
+                isSingle = true;
+    }
 
     aura->SetIsSingleTarget(caster && isSingle);
     if (aura->IsSingleTarget())
@@ -11957,13 +11960,15 @@ void Unit::CombatStart(Unit* target, bool initialAggro)
         if (!target->IsStandState())
             target->SetStandState(UNIT_STAND_STATE_STAND);
 
-        if (!target->isInCombat() && target->GetTypeId() != TYPEID_PLAYER
-            && !target->ToCreature()->HasReactState(REACT_PASSIVE) && target->ToCreature()->IsAIEnabled)
+        if (target->ToCreature())
         {
-            if (target->isPet())
-                target->ToCreature()->AI()->AttackedBy(this); // PetAI has special handler before AttackStart()
-            else
-                target->ToCreature()->AI()->AttackStart(this);
+            if (!target->isInCombat() && target->GetTypeId() != TYPEID_PLAYER && !target->ToCreature()->HasReactState(REACT_PASSIVE) && target->ToCreature()->IsAIEnabled)
+            {
+                if (target->isPet())
+                    target->ToCreature()->AI()->AttackedBy(this); // PetAI has special handler before AttackStart()
+                else
+                    target->ToCreature()->AI()->AttackStart(this);
+            }
         }
 
         SetInCombatWith(target);
