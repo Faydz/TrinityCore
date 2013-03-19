@@ -31,6 +31,7 @@ enum WarriorSpells
     SPELL_WARRIOR_BLOODTHIRST                       = 23885,
     SPELL_WARRIOR_BLOODTHIRST_DAMAGE                = 23881,
     SPELL_WARRIOR_CHARGE                            = 34846,
+    SPELL_WARRIOR_CHARGE_SPELLBOOK_SPELL            = 100,
     SPELL_WARRIOR_DEEP_WOUNDS_RANK_1                = 12162,
     SPELL_WARRIOR_DEEP_WOUNDS_RANK_2                = 12850,
     SPELL_WARRIOR_DEEP_WOUNDS_RANK_3                = 12868,
@@ -38,6 +39,8 @@ enum WarriorSpells
     SPELL_WARRIOR_EXECUTE                           = 20647,
     SPELL_WARRIOR_GLYPH_OF_EXECUTION                = 58367,
     SPELL_WARRIOR_GLYPH_OF_VIGILANCE                = 63326,
+    SPELL_WARRIOR_IMPROVED_HAMSTRING                = 23694,
+    SPELL_WARRIOR_INTERCEPT                         = 20252,
     SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_BUFF        = 65156,
     SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_TALENT      = 64976,
     SPELL_WARRIOR_LAST_STAND_TRIGGERED              = 12976,
@@ -60,6 +63,134 @@ enum WarriorSpells
 enum WarriorSpellIcons
 {
     WARRIOR_ICON_ID_SUDDEN_DEATH                    = 1989,
+    WARRIOR_ICON_ID_IMPROVED_HAMSTRING              = 23,
+};
+
+// 86346 - Colossus Smash
+class spell_warr_colussus_smash : public SpellScriptLoader
+{
+    public:
+        spell_warr_colussus_smash() : SpellScriptLoader("spell_warr_colussus_smash") { }
+
+        class spell_warr_colussus_smash_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warr_colussus_smash_AuraScript);
+
+            void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
+            {
+                if (Unit* target = GetUnitOwner())
+                {
+                    if(target->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        // 50% arpen for player
+                        amount /= 2;
+                    }
+                }
+            }
+
+            void Register()
+            {
+                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_colussus_smash_AuraScript::CalculateAmount, EFFECT_1, SPELL_AURA_BYPASS_ARMOR_FOR_CASTER);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_warr_colussus_smash_AuraScript();
+        }
+};
+
+// 20252 - Intercept
+class spell_warr_intercept : public SpellScriptLoader
+{
+    public:
+        spell_warr_intercept() : SpellScriptLoader("spell_warr_intercept") { }
+
+        class spell_warr_intercept_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warr_intercept_SpellScript);
+
+            void HandleOnHit()
+            {
+                SpellInfo const* chargeProto = sSpellMgr->GetSpellInfo(SPELL_WARRIOR_CHARGE_SPELLBOOK_SPELL);
+                Unit* caster = GetCaster();
+
+                if (chargeProto && caster && caster->ToPlayer())
+                {
+                    Player* player = caster->ToPlayer();
+
+                    // Juggernaut charge cd
+                    if (caster->HasAura(SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_TALENT) && !player->HasSpellCooldown(SPELL_WARRIOR_CHARGE_SPELLBOOK_SPELL))
+                    {
+                        WorldPacket data(SMSG_SPELL_COOLDOWN, 8 + 1 + 4);
+                        data << uint64(player->GetGUID());
+                        data << uint8(0x1);                               // flags (0x1, 0x2)
+                        data << uint32(chargeProto->Id);
+                        // 15 base sec - 2 from talent
+                        data << uint32(13000);                              // in m.secs
+                        player->GetSession()->SendPacket(&data);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                
+                OnHit += SpellHitFn(spell_warr_intercept_SpellScript::HandleOnHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warr_intercept_SpellScript();
+        }
+};
+
+// 1715 - Hamstring
+class spell_warr_hamstring : public SpellScriptLoader
+{
+    public:
+        spell_warr_hamstring() : SpellScriptLoader("spell_warr_hamstring") { }
+
+        class spell_warr_hamstring_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warr_hamstring_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_WARRIOR_IMPROVED_HAMSTRING))
+                    return false;
+                return true;
+            }
+
+            void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetTarget();
+
+                if(!caster || !caster->ToPlayer() || !target)
+                    return;
+
+                if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_WARRIOR, WARRIOR_ICON_ID_IMPROVED_HAMSTRING, EFFECT_0))
+                {
+                    if(!caster->ToPlayer()->HasSpellCooldown(SPELL_WARRIOR_IMPROVED_HAMSTRING))
+                    {
+                        caster->CastSpell(target, SPELL_WARRIOR_IMPROVED_HAMSTRING, true);
+                        caster->ToPlayer()->AddSpellCooldown(SPELL_WARRIOR_IMPROVED_HAMSTRING, NULL, time(NULL) + aurEff->GetAmount());
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_warr_hamstring_AuraScript::HandleApply, EFFECT_0, SPELL_AURA_MOD_DECREASE_SPEED, AURA_EFFECT_HANDLE_REAPPLY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_warr_hamstring_AuraScript();
+        }
 };
 
 /// Updated 4.3.4
@@ -164,13 +295,34 @@ class spell_warr_charge : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
+                SpellInfo const* interceptProto = sSpellMgr->GetSpellInfo(SPELL_WARRIOR_INTERCEPT);
                 int32 chargeBasePoints0 = GetEffectValue();
                 Unit* caster = GetCaster();
+
+                if(!interceptProto || !caster || !caster->ToPlayer())
+                    return;
+
                 caster->CastCustomSpell(caster, SPELL_WARRIOR_CHARGE, &chargeBasePoints0, NULL, NULL, true);
 
-                // Juggernaut crit bonus
+                // Juggernaut crit bonus and intercept cd
                 if (caster->HasAura(SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_TALENT))
+                {
+                    Player* player = caster->ToPlayer();
+
                     caster->CastSpell(caster, SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_BUFF, true);
+
+                    // Cooldown sharing
+                    if(!player->HasSpellCooldown(SPELL_WARRIOR_INTERCEPT))
+                    {
+                        WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4);
+                        data << uint64(player->GetGUID());
+                        data << uint8(0x1);                               // flags (0x1, 0x2)
+                        data << uint32(interceptProto->Id);
+                        // Same cooldown as charge
+                        data << uint32(13000);                              // in m.secs
+                        player->GetSession()->SendPacket(&data);
+                    }
+                }
             }
 
             void Register()
@@ -280,26 +432,36 @@ class spell_warr_execute : public SpellScriptLoader
             void HandleEffect(SpellEffIndex /*effIndex*/)
             {
                 Unit* caster = GetCaster();
-                if (GetHitUnit())
-                {
-                    SpellInfo const* spellInfo = GetSpellInfo();
-                    int32 rageUsed = std::min<int32>(200 - spellInfo->CalcPowerCost(caster, SpellSchoolMask(spellInfo->SchoolMask)), caster->GetPower(POWER_RAGE));
-                    int32 newRage = std::max<int32>(0, caster->GetPower(POWER_RAGE) - rageUsed);
 
-                    // Sudden Death rage save
-                    if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_GENERIC, WARRIOR_ICON_ID_SUDDEN_DEATH, EFFECT_0))
+                if(caster)
+                {
+                    float ap = caster->GetTotalAttackPowerValue(BASE_ATTACK);
+                    int32 damage = 0;
+
+                    // Formula taken from the DBC: "${10+$AP*0.437*$m1/100}"
+                    damage = int32(10 + ap * 0.437 * GetEffectValue() / 100);
+
+                    // Normalized rage (why do we need to do that?)
+                    uint32 power = (caster->GetPower(POWER_RAGE) + 100) /10;
+
+                    if(power > 0)
                     {
-                        int32 ragesave = aurEff->GetSpellInfo()->Effects[EFFECT_0].CalcValue() * 10;
-                        newRage = std::max(newRage, ragesave);
+                        uint32 mod = power > 20 ? 20 : power;
+                        uint32 newPowerAmount = power - mod;
+
+                        // Sudden Death rage saving
+                        if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_GENERIC, WARRIOR_ICON_ID_SUDDEN_DEATH, EFFECT_0))
+                            newPowerAmount += aurEff->GetAmount();
+
+                        // Add bonus damage
+                        // Formula taken from the DBC: "${$ap*0.874*$m1/100-1} = 20 rage"// Formula taken from the DBC: "${$ap*0.874*$m1/100-1} = 20 rage"
+                        damage += int32 (ap * 0.874 * GetEffectValue() / 100 - 1);
+
+                        // Sets new rage
+                        caster->SetPower(POWER_RAGE, newPowerAmount);
                     }
 
-                    caster->SetPower(POWER_RAGE, uint32(newRage));
-
-                    /// Formula taken from the DBC: "${10+$AP*0.437*$m1/100}"
-                    int32 baseDamage = int32(10 + caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.437f * GetEffectValue() / 100.0f);
-                    /// Formula taken from the DBC: "${$ap*0.874*$m1/100-1} = 20 rage"
-                    int32 moreDamage = int32(rageUsed * (caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.874f * GetEffectValue() / 100.0f - 1) / 200);
-                    SetHitDamage(baseDamage + moreDamage);
+                    SetHitDamage(damage);
                 }
             }
 
@@ -448,7 +610,7 @@ class spell_warr_overpower : public SpellScriptLoader
         }
 };
 
-// -772 - Rend
+// 94009 - Rend
 class spell_warr_rend : public SpellScriptLoader
 {
     public:
@@ -469,22 +631,17 @@ class spell_warr_rend : public SpellScriptLoader
                     int32 mws = caster->GetAttackTime(BASE_ATTACK);
                     float mwbMin = caster->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE);
                     float mwbMax = caster->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE);
-                    float mwb = ((mwbMin + mwbMax) / 2 + ap * mws / 14000) * 0.2f;
-                    amount += int32(caster->ApplyEffectModifiers(GetSpellInfo(), aurEff->GetEffIndex(), mwb));
+                    float mwb = ((mwbMin + mwbMax) / 2 + ap * mws / 14000) * 0.25f * 6.0f;
 
-                    // "If used while your target is above 75% health, Rend does 35% more damage."
-                    // as for 3.1.3 only ranks above 9 (wrong tooltip?)
-                    if (GetSpellInfo()->GetRank() >= 9)
-                    {
-                        if (GetUnitOwner()->HasAuraState(AURA_STATE_HEALTH_ABOVE_75_PERCENT, GetSpellInfo(), caster))
-                            AddPct(amount, GetSpellInfo()->Effects[EFFECT_2].CalcValue(caster));
-                    }
+                    mwb /= 5.0f; // Per tick amount
+
+                    amount += int32(caster->ApplyEffectModifiers(GetSpellInfo(), aurEff->GetEffIndex(), mwb));
                 }
             }
 
             void Register()
             {
-                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_rend_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_rend_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
             }
         };
 
@@ -825,6 +982,9 @@ class spell_warr_death_wish : public SpellScriptLoader
 void AddSC_warrior_spell_scripts()
 {
     //new spell_warr_death_wish();
+    new spell_warr_colussus_smash();
+    new spell_warr_intercept();
+    new spell_warr_hamstring();
     new spell_warr_bloodthirst();
     new spell_warr_bloodthirst_heal();
     new spell_warr_critical_block();

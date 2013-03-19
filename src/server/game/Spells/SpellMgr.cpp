@@ -3055,6 +3055,11 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
                 spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
                 break;
+            // Sudden Death
+            case 29723:
+            case 29725:
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
+                break;
             default:
                 break;
         }
@@ -3238,12 +3243,20 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Improved Hamstring
+                    case 12289:
+                    case 12668:
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+                        break;
+                    // Deep Wounds Rank 1
                     case 12162:
                         spellInfo->Effects[EFFECT_0].BasePoints = 16;
                         break;
+                    // Deep Wounds Rank 2
                     case 12850:
                         spellInfo->Effects[EFFECT_0].BasePoints = 32;
                         break;
+                    // Deep Wounds Rank 3
                     case 12867:
                         spellInfo->Effects[EFFECT_0].BasePoints = 48;
                         break;
@@ -3273,6 +3286,36 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Nature's Bounty Rank 1
+                    case 17074:
+                        spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_CASTING_TIME;
+                        spellInfo->Effects[EFFECT_1].MiscValueB = -10;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x0, 0x2000000, 0x0);
+                        break;
+                    // Nature's Bounty Rank 2
+                    case 17075:
+                        spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_CASTING_TIME;
+                        spellInfo->Effects[EFFECT_1].MiscValueB = -20;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x0, 0x2000000, 0x0);
+                        break;
+                    // Nature's Bounty Rank 3
+                    case 17076:
+                        spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_CASTING_TIME;
+                        spellInfo->Effects[EFFECT_1].MiscValueB = -30;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x0, 0x2000000, 0x0);
+                        break;
                     // Tree of Life entangling cast time bonus
                     case 81097:
                         spellInfo->Effects[EFFECT_1].BasePoints = -50;
