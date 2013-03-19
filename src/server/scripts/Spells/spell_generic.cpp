@@ -3492,7 +3492,6 @@ class spell_gen_replenishment : public SpellScriptLoader
             void Register()
             {
                 OnEffectApply += AuraEffectApplyFn(spell_gen_replenishment_AuraScript::HandleCaster, EFFECT_0, SPELL_AURA_PERIODIC_ENERGIZE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
-                //AfterEffectApply += AuraEffectApplyFn(spell_gen_replenishment_AuraScript::HandleCaster, EFFECT_0, SPELL_AURA_PERIODIC_ENERGIZE, AURA_EFFECT_HANDLE_REAPPLY);
                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_gen_replenishment_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_PERIODIC_ENERGIZE);
             }
         };

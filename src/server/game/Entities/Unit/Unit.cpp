@@ -8377,7 +8377,6 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 if (!pally->HealthBelowPctDamaged(30, damage) || pally->HasSpellCooldown(trigger_spell_id))
                     return false;
 
-
                 // Calcolo l'ammontare dell'absorb dello scudo
                 int32 ap = int32(pally->GetTotalAttackPowerValue(BASE_ATTACK) * 0.9f);
                 basepoints0 = int32(CalculatePct(ap, 280));
@@ -10421,6 +10420,12 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             if (owner->ToPlayer() && owner->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && spellProto->Mechanic == MECHANIC_BLEED)
                     if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_DRUID_FERAL_COMBAT)
                         DoneTotalMod *= 1.0f + 0.031f *  owner->ToPlayer()->GetMasteryPoints();
+            break;
+        case SPELLFAMILY_WARRIOR:
+            // Raging Blow (damage increased by mastery)
+            if (owner->ToPlayer() && owner->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && spellProto->Id == 8680)
+                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARRIOR_FURY)
+                        DoneTotalMod *= 1.0f + (0.056f *  (owner->ToPlayer()->GetMasteryPoints() - 6));// fury base mastery is 2
             break;
     }
 

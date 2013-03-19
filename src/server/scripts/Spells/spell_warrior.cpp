@@ -790,9 +790,41 @@ class spell_warr_vigilance_trigger : public SpellScriptLoader
             return new spell_warr_vigilance_trigger_SpellScript();
         }
 };
+/*
+class spell_warr_death_wish : public SpellScriptLoader
+{
+    public:
+        spell_warr_death_wish() : SpellScriptLoader("spell_warr_death_wish") { }
+
+        class spell_warr_death_wish_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warr_death_wish);
+            // where function is: void function (AuraEffect* aurEff, int32& amount, bool& canBeRecalculated);
+            void CalculateAmount(AuraEffect const* /*aurEff*//*, int32 &amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = false;
+                            
+                if(Unit* owner = GetCaster())
+                    if (owner->ToPlayer() && owner->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY))
+                        if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARRIOR_FURY)
+                            amount *= int32(1.0f + (0.056f *  (owner->ToPlayer()->GetMasteryPoints() - 6))); // fury base mastery is 2
+            }
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_death_wish_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
+              //  DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_death_wish_AuraScript::OnEffectCalcAmount, EFFECT_1, SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_warr_death_wish_AuraScript();
+        }
+};*/
 
 void AddSC_warrior_spell_scripts()
 {
+    //new spell_warr_death_wish();
     new spell_warr_bloodthirst();
     new spell_warr_bloodthirst_heal();
     new spell_warr_critical_block();
