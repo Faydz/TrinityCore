@@ -6064,6 +6064,10 @@ bool Player::UpdateCraftSkill(uint32 spellid)
 
             uint32 craft_skill_gain = sWorld->getIntConfig(CONFIG_SKILL_GAIN_CRAFTING);
 
+            // 4.x Some craft have custom skillgain (only if pattern is orange)
+            if (_spell_idx->second->character_points[0] > 1 && SkillValue < _spell_idx->second->min_value)
+                craft_skill_gain = _spell_idx->second->character_points[0];
+
             return UpdateSkillPro(_spell_idx->second->skillId, SkillGainChance(SkillValue,
                 _spell_idx->second->max_value,
                 (_spell_idx->second->max_value + _spell_idx->second->min_value)/2,
