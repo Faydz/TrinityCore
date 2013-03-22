@@ -133,7 +133,7 @@ INSERT INTO `item_template` (`entry`, `class`, `name`, `displayid`, `Quality`, `
 DELETE FROM `creature` WHERE (`id`='341245');
 INSERT INTO `creature` VALUES (null, 341245, 0, 1, 1, 0, 1, -10368.2, -1257.06, 35.9107, 0.115647, 300, 0, 0, 42, 0, 0, 0, 0, 0);
 DELETE FROM `creature_template` WHERE (`entry`='341245');
-INSERT INTO `creature_template` VALUES (341245, 0, 0, 0, 0, 0, 1126, 15880, 0, 0, 'Mistmantle Bunny', '', '', 0, 1, 1, 0, 0, 35, 35, 0, 1, 1.14286, 1, 0, 0, 0, 0, 0, 1, 2000, 2000, 1, 33555200, 2048, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'SmartAI', 0, 3, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, '', 15595);
+INSERT INTO `creature_template` VALUES (341245, 0, 0, 0, 0, 0, 1126, 15880, 0, 0, 'Mistmantle Bunny', '', '', 0, 1, 1, 0, 0, 35, 35, 0, 1, 1.14286, 1, 0, 0, 0, 0, 0, 1, 2000, 2000, 1, 33555200, 2048, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'SmartAI', 0, 0, 3, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, '', 15595);
 DELETE FROM `creature_template_addon` WHERE (`entry`='341245');
 INSERT INTO `creature_template_addon` VALUES (341245, 0, 0, 65536, 1, 0, '64573 52855');
 

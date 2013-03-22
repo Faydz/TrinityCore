@@ -933,19 +933,7 @@ UPDATE `creature_template` SET `AIName`='',`ScriptName`='npc_scion_of_eternity' 
 -- since it has the invisible one for triggers first and other as second, this is the only nonhacky way (don't try to change it unless core side != c++ hack in instance script)
 UPDATE `creature_template` SET `flags_extra`=flags_extra &~ 0x00000080 WHERE `entry`=30090;
 UPDATE `creature` SET `modelid`=11686 WHERE `guid` BETWEEN 132304 AND 132308;
-/* 4.x already added
--- Add missing generic spell for opening chests for most of Blood Elf's classes
--- (was preventing them to loot Eye of Eternity Alexstrasza's Gift Box, Heart of Magic and maybe more.)
-DELETE FROM `playercreateinfo_spell` WHERE `race`=10 AND `Spell`=61437;
-INSERT INTO `playercreateinfo_spell` (`race`,`class`,`Spell`,`Note`) VALUES
-(10,2,61437, 'Opening'),
-(10,3,61437, 'Opening'),
-(10,4,61437, 'Opening'),
-(10,5,61437, 'Opening'),
-(10,6,61437, 'Opening'),
-(10,8,61437, 'Opening'),
-(10,9,61437, 'Opening');
-*/
+
 SET @ELM_BUNNY        :=23837;
 SET @SHADOW_CULTIST   :=30835;
 SET @VARDMADRA        :=30836;
