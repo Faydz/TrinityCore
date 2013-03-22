@@ -1209,6 +1209,17 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                     }
                 }
                 break;
+            case SPELLFAMILY_WARRIOR:
+                if (!caster)
+                    break;
+                switch (GetId())
+                {
+                    case 60970: // Heroic Fury (remove Intercept cooldown)
+                        if (target->GetTypeId() == TYPEID_PLAYER)
+                            target->ToPlayer()->RemoveSpellCooldown(20252, true);
+                        break;
+                }
+                break;
             case SPELLFAMILY_MAGE:
                 if (!caster)
                     break;
