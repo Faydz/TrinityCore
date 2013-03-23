@@ -27,6 +27,7 @@ extern "C"
 #include "SystemConfig.h"
 #include "MapManager.h"
 #include "Language.h"
+#include "Pet.h"
 
 enum RegisterTypes
 {
@@ -251,7 +252,7 @@ public:
     ElunaBind* ItemGossipBindings;
     ElunaBind* playerGossipBindings;
 
-    void StartEluna(bool restart = false);
+    void StartEluna(bool restart);
     void AddScriptHooks();
     static void report(lua_State*);
     void Register(uint8 reg, uint32 id, uint32 evt, int func);
@@ -285,6 +286,8 @@ public:
     GameObject* CHECK_OBJECT(lua_State* L, int narg);
     WorldPacket* CHECK_PACKET(lua_State* L, int narg);
     WorldObject* CHECK_WORLDOBJECT(lua_State* L, int narg);
+    Quest* CHECK_QUEST(lua_State* L, int narg);
+    Spell* CHECK_SPELL(lua_State* L, int narg);
 
     // Creates new binding stores
     Eluna()

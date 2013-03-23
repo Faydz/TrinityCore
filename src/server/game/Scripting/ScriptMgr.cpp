@@ -186,7 +186,7 @@ void ScriptMgr::Initialize()
 
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, ">> Loaded %u C++ scripts in %u ms", GetScriptCount(), GetMSTimeDiffToNow(oldMSTime));
 
-    sEluna->StartEluna();
+    sEluna->StartEluna(false);
 }
 
 void ScriptMgr::Unload()
@@ -752,7 +752,10 @@ bool ScriptMgr::OnQuestAccept(Player* player, Creature* creature, Quest const* q
     ASSERT(quest);
 
     if(sHookMgr->OnQuestAccept(player, creature, quest))
+    {
+        player->PlayerTalkClass->ClearMenus();
         return true;
+    }
 
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
@@ -766,7 +769,10 @@ bool ScriptMgr::OnQuestSelect(Player* player, Creature* creature, Quest const* q
     ASSERT(quest);
 
     if(sHookMgr->OnQuestSelect(player, creature, quest))
+    {
+        player->PlayerTalkClass->ClearMenus();
         return true;
+    }
 
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
@@ -780,7 +786,10 @@ bool ScriptMgr::OnQuestComplete(Player* player, Creature* creature, Quest const*
     ASSERT(quest);
 
     if(sHookMgr->OnQuestComplete(player, creature, quest))
+    {
+        player->PlayerTalkClass->ClearMenus();
         return true;
+    }
 
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
@@ -794,7 +803,10 @@ bool ScriptMgr::OnQuestReward(Player* player, Creature* creature, Quest const* q
     ASSERT(quest);
 
     if(sHookMgr->OnQuestReward(player, creature, quest, opt))
+    {
+        player->PlayerTalkClass->ClearMenus();
         return true;
+    }
 
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
@@ -806,8 +818,11 @@ uint32 ScriptMgr::GetDialogStatus(Player* player, Creature* creature)
     ASSERT(player);
     ASSERT(creature);
 
-    if(sHookMgr->GetDialogStatus(player, creature))
-        return true;
+    if(uint32 dialogid = sHookMgr->GetDialogStatus(player, creature))
+    {
+        player->PlayerTalkClass->ClearMenus();
+        return dialogid;
+    }
 
     // TODO: 100 is a funny magic number to have hanging around here...
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, 100);
