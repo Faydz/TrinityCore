@@ -4744,7 +4744,7 @@ void Unit::_UnregisterDynObject(DynamicObject* dynObj)
     m_dynObj.remove(dynObj);
 }
 
-DynamicObject* Unit::GetDynObject(uint32 spellId)
+DynamicObject* Unit::GetDynObject(uint32 spellId) const
 {
     if (m_dynObj.empty())
         return NULL;

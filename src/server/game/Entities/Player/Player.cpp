@@ -22290,6 +22290,21 @@ void Player::UpdatePvP(bool state, bool override)
     }
 }
 
+bool Player::HasSpellCooldown(uint32 spell_id) const
+{
+    SpellCooldowns::const_iterator itr = m_spellCooldowns.find(spell_id);
+    return itr != m_spellCooldowns.end() && itr->second.end > time(NULL);
+}
+
+
+uint32 Player::GetSpellCooldownDelay(uint32 spell_id) const
+{
+    SpellCooldowns::const_iterator itr = m_spellCooldowns.find(spell_id);
+    time_t t = time(NULL);
+    return uint32(itr != m_spellCooldowns.end() && itr->second.end > t ? itr->second.end - t : 0);
+}
+
+
 // Amount in milliseconds
 void Player::ReduceSpellCooldown(uint32 spellid, int32 amount)
 {

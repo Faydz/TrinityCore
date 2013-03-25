@@ -2190,8 +2190,8 @@ class Player : public Unit, public GridObject<Player>
 
         // Mastery Functions
         void UpdateMastery();
-        float GetMasteryPoints() {return 8.0f + CaclulateMasteryFromMasteryRating(m_baseRatingValue[CR_MASTERY]);}
-        float CaclulateMasteryFromMasteryRating(int32 curr_rating) {return float(curr_rating * 0.0055779569892473f);}
+        float GetMasteryPoints() const {return 8.0f + CaclulateMasteryFromMasteryRating(m_baseRatingValue[CR_MASTERY]);}
+        float CaclulateMasteryFromMasteryRating(int32 curr_rating) const {return float(curr_rating * 0.0055779569892473f);}
         int32 CaclulateMasteryRatingFromMastery(float curr_mastery) {return int32(curr_mastery / 0.0055779569892473f);}
         void RemoveOrAddMasterySpells();
 

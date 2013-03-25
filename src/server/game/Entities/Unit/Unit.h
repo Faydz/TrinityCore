@@ -1927,7 +1927,7 @@ class Unit : public WorldObject
         // DynamicObject management
         void _RegisterDynObject(DynamicObject* dynObj);
         void _UnregisterDynObject(DynamicObject* dynObj);
-        DynamicObject* GetDynObject(uint32 spellId);
+        DynamicObject* GetDynObject(uint32 spellId) const;
         void RemoveDynObject(uint32 spellId);
         void RemoveAllDynObjects();
 

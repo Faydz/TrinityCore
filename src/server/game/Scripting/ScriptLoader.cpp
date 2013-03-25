@@ -1325,12 +1325,7 @@ void AddNorthrendScripts()
     AddSC_instance_vortex_pinnacle();
 	AddSC_instance_halls_of_origination();  //Halls of Origination
     AddSC_boss_temple_guardian_anhuur();
-    AddSC_boss_ptah();
     AddSC_boss_anraphet();
-    AddSC_boss_ammunae();
-    AddSC_boss_setesh();
-    AddSC_boss_rajh();
-    AddSC_boss_isiset();
 	AddSC_instance_throne_of_the_four_winds(); // Throne of the Four Winds
     AddSC_throne_of_the_four_winds();
     AddSC_boss_alakir();

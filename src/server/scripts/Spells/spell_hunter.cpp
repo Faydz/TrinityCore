@@ -38,6 +38,7 @@ enum HunterSpells
     SPELL_HUNTER_CHIMERA_SHOT_HEAL                  = 53353,
     SPELL_HUNTER_CHIMERA_SHOT_VIPER                 = 53358,
     SPELL_HUNTER_CHIMERA_SHOT_SCORPID               = 53359,
+	SPELL_HUNTER_CHIMERA_SHOT_SERPENT               = 53353,
     SPELL_HUNTER_GLYPH_OF_ASPECT_OF_THE_VIPER       = 56851,
     SPELL_HUNTER_INVIGORATION_TRIGGERED             = 53398,
     SPELL_HUNTER_MASTERS_CALL_TRIGGERED             = 62305,
@@ -156,21 +157,34 @@ class spell_hun_chimera_shot : public SpellScriptLoader
         {
             PrepareSpellScript(spell_hun_chimera_shot_SpellScript);
 
-            void HandleScript()
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_HUNTER_CHIMERA_SHOT_SERPENT) || !sSpellMgr->GetSpellInfo(SPELL_HUNTER_CHIMERA_SHOT_VIPER) || !sSpellMgr->GetSpellInfo(SPELL_HUNTER_CHIMERA_SHOT_SCORPID))
+                    return false;
+                return true;
+            }
+
+            void HandleScriptEffect(SpellEffIndex /*effIndex*/)
             {
                 Unit* caster = GetCaster();
-                if (Unit* unitTarget = GetExplTargetUnit())
+                if (Unit* unitTarget = GetHitUnit())
                 {
+                    uint32 spellId = 0;
                     int32 basePoint = 0;
-                    if(Aura* aura = unitTarget->GetAura(1978, caster->GetGUID()))
-                    {                        
+                    Unit::AuraApplicationMap& Auras = unitTarget->GetAppliedAuras();
+                    for (Unit::AuraApplicationMap::iterator i = Auras.begin(); i != Auras.end(); ++i)
+                    {
+                        Aura* aura = i->second->GetBase();
+                        if (aura->GetCasterGUID() != caster->GetGUID())
+                            continue;
+
+                        // Search only Serpent Sting, Viper Sting, Scorpid Sting auras
+                        flag96 familyFlag = aura->GetSpellInfo()->SpellFamilyFlags;
+                        if (!(familyFlag[1] & 0x00000080 || familyFlag[0] & 0x0000C000))
+                            continue;
                         if (AuraEffect const* aurEff = aura->GetEffect(0))
                         {
                             // Serpent Sting - Instantly deals 40% of the damage done by your Serpent Sting.
-                            int32 TickCount = aurEff->GetTotalTicks();
-                            basePoint = caster->SpellDamageBonusDone(unitTarget, aura->GetSpellInfo(), aurEff->GetAmount(), DOT, aura->GetStackAmount());
-                            ApplyPct(basePoint, TickCount * 40);
-                            basePoint = unitTarget->SpellDamageBonusTaken(caster, aura->GetSpellInfo(), basePoint, DOT, aura->GetStackAmount());         
                             if (familyFlag[0] & 0x4000)
                             {
                                 int32 TickCount = aurEff->GetTotalTicks();
@@ -216,7 +230,7 @@ class spell_hun_chimera_shot : public SpellScriptLoader
 
             void Register()
             {
-                OnCast += SpellCastFn(spell_hun_chimera_shot_SpellScript::HandleScript);
+                OnEffectHitTarget += SpellEffectFn(spell_hun_chimera_shot_SpellScript::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
             }
         };
 
