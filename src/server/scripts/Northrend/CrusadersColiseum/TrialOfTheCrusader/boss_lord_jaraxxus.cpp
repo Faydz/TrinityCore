@@ -149,7 +149,7 @@ class boss_jaraxxus : public CreatureScript
                 Talk(SAY_AGGRO);
             }
 
-            void UpdateAI(const uint32 diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                     return;
@@ -223,10 +223,11 @@ class mob_legion_flame : public CreatureScript
     public:
         mob_legion_flame() : CreatureScript("mob_legion_flame") { }
 
-        struct mob_legion_flameAI : public Scripted_NoMovementAI
+        struct mob_legion_flameAI : public ScriptedAI
         {
-            mob_legion_flameAI(Creature* creature) : Scripted_NoMovementAI(creature)
+            mob_legion_flameAI(Creature* creature) : ScriptedAI(creature)
             {
+                SetCombatMovement(false);
                 _instance = creature->GetInstanceScript();
             }
 
@@ -237,7 +238,7 @@ class mob_legion_flame : public CreatureScript
                 DoCast(SPELL_LEGION_FLAME_EFFECT);
             }
 
-            void UpdateAI(const uint32 /*diff*/)
+            void UpdateAI(uint32 /*diff*/)
             {
                 UpdateVictim();
                 if (_instance && _instance->GetBossState(BOSS_JARAXXUS) != IN_PROGRESS)
@@ -258,10 +259,11 @@ class mob_infernal_volcano : public CreatureScript
     public:
         mob_infernal_volcano() : CreatureScript("mob_infernal_volcano") { }
 
-        struct mob_infernal_volcanoAI : public Scripted_NoMovementAI
+        struct mob_infernal_volcanoAI : public ScriptedAI
         {
-            mob_infernal_volcanoAI(Creature* creature) : Scripted_NoMovementAI(creature), _summons(me)
+            mob_infernal_volcanoAI(Creature* creature) : ScriptedAI(creature), _summons(me)
             {
+                SetCombatMovement(false);
             }
 
             void Reset()
@@ -294,7 +296,7 @@ class mob_infernal_volcano : public CreatureScript
                 me->DespawnOrUnsummon();
             }
 
-            void UpdateAI(uint32 const /*diff*/) {}
+            void UpdateAI(uint32 /*diff*/) {}
 
             private:
                 SummonList _summons;
@@ -324,7 +326,7 @@ class mob_fel_infernal : public CreatureScript
                 me->SetInCombatWithZone();
             }
 
-            void UpdateAI(const uint32 diff)
+            void UpdateAI(uint32 diff)
             {
                 if (_instance && _instance->GetBossState(BOSS_JARAXXUS) != IN_PROGRESS)
                 {
@@ -398,7 +400,7 @@ class mob_nether_portal : public CreatureScript
                 me->DespawnOrUnsummon();
             }
 
-            void UpdateAI(uint32 const /*diff*/) {}
+            void UpdateAI(uint32 /*diff*/) {}
 
             private:
                 SummonList _summons;
@@ -439,7 +441,7 @@ class mob_mistress_of_pain : public CreatureScript
                     _instance->SetData(DATA_MISTRESS_OF_PAIN_COUNT, DECREASE);
             }
 
-            void UpdateAI(const uint32 diff)
+            void UpdateAI(uint32 diff)
             {
                 if (_instance && _instance->GetBossState(BOSS_JARAXXUS) != IN_PROGRESS)
                 {

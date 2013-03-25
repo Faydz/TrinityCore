@@ -83,7 +83,6 @@ SmartScript::SmartScript()
     mEventPhase = 0;
     mPathId = 0;
     mTargetStorage = new ObjectListMap();
-    mStoredEvents.clear();
     mTextTimer = 0;
     mLastTextID = 0;
     mTextGUID = 0;
@@ -313,10 +312,10 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                     {
                         if (CreatureTemplate const* ci = sObjectMgr->GetCreatureTemplate(e.action.morphOrMount.creature))
                         {
-                            uint32 display_id = sObjectMgr->ChooseDisplayId(0, ci);
-                            (*itr)->ToCreature()->SetDisplayId(display_id);
+                            uint32 displayId = ObjectMgr::ChooseDisplayId(ci);
+                            (*itr)->ToCreature()->SetDisplayId(displayId);
                             sLog->outDebug(LOG_FILTER_DATABASE_AI, "SmartScript::ProcessAction:: SMART_ACTION_MORPH_TO_ENTRY_OR_MODEL: Creature entry %u, GuidLow %u set displayid to %u",
-                                (*itr)->GetEntry(), (*itr)->GetGUIDLow(), display_id);
+                                (*itr)->GetEntry(), (*itr)->GetGUIDLow(), displayId);
                         }
                     }
                     //if no param1, then use value from param2 (modelId)
@@ -1050,10 +1049,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                     if (e.action.morphOrMount.creature > 0)
                     {
                         if (CreatureTemplate const* cInfo = sObjectMgr->GetCreatureTemplate(e.action.morphOrMount.creature))
-                        {
-                            uint32 display_id = sObjectMgr->ChooseDisplayId(0, cInfo);
-                            (*itr)->ToUnit()->Mount(display_id);
-                        }
+                            (*itr)->ToUnit()->Mount(ObjectMgr::ChooseDisplayId(cInfo));
                     }
                     else
                         (*itr)->ToUnit()->Mount(e.action.morphOrMount.model);
@@ -1459,15 +1455,16 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                 if (Creature* npc = (*itr)->ToCreature())
                 {
                     uint32 slot[3];
-                    if (e.action.equip.entry)
+                    int8 equipId = (int8)e.action.equip.entry;
+                    if (equipId)
                     {
-                        EquipmentInfo const* einfo = sObjectMgr->GetEquipmentInfo(e.action.equip.entry);
+                        EquipmentInfo const* einfo = sObjectMgr->GetEquipmentInfo(npc->GetEntry(), equipId);
                         if (!einfo)
                         {
-                            sLog->outError(LOG_FILTER_SQL, "SmartScript: SMART_ACTION_EQUIP uses non-existent equipment info entry %u", e.action.equip.entry);
+                            sLog->outError(LOG_FILTER_SQL, "SmartScript: SMART_ACTION_EQUIP uses non-existent equipment info id %u for creature %u", equipId, npc->GetEntry());
                             return;
                         }
-                        npc->SetCurrentEquipmentId(e.action.equip.entry);
+                        npc->SetCurrentEquipmentId(equipId);
                         slot[0] = einfo->ItemEntry[0];
                         slot[1] = einfo->ItemEntry[1];
                         slot[2] = einfo->ItemEntry[2];
@@ -1478,11 +1475,11 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                         slot[1] = e.action.equip.slot2;
                         slot[2] = e.action.equip.slot3;
                     }
-                    if (!e.action.equip.mask || e.action.equip.mask & 1)
+                    if (!e.action.equip.mask || (e.action.equip.mask & 1))
                         npc->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0, slot[0]);
-                    if (!e.action.equip.mask || e.action.equip.mask & 2)
+                    if (!e.action.equip.mask || (e.action.equip.mask & 2))
                         npc->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1, slot[1]);
-                    if (!e.action.equip.mask || e.action.equip.mask & 4)
+                    if (!e.action.equip.mask || (e.action.equip.mask & 4))
                         npc->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2, slot[2]);
                 }
             }
@@ -1893,12 +1890,19 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
         }
         case SMART_ACTION_JUMP_TO_POS:
         {
-            if (!me)
+            ObjectList* targets = GetTargets(e, unit);
+            if (!targets)
                 break;
 
-            me->GetMotionMaster()->Clear();
-            me->GetMotionMaster()->MoveJump(e.target.x, e.target.y, e.target.z, (float)e.action.jump.speedxy, (float)e.action.jump.speedz);
-            // TODO: Resume path when reached jump location
+            for (ObjectList::const_iterator itr = targets->begin(); itr != targets->end(); ++itr)
+                if (Creature* creature = (*itr)->ToCreature())
+                {
+                    creature->GetMotionMaster()->Clear();
+                    creature->GetMotionMaster()->MoveJump(e.target.x, e.target.y, e.target.z, (float)e.action.jump.speedxy, (float)e.action.jump.speedz);
+                }
+            /// @todo Resume path when reached jump location
+
+            delete targets;
             break;
         }
         case SMART_ACTION_GO_SET_LOOT_STATE:
@@ -1977,23 +1981,100 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
         }
         case SMART_ACTION_SET_HOME_POS:
         {
-            if (!me)
+            ObjectList* targets = GetTargets(e, unit);
+            if (!targets)
                 break;
 
-            if (e.GetTargetType() == SMART_TARGET_SELF)
-                me->SetHomePosition(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), me->GetOrientation());
-            else if (e.GetTargetType() == SMART_TARGET_POSITION)
-                me->SetHomePosition(e.target.x, e.target.y, e.target.z, e.target.o);
-            else
-                sLog->outError(LOG_FILTER_SQL, "SmartScript: Action target for SMART_ACTION_SET_HOME_POS is not using SMART_TARGET_SELF or SMART_TARGET_POSITION, skipping");
+            for (ObjectList::const_iterator itr = targets->begin(); itr != targets->end(); ++itr)
+                if (IsCreature(*itr))
+                {
+                    if (e.GetTargetType() == SMART_TARGET_SELF)
+                        (*itr)->ToCreature()->SetHomePosition(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), me->GetOrientation());
+                    else if (e.GetTargetType() == SMART_TARGET_POSITION)
+                        (*itr)->ToCreature()->SetHomePosition(e.target.x, e.target.y, e.target.z, e.target.o);
+                    else
+                        sLog->outError(LOG_FILTER_SQL, "SmartScript: Action target for SMART_ACTION_SET_HOME_POS is not using SMART_TARGET_SELF or SMART_TARGET_POSITION, skipping");
+                }
 
-           break;
+            delete targets;
+            break;
         }
         case SMART_ACTION_SET_HEALTH_REGEN:
         {
-            if (!me || me->GetTypeId() != TYPEID_UNIT)
+            ObjectList* targets = GetTargets(e, unit);
+            if (!targets)
                 break;
-            me->setRegeneratingHealth(e.action.setHealthRegen.regenHealth ? true : false);
+
+            for (ObjectList::const_iterator itr = targets->begin(); itr != targets->end(); ++itr)
+                if (IsCreature(*itr))
+                    (*itr)->ToCreature()->setRegeneratingHealth(e.action.setHealthRegen.regenHealth ? true : false);
+
+            delete targets;
+            break;
+        }
+        case SMART_ACTION_SET_ROOT:
+        {
+            ObjectList* targets = GetTargets(e, unit);
+            if (!targets)
+                break;
+
+            for (ObjectList::const_iterator itr = targets->begin(); itr != targets->end(); ++itr)
+                if (IsCreature(*itr))
+                    (*itr)->ToCreature()->SetControlled(e.action.setRoot.root ? true : false, UNIT_STATE_ROOT);
+
+            delete targets;
+            break;
+        }
+        case SMART_ACTION_SET_GO_FLAG:
+        {
+            ObjectList* targets = GetTargets(e, unit);
+            if (!targets)
+                break;
+
+            for (ObjectList::const_iterator itr = targets->begin(); itr != targets->end(); ++itr)
+                if (IsGameObject(*itr))
+                    (*itr)->ToGameObject()->SetUInt32Value(GAMEOBJECT_FLAGS, e.action.goFlag.flag);
+
+            delete targets;
+            break;
+        }
+        case SMART_ACTION_ADD_GO_FLAG:
+        {
+            ObjectList* targets = GetTargets(e, unit);
+            if (!targets)
+                break;
+
+            for (ObjectList::const_iterator itr = targets->begin(); itr != targets->end(); ++itr)
+                if (IsGameObject(*itr))
+                    (*itr)->ToGameObject()->SetFlag(GAMEOBJECT_FLAGS, e.action.goFlag.flag);
+
+            delete targets;
+            break;
+        }
+        case SMART_ACTION_REMOVE_GO_FLAG:
+        {
+            ObjectList* targets = GetTargets(e, unit);
+            if (!targets)
+                break;
+
+            for (ObjectList::const_iterator itr = targets->begin(); itr != targets->end(); ++itr)
+                if (IsGameObject(*itr))
+                    (*itr)->ToGameObject()->RemoveFlag(GAMEOBJECT_FLAGS, e.action.goFlag.flag);
+
+            delete targets;
+            break;
+        }
+        case SMART_ACTION_SUMMON_CREATURE_GROUP:
+        {
+            std::list<TempSummon*> summonList;
+            GetBaseObject()->SummonCreatureGroup(e.action.creatureGroup.group, &summonList);
+
+            for (std::list<TempSummon*>::const_iterator itr = summonList.begin(); itr != summonList.end(); ++itr)
+            {
+                if (unit && e.action.creatureGroup.attackInvoker)
+                    (*itr)->AI()->AttackStart(unit);
+            }
+
             break;
         }
         default:

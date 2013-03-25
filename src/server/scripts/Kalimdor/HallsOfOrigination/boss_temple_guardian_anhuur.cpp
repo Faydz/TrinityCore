@@ -100,7 +100,7 @@ class boss_temple_guardian_anhuur : public CreatureScript
                 if (pInstance)
                     pInstance->SetData(DATA_TEMPLE_GUARDIAN_ANHUUR_EVENT, NOT_STARTED);
 
-                Phase = PHASE_NORMAL;
+        void DoAction(int32 action)
                 PhaseCount = 0;
                 FlameCount = 2;
                 DivineReckoningTimer = 8000;
@@ -128,7 +128,7 @@ class boss_temple_guardian_anhuur : public CreatureScript
             {
                 SummonList.push_back(pSummon->GetGUID());
                 
-                if (pSummon->GetEntry() == 40283)
+        void UpdateAI(uint32 diff)
                 {
                     pSummon->SetSpeed(MOVE_WALK, 0.0f, true);
                     pSummon->SetSpeed(MOVE_RUN, 0.0f, true);

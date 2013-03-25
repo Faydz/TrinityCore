@@ -150,7 +150,7 @@ class boss_anraphet : public CreatureScript
                 //DoScriptText(RAND(SAY_KILL_1, SAY_KILL_2), me);
             }
 
-            void WardenKilled()
+        void DoAction(int32 action)
             {
                 // wardenKilled++;
 
@@ -168,7 +168,7 @@ class boss_anraphet : public CreatureScript
                 DoCast(SPELL_DESTRUCTION_PROTOCOL);
             }
 
-            void UpdateAI(uint32 const diff)
+        void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                    return;
@@ -332,7 +332,7 @@ class boss_air_warden : public CreatureScript
                 WindTimer = 7500;
             }
 
-            void EnterCombat(Unit* /*who*/)
+            void DoAction(int32 action)
             {
                 if (instance)
                     instance->SetData(DATA_AIR_WARDEN, IN_PROGRESS);
@@ -369,7 +369,7 @@ class boss_air_warden : public CreatureScript
         }
 };
 
-class boss_earth_warden : public CreatureScript
+            void UpdateAI(uint32 diff)
 {
     public:
         boss_earth_warden() : CreatureScript("boss_earth_warden") { }

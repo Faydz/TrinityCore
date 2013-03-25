@@ -174,7 +174,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     GetPlayer()->UpdateZone(newzone, newarea);
 
     // honorless target
-    if (GetPlayer()->pvpInfo.inHostileArea)
+    if (GetPlayer()->pvpInfo.IsHostile)
         GetPlayer()->CastSpell(GetPlayer(), 2479, true);
 
     // in friendly area
@@ -241,7 +241,7 @@ void WorldSession::HandleMoveTeleportAck(WorldPacket& recvPacket)
     if (old_zone != newzone)
     {
         // honorless target
-        if (plMover->pvpInfo.inHostileArea)
+        if (plMover->pvpInfo.IsHostile)
             plMover->CastSpell(plMover, 2479, true);
 
         // in friendly area
@@ -405,7 +405,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recvPacket)
             {
                 // NOTE: this is actually called many times while falling
                 // even after the player has been teleported away
-                // TODO: discard movement packets after the player is rooted
+                /// @todo discard movement packets after the player is rooted
                 if (plrMover->isAlive())
                 {
                     plrMover->EnvironmentalDamage(DAMAGE_FALL_TO_VOID, GetPlayer()->GetMaxHealth());

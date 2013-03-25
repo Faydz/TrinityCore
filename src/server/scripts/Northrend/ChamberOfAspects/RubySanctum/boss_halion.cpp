@@ -242,7 +242,7 @@ struct generic_halionAI : public BossAI
         _JustReachedHome();
     }
 
-    void ExecuteEvent(uint32 const eventId)
+    void ExecuteEvent(uint32 eventId)
     {
         switch (eventId)
         {
@@ -261,7 +261,7 @@ struct generic_halionAI : public BossAI
         }
     }
 
-    void UpdateAI(uint32 const diff)
+    void UpdateAI(uint32 diff)
     {
         if (!UpdateVictim() || me->HasUnitState(UNIT_STATE_CASTING))
             return;
@@ -388,7 +388,7 @@ class boss_halion : public CreatureScript
                 }
             }
 
-            void UpdateAI(uint32 const diff)
+            void UpdateAI(uint32 diff)
             {
                 if (events.IsInPhase(PHASE_TWO))
                     return;
@@ -396,7 +396,7 @@ class boss_halion : public CreatureScript
                 generic_halionAI::UpdateAI(diff);
             }
 
-            void ExecuteEvent(uint32 const eventId)
+            void ExecuteEvent(uint32 eventId)
             {
                 switch (eventId)
                 {
@@ -556,7 +556,7 @@ class boss_twilight_halion : public CreatureScript
                 }
             }
 
-            void ExecuteEvent(uint32 const eventId)
+            void ExecuteEvent(uint32 eventId)
             {
                 switch (eventId)
                 {
@@ -640,7 +640,7 @@ class npc_halion_controller : public CreatureScript
                 _instance->SetBossState(DATA_HALION, FAIL);
             }
 
-            void DoAction(int32 const action)
+            void DoAction(int32 action)
             {
                 switch (action)
                 {
@@ -682,7 +682,7 @@ class npc_halion_controller : public CreatureScript
                 }
             }
 
-            void UpdateAI(uint32 const diff)
+            void UpdateAI(uint32 diff)
             {
                 // The isInCombat() check is needed because that check should be false when Halion is
                 // not engaged, while it would return true without as UpdateVictim() checks for
@@ -779,7 +779,7 @@ class npc_halion_controller : public CreatureScript
             }
 
         private:
-            /// TODO: Find out a better scaling, if any.
+            //// @todo Find out a better scaling, if any.
             // [0   , 0.98[: Corporeality goes down
             // [0.98, 0.99]: Do nothing
             // ]0.99, 1.01[: Twilight Mending
@@ -911,7 +911,7 @@ class npc_orb_carrier : public CreatureScript
                 ASSERT(creature->GetVehicleKit());
             }
 
-            void UpdateAI(uint32 const /*diff*/)
+            void UpdateAI(uint32 /*diff*/)
             {
                 /// According to sniffs this spell is cast every 1 or 2 seconds.
                 /// However, refreshing it looks bad, so just cast the spell if
@@ -927,7 +927,7 @@ class npc_orb_carrier : public CreatureScript
                     me->SetFacingToObject(rotationFocus); // setInFront
             }
 
-            void DoAction(int32 const action)
+            void DoAction(int32 action)
             {
                 if (action == ACTION_SHOOT)
                 {
@@ -972,13 +972,15 @@ class npc_meteor_strike_initial : public CreatureScript
     public:
         npc_meteor_strike_initial() : CreatureScript("npc_meteor_strike_initial") { }
 
-        struct npc_meteor_strike_initialAI : public Scripted_NoMovementAI
+        struct npc_meteor_strike_initialAI : public ScriptedAI
         {
-            npc_meteor_strike_initialAI(Creature* creature) : Scripted_NoMovementAI(creature),
+            npc_meteor_strike_initialAI(Creature* creature) : ScriptedAI(creature),
                 _instance(creature->GetInstanceScript())
-            { }
+            {
+                SetCombatMovement(false);
+            }
 
-            void DoAction(int32 const action)
+            void DoAction(int32 action)
             {
                 switch (action)
                 {
@@ -1026,7 +1028,7 @@ class npc_meteor_strike_initial : public CreatureScript
                 }
             }
 
-            void UpdateAI(uint32 const /*diff*/) { }
+            void UpdateAI(uint32 /*diff*/) { }
             void EnterEvadeMode() { }
         private:
             InstanceScript* _instance;
@@ -1044,16 +1046,18 @@ class npc_meteor_strike : public CreatureScript
     public:
         npc_meteor_strike() : CreatureScript("npc_meteor_strike") { }
 
-        struct npc_meteor_strikeAI : public Scripted_NoMovementAI
+        struct npc_meteor_strikeAI : public ScriptedAI
         {
-            npc_meteor_strikeAI(Creature* creature) : Scripted_NoMovementAI(creature),
+            npc_meteor_strikeAI(Creature* creature) : ScriptedAI(creature),
                 _instance(creature->GetInstanceScript())
             {
                 _range = 5.0f;
                 _spawnCount = 0;
+
+                SetCombatMovement(false);
             }
 
-            void DoAction(int32 const action)
+            void DoAction(int32 action)
             {
                 if (action == ACTION_METEOR_STRIKE_BURN)
                 {
@@ -1070,7 +1074,7 @@ class npc_meteor_strike : public CreatureScript
                     controller->AI()->JustSummoned(me);
             }
 
-            void UpdateAI(uint32 const diff)
+            void UpdateAI(uint32 diff)
             {
                 if (_spawnCount > 5)
                     return;
@@ -1113,11 +1117,13 @@ class npc_combustion_consumption : public CreatureScript
     public:
         npc_combustion_consumption() : CreatureScript("npc_combustion_consumption") { }
 
-        struct npc_combustion_consumptionAI : public Scripted_NoMovementAI
+        struct npc_combustion_consumptionAI : public ScriptedAI
         {
-            npc_combustion_consumptionAI(Creature* creature) : Scripted_NoMovementAI(creature),
+            npc_combustion_consumptionAI(Creature* creature) : ScriptedAI(creature),
                    _instance(creature->GetInstanceScript()), _summonerGuid(0)
             {
+                SetCombatMovement(false);
+
                 switch (me->GetEntry())
                 {
                     case NPC_COMBUSTION:
@@ -1163,7 +1169,7 @@ class npc_combustion_consumption : public CreatureScript
                 summoner->CastCustomSpell(_explosionSpell, SPELLVALUE_BASE_POINT0, damage, summoner);
             }
 
-            void UpdateAI(uint32 const /*diff*/) { }
+            void UpdateAI(uint32 /*diff*/) { }
 
         private:
             InstanceScript* _instance;
@@ -1242,7 +1248,7 @@ class npc_living_ember : public CreatureScript
                 me->DespawnOrUnsummon(1);
             }
 
-            void UpdateAI(uint32 const diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim() || me->HasUnitState(UNIT_STATE_CASTING))
                     return;

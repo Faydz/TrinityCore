@@ -155,7 +155,7 @@ class boss_ptah : public CreatureScript
                     target->GetPosition(&pos);
                     if (Creature* sand = me->SummonCreature(NPC_QUICKSAND, pos, TEMPSUMMON_MANUAL_DESPAWN, 0, 0))
                     {
-                        sand->AttackStop();
+                    SendWeather(WEATHER_STATE_FOG, 0.0f);
                         sand->StopMoving();
                         sand->SetReactState(REACT_PASSIVE);
                         sand->CastSpell(sand, SPELL_DUST_MOVE, true);
@@ -179,7 +179,7 @@ class boss_ptah : public CreatureScript
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             }
 
-            void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                     return;
