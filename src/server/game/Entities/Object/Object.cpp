@@ -200,7 +200,7 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
             updateType = UPDATETYPE_CREATE_OBJECT2;
             break;
         case HIGHGUID_UNIT:
-            if (ToUnit()->ToTempSummon() && IS_PLAYER_GUID(ToUnit()->ToTempSummon()->GetSummonerGUID()))
+            // if (ToUnit()->ToTempSummon() && IS_PLAYER_GUID(ToUnit()->ToTempSummon()->GetSummonerGUID()))
                 updateType = UPDATETYPE_CREATE_OBJECT2;
             break;
         case HIGHGUID_GAMEOBJECT:
@@ -373,6 +373,8 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
         ObjectGuid guid = GetGUID();
         uint32 movementFlags = self->m_movementInfo.GetMovementFlags();
         uint16 movementFlagsExtra = self->m_movementInfo.GetExtraMovementFlags();
+
+        movementFlags &= ~MOVEMENTFLAG_JUMPING;
         if (GetTypeId() == TYPEID_UNIT)
             movementFlags &= MOVEMENTFLAG_MASK_CREATURE_ALLOWED;
 
@@ -384,15 +386,15 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
         if (movementFlags)
             data->WriteBits(movementFlags, 30);
 
-        data->WriteBit(0);
+        data->WriteBit(self->IsSplineEnabled());
         data->WriteBit(!((movementFlags & (MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_FLYING)) ||
-            (movementFlagsExtra & MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING)));       // Has pitch
-        data->WriteBit(self->IsSplineEnabled());                                // Has spline data
-        data->WriteBit(movementFlagsExtra & MOVEMENTFLAG2_INTERPOLATED_TURNING);// Has fall data
-        data->WriteBit(!(movementFlags & MOVEMENTFLAG_SPLINE_ELEVATION));       // Has spline elevation
+            (movementFlagsExtra & MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING)));                             // Has pitch
+        data->WriteBit(self->IsSplineEnabled());                                                      // Has spline data
+        data->WriteBit(movementFlags & MOVEMENTFLAG_JUMPING || movementFlags & MOVEMENTFLAG_FALLING); // Has fall data
+        data->WriteBit(!(movementFlags & MOVEMENTFLAG_SPLINE_ELEVATION));                             // Has spline elevation
         data->WriteBit(guid[5]);
-        data->WriteBit(self->m_movementInfo.t_guid);                            // Has transport data
-        data->WriteBit(0);                                                      // Is missing time
+        data->WriteBit(self->m_movementInfo.t_guid);                                                  // Has transport data
+        data->WriteBit(0);                                                                            // Is missing time
         if (self->m_movementInfo.t_guid)
         {
             ObjectGuid transGuid = self->m_movementInfo.t_guid;
@@ -414,8 +416,8 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
             Movement::PacketBuilder::WriteCreateBits(*self->movespline, *data);
 
         data->WriteBit(guid[6]);
-        if (movementFlagsExtra & MOVEMENTFLAG2_INTERPOLATED_TURNING)
-            data->WriteBit(movementFlags & MOVEMENTFLAG_FALLING);
+        if (movementFlags & MOVEMENTFLAG_JUMPING || movementFlags & MOVEMENTFLAG_FALLING)
+            data->WriteBit(movementFlags & MOVEMENTFLAG_JUMPING);
 
         data->WriteBit(guid[0]);
         data->WriteBit(guid[1]);
@@ -476,11 +478,14 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
         if (GetTypeId() == TYPEID_UNIT)
             movementFlags &= MOVEMENTFLAG_MASK_CREATURE_ALLOWED;
 
+        // correct here ?
+        movementFlags &= ~MOVEMENTFLAG_JUMPING;
+
         data->WriteByteSeq(guid[4]);
         *data << self->GetSpeed(MOVE_RUN_BACK);
-        if (movementFlagsExtra & MOVEMENTFLAG2_INTERPOLATED_TURNING)
+        if (movementFlags & MOVEMENTFLAG_JUMPING || movementFlags & MOVEMENTFLAG_FALLING)
         {
-            if (movementFlags & MOVEMENTFLAG_FALLING)
+            if (movementFlags & MOVEMENTFLAG_JUMPING)
             {
                 *data << float(self->m_movementInfo.j_cosAngle);
                 *data << float(self->m_movementInfo.j_xyspeed);
@@ -647,7 +652,7 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
     //}
 
     if (flags & UPDATEFLAG_TRANSPORT)
-        *data << uint32(getMSTime());                       // Unknown - getMSTime is wrong.
+        *data << uint32(getMSTime());                       // Transport path timer - getMSTime is wrong.
 }
 
 void Object::_BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* updateMask, Player* target) const
@@ -662,6 +667,8 @@ void Object::_BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* 
         {
             if (((GameObject*)this)->ActivateToQuest(target) || target->isGameMaster())
                 IsActivateToQuest = true;
+
+            updateMask->SetBit(GAMEOBJECT_DYNAMIC);
 
             if (((GameObject*)this)->GetGoArtKit())
                 updateMask->SetBit(GAMEOBJECT_BYTES_1);
@@ -679,6 +686,7 @@ void Object::_BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* 
             if (((GameObject*)this)->ActivateToQuest(target) || target->isGameMaster())
                 IsActivateToQuest = true;
 
+            updateMask->SetBit(GAMEOBJECT_DYNAMIC);
             updateMask->SetBit(GAMEOBJECT_BYTES_1);
 
             if (ToGameObject()->GetGoType() == GAMEOBJECT_TYPE_CHEST && ToGameObject()->GetGOInfo()->chest.groupLootRules &&
