@@ -8860,6 +8860,11 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 return false;
             break;
         }
+        case 85386: // Die by the sword
+        case 86624:
+            if (HealthAbovePct(20))
+                return false;
+            break;
     }
 
     if (cooldown && GetTypeId() == TYPEID_PLAYER && ToPlayer()->HasSpellCooldown(trigger_spell_id))
@@ -18373,7 +18378,6 @@ void Unit::ReadMovementInfo(WorldPacket& data, MovementInfo* mi)
 void Unit::WriteMovementInfo(WorldPacket& data)
 {
     Unit* mover = GetCharmerGUID() ? GetCharmer() : this;
-
     bool hasMovementFlags = mover->GetUnitMovementFlags() != 0;
     bool hasMovementFlags2 = mover->GetExtraUnitMovementFlags() != 0;
     bool hasTimestamp = GetTypeId() == TYPEID_PLAYER ? (mover->m_movementInfo.time != 0) : true;
