@@ -5801,6 +5801,10 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     if (procSpell && procSpell->Id == 76858)
                         return false;
 
+                    // Prevents proc from aoe spells
+                    if(getVictim() && getVictim() != target)
+                        return false;
+
                     if (Player* caster = ToPlayer())
                     { 
                         int32 chance = int32(2.2f * caster->GetMasteryPoints());
