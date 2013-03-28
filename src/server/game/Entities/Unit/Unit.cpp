@@ -8889,6 +8889,10 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
             if (HealthAbovePct(20))
                 return false;
             break;
+        case 31616: // Nature's Guardian
+            if (HealthAbovePct(30))
+                return false;
+            break;
     }
 
     if (cooldown && GetTypeId() == TYPEID_PLAYER && ToPlayer()->HasSpellCooldown(trigger_spell_id))
