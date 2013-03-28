@@ -2698,14 +2698,36 @@ void Spell::EffectDispel(SpellEffIndex effIndex)
 
     // On success dispel
     // Devour Magic
-    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && m_spellInfo->Category == SPELLCATEGORY_DEVOUR_MAGIC)
+    switch (m_spellInfo->SpellFamilyName)
     {
-        int32 heal_amount = m_spellInfo->Effects[EFFECT_1].CalcValue(m_caster);
-        m_caster->CastCustomSpell(m_caster, 19658, &heal_amount, NULL, NULL, true);
-        // Glyph of Felhunter
-        if (Unit* owner = m_caster->GetOwner())
-            if (owner->GetAura(56249))
-                owner->CastCustomSpell(owner, 19658, &heal_amount, NULL, NULL, true);
+        case SPELLFAMILY_WARLOCK:
+            if (m_spellInfo->Category == SPELLCATEGORY_DEVOUR_MAGIC)
+            {
+                int32 heal_amount = m_spellInfo->Effects[EFFECT_1].CalcValue(m_caster);
+                m_caster->CastCustomSpell(m_caster, 19658, &heal_amount, NULL, NULL, true);
+                // Glyph of Felhunter
+                if (Unit* owner = m_caster->GetOwner())
+                    if (owner->GetAura(56249))
+                        owner->CastCustomSpell(owner, 19658, &heal_amount, NULL, NULL, true);
+            }
+            break;
+        case SPELLFAMILY_SHAMAN:
+            switch (m_spellInfo->Id)
+            {
+                // Cleanse Spirit
+                case 51886:
+                    // Cleansing Waters
+                    if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 2020, 0))
+                    {
+                        uint32 trigger_id = 86961;
+                        if (aurEff->GetBase()->GetId() == 86962)
+                            trigger_id = 86958;
+                        
+                        m_caster->CastSpell(unitTarget, trigger_id, true);
+                    }
+                    break;
+            }
+            break;
     }
 }
 
