@@ -1607,6 +1607,13 @@ void Spell::EffectHeal(SpellEffIndex /*effIndex*/)
 
         addhealth = unitTarget->SpellHealingBonusTaken(caster, m_spellInfo, addhealth, HEAL);
 
+        // Nature's Blessing
+        if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 2012, 0))
+        {
+            if (unitTarget->HasAura(974))
+                AddPct(addhealth, aurEff->GetAmount());
+        }
+
         // Remove Grievious bite if fully healed
         if (unitTarget->HasAura(48920) && (unitTarget->GetHealth() + addhealth >= unitTarget->GetMaxHealth()))
             unitTarget->RemoveAura(48920);
