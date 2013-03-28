@@ -7125,6 +7125,18 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Telluric Currents
+                case 82988:
+                case 82984:
+                {
+                    if (procSpell->Id != 403)
+                        return false;
+
+                    int32 bp0 = damage * triggerAmount / 100;
+                    CastCustomSpell(this, 82987, &bp0, NULL, NULL, true, 0, 0, 0);
+                    return true;
+                    break;
+                }
                 // Ancestral Healing
                 case 16176:
                 case 16235:
