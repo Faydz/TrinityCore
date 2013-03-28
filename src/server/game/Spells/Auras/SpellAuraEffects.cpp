@@ -4006,6 +4006,39 @@ void AuraEffect::HandleAuraModStat(AuraApplication const* aurApp, uint8 mode, bo
         return;
     }
 
+    // Mana Tide
+    if (aurApp->GetBase()->GetId() == 16191 && GetAmount() == 200)
+    {
+        if (Unit* manatide = aurApp->GetBase()->GetCaster())
+        {
+            if (Unit* owner = manatide->GetOwner())
+            {
+                std::map<SpellGroup, int32> SameEffectSpellGroup;
+                int32 modifier = 0;
+                float spirit = owner->GetStat(STAT_SPIRIT);
+
+                Unit::AuraEffectList const& mTotalAuraList = owner->GetAuraEffectsByType(SPELL_AURA_MOD_STAT);
+                for (Unit::AuraEffectList::const_iterator i = mTotalAuraList.begin(); i != mTotalAuraList.end(); ++i)
+                {
+                    if ((*i)->GetMiscValue() == UNIT_MOD_STAT_SPIRIT)
+                    {
+                        // Short buffs don't affect mana tide
+                        if ((*i)->GetBase()->GetDuration() <= 45000)
+                        {
+                            if (!sSpellMgr->AddSameEffectStackRuleSpellGroups((*i)->GetSpellInfo(), (*i)->GetAmount(), SameEffectSpellGroup))
+                                spirit -= (*i)->GetAmount();
+                        }
+                    }
+                }
+
+                for (std::map<SpellGroup, int32>::const_iterator itr = SameEffectSpellGroup.begin(); itr != SameEffectSpellGroup.end(); ++itr)
+                    spirit -= itr->second;
+
+                aurApp->GetBase()->GetEffect(0)->SetAmount(spirit * 2);
+            }
+        }
+    }
+
     for (int32 i = STAT_STRENGTH; i < MAX_STATS; i++)
     {
         // -1 or -2 is all stats (misc < -2 checked in function beginning)
