@@ -7125,6 +7125,27 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Ancestral Healing
+                case 16176:
+                case 16235:
+                {
+                    if (!victim)
+                        return false;
+
+                    if (victim->GetGUID() == GetGUID())
+                        return false;
+
+                    int32 bp0 = triggerAmount * damage / 100;
+
+                    if (victim->HasAura(105284, GetGUID()))
+                        bp0 += victim->GetAura(105284, GetGUID())->GetEffect(0)->GetAmount();
+
+                    if (bp0 > int32(victim->GetMaxHealth() * 10 / 100))
+                        bp0 = int32(victim->GetMaxHealth() * 10 / 100);
+
+                    CastCustomSpell(victim, 105284, &bp0, NULL, NULL, true, 0, 0, 0);
+                    break;
+                }
                 // Focused Insight
                 case 77794:
                 case 77795:
@@ -8891,6 +8912,13 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
             break;
         case 31616: // Nature's Guardian
             if (HealthAbovePct(30))
+                return false;
+            break;
+        case 16177: // Ancestral Fortitude
+        case 16236:
+            if (procEx & PROC_EX_CRITICAL_HIT)
+                triggerAmount = triggeredByAura->GetAmount();
+            else
                 return false;
             break;
     }
