@@ -3228,6 +3228,15 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Bloodsurge
+                    case 46916:
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_2].MiscValue = SPELLMOD_DAMAGE;
+                        spellInfo->Effects[EFFECT_2].BasePoints = 20;
+                        spellInfo->Effects[EFFECT_2].SpellClassMask = flag96(0x00200000, 0x0, 0x0);
+                        spellInfo->Effects[EFFECT_2].TargetA = TARGET_UNIT_CASTER;
+                        break;
                     // Improved Hamstring
                     case 12289:
                     case 12668:
