@@ -8978,6 +8978,21 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                     shield->SetCharges(stacks);
             }
             break;
+        case 16246: // Elemental Focus
+            int32 bp1 = 0;
+
+            // Elemental Oath
+            if (HasAura(54170))
+                bp1 = 10;
+            else if (HasAura(51466))
+                bp1 = 5;
+
+            if (bp1 != 0)
+            {
+                CastCustomSpell(this, trigger_spell_id, NULL, &bp1, &bp1, true, 0, 0, 0);
+                return true;
+            }
+            break;
     }
 
     if (cooldown && GetTypeId() == TYPEID_PLAYER && ToPlayer()->HasSpellCooldown(trigger_spell_id))
