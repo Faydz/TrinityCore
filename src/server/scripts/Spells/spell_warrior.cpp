@@ -447,27 +447,44 @@ class spell_warr_execute : public SpellScriptLoader
                     if(power > 0)
                     {
                         uint32 mod = power > 20 ? 20 : power;
-                        uint32 newPowerAmount = power - mod;
+                        newPowerAmount = power - mod;
 
                         // Sudden Death rage saving
-                        if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_GENERIC, WARRIOR_ICON_ID_SUDDEN_DEATH, EFFECT_0))
+                        if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_WARRIOR, WARRIOR_ICON_ID_SUDDEN_DEATH, EFFECT_0))
                             newPowerAmount += aurEff->GetAmount();
 
                         // Add bonus damage
-                        // Formula taken from the DBC: "${$ap*0.874*$m1/100-1} = 20 rage"// Formula taken from the DBC: "${$ap*0.874*$m1/100-1} = 20 rage"
+                        // Formula taken from the DBC: "${$ap*0.874*$m1/100-1} = 20 rage"
                         damage += int32 (ap * 0.874 * GetEffectValue() / 100 - 1);
-
-                        // Sets new rage
-                        caster->SetPower(POWER_RAGE, newPowerAmount);
+                    }
+                    else
+                    {
+                        newPowerAmount = 0;
                     }
 
                     SetHitDamage(damage);
                 }
             }
 
+            
+            void HandleAfterHit()
+            {
+                Unit* caster = GetCaster();
+
+                if(caster && newPowerAmount)
+                {
+                    // Sets new rage
+                    caster->SetPower(POWER_RAGE, newPowerAmount);
+                }
+            }
+
+        private:
+            uint32 newPowerAmount;
+
             void Register()
             {
                 OnEffectHitTarget += SpellEffectFn(spell_warr_execute_SpellScript::HandleEffect, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+                AfterHit += SpellHitFn(spell_warr_execute_SpellScript::HandleAfterHit);
             }
         };
 
