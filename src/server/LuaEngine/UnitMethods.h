@@ -13,6 +13,724 @@ class LuaUnit
 {
 public:
 
+    // IsDamageEnoughForLootingAndReward()
+    static int IsDamageEnoughForLootingAndReward(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->IsDamageEnoughForLootingAndReward());
+        return 1;
+    }
+
+    // IsReputationGainDisabled()
+    static int IsReputationGainDisabled(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->IsReputationGainDisabled());
+        return 1;
+    }
+
+    // SetDisableReputationGain(disable)
+    static int SetDisableReputationGain(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        bool disable = luaL_checkbool(L, 1);
+
+        creature->SetDisableReputationGain(disable);
+        return 0;
+    }
+
+    // SelectVictim()
+    static int SelectVictim(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushUnit(L, creature->SelectVictim());
+        return 1;
+    }
+
+    // GetCurrentWaypointID()
+    static int GetCurrentWaypointID(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushUnsigned(L, creature->GetCurrentWaypointID());
+        return 1;
+    }
+
+    // GetWaypointPath()
+    static int GetWaypointPath(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushUnsigned(L, creature->GetWaypointPath());
+        return 1;
+    }
+
+    // GetTransportHomePosition()
+    static int GetTransportHomePosition(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        float x,y,z,o;
+        creature->GetTransportHomePosition(x,y,z,o);
+
+        sEluna->PushFloat(L, x);
+        sEluna->PushFloat(L, y);
+        sEluna->PushFloat(L, z);
+        sEluna->PushFloat(L, o);
+        return 4;
+    }
+
+    // IsRegeneratingHealth()
+    static int isRegeneratingHealth(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->isRegeneratingHealth());
+        return 1;
+    }
+
+    // HasInvolvedQuest(questId)
+    static int hasInvolvedQuest(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        uint32 quest_id = luaL_checkunsigned(L, 1);
+
+        sEluna->PushBoolean(L, creature->hasInvolvedQuest(quest_id));
+        return 1;
+    }
+
+    // SetInCombatWithZone()
+    static int SetInCombatWithZone(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        creature->SetInCombatWithZone();
+        return 0;
+    }
+
+    // SetRespawnRadius(dist)
+    static int SetRespawnRadius(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        float dist = luaL_checknumber(L, 1);
+
+        creature->SetRespawnRadius(dist);
+        return 0;
+    }
+
+    // GetRespawnRadius()
+    static int GetRespawnRadius(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushFloat(L, creature->GetRespawnRadius());
+        return 1;
+    }
+
+    // Respawn([force])
+    static int Respawn(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        bool force = luaL_optbool(L, 1, false);
+
+        creature->Respawn(force);
+        return 0;
+    }
+
+    // SetRespawnDelay(delay)
+    static int SetRespawnDelay(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        uint32 delay = luaL_checkunsigned(L, 1);
+
+        creature->SetRespawnDelay(delay);
+        return 0;
+    }
+
+    // GetRespawnDelay()
+    static int GetRespawnDelay(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushUnsigned(L, creature->GetRespawnDelay());
+        return 1;
+    }
+
+    // DespawnOrUnsummon([Delay])
+    static int DespawnOrUnsummon(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        uint32 msTimeToDespawn = luaL_optunsigned(L, 1, 0);
+
+        creature->DespawnOrUnsummon(msTimeToDespawn);
+        return 0;
+    }
+
+    // RemoveCorpse([setSpawnTime])
+    static int RemoveCorpse(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        bool setSpawnTime = luaL_optbool(L, 1, true);
+
+        creature->RemoveCorpse(setSpawnTime);
+        return 0;
+    }
+
+    // SetDefaultMovementType(type)
+    static int SetDefaultMovementType(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        int32 type = luaL_checkinteger(L, 1);
+
+        creature->SetDefaultMovementType((MovementGeneratorType)type);
+        return 0;
+    }
+
+    // GetDefaultMovementType()
+    static int GetDefaultMovementType(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushInteger(L, creature->GetDefaultMovementType());
+        return 1;
+    }
+
+    // IsTargetAcceptable(unit)
+    static int _IsTargetAcceptable(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        Unit* target = sEluna->CHECK_UNIT(L, 1);
+
+        if (!target)
+        {
+            luaL_error(L, "1st argument is not an unit");
+            sEluna->PushBoolean(L, false);
+        }
+        else
+            sEluna->PushBoolean(L, creature->_IsTargetAcceptable(unit));
+        return 1;
+    }
+
+    // CanAssistTo(unit, enemy[, checkfaction])
+    static int CanAssistTo(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        Unit* u = sEluna->CHECK_UNIT(L, 1);
+        Unit* enemy = sEluna->CHECK_UNIT(L, 2);
+        bool checkfaction = luaL_optbool(L, 3, true);
+
+        if (!u)
+        {
+            luaL_error(L, "1st argument is not an unit");
+            sEluna->PushBoolean(L, false);
+        }
+        if (!enemy)
+        {
+            luaL_error(L, "2nd argument is not an unit");
+            sEluna->PushBoolean(L, false);
+        }
+        else
+            sEluna->PushBoolean(L, creature->CanAssistTo(u, enemy, checkfaction));
+        return 1;
+    }
+
+    // HasSearchedAssistance()
+    static int HasSearchedAssistance(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->HasSearchedAssistance());
+        return 1;
+    }
+
+    // SetNoSearchAssistance([noSearch])
+    static int SetNoSearchAssistance(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        bool val = luaL_optbool(L, 1, true);
+
+        creature->SetNoSearchAssistance(val);
+        return 0;
+    }
+
+    // SetNoCallAssistance([noCall])
+    static int SetNoCallAssistance(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        bool val = luaL_optbool(L, 1, true);
+
+        creature->SetNoCallAssistance(val);
+        return 0;
+    }
+
+    // CallAssistance()
+    static int CallAssistance(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        creature->CallAssistance();
+        return 0;
+    }
+
+    // CallForHelp(radius)
+    static int CallForHelp(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        float radius = luaL_checknumber(L, 1);
+
+        creature->CallForHelp(radius);
+        return 0;
+    }
+
+    // FleeToGetAssistance()
+    static int DoFleeToGetAssistance(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        creature->DoFleeToGetAssistance();
+        return 0;
+    }
+
+    // GetAggroRange(unit)
+    static int GetAggroRange(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        Unit* target = sEluna->CHECK_UNIT(L, 1);
+
+        if (!target)
+        {
+            luaL_error(L, "unit is nil");
+            return 0;
+        }
+        sEluna->PushFloat(L, creature->GetAggroRange(target));
+        return 1;
+    }
+
+    // GetAttackDistance(unit)
+    static int GetAttackDistance(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        Unit* target = sEluna->CHECK_UNIT(L, 1);
+
+        if (!target)
+        {
+            luaL_error(L, "unit is nil");
+            return 0;
+        }
+        sEluna->PushFloat(L, creature->GetAttackDistance(target));
+        return 1;
+    }
+
+    // CanStartAttack(unit, force)
+    static int canStartAttack(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        Unit* target = sEluna->CHECK_UNIT(L, 1);
+        bool force = luaL_checkbool(L, 2);
+
+        if (!target)
+        {
+            luaL_error(L, "unit is nil");
+            return 0;
+        }
+        sEluna->PushBoolean(L, creature->canStartAttack(target, force));
+        return 1;
+    }
+
+    // ResetLootMode()
+    static int ResetLootMode(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        creature->ResetLootMode();
+        return 0;
+    }
+
+    // RemoveLootMode(lootMode)
+    static int RemoveLootMode(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        uint16 lootMode = luaL_checkunsigned(L, 1);
+
+        creature->RemoveLootMode(lootMode);
+        return 0;
+    }
+
+    // AddLootMode(lootMode)
+    static int AddLootMode(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        uint16 lootMode = luaL_checkunsigned(L, 1);
+
+        creature->AddLootMode(lootMode);
+        return 0;
+    }
+
+    // SetLootMode(lootMode)
+    static int SetLootMode(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        uint16 lootMode = luaL_checkunsigned(L, 1);
+
+        creature->SetLootMode(lootMode);
+        return 0;
+    }
+
+    // HasLootMode(lootMode)
+    static int HasLootMode(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        uint16 lootMode = luaL_checkunsigned(L, 1);
+
+        sEluna->PushBoolean(L, creature->HasLootMode(lootMode));
+        return 1;
+    }
+
+    // GetLootMode()
+    static int GetLootMode(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushUnsigned(L, creature->GetLootMode());
+        return 1;
+    }
+
+    // IsTappedBy(player)
+    static int isTappedBy(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        Player* player = sEluna->CHECK_PLAYER(L, 1);
+
+        if (player)
+            sEluna->PushBoolean(L, creature->isTappedBy(player));
+        else
+            sEluna->PushBoolean(L, false);
+        return 1;
+    }
+
+    // HasLootRecipient()
+    static int hasLootRecipient(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->hasLootRecipient());
+        return 1;
+    }
+
+    // GetLootRecipientGroup()
+    static int GetLootRecipientGroup(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushGroup(L, creature->GetLootRecipientGroup());
+        return 1;
+    }
+
+    // GetLootRecipient()
+    static int GetLootRecipient(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushUnit(L, creature->GetLootRecipient());
+        return 1;
+    }
+
+    // SetDeathState(state)
+    static int setDeathState(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        int32 state = luaL_checkinteger(L, 1);
+
+        creature->setDeathState((DeathState)state);
+        return 0;
+    }
+
+    // SetReactState(state)
+    static int SetReactState(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        int32 state = luaL_checkinteger(L, 1);
+
+        creature->SetReactState((ReactStates)state);
+        return 0;
+    }
+
+    // GetReactState()
+    static int GetReactState(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushInteger(L, creature->GetReactState());
+        return 1;
+    }
+
+    // HasReactState(state)
+    static int HasReactState(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        int32 state = luaL_checkinteger(L, 1);
+
+        sEluna->PushBoolean(L, creature->HasReactState((ReactStates)state));
+        return 1;
+    }
+
+    // CanFly()
+    static int CanFly(lua_State* L, Unit* unit)
+    {
+        TO_UNIT_BOOL();
+
+        if (Player* player = unit->ToPlayer())
+            sEluna->PushBoolean(L, player->CanFly());
+        else if (Creature* creature = unit->ToCreature())
+            sEluna->PushBoolean(L, creature->CanFly());
+        else
+            sEluna->PushBoolean(L, unit->CanFly());
+        return 1;
+    }
+
+    // CanSwim()
+    static int canSwim(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->canSwim());
+        return 1;
+    }
+
+    // CanWalk()
+    static int canWalk(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->canWalk());
+        return 1;
+    }
+
+    // SetDisableGravity(disable[, packetOnly])
+    static int SetDisableGravity(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        bool disable = luaL_checkbool(L, 1);
+        bool packetOnly = luaL_optbool(L, 1, false);
+
+        sEluna->PushBoolean(L, creature->SetDisableGravity(disable, packetOnly));
+        return 1;
+    }
+
+    // SetHover([enable])
+    static int SetHover(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        bool enable = luaL_optbool(L, 1, true);
+
+        sEluna->PushBoolean(L, creature->SetHover(enable));
+        return 1;
+    }
+
+    // IsInEvadeMode()
+    static int IsInEvadeMode(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->IsInEvadeMode());
+        return 1;
+    }
+
+    // IsWorldBoss()
+    static int isWorldBoss(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->isWorldBoss());
+        return 1;
+    }
+
+    // IsElite()
+    static int isElite(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->isElite());
+        return 1;
+    }
+
+    // IsGuard()
+    static int isGuard(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->isGuard());
+        return 1;
+    }
+
+    // IsTrigger()
+    static int isTrigger(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->isTrigger());
+        return 1;
+    }
+
+    // IsCivilian()
+    static int isCivilian(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->isCivilian());
+        return 1;
+    }
+
+    // IsRacialLeader()
+    static int isRacialLeader(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        sEluna->PushBoolean(L, creature->isRacialLeader());
+        return 1;
+    }
+
+    // HasCategoryCooldown(spellId)
+    static int HasCategoryCooldown(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE_BOOL();
+
+        uint32 spell = luaL_checkunsigned(L, 1);
+
+        sEluna->PushBoolean(L, creature->HasCategoryCooldown(spell));
+        return 1;
+    }
+
+    // GetScriptName()
+    static int GetScriptName(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushString(L, creature->GetScriptName().c_str());
+        return 1;
+    }
+
+    // GetAIName()
+    static int GetAIName(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushString(L, creature->GetAIName().c_str());
+        return 1;
+    }
+
+    // GetScriptId()
+    static int GetScriptId(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushUnsigned(L, creature->GetScriptId());
+        return 1;
+    }
+
+    // GetCreatureSpellCooldownDelay(spellId)
+    static int GetCreatureSpellCooldownDelay(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        uint32 spell = luaL_checkunsigned(L, 1);
+
+        sEluna->PushUnsigned(L, creature->GetCreatureSpellCooldownDelay(spell));
+        return 1;
+    }
+
+    // GetShieldBlockValue()
+    static int GetShieldBlockValue(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        if (Player* player = unit->ToPlayer())
+            sEluna->PushUnsigned(L, player->GetShieldBlockValue());
+        if (Creature* creature = unit->ToCreature())
+            sEluna->PushUnsigned(L, creature->GetShieldBlockValue());
+        else
+            sEluna->PushUnsigned(L, unit->GetShieldBlockValue());
+        return 1;
+    }
+
+    // GetCorpseDelay()
+    static int GetCorpseDelay(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        sEluna->PushUnsigned(L, creature->GetCorpseDelay());
+        return 1;
+    }
+
+    // GetHomePosition()
+    static int GetHomePosition(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        float x,y,z,o;
+        creature->GetHomePosition(x,y,z,o);
+
+        sEluna->PushFloat(L, x);
+        sEluna->PushFloat(L, y);
+        sEluna->PushFloat(L, z);
+        sEluna->PushFloat(L, o);
+        return 4;
+    }
+
+    // RewardQuest(entry)
+    static int RewardQuest(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER_BOOL();
+
+        uint32 entry = luaL_checkunsigned(L, 1);
+
+        Quest const* quest = sObjectMgr->GetQuestTemplate(entry);
+        if (quest)
+            player->RewardQuest(quest, 0, player);
+        return 0;
+    }
+
+    // HasAura(spellId[, caster])
+    static int HasAura(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER_BOOL();
+
+        uint32 spell = luaL_checkunsigned(L, 1);
+        WorldObject* caster = sEluna->CHECK_WORLDOBJECT(L, 2);
+
+        sEluna->PushBoolean(L, player->HasAura(spell, caster ? caster->GetGUID() : 0));
+        return 1;
+    }
+
     // IsARecruiter()
     static int IsARecruiter(lua_State* L, Unit* unit)
     {
@@ -31,6 +749,35 @@ public:
         return 1;
     }
 
+    // GetSelectedPlayer()
+    static int GetSelectedPlayer(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        sEluna->PushUnit(L, player->GetSelectedPlayer());
+        return 1;
+    }
+
+    static int GetSelectedUnit(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        sEluna->PushUnit(L, player->GetSelectedUnit());
+        return 1;
+    }
+
+    // GetDistance(x, y, z)
+    static int GetDistance(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        float X = luaL_checknumber(L, 1);
+        float Y = luaL_checknumber(L, 2);
+        float Z = luaL_checknumber(L, 3);
+        sEluna->PushFloat(L, unit->GetDistance(X, Y, Z));
+        return 1;
+    }
+
     // GetLatency()
     static int GetLatency(lua_State* L, Unit* unit)
     {
@@ -38,6 +785,51 @@ public:
 
         sEluna->PushUnsigned(L, player->GetSession()->GetLatency());
         return 1;
+    }
+
+    // SendAuctionMenu([faction, creature])
+    static int SendAuctionHello(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        Creature* creature = sEluna->CHECK_CREATURE(L, 1);
+        uint32 faction = luaL_checkunsigned(L, 2);
+
+        if (player->getLevel() < sWorld->getIntConfig(CONFIG_AUCTION_LEVEL_REQ))
+        {
+            player->GetSession()->SendNotification(player->GetSession()->GetTrinityString(LANG_AUCTION_REQ), sWorld->getIntConfig(CONFIG_AUCTION_LEVEL_REQ));
+            return 0;
+        }
+
+        uint64 guid = creature ? creature->GetGUID() : player->GetGUID();
+        if (!faction)
+            faction = creature ? creature->getFaction() : player->getFaction();
+
+        AuctionHouseEntry const* ahEntry = AuctionHouseMgr::GetAuctionHouseEntry(faction);
+        if (!ahEntry)
+            return 0;
+
+        WorldPacket data(MSG_AUCTION_HELLO, 12);
+        data << uint64(guid);
+        data << uint32(ahEntry->houseId);
+        data << uint8(1);
+        player->GetSession()->SendPacket(&data);
+        return 0;
+    }
+
+    // SendMailMenu(object)
+    static int HandleGetMailList(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        GameObject* object = sEluna->CHECK_OBJECT(L, 1);
+        if (!object)
+            return 0;
+
+        WorldPacket data(SMSG_SHOW_MAILBOX, 8);
+        data << uint64(object->GetGUID());
+        player->GetSession()->HandleGetMailList(data);
+        return 0;
     }
 
     // SendTaxiMenu(creature)
@@ -118,15 +910,6 @@ public:
 
         player->GetSession()->LogoutPlayer(save);
         return 0;
-    }
-
-    // CanFly()
-    static int CanFly(lua_State* L, Unit* unit)
-    {
-        TO_PLAYER_BOOL();
-
-        sEluna->PushBoolean(L, player->CanFly());
-        return 1;
     }
 
     // GetChampioningFaction()
@@ -937,11 +1720,16 @@ public:
     // HasSpellCooldown(spellid)
     static int HasSpellCooldown(lua_State* L, Unit* unit)
     {
-        TO_PLAYER_BOOL();
+        TO_UNIT_BOOL();
 
         uint32 spellId = luaL_checkunsigned(L, 1);
 
-        sEluna->PushBoolean(L, player->HasSpellCooldown(spellId));
+        if (Player* player = unit->ToPlayer())
+            sEluna->PushBoolean(L, player->HasSpellCooldown(spellId));
+        else if (Creature* creature = unit->ToCreature())
+            sEluna->PushBoolean(L, creature->HasSpellCooldown(spellId));
+        else
+            sEluna->PushBoolean(L, false);
         return 1;
     }
 
@@ -1187,9 +1975,21 @@ public:
     // SaveToDB()
     static int SaveToDB(lua_State* L, Unit* unit)
     {
-        TO_PLAYER();
+        TO_UNIT();
 
-        player->SaveToDB();
+        if (Player* player = unit->ToPlayer())
+            player->SaveToDB();
+        if (Creature* creature = unit->ToCreature())
+            creature->SaveToDB();
+        return 0;
+    }
+
+    // HandleEmoteCommand(emote)
+    static int HandleEmoteCommand(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        unit->HandleEmoteCommand(luaL_checkunsigned(L, 1));
         return 0;
     }
 
@@ -2191,6 +2991,34 @@ public:
         return 0;
     }
 
+    //SetGender(value)
+    static int SetGender(lua_State * L, Unit * unit)
+    {
+        TO_PLAYER();
+
+        Gender gender;
+        uint32 _gender = luaL_checkint(L, 1);
+
+        switch(_gender)
+        {
+        case 0:
+            gender = GENDER_MALE;
+            break;
+        case 1:
+            gender = GENDER_FEMALE;
+            break;
+        default:
+            luaL_error(L, "1st argument not a valid gender");
+            return 0;
+        }
+
+        // Set gender
+        player->SetByteValue(UNIT_FIELD_BYTES_0, 2, gender);
+        player->SetByteValue(PLAYER_BYTES_3, 0, gender);
+        player->InitDisplayIds();
+        return 0;
+    }
+
     //MoveTo(id, x, y, z[, generatePath])
     static int MovePoint(lua_State* L, Unit* unit)
     {
@@ -2247,14 +3075,17 @@ public:
         return 0;
     }
 
-    //SetWalk(enable)
+    //SetWalk([enable])
     static int SetWalk(lua_State* L, Unit* unit)
     {
         TO_UNIT();
 
         bool enable = luaL_optbool(L, 1, true);
-        unit->SetWalk(enable);
-        return 0;
+        if (Creature* creature = unit->ToCreature())
+            sEluna->PushBoolean(L, creature->SetWalk(enable));
+        else
+            sEluna->PushBoolean(L, unit->SetWalk(enable));
+        return 1;
     }
 
     //SetSpeed(type, speed[, forced])
@@ -2315,6 +3146,16 @@ public:
         sEluna->PushUnsigned(L, unit->GetDisplayId());
         return 1;
     }
+
+    //GetNativeDisplayID()
+    static int GetNativeDisplayID(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        sEluna->PushUnsigned(L, unit->GetNativeDisplayId());
+        return 1;
+    }
+
 
     // GetName()
     static int GetName(lua_State* L, Unit* unit)
@@ -2915,6 +3756,16 @@ public:
         return 0;
     }
 
+    //SetNativeDisplayID(id)
+    static int SetNativeDisplayID(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        uint32 model = luaL_checkunsigned(L, 1);
+        unit->SetNativeDisplayId(model);
+        return 0;
+    }
+
     // SetFacing(o)
     static int SetFacing(lua_State* L, Unit* unit)
     {
@@ -3172,7 +4023,13 @@ public:
         TO_UNIT_BOOL();
 
         uint32 questId = luaL_checkunsigned(L, 1);
-        sEluna->PushBoolean(L, unit->hasQuest(questId));
+
+        if (Player* player = unit->ToPlayer())
+            sEluna->PushBoolean(L, player->hasQuest(questId));
+        else if (Creature* creature = unit->ToCreature())
+            sEluna->PushBoolean(L, creature->hasQuest(questId));
+        else
+            sEluna->PushBoolean(L, unit->hasQuest(questId));
         return 1;
     }
 
@@ -3219,7 +4076,12 @@ public:
         TO_UNIT_BOOL();
 
         uint32 id = luaL_checkunsigned(L, 1);
-        sEluna->PushBoolean(L, unit->HasSpell(id));
+        if (Player* player = unit->ToPlayer())
+            sEluna->PushBoolean(L, player->HasSpell(id));
+        else if (Creature* creature = unit->ToCreature())
+            sEluna->PushBoolean(L, creature->HasSpell(id));
+        else
+            sEluna->PushBoolean(L, unit->HasSpell(id));
         return 1;
     }
 
@@ -3337,6 +4199,20 @@ public:
         return 0;
     }
 
+    // SendClearCooldowns(spellId, (unit)target)
+    static int SendClearCooldowns(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        uint32 spellId = luaL_checkunsigned(L, 1);
+        Unit* target = sEluna->CHECK_UNIT(L, 2);
+        if (!target)
+            return 0;
+
+        player->SendClearCooldown(spellId, target);
+        return 0;
+    }
+
     // SendBroadcastMessage(msg)
     static int SendBroadcastMessage(lua_State* L, Unit* unit)
     {
@@ -3370,15 +4246,29 @@ public:
         return 0;
     }
 
-    // SendUnitWhisper(msg, receiver, bossWhisper)
+    // SendUnitWhisper(msg, receiver[, bossWhisper])
     static int SendUnitWhisper(lua_State* L, Unit* unit)
     {
         TO_UNIT();
 
         const char* msg = luaL_checkstring(L, 1);
         Unit* receiver = sEluna->CHECK_UNIT(L, 2);
+        bool bossWhisper = luaL_optbool(L, 3, false);
         if (receiver && std::string(msg).length() > 0)
-            unit->MonsterWhisper(msg, receiver->GetGUID(), false);
+            unit->MonsterWhisper(msg, receiver->GetGUID(), bossWhisper);
+        return 0;
+    }
+
+    // SendUnitEmote(msg[, receiver, bossEmote])
+    static int SendUnitEmote(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        const char* msg = luaL_checkstring(L, 1);
+        Unit* receiver = sEluna->CHECK_UNIT(L, 2);
+        bool bossEmote = luaL_optbool(L, 3, false);
+        if (std::string(msg).length() > 0)
+            unit->MonsterTextEmote(msg, receiver ? receiver->GetGUID() : 0, bossEmote);
         return 0;
     }
 
@@ -3620,6 +4510,84 @@ public:
         return 1;
     }
 
+    // GetAITarget(type[, playeronly, position, distance, aura])
+    static int GetAITarget(lua_State* L, Unit* unit)
+    {
+        TO_CREATURE();
+
+        SelectAggroTarget targetType = (SelectAggroTarget)luaL_checkunsigned(L, 1);
+        bool playerOnly = luaL_optbool(L, 2, false);
+        uint32 position = luaL_optunsigned(L, 3, 0);
+        float dist = luaL_optnumber(L, 4, 0.0f);
+        int32 aura = luaL_optint(L, 5, 0);
+
+        // Unit* SelectTarget(SelectAggroTarget targetType, uint32 position = 0, float dist = 0.0f, bool playerOnly = false, int32 aura = 0);
+        ThreatContainer::StorageType const& threatlist = creature->getThreatManager().getThreatList();
+        if (position >= threatlist.size())
+        {
+            sEluna->PushUnit(L, NULL);
+            return 1;
+        }
+
+        std::list<Unit*> targetList;
+        for (ThreatContainer::StorageType::const_iterator itr = threatlist.begin(); itr != threatlist.end(); ++itr)
+        {
+            Unit* target = (*itr)->getTarget();
+            if (!target)
+                continue;
+            if (playerOnly && !target->ToPlayer())
+                continue;
+            if (aura > 0 && !target->HasAura(aura))
+                continue;
+            else if (aura < 0 && target->HasAura(-aura))
+                continue;
+            if (dist > 0.0f && !creature->IsWithinDist(target, dist))
+                continue;
+            targetList.push_back(target);
+        }
+
+        if (position >= targetList.size())
+        {
+            sEluna->PushUnit(L, NULL);
+            return 1;
+        }
+
+        if (targetType == SELECT_TARGET_NEAREST || targetType == SELECT_TARGET_FARTHEST)
+            targetList.sort(Trinity::ObjectDistanceOrderPred(creature));
+
+        switch (targetType)
+        {
+        case SELECT_TARGET_NEAREST:
+        case SELECT_TARGET_TOPAGGRO:
+            {
+                std::list<Unit*>::iterator itr = targetList.begin();
+                std::advance(itr, position);
+                sEluna->PushUnit(L, *itr);
+                return 1;
+            }
+        case SELECT_TARGET_FARTHEST:
+        case SELECT_TARGET_BOTTOMAGGRO:
+            {
+                std::list<Unit*>::reverse_iterator ritr = targetList.rbegin();
+                std::advance(ritr, position);
+                sEluna->PushUnit(L, *ritr);
+                return 1;
+            }
+        case SELECT_TARGET_RANDOM:
+            {
+                std::list<Unit*>::iterator itr = targetList.begin();
+                std::advance(itr, urand(position, targetList.size() - 1));
+                sEluna->PushUnit(L, *itr);
+                return 1;
+            }
+        default:
+            break;
+        }
+
+        sEluna->PushUnit(L, NULL);
+        return 1;
+    }
+
     // GetAITargets()
     static int GetAITargets(lua_State* L, Unit* unit)
     {
@@ -3781,7 +4749,7 @@ public:
         return 0;
     }
 
-    // GossipMenuAddItem(icon, msg, Intid, code, accept_decline_message, money)
+    // GossipMenuAddItem(icon, msg, Intid[, code, accept_decline_message, money])
     static int GossipMenuAddItem(lua_State* L, Unit* unit)
     {
         TO_PLAYER();
@@ -3806,13 +4774,13 @@ public:
         return 0;
     }
 
-    // GossipSendMenu(npc_text, unit)
+    // GossipSendMenu(npc_text, unit[, menu_id])
     static int GossipSendMenu(lua_State* L, Unit* unit)
     {
         TO_PLAYER();
 
         uint32 _npcText = luaL_checkunsigned(L, 1);
-        Unit* sender = sEluna->CHECK_UNIT(L, 2);
+        WorldObject* sender = sEluna->CHECK_WORLDOBJECT(L, 2);
         if (sender)
         {
             if (sender->ToPlayer())
@@ -4082,8 +5050,8 @@ public:
     //{
     //    TO_UNIT();
 
-    //    if (unit->GetVehicle())
-    //        unit->GetVehicle()->Dismiss();
+        if (Creature* vehicle = unit->GetVehicleCreatureBase())
+            vehicle->DespawnOrUnsummon();
     //    return 0;
     //}
 

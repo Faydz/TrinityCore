@@ -232,6 +232,19 @@ public:
         return 1;
     }
 
+    // IsInvisibleDueToDespawn()
+    static int IsInvisibleDueToDespawn(lua_State* L, GameObject * go)
+    {
+        if (!go || !go->IsInWorld())
+            sEluna->PushBoolean(L, false);
+        else
+        {
+            bool respond = go->IsInvisibleDueToDespawn();
+            sEluna->PushBoolean(L, respond);
+        }
+        return 1;
+    }
+
     // IsTransport()
     static int IsTransport(lua_State* L, GameObject* go)
     {
@@ -268,11 +281,11 @@ public:
         if (!go || !go->IsInWorld())
             return 0;
 
-        float X = luaL_checknumber(L, 1);
-        float Y = luaL_checknumber(L, 2);
-        float Z = luaL_checknumber(L, 3);
-        float O = luaL_checknumber(L, 4);
-        go->Relocate(X, Y, Z, O);
+        float x = luaL_checknumber(L, 1);
+        float y = luaL_checknumber(L, 2);
+        float z = luaL_checknumber(L, 3);
+        float o = luaL_checknumber(L, 4);
+        go->Relocate(x, y, z, o);
         return 0;
     }
 
