@@ -203,6 +203,11 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
                 return DIMINISHING_LIMITONLY;
             break;
         }
+        case SPELLFAMILY_SHAMAN:
+            // Earth's Grasp
+            if (spellproto->Id == 64695)
+                return DIMINISHING_NONE;
+            break;
         default:
             break;
     }

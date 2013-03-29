@@ -52,9 +52,10 @@ enum ShamanSpells
     SPELL_SHAMAN_TOTEM_HEALING_STREAM_HEAL      = 52042,
     SHAMAN_SPELL_UNLEASH_ELEMENTS               = 73680,
     SHAMAN_SPELL_FULMINATION                    = 88766,
-	SHAMAN_SPELL_FULMINATION_TRIGGERED          = 88767,
-	SHAMAN_SPELL_FULMINATION_INFO               = 95774,
-	SHAMAN_SPELL_LIGHTNING_SHIELD_PROC          = 26364,
+    SHAMAN_SPELL_FULMINATION_TRIGGERED          = 88767,
+    SHAMAN_SPELL_FULMINATION_INFO               = 95774,
+    SHAMAN_SPELL_LIGHTNING_SHIELD_PROC          = 26364,
+    SHAMAN_TOTEM_SPELL_EARTHEN_POWER            = 59566,
 };
 
 enum ShamanSpellIcons
@@ -262,62 +263,6 @@ class spell_sha_earth_shield : public SpellScriptLoader
         AuraScript* GetAuraScript() const
         {
             return new spell_sha_earth_shield_AuraScript();
-        }
-};
-
-// 6474 - Earthbind Totem - Fix Talent:Earthen Power, Earth's Grasp
-/// Updated 4.3.4
-class spell_sha_earthbind_totem : public SpellScriptLoader
-{
-    public:
-        spell_sha_earthbind_totem() : SpellScriptLoader("spell_sha_earthbind_totem") { }
-
-        class spell_sha_earthbind_totem_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_sha_earthbind_totem_AuraScript);
-
-            bool Validate(SpellInfo const* /*spellInfo*/)
-            {
-                if (!sSpellMgr->GetSpellInfo(SPELL_SHAMAN_TOTEM_EARTHBIND_TOTEM) || !sSpellMgr->GetSpellInfo(SPELL_SHAMAN_TOTEM_EARTHEN_POWER))
-                    return false;
-                return true;
-            }
-
-            void HandleEffectPeriodic(AuraEffect const* /*aurEff*/)
-            {
-                if (!GetCaster())
-                    return;
-                if (Player* owner = GetCaster()->GetCharmerOrOwnerPlayerOrPlayerItself())
-                    if (AuraEffect* aur = owner->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 2289, 0))
-                        if (roll_chance_i(aur->GetBaseAmount()))
-                            GetTarget()->CastSpell((Unit*)NULL, SPELL_SHAMAN_TOTEM_EARTHEN_POWER, true);
-            }
-
-            void Apply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-            {
-                if (!GetCaster())
-                    return;
-                Player* owner = GetCaster()->GetCharmerOrOwnerPlayerOrPlayerItself();
-                if (!owner)
-                    return;
-                // Earth's Grasp
-                if (AuraEffect* aurEff = owner->GetAuraEffectOfRankedSpell(SPELL_SHAMAN_STORM_EARTH_AND_FIRE, EFFECT_1))
-                {
-                    if (roll_chance_i(aurEff->GetAmount()))
-                        GetCaster()->CastSpell(GetCaster(), SPELL_SHAMAN_TOTEM_EARTHBIND_EARTHGRAB, false);
-                }
-            }
-
-            void Register()
-            {
-                 OnEffectPeriodic += AuraEffectPeriodicFn(spell_sha_earthbind_totem_AuraScript::HandleEffectPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
-                 OnEffectApply += AuraEffectApplyFn(spell_sha_earthbind_totem_AuraScript::Apply, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
-            }
-        };
-
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_sha_earthbind_totem_AuraScript();
         }
 };
 
@@ -843,61 +788,122 @@ class spell_spirit_link : public SpellScriptLoader
 class spell_sha_fulmination: public SpellScriptLoader
 {
 public:
-	spell_sha_fulmination() : SpellScriptLoader("spell_sha_fulmination")
+    spell_sha_fulmination() : SpellScriptLoader("spell_sha_fulmination")
     { } 
 
-	class spell_sha_fulminationSpellScript: public SpellScript
+    class spell_sha_fulminationSpellScript: public SpellScript
     {
-		PrepareSpellScript(spell_sha_fulminationSpellScript)
+        PrepareSpellScript(spell_sha_fulminationSpellScript)
 
-		void HandleFulmination(SpellEffIndex effIndex) 
+        void HandleFulmination(SpellEffIndex effIndex) 
         {
-			// make caster cast a spell on a unit target of effect
+            // make caster cast a spell on a unit target of effect
+            Unit *target = GetHitUnit();
 
-            sLog->outError(LOG_FILTER_GENERAL, "merda");
-			Unit *target = GetHitUnit();
+            Unit *caster = GetCaster();
 
-			Unit *caster = GetCaster();
+            if (!target || !caster)
+                return;
 
-			if (!target || !caster)
-				return;
+            AuraEffect *fulminationAura = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 2010, 0);
 
-			AuraEffect *fulminationAura = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 2010, 0);
+            if (!fulminationAura)
+                return;
 
-			if (!fulminationAura)
-				return;
+            Aura * lightningShield = caster->GetAura(324);
 
-			Aura * lightningShield = caster->GetAura(324);
+            if (!lightningShield)
+                return;
 
-			if (!lightningShield)
-				return;
+            uint8 lsCharges = lightningShield->GetCharges();
 
-			uint8 lsCharges = lightningShield->GetCharges();
+            if (lsCharges <= 3)
+                return;
 
-			if (lsCharges <= 3)
-				return;
+            uint8 usedCharges = lsCharges - 3;
 
-			uint8 usedCharges = lsCharges - 3;
+            SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(SHAMAN_SPELL_LIGHTNING_SHIELD_PROC);
+            int32 basePoints = caster->CalculateSpellDamage(target, spellInfo, 0);
+            uint32 damage = usedCharges * caster->SpellDamageBonusDone(target, spellInfo, basePoints, SPELL_DIRECT_DAMAGE);
+            caster->CastCustomSpell(SHAMAN_SPELL_FULMINATION_TRIGGERED, SPELLVALUE_BASE_POINT0, damage, target, true, NULL, fulminationAura);
+            lightningShield->SetCharges(lsCharges - usedCharges);
+        }
 
-			SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(SHAMAN_SPELL_LIGHTNING_SHIELD_PROC);
-			int32 basePoints = caster->CalculateSpellDamage(target, spellInfo, 0);
-			uint32 damage = usedCharges * caster->SpellDamageBonusDone(target, spellInfo, basePoints, SPELL_DIRECT_DAMAGE);
-			caster->CastCustomSpell(SHAMAN_SPELL_FULMINATION_TRIGGERED, SPELLVALUE_BASE_POINT0, damage, target, true, NULL, fulminationAura);
-			lightningShield->SetCharges(lsCharges - usedCharges);
-		}
-
-		// Register functions used in spell script - names of these functions do not matter
-		void Register() 
+        // Register functions used in spell script - names of these functions do not matter
+        void Register() 
         {
-			OnEffectHitTarget += SpellEffectFn(spell_sha_fulminationSpellScript::HandleFulmination, EFFECT_1, SPELL_EFFECT_SCHOOL_DAMAGE);
-		}
-	};
+            OnEffectHitTarget += SpellEffectFn(spell_sha_fulminationSpellScript::HandleFulmination, EFFECT_1, SPELL_EFFECT_SCHOOL_DAMAGE);
+        }
+    };
 
-	// function which creates SpellScript
-	SpellScript *GetSpellScript() const 
+    // function which creates SpellScript
+    SpellScript *GetSpellScript() const 
     {
-		return new spell_sha_fulminationSpellScript();
-	}
+        return new spell_sha_fulminationSpellScript();
+    }
+};
+
+// 6474 - Earthbind Totem - Fix Talent:Earthen Power
+class spell_sha_earthbind_totem: public SpellScriptLoader 
+{
+public:
+    spell_sha_earthbind_totem() : SpellScriptLoader("spell_sha_earthbind_totem") { }
+
+    class spell_sha_earthbind_totem_AuraScript: public AuraScript
+    {
+        PrepareAuraScript(spell_sha_earthbind_totem_AuraScript);
+
+        bool Validate(SpellInfo const * /*spellEntry*/) 
+        {
+            if (!sSpellStore.LookupEntry(SHAMAN_TOTEM_SPELL_EARTHEN_POWER))
+                return false;
+            return true;
+        }
+
+        void HandleEffectPeriodic(AuraEffect const * aurEff) 
+        {
+            Unit* target = GetTarget();
+            if (Unit *caster = aurEff->GetBase()->GetCaster()->GetOwner())
+            {
+                Unit* target = GetTarget();
+                Unit* totem = GetCaster();
+
+                if (!totem || !target)
+                    return;
+
+                if (Unit* caster = aurEff->GetBase()->GetCaster()->GetOwner())
+                {
+                    // Earthen Power
+                    if (AuraEffect* aur = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 2289, 0))
+                        if (roll_chance_i(aur->GetBaseAmount()))
+                            target->CastSpell(caster, SHAMAN_TOTEM_SPELL_EARTHEN_POWER, true, NULL, aurEff);
+
+                    // Earth's Grasp               
+                    if (GetEffect(0)->GetAmount() == 0)
+                    {
+                        if ((caster->HasAura(51483) && roll_chance_i(50)) || caster->HasAura(51485))
+                        {
+                            if (!target->HasAura(64695))
+                                totem->CastSpell(target, 64695, true);
+
+                            // Only at apply (hacky way)
+                            GetEffect(0)->SetAmount(10);
+                        }
+                    }
+                }
+            }
+        }
+
+        void Register() 
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_sha_earthbind_totem_AuraScript::HandleEffectPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
+        }
+    };
+
+    AuraScript *GetAuraScript() const 
+    {
+        return new spell_sha_earthbind_totem_AuraScript();
+    }
 };
 
 void AddSC_shaman_spell_scripts()
