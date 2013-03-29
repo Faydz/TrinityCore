@@ -8946,6 +8946,23 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
             else
                 return false;
             break;
+        case 51945: // Earthliving Weapon
+            uint32 chance = 20;
+            // Blessing of the Eternals
+            if (victim)
+            {
+                if (victim->HealthBelowPct(35))
+                {
+                    if (HasAura(51554))
+                        chance += 20;
+                    else if (HasAura(51555))
+                        chance += 40;
+                }
+            }
+            sLog->outError(LOG_FILTER_GENERAL, "cacca %d", chance);
+            if (!roll_chance_i(chance))
+                return false;
+            break;
     }
 
     if (cooldown && GetTypeId() == TYPEID_PLAYER && ToPlayer()->HasSpellCooldown(trigger_spell_id))
