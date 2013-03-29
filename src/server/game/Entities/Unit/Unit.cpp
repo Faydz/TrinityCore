@@ -7125,6 +7125,31 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Tidal Waves
+                case 51562:
+                case 51564:
+                case 51563:
+                {
+                    if (!procSpell) 
+                        return false;
+
+                    int32 bp0 = -(dummySpell->Effects[0].BasePoints);
+                    int32 bp1 = dummySpell->Effects[0].BasePoints;
+                    CastCustomSpell(this, 53390, &bp0, &bp1, NULL, true, 0, 0, GetGUID());
+                    return true;
+                }
+                // Telluric Currents
+                case 82988:
+                case 82984:
+                {
+                    if (procSpell->Id != 403)
+                        return false;
+
+                    int32 bp0 = damage * triggerAmount / 100;
+                    CastCustomSpell(this, 82987, &bp0, NULL, NULL, true, 0, 0, 0);
+                    return true;
+                    break;
+                }
                 // Ancestral Healing
                 case 16176:
                 case 16235:
@@ -7210,8 +7235,11 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     break;
                 // Elemental Overload (Shaman Elemental mastery)
                 case 77222:
-                   if (Player* caster = ToPlayer())
-                   {
+                    if (triggerAmount == 0)
+                        return false;
+
+                    if (Player* caster = ToPlayer())
+                    {
                        if (procSpell->Id == 403 || procSpell->Id == 51505 || procSpell->Id == 421)
                        {
                            int32 chance = 0;
@@ -7235,8 +7263,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                                }
                            }
                        }
-                   }
-                   break;
+                    }
+                    break;
                 // Totemic Power (The Earthshatterer set)
                 case 28823:
                 {
@@ -8920,6 +8948,50 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 triggerAmount = triggeredByAura->GetAmount();
             else
                 return false;
+            break;
+        case 51945: // Earthliving Weapon
+        {
+            uint32 chance = 20;
+            // Blessing of the Eternals
+            if (victim)
+            {
+                if (victim->HealthBelowPct(35))
+                {
+                    if (HasAura(51554))
+                        chance += 20;
+                    else if (HasAura(51555))
+                        chance += 40;
+                }
+            }
+            if (!roll_chance_i(chance))
+                return false;
+            break;
+        }
+        case 88765: // Rolling thunder
+            if (!HasAura(324))
+                return false;
+
+            if (Aura* shield = GetAura(324, GetGUID()))
+            {
+                uint8 stacks = shield->GetCharges() + 1;
+                if (stacks <= 9)
+                    shield->SetCharges(stacks);
+            }
+            break;
+        case 16246: // Elemental Focus
+            int32 bp1 = 0;
+
+            // Elemental Oath
+            if (HasAura(54170))
+                bp1 = 10;
+            else if (HasAura(51466))
+                bp1 = 5;
+
+            if (bp1 != 0)
+            {
+                CastCustomSpell(this, trigger_spell_id, NULL, &bp1, &bp1, true, 0, 0, 0);
+                return true;
+            }
             break;
     }
 
@@ -10974,7 +11046,7 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                     break;
                     case SPELLFAMILY_SHAMAN:
                         // Lava Burst
-                        if (spellProto->SpellFamilyFlags[1] & 0x00001000)
+                        if (spellProto->SpellFamilyFlags[1] & 0x00001000 || spellProto->Id == 77451)
                         {
                             if (victim->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_SHAMAN, 0x10000000, 0, 0, GetGUID()))
                                 if (victim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE) > -100)
