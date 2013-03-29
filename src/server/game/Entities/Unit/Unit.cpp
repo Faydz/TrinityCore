@@ -7235,8 +7235,11 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     break;
                 // Elemental Overload (Shaman Elemental mastery)
                 case 77222:
-                   if (Player* caster = ToPlayer())
-                   {
+                    if (triggerAmount == 0)
+                        return false;
+
+                    if (Player* caster = ToPlayer())
+                    {
                        if (procSpell->Id == 403 || procSpell->Id == 51505 || procSpell->Id == 421)
                        {
                            int32 chance = 0;
@@ -7260,8 +7263,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                                }
                            }
                        }
-                   }
-                   break;
+                    }
+                    break;
                 // Totemic Power (The Earthshatterer set)
                 case 28823:
                 {
@@ -11016,7 +11019,7 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                     break;
                     case SPELLFAMILY_SHAMAN:
                         // Lava Burst
-                        if (spellProto->SpellFamilyFlags[1] & 0x00001000)
+                        if (spellProto->SpellFamilyFlags[1] & 0x00001000 || spellProto->Id == 77451)
                         {
                             if (victim->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_SHAMAN, 0x10000000, 0, 0, GetGUID()))
                                 if (victim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE) > -100)
