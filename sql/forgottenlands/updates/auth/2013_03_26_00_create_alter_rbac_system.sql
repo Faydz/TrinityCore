@@ -1,5 +1,5 @@
-/*ALTER TABLE account ADD `mutereason` varchar(255) NOT NULL DEFAULT '';
-ALTER TABLE account ADD `muteby` varchar(50) NOT NULL DEFAULT '';*/
+ALTER TABLE account ADD `mutereason` varchar(255) NOT NULL DEFAULT '';
+ALTER TABLE account ADD `muteby` varchar(50) NOT NULL DEFAULT '';
 
 
 --
