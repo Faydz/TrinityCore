@@ -51,6 +51,10 @@ enum ShamanSpells
     SPELL_SHAMAN_TOTEM_EARTHEN_POWER            = 59566,
     SPELL_SHAMAN_TOTEM_HEALING_STREAM_HEAL      = 52042,
     SHAMAN_SPELL_UNLEASH_ELEMENTS               = 73680,
+    SHAMAN_SPELL_FULMINATION                    = 88766,
+	SHAMAN_SPELL_FULMINATION_TRIGGERED          = 88767,
+	SHAMAN_SPELL_FULMINATION_INFO               = 95774,
+	SHAMAN_SPELL_LIGHTNING_SHIELD_PROC          = 26364,
 };
 
 enum ShamanSpellIcons
@@ -835,6 +839,67 @@ class spell_spirit_link : public SpellScriptLoader
         }
 };
 
+// 88766 Fulmination handled in 8042 Earth Shock
+class spell_sha_fulmination: public SpellScriptLoader
+{
+public:
+	spell_sha_fulmination() : SpellScriptLoader("spell_sha_fulmination")
+    { } 
+
+	class spell_sha_fulminationSpellScript: public SpellScript
+    {
+		PrepareSpellScript(spell_sha_fulminationSpellScript)
+
+		void HandleFulmination(SpellEffIndex effIndex) 
+        {
+			// make caster cast a spell on a unit target of effect
+
+            sLog->outError(LOG_FILTER_GENERAL, "merda");
+			Unit *target = GetHitUnit();
+
+			Unit *caster = GetCaster();
+
+			if (!target || !caster)
+				return;
+
+			AuraEffect *fulminationAura = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 2010, 0);
+
+			if (!fulminationAura)
+				return;
+
+			Aura * lightningShield = caster->GetAura(324);
+
+			if (!lightningShield)
+				return;
+
+			uint8 lsCharges = lightningShield->GetCharges();
+
+			if (lsCharges <= 3)
+				return;
+
+			uint8 usedCharges = lsCharges - 3;
+
+			SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(SHAMAN_SPELL_LIGHTNING_SHIELD_PROC);
+			int32 basePoints = caster->CalculateSpellDamage(target, spellInfo, 0);
+			uint32 damage = usedCharges * caster->SpellDamageBonusDone(target, spellInfo, basePoints, SPELL_DIRECT_DAMAGE);
+			caster->CastCustomSpell(SHAMAN_SPELL_FULMINATION_TRIGGERED, SPELLVALUE_BASE_POINT0, damage, target, true, NULL, fulminationAura);
+			lightningShield->SetCharges(lsCharges - usedCharges);
+		}
+
+		// Register functions used in spell script - names of these functions do not matter
+		void Register() 
+        {
+			OnEffectHitTarget += SpellEffectFn(spell_sha_fulminationSpellScript::HandleFulmination, EFFECT_1, SPELL_EFFECT_SCHOOL_DAMAGE);
+		}
+	};
+
+	// function which creates SpellScript
+	SpellScript *GetSpellScript() const 
+    {
+		return new spell_sha_fulminationSpellScript();
+	}
+};
+
 void AddSC_shaman_spell_scripts()
 {
     new spell_sha_ancestral_awakening_proc();
@@ -853,4 +918,5 @@ void AddSC_shaman_spell_scripts()
     new spell_sha_ancestral_resolve();
     new spell_sha_unleash_elements();
     new spell_spirit_link();
+    new spell_sha_fulmination();
 }
