@@ -7125,6 +7125,19 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Tidal Waves
+                case 51562:
+                case 51564:
+                case 51563:
+                {
+                    if (!procSpell) 
+                        return false;
+
+                    int32 bp0 = -(dummySpell->Effects[0].BasePoints);
+                    int32 bp1 = dummySpell->Effects[0].BasePoints;
+                    CastCustomSpell(this, 53390, &bp0, &bp1, NULL, true, 0, 0, GetGUID());
+                    return true;
+                }
                 // Telluric Currents
                 case 82988:
                 case 82984:
