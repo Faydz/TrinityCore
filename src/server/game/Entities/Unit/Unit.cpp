@@ -8950,6 +8950,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 return false;
             break;
         case 51945: // Earthliving Weapon
+        {
             uint32 chance = 20;
             // Blessing of the Eternals
             if (victim)
@@ -8962,9 +8963,20 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                         chance += 40;
                 }
             }
-            sLog->outError(LOG_FILTER_GENERAL, "cacca %d", chance);
             if (!roll_chance_i(chance))
                 return false;
+            break;
+        }
+        case 88765: // Rolling thunder
+            if (!HasAura(324))
+                return false;
+
+            if (Aura* shield = GetAura(324, GetGUID()))
+            {
+                uint8 stacks = shield->GetCharges() + 1;
+                if (stacks <= 9)
+                    shield->SetCharges(stacks);
+            }
             break;
     }
 
