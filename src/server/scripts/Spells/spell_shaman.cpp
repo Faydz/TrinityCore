@@ -56,6 +56,8 @@ enum ShamanSpells
     SHAMAN_SPELL_FULMINATION_INFO               = 95774,
     SHAMAN_SPELL_LIGHTNING_SHIELD_PROC          = 26364,
     SHAMAN_TOTEM_SPELL_EARTHEN_POWER            = 59566,
+    SPELL_SHAMAN_TOTEM_TOTEMIC_WRATH            = 77746,
+    SPELL_SHAMAN_TOTEM_TOTEMIC_WRATH_AURA       = 77747,
 };
 
 enum ShamanSpellIcons
@@ -906,6 +908,52 @@ public:
     }
 };
 
+// 77746 - Totemic Wrath
+/// Updated 4.3.4
+class spell_sha_totemic_wrath : public SpellScriptLoader
+{
+public:
+    spell_sha_totemic_wrath() : SpellScriptLoader("spell_sha_totemic_wrath") { }
+
+    class spell_sha_totemic_wrath_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_sha_totemic_wrath_AuraScript);
+
+        bool Validate(SpellInfo const* /*spellInfo*/)
+        {
+            if (!sSpellMgr->GetSpellInfo(SPELL_SHAMAN_TOTEM_TOTEMIC_WRATH))
+                return false;
+
+            if (!sSpellMgr->GetSpellInfo(SPELL_SHAMAN_TOTEM_TOTEMIC_WRATH_AURA))
+                return false;
+
+            return true;
+        }
+
+        void HandleEffectApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* target = GetTarget();
+
+            if (target->ToPlayer())
+                return;
+
+            if (Unit* owner = GetCaster()->GetOwner())
+                if (owner->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2019, 0))
+                    target->CastSpell(target, SPELL_SHAMAN_TOTEM_TOTEMIC_WRATH_AURA, true, NULL, aurEff);
+        }
+
+        void Register()
+        {
+            OnEffectApply += AuraEffectApplyFn(spell_sha_totemic_wrath_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_sha_totemic_wrath_AuraScript();
+    }
+};
+
 void AddSC_shaman_spell_scripts()
 {
     new spell_sha_ancestral_awakening_proc();
@@ -925,4 +973,5 @@ void AddSC_shaman_spell_scripts()
     new spell_sha_unleash_elements();
     new spell_spirit_link();
     new spell_sha_fulmination();
+    new spell_sha_totemic_wrath();
 }
