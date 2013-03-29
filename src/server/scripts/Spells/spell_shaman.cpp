@@ -782,6 +782,59 @@ public:
     }
 };
 
+class spell_spirit_link : public SpellScriptLoader
+{
+    public:
+        spell_spirit_link() : SpellScriptLoader("spell_spirit_link") { }
+
+        class spell_spirit_link_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_spirit_link_SpellScript);
+
+            float mediumPct;
+
+            void FilterTargets(std::list<WorldObject*>& targets)
+            {
+                float pctSum = 0;
+
+                for (std::list<WorldObject*>::const_iterator itr = targets.begin(); itr != targets.end(); ++itr)
+                    if ((*itr)->ToUnit())
+                        pctSum += (*itr)->ToUnit()->GetHealthPct();
+
+                mediumPct = pctSum / targets.size();
+            }
+
+            void HandleDummy(SpellEffIndex effIndex)
+            {
+                PreventHitDefaultEffect(effIndex);
+
+                if (!GetHitUnit() || !GetCaster())
+                    return;
+
+                int32 bp0 = 0;
+                int32 bp1 = 0;
+                uint32 targetHealt = GetHitUnit()->GetMaxHealth() * mediumPct / 100;
+                if (GetHitUnit()->GetHealthPct() > mediumPct)
+                    bp0 = GetHitUnit()->GetHealth() - targetHealt;
+                else
+                    bp1 = targetHealt - GetHitUnit()->GetHealth();
+
+                GetCaster()->CastCustomSpell(GetHitUnit(), 98021, &bp0, &bp1, NULL, true, 0, 0, GetCaster()->GetOwnerGUID());
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_spirit_link_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_CASTER_AREA_RAID);
+                OnEffectHitTarget += SpellEffectFn(spell_spirit_link_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_spirit_link_SpellScript();
+        }
+};
+
 void AddSC_shaman_spell_scripts()
 {
     new spell_sha_ancestral_awakening_proc();
@@ -799,4 +852,5 @@ void AddSC_shaman_spell_scripts()
     new spell_sha_thunderstorm();
     new spell_sha_ancestral_resolve();
     new spell_sha_unleash_elements();
+    new spell_spirit_link();
 }
