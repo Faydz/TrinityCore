@@ -24074,9 +24074,9 @@ void Player::RemoveItemDependentAurasAndCasts(Item* pItem)
     {
         Aura* aura = itr->second;
 
-        // skip passive (passive item dependent spells work in another way) and not self applied auras
+        // skip passive (passive item dependent spells work in another way), not self applied auras and Bladestorm aura
         SpellInfo const* spellInfo = aura->GetSpellInfo();
-        if (aura->IsPassive() ||  aura->GetCasterGUID() != GetGUID())
+        if (aura->IsPassive() ||  aura->GetCasterGUID() != GetGUID() || aura->GetId() == 46924)
         {
             ++itr;
             continue;
