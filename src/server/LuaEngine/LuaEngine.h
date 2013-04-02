@@ -138,6 +138,10 @@ enum ServerEvents
     GROUP_EVENT_ON_LEADER_CHANGE            =     72,           // (event, group, newLeaderGuid, oldLeaderGuid)
     GROUP_EVENT_ON_DISBAND                  =     73,           // (event, group)
 
+    // Custom
+    PLAYER_EVENT_ON_EQUIP                   =     74,           // (player, item, pos, update)
+    PLAYER_EVENT_ON_LOGIN_FIRST             =     75,           // (player)
+
     SERVER_EVENT_COUNT
 };
 
@@ -263,7 +267,8 @@ public:
     void RegisterGlobals(lua_State* L);
     void LoadDirectory(char* directory, LoadedScripts* scr);
     // Pushes
-    void PushGUID(lua_State*, uint64); // Gets GUIDLow (uint32)
+    void PushULong(lua_State*, uint64);
+    void PushLong(lua_State*, int64);
     void PushInteger(lua_State*, int);
     void PushUnsigned(lua_State*, uint32);
     void PushBoolean(lua_State*, bool);
@@ -289,6 +294,8 @@ public:
     WorldObject* CHECK_WORLDOBJECT(lua_State* L, int narg);
     Quest* CHECK_QUEST(lua_State* L, int narg);
     Spell* CHECK_SPELL(lua_State* L, int narg);
+    uint64 CHECK_ULONG(lua_State* L, int narg);
+    int64 CHECK_LONG(lua_State* L, int narg);
 
     // Creates new binding stores
     Eluna()

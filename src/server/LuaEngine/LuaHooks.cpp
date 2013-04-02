@@ -7,6 +7,31 @@ class Eluna_HookScript : public HookScript
 public:
     Eluna_HookScript() : HookScript() { }
     // misc
+    void OnFirstLogin(Player* player)
+    {
+        for (std::vector<int>::iterator itr = sEluna->ServerEventBindings.at(PLAYER_EVENT_ON_LOGIN_FIRST).begin();
+            itr != sEluna->ServerEventBindings.at(PLAYER_EVENT_ON_LOGIN_FIRST).end(); ++itr)
+        {
+            sEluna->BeginCall((*itr));
+            sEluna->PushUnsigned(sEluna->LuaState, PLAYER_EVENT_ON_LOGIN_FIRST);
+            sEluna->PushUnit(sEluna->LuaState, player);
+            sEluna->ExecuteCall(2, 0);
+        }
+    }
+    void OnEquip(Player* player, Item* item, uint16 pos, bool update)
+    {
+        for (std::vector<int>::iterator itr = sEluna->ServerEventBindings.at(PLAYER_EVENT_ON_EQUIP).begin();
+            itr != sEluna->ServerEventBindings.at(PLAYER_EVENT_ON_EQUIP).end(); ++itr)
+        {
+            sEluna->BeginCall((*itr));
+            sEluna->PushUnsigned(sEluna->LuaState, PLAYER_EVENT_ON_EQUIP);
+            sEluna->PushUnit(sEluna->LuaState, player);
+            sEluna->PushItem(sEluna->LuaState, item);
+            sEluna->PushUnsigned(sEluna->LuaState, pos);
+            sEluna->PushBoolean(sEluna->LuaState, update);
+            sEluna->ExecuteCall(5, 0);
+        }
+    }
     void HandleGossipSelectOption(Player* player, uint64 guid, uint32 sender, uint32 action, std::string code, uint32 menuId)
     {
         if (!player || !player->IsInWorld() || !player->isAlive() || player->GetCharmerGUID())
@@ -61,14 +86,14 @@ public:
             }
         }
     }
-    bool OnChat(uint32 eventId, Player* player, uint32 type, uint32 lang, std::string& msg)
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg)
     {
         bool Result = true;
-        for (std::vector<int>::iterator itr = sEluna->ServerEventBindings.at(eventId).begin();
-            itr != sEluna->ServerEventBindings.at(eventId).end(); ++itr)
+        for (std::vector<int>::iterator itr = sEluna->ServerEventBindings.at(PLAYER_EVENT_ON_CHAT).begin();
+            itr != sEluna->ServerEventBindings.at(PLAYER_EVENT_ON_CHAT).end(); ++itr)
         {
             sEluna->BeginCall((*itr));
-            sEluna->PushUnsigned(sEluna->LuaState, eventId);
+            sEluna->PushUnsigned(sEluna->LuaState, PLAYER_EVENT_ON_CHAT);
             sEluna->PushUnit(sEluna->LuaState, player);
             sEluna->PushString(sEluna->LuaState, msg.c_str());
             sEluna->PushUnsigned(sEluna->LuaState, type);
@@ -83,14 +108,14 @@ public:
         }
         return Result;
     }
-    bool OnChat(uint32 eventId, Player* player, uint32 type, uint32 lang, std::string& msg, Group* group)
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group)
     {
         bool Result = true;
-        for (std::vector<int>::iterator itr = sEluna->ServerEventBindings.at(eventId).begin();
-            itr != sEluna->ServerEventBindings.at(eventId).end(); ++itr)
+        for (std::vector<int>::iterator itr = sEluna->ServerEventBindings.at(PLAYER_EVENT_ON_GROUP_CHAT).begin();
+            itr != sEluna->ServerEventBindings.at(PLAYER_EVENT_ON_GROUP_CHAT).end(); ++itr)
         {
             sEluna->BeginCall((*itr));
-            sEluna->PushUnsigned(sEluna->LuaState, eventId);
+            sEluna->PushUnsigned(sEluna->LuaState, PLAYER_EVENT_ON_GROUP_CHAT);
             sEluna->PushUnit(sEluna->LuaState, player);
             sEluna->PushString(sEluna->LuaState, msg.c_str());
             sEluna->PushUnsigned(sEluna->LuaState, type);
@@ -106,14 +131,14 @@ public:
         }
         return Result;
     }
-    bool OnChat(uint32 eventId, Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild)
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild)
     {
         bool Result = true;
-        for (std::vector<int>::iterator itr = sEluna->ServerEventBindings.at(eventId).begin();
-            itr != sEluna->ServerEventBindings.at(eventId).end(); ++itr)
+        for (std::vector<int>::iterator itr = sEluna->ServerEventBindings.at(PLAYER_EVENT_ON_GUILD_CHAT).begin();
+            itr != sEluna->ServerEventBindings.at(PLAYER_EVENT_ON_GUILD_CHAT).end(); ++itr)
         {
             sEluna->BeginCall((*itr));
-            sEluna->PushUnsigned(sEluna->LuaState, eventId);
+            sEluna->PushUnsigned(sEluna->LuaState, PLAYER_EVENT_ON_GUILD_CHAT);
             sEluna->PushUnit(sEluna->LuaState, player);
             sEluna->PushString(sEluna->LuaState, msg.c_str());
             sEluna->PushUnsigned(sEluna->LuaState, type);
@@ -129,14 +154,14 @@ public:
         }
         return Result;
     }
-    bool OnChat(uint32 eventId, Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel)
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel)
     {
         bool Result = true;
-        for (std::vector<int>::iterator itr = sEluna->ServerEventBindings.at(eventId).begin();
-            itr != sEluna->ServerEventBindings.at(eventId).end(); ++itr)
+        for (std::vector<int>::iterator itr = sEluna->ServerEventBindings.at(PLAYER_EVENT_ON_CHANNEL_CHAT).begin();
+            itr != sEluna->ServerEventBindings.at(PLAYER_EVENT_ON_CHANNEL_CHAT).end(); ++itr)
         {
             sEluna->BeginCall((*itr));
-            sEluna->PushUnsigned(sEluna->LuaState, eventId);
+            sEluna->PushUnsigned(sEluna->LuaState, PLAYER_EVENT_ON_CHANNEL_CHAT);
             sEluna->PushUnit(sEluna->LuaState, player);
             sEluna->PushString(sEluna->LuaState, msg.c_str());
             sEluna->PushUnsigned(sEluna->LuaState, type);
@@ -152,13 +177,13 @@ public:
         }
         return Result;
     }
-    void OnElunaRestart(uint32 eventId)
+    void OnEngineRestart()
     {
-        for (std::vector<int>::iterator itr = sEluna->ServerEventBindings.at(eventId).begin();
-            itr != sEluna->ServerEventBindings.at(eventId).end(); ++itr)
+        for (std::vector<int>::iterator itr = sEluna->ServerEventBindings.at(ELUNA_EVENT_ON_RESTART).begin();
+            itr != sEluna->ServerEventBindings.at(ELUNA_EVENT_ON_RESTART).end(); ++itr)
         {
             sEluna->BeginCall((*itr));
-            sEluna->PushUnsigned(sEluna->LuaState, eventId);
+            sEluna->PushUnsigned(sEluna->LuaState, ELUNA_EVENT_ON_RESTART);
             sEluna->ExecuteCall(1, 0);
         }
     }
@@ -934,7 +959,7 @@ public:
             sEluna->PushUnit(sEluna->LuaState, player);
             sEluna->PushUnsigned(sEluna->LuaState, textEmote);
             sEluna->PushUnsigned(sEluna->LuaState, emoteNum);
-            sEluna->PushGUID(sEluna->LuaState, guid);
+            sEluna->PushULong(sEluna->LuaState, guid);
             sEluna->ExecuteCall(5, 0);
         }
     }
@@ -991,7 +1016,7 @@ public:
         {
             sEluna->BeginCall((*itr));
             sEluna->PushUnsigned(sEluna->LuaState, PLAYER_EVENT_ON_CHARACTER_DELETE);
-            sEluna->PushGUID(sEluna->LuaState, guid);
+            sEluna->PushULong(sEluna->LuaState, guid);
             sEluna->ExecuteCall(2, 0);
         }
     }
@@ -1216,7 +1241,7 @@ public:
             sEluna->BeginCall((*itr));
             sEluna->PushUnsigned(sEluna->LuaState, GROUP_EVENT_ON_MEMBER_ADD);
             sEluna->PushGroup(sEluna->LuaState, group);
-            sEluna->PushGUID(sEluna->LuaState, guid);
+            sEluna->PushULong(sEluna->LuaState, guid);
             sEluna->ExecuteCall(3, 0);
         }
     }
@@ -1228,7 +1253,7 @@ public:
             sEluna->BeginCall((*itr));
             sEluna->PushUnsigned(sEluna->LuaState, GROUP_EVENT_ON_MEMBER_INVITE);
             sEluna->PushGroup(sEluna->LuaState, group);
-            sEluna->PushGUID(sEluna->LuaState, guid);
+            sEluna->PushULong(sEluna->LuaState, guid);
             sEluna->ExecuteCall(3, 0);
         }
     }
@@ -1240,9 +1265,9 @@ public:
             sEluna->BeginCall((*itr));
             sEluna->PushUnsigned(sEluna->LuaState, GROUP_EVENT_ON_MEMBER_REMOVE);
             sEluna->PushGroup(sEluna->LuaState, group);
-            sEluna->PushGUID(sEluna->LuaState, guid);
+            sEluna->PushULong(sEluna->LuaState, guid);
             sEluna->PushInteger(sEluna->LuaState, method);
-            sEluna->PushGUID(sEluna->LuaState, kicker);
+            sEluna->PushULong(sEluna->LuaState, kicker);
             sEluna->PushString(sEluna->LuaState, reason);
             sEluna->ExecuteCall(6, 0);
         }
@@ -1255,8 +1280,8 @@ public:
             sEluna->BeginCall((*itr));
             sEluna->PushUnsigned(sEluna->LuaState, GROUP_EVENT_ON_LEADER_CHANGE);
             sEluna->PushGroup(sEluna->LuaState, group);
-            sEluna->PushGUID(sEluna->LuaState, newLeaderGuid);
-            sEluna->PushGUID(sEluna->LuaState, oldLeaderGuid);
+            sEluna->PushULong(sEluna->LuaState, newLeaderGuid);
+            sEluna->PushULong(sEluna->LuaState, oldLeaderGuid);
             sEluna->ExecuteCall(4, 0);
         }
     }

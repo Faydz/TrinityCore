@@ -169,7 +169,7 @@ namespace LuaGlobalFunctions
     // GetLuaEngine() - Gets lua engine name
     static int GetLuaEngine(lua_State* L)
     {
-        sEluna->PushString(L, "Eluna Nova 0.1"); // remove version?
+        sEluna->PushString(L, "ElunaEngine");
         return 1;
     }
 
@@ -201,8 +201,8 @@ namespace LuaGlobalFunctions
     // GetPlayerByGUID(guid) - Gets Player object by its guid
     static int GetPlayerByGUID(lua_State* L)
     {
-        uint32 guidLow = luaL_checkunsigned(L, 1);
-        sEluna->PushUnit(L, sObjectAccessor->FindPlayer(MAKE_NEW_GUID(guidLow, 0, HIGHGUID_PLAYER)));
+        uint64 guid = sEluna->CHECK_ULONG(L, 1);
+        sEluna->PushUnit(L, sObjectAccessor->FindPlayer(guid));
         return 1;
     }
 
@@ -381,8 +381,8 @@ namespace LuaGlobalFunctions
     // GetGuildByLeaderGUID(leaderGUID) - Gets guild object
     static int GetGuildByLeaderGUID(lua_State* L)
     {
-        uint32 guidLow = luaL_checkunsigned(L, 1);
-        sEluna->PushGuild(L, sGuildMgr->GetGuildByLeader(MAKE_NEW_GUID(guidLow, 0, HIGHGUID_PLAYER)));
+        uint64 guid = sEluna->CHECK_ULONG(L, 1);
+        sEluna->PushGuild(L, sGuildMgr->GetGuildByLeader(guid));
         return 1;
     }
 
@@ -393,12 +393,45 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // FindUnit(guid, entry)
+    // FindUnit(guid)
     static int FindUnit(lua_State* L)
     {
-        uint32 guidLow = luaL_checkunsigned(L, 1);
+        uint64 guid = sEluna->CHECK_ULONG(L, 1);
+        sEluna->PushUnit(L, sObjectAccessor->FindUnit(guid));
+        return 1;
+    }
+
+    // GetPlayerGUID(lowguid)
+    static int GetPlayerGUID(lua_State* L)
+    {
+        uint32 lowguid = luaL_checkunsigned(L, 1);
+        sEluna->PushULong(L, MAKE_NEW_GUID(lowguid, 0, HIGHGUID_PLAYER));
+        return 1;
+    }
+
+    // GetItemGUID(lowguid)
+    static int GetItemGUID(lua_State* L)
+    {
+        uint32 lowguid = luaL_checkunsigned(L, 1);
+        sEluna->PushULong(L, MAKE_NEW_GUID(lowguid, 0, HIGHGUID_ITEM));
+        return 1;
+    }
+
+    // GetObjectGUID(lowguid, entry)
+    static int GetObjectGUID(lua_State* L)
+    {
+        uint32 lowguid = luaL_checkunsigned(L, 1);
         uint32 entry = luaL_checkunsigned(L, 2);
-        sEluna->PushUnit(L, sObjectAccessor->FindUnit(MAKE_NEW_GUID(guidLow, entry, HIGHGUID_UNIT)));
+        sEluna->PushULong(L, MAKE_NEW_GUID(lowguid, entry, HIGHGUID_GAMEOBJECT));
+        return 1;
+    }
+
+    // GetUnitGUID(lowguid, entry)
+    static int GetUnitGUID(lua_State* L)
+    {
+        uint32 lowguid = luaL_checkunsigned(L, 1);
+        uint32 entry = luaL_checkunsigned(L, 2);
+        sEluna->PushULong(L, MAKE_NEW_GUID(lowguid, entry, HIGHGUID_UNIT));
         return 1;
     }
 
@@ -475,14 +508,14 @@ namespace LuaGlobalFunctions
 
                 creature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), phase);
 
-                uint32 db_guid = creature->GetDBTableGUIDLow();
-                if (!creature->LoadCreatureFromDB(db_guid, map))
+                uint32 db_lowguid = creature->GetDBTableGUIDLow();
+                if (!creature->LoadCreatureFromDB(db_lowguid, map))
                 {
                     delete creature;
                     return 0;
                 }
 
-                sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
+                sObjectMgr->AddCreatureToGrid(db_lowguid, sObjectMgr->GetCreatureData(db_lowguid));
                 sEluna->PushUnit(L, creature);
             }
             else
@@ -513,9 +546,9 @@ namespace LuaGlobalFunctions
                 return 0;
 
             GameObject* object = new GameObject;
-            uint32 guidLow = sObjectMgr->GenerateLowGuid(HIGHGUID_GAMEOBJECT);
+            uint32 lowguid = sObjectMgr->GenerateLowGuid(HIGHGUID_GAMEOBJECT);
 
-            if (!object->Create(guidLow, objectInfo->entry, map, phase, x, y, z, o, 0.0f, 0.0f, 0.0f, 0.0f, 0, GO_STATE_READY))
+            if (!object->Create(lowguid, objectInfo->entry, map, phase, x, y, z, o, 0.0f, 0.0f, 0.0f, 0.0f, 0, GO_STATE_READY))
             {
                 delete object;
                 return 0;
@@ -529,14 +562,14 @@ namespace LuaGlobalFunctions
                 // fill the gameobject data and save to the db
                 object->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), phase);
 
-                // this will generate a new guid if the object is in an instance
-                if (!object->LoadGameObjectFromDB(guidLow, map))
+                // this will generate a new lowguid if the object is in an instance
+                if (!object->LoadGameObjectFromDB(lowguid, map))
                 {
                     delete object;
                     return false;
                 }
 
-                sObjectMgr->AddGameobjectToGrid(guidLow, sObjectMgr->GetGOData(guidLow));
+                sObjectMgr->AddGameobjectToGrid(lowguid, sObjectMgr->GetGOData(lowguid));
             }
             else
                 map->AddToMap(object);
@@ -564,7 +597,7 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // AddVendorItem(entry, itemId, maxcount, incrtime, extendedcost, persist(bool))
+    // AddVendorItem(entry, itemId, maxcount, incrtime, extendedcost[, persist(bool)])
     static int AddVendorItem(lua_State* L)
     {
         uint32 entry = luaL_checkunsigned(L, 1);
@@ -585,50 +618,34 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // VendorRemoveItem(entry, item, persist(bool), otherNpcFlag(optional-uint))
+    // VendorRemoveItem(entry, item[, persist(bool)])
     static int VendorRemoveItem(lua_State* L)
     {
         uint32 entry = luaL_checkunsigned(L, 1);
         uint32 item = luaL_checkunsigned(L, 2);
         bool persist = luaL_optbool(L, 3, true);
-        uint32 otherFlag = luaL_optunsigned(L, 4, UNIT_NPC_FLAG_VENDOR+1);
         if (!sObjectMgr->GetCreatureTemplate(entry))
         {
             sLog->outError(LOG_FILTER_GENERAL, "Eluna Nova::Couldn't find a creature with (ID: %d)!", entry);
             return 0;
         }
 
-        CreatureTemplate const* cInfo = sObjectMgr->GetCreatureTemplate(entry);
-        if (!((cInfo->npcflag | otherFlag) & UNIT_NPC_FLAG_VENDOR))
-            return 0;
-
-        if (!sObjectMgr->RemoveVendorItem(entry, item, persist))
-            return 0;
+        sObjectMgr->RemoveVendorItem(entry, item, persist);
         return 0;
     }
 
-    // VendorRemoveAllItems(creature, persist(bool))
+    // VendorRemoveAllItems(entry, persist(bool))
     static int VendorRemoveAllItems(lua_State* L)
     {
-        Creature* creature = sEluna->CHECK_CREATURE(L, 1);
+        uint32 entry = luaL_checkunsigned(L, 1);
         bool persist = luaL_optbool(L, 2, true);
-        if (!creature || !creature->IsInWorld())
-            return 0;
 
-        VendorItemData const* items = creature->GetVendorItems();
+        VendorItemData const* items = sObjectMgr->GetNpcVendorItemList(entry);
         if (!items || items->Empty())
             return 0;
 
-        uint32 vendorItems[200];
-        uint32 i = 0;
         for (VendorItemList::const_iterator itr = items->m_items.begin(); itr != items->m_items.end(); ++itr)
-        {
-            vendorItems[i] = (*itr)->item;
-            i++;
-        }
-
-        for (i = 0; i < items->GetItemCount(); i++)
-            sObjectMgr->RemoveVendorItem(creature->GetEntry(), vendorItems[i], persist);
+            sObjectMgr->RemoveVendorItem(entry, (*itr)->item, persist);
         return 0;
     }
 
@@ -655,32 +672,20 @@ namespace LuaGlobalFunctions
 
         switch (banMode)
         {
-        case 0:
+        case BAN_ACCOUNT:
             if (!AccountMgr::normalizeString(nameOrIP))
-            {
-                ChatHandler(whoBanned->GetSession()).PSendSysMessage(LANG_ACCOUNT_NOT_EXIST, nameOrIP.c_str());
-                ChatHandler(whoBanned->GetSession()).SetSentErrorMessage(true);
                 return 0;
-            }
-            else
-                banMode = BAN_ACCOUNT;
             break;
-        case 1:
+        case BAN_CHARACTER:
             if (!normalizePlayerName(nameOrIP))
-            {
-                ChatHandler(whoBanned->GetSession()).SendSysMessage(LANG_PLAYER_NOT_FOUND);
-                ChatHandler(whoBanned->GetSession()).SetSentErrorMessage(true);
                 return 0;
-            }
-            else
-                banMode = BAN_CHARACTER;
             break;
-        case 2:
+        case BAN_IP:
             if (!IsIPAddress(nameOrIP.c_str()))
                 return 0;
-            else
-                banMode = BAN_IP;
             break;
+        default:
+            return 0;
         }
 
         switch (sWorld->BanAccount((BanMode)banMode, nameOrIP, duration, reason, whoBanned->GetSession() ? whoBanned->GetName() : ""))
@@ -694,19 +699,6 @@ namespace LuaGlobalFunctions
         case BAN_SYNTAX_ERROR:
             return 0;
         case BAN_NOTFOUND:
-            switch((BanMode)banMode)
-            {
-            default:
-                ChatHandler(whoBanned->GetSession()).PSendSysMessage(LANG_BAN_NOTFOUND, "account", nameOrIP.c_str());
-                break;
-            case BAN_CHARACTER:
-                ChatHandler(whoBanned->GetSession()).PSendSysMessage(LANG_BAN_NOTFOUND, "character", nameOrIP.c_str());
-                break;
-            case BAN_IP:
-                ChatHandler(whoBanned->GetSession()).PSendSysMessage(LANG_BAN_NOTFOUND, "ip", nameOrIP.c_str());
-                break;
-            }
-            ChatHandler(whoBanned->GetSession()).SetSentErrorMessage(true);
             return 0;
         }
         return 0;
@@ -716,6 +708,61 @@ namespace LuaGlobalFunctions
     static int SaveAllPlayers(lua_State* L)
     {
         sObjectAccessor->SaveAllPlayers();
+        return 0;
+    }
+
+    // GetGUIDLow(guid)
+    static int GetGUIDLow(lua_State* L)
+    {
+        uint64 guid = sEluna->CHECK_ULONG(L, 1);
+
+        sEluna->PushUnsigned(L, GUID_LOPART(guid));
+        return 1;
+    }
+
+    // SendMail(subject, text, receiverLowGUID[, sender, stationary, delay, itemEntry, itemAmount, itemEntry2, itemAmount2...])
+    static int SendMail(lua_State* L)
+    {
+        int i = 0;
+        std::string subject = luaL_checkstring(L, ++i);
+        std::string text = luaL_checkstring(L, ++i);
+        uint32 receiverGUIDLow = luaL_checkunsigned(L, ++i);
+        Player* senderPlayer = sEluna->CHECK_PLAYER(L, ++i);
+        uint32 stationary = luaL_optunsigned(L, ++i, MAIL_STATIONERY_DEFAULT);
+        uint32 delay = luaL_optunsigned(L, ++i, 0);
+        int32 argAmount = lua_gettop(L);
+
+        MailSender sender(MAIL_NORMAL, senderPlayer ? senderPlayer->GetGUIDLow() : 0, (MailStationery)stationary);
+        MailDraft draft(subject, text);
+
+        SQLTransaction trans = CharacterDatabase.BeginTransaction();
+        uint8 addedItems = 0;
+        while (addedItems <= MAX_MAIL_ITEMS && i+2 <= argAmount)
+        {
+            uint32 entry = luaL_checkunsigned(L, ++i);
+            uint32 amount = luaL_checkunsigned(L, ++i);
+
+            ItemTemplate const* item_proto = sObjectMgr->GetItemTemplate(entry);
+            if (!item_proto)
+            {
+                luaL_error(L, "Item entry %u does not exist", entry);
+                continue;
+            }
+            if(amount < 1 || (item_proto->MaxCount > 0 && amount > uint32(item_proto->MaxCount)))
+            {
+                luaL_error(L, "Item entry %u has invalid amount %u", entry, amount);
+                continue;
+            }
+            if (Item* item = Item::CreateItem(entry, amount, senderPlayer ? senderPlayer : 0))
+            {
+                item->SaveToDB(trans);
+                draft.AddItem(item);
+                ++addedItems;
+            }
+        }
+
+        draft.SendMailTo(trans, MailReceiver(receiverGUIDLow), sender, MAIL_CHECK_MASK_NONE, delay);
+        CharacterDatabase.CommitTransaction(trans);
         return 0;
     }
 }

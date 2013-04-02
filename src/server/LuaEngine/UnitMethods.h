@@ -13,6 +13,26 @@ class LuaUnit
 {
 public:
 
+    // GetScale()
+    static int GetScale(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        sEluna->PushFloat(L, unit->GetObjectSize());
+        return 1;
+    }
+
+    // SetScale(size)
+    static int SetScale(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        float size = luaL_checknumber(L, 1);
+
+        unit->SetObjectScale(size);
+        return 0;
+    }
+
     // IsDamageEnoughForLootingAndReward()
     static int IsDamageEnoughForLootingAndReward(lua_State* L, Unit* unit)
     {
@@ -51,8 +71,8 @@ public:
         return 1;
     }
 
-    // GetCurrentWaypointID()
-    static int GetCurrentWaypointID(lua_State* L, Unit* unit)
+    // GetCurrentWaypointId()
+    static int GetCurrentWaypointId(lua_State* L, Unit* unit)
     {
         TO_CREATURE();
 
@@ -682,6 +702,15 @@ public:
         return 1;
     }
 
+    // GetMountId()
+    static int GetMountId(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        sEluna->PushUnsigned(L, unit->GetMountID());
+        return 1;
+    }
+
     // GetCorpseDelay()
     static int GetCorpseDelay(lua_State* L, Unit* unit)
     {
@@ -1077,8 +1106,8 @@ public:
         return 1;
     }
 
-    // IsVisibleGloballyFor(player)
-    static int IsVisibleGloballyFor(lua_State* L, Unit* unit)
+    // IsVisibleForPlayer(player)
+    static int IsVisibleForPlayer(lua_State* L, Unit* unit)
     {
         TO_PLAYER_BOOL();
 
@@ -1100,8 +1129,8 @@ public:
         return 1;
     }
 
-    // IsKnowHowFlyIn(mapid, zone)
-    static int IsKnowHowFlyIn(lua_State* L, Unit* unit)
+    // CanFlyInZone(mapid, zone)
+    static int CanFlyInZone(lua_State* L, Unit* unit)
     {
         TO_PLAYER_BOOL();
 
@@ -1698,11 +1727,45 @@ public:
     // SetPvP([apply])
     static int SetPvP(lua_State* L, Unit* unit)
     {
-        TO_PLAYER();
+        TO_UNIT();
 
         bool apply = luaL_optbool(L, 1, true);
 
-        player->SetPvP(apply);
+        unit->SetPvP(apply);
+        return 0;
+    }
+
+    // SetFFA([apply])
+    static int SetFFA(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        bool apply = luaL_optbool(L, 1, true);
+
+        if (apply)
+            unit->SetByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_FFA_PVP);
+        else
+            unit->RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_FFA_PVP);
+
+        return 0;
+    }
+
+    // SetSanctuary([apply])
+    static int SetSanctuary(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        bool apply = luaL_optbool(L, 1, true);
+
+        if (apply)
+        {
+            unit->SetByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SANCTUARY);
+            unit->CombatStop();
+            unit->CombatStopWithPets();
+        }
+        else
+            unit->RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SANCTUARY);
+
         return 0;
     }
 
@@ -1730,6 +1793,33 @@ public:
             sEluna->PushBoolean(L, creature->HasSpellCooldown(spellId));
         else
             sEluna->PushBoolean(L, false);
+        return 1;
+    }
+
+    // IsAuctioneer()
+    static int IsAuctioneer(lua_State* L, Unit* unit)
+    {
+        TO_UNIT_BOOL();
+
+        sEluna->PushBoolean(L, unit->isAuctioner());
+        return 1;
+    }
+
+    // HealthBelowPct(pct)
+    static int HealthBelowPct(lua_State* L, Unit* unit)
+    {
+        TO_UNIT_BOOL();
+
+        sEluna->PushBoolean(L, unit->HealthBelowPct(luaL_checkint(L, 1)));
+        return 1;
+    }
+
+    // HealthAbovePct
+    static int HealthAbovePct(lua_State* L, Unit* unit)
+    {
+        TO_UNIT_BOOL();
+
+        sEluna->PushBoolean(L, unit->HealthAbovePct(luaL_checkint(L, 1)));
         return 1;
     }
 
@@ -1921,8 +2011,8 @@ public:
         return 1;
     }
 
-    // IsQuestRewarded(entry)
-    static int IsQuestRewarded(lua_State* L, Unit* unit)
+    // HasReceivedQuestReward(entry)
+    static int HasReceivedQuestReward(lua_State* L, Unit* unit)
     {
         TO_PLAYER_BOOL();
 
@@ -1984,13 +2074,31 @@ public:
         return 0;
     }
 
-    // HandleEmoteCommand(emote)
-    static int HandleEmoteCommand(lua_State* L, Unit* unit)
+    // Emote(emote)
+    static int Emote(lua_State* L, Unit* unit)
     {
         TO_UNIT();
 
         unit->HandleEmoteCommand(luaL_checkunsigned(L, 1));
         return 0;
+    }
+
+    // CountPctFromCurHealth(pct)
+    static int CountPctFromCurHealth(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        sEluna->PushUnsigned(L, unit->CountPctFromCurHealth(luaL_checkint(L, 1)));
+        return 1;
+    }
+
+    // CountPctFromMaxHealth()
+    static int CountPctFromMaxHealth(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        sEluna->PushUnsigned(L, unit->CountPctFromMaxHealth(luaL_checkint(L, 1)));
+        return 1;
     }
 
     // GetInGameTime()
@@ -2259,9 +2367,9 @@ public:
 
         std::string text = luaL_checkstring(L, 1);
         uint32 lang = luaL_checkunsigned(L, 2);
-        uint32 guidLow = luaL_checkunsigned(L, 3);
+        uint32 guid = sEluna->CHECK_ULONG(L, 3);
 
-        player->Whisper(text, lang, MAKE_NEW_GUID(guidLow, 0, HIGHGUID_PLAYER));
+        player->Whisper(text, lang, guid);
         return 0;
     }
 
@@ -2477,8 +2585,8 @@ public:
         return 0;
     }
 
-    // SetTaxiCheater(on)
-    static int SetTaxiCheater(lua_State* L, Unit* unit)
+    // SetTaxiCheat(on)
+    static int SetTaxiCheat(lua_State* L, Unit* unit)
     {
         TO_PLAYER();
 
@@ -2646,15 +2754,15 @@ public:
         return 1;
     }
 
-    // GetObjectGlobally(guid, entry)
+    // GetObjectGlobally(lowguid, entry)
     static int GetObjectGlobally(lua_State* L, Unit* unit)
     {
         TO_PLAYER();
 
-        uint32 guidLow = luaL_checkunsigned(L, 1);
+        uint32 lowguid = luaL_checkunsigned(L, 1);
         uint32 entry = luaL_checkunsigned(L, 2);
 
-        sEluna->PushGO(L, ChatHandler(player->GetSession()).GetObjectGlobalyWithGuidOrNearWithDbGuid(guidLow, entry));
+        sEluna->PushGO(L, ChatHandler(player->GetSession()).GetObjectGlobalyWithGuidOrNearWithDbGuid(lowguid, entry));
         return 1;
     }
 
@@ -3138,8 +3246,8 @@ public:
         return 1;
     }
 
-    // GetDisplayID()
-    static int GetDisplayID(lua_State* L, Unit* unit)
+    // GetDisplayId()
+    static int GetDisplayId(lua_State* L, Unit* unit)
     {
         TO_UNIT();
 
@@ -3147,8 +3255,8 @@ public:
         return 1;
     }
 
-    //GetNativeDisplayID()
-    static int GetNativeDisplayID(lua_State* L, Unit* unit)
+    //GetNativeDisplayId()
+    static int GetNativeDisplayId(lua_State* L, Unit* unit)
     {
         TO_UNIT();
 
@@ -3161,6 +3269,7 @@ public:
     static int GetName(lua_State* L, Unit* unit)
     {
         TO_UNIT();
+
         sEluna->PushString(L, unit->GetName().c_str());
         return 1;
     }
@@ -3184,7 +3293,7 @@ public:
     }
 
     // GetGuildId()
-    static int GetGuildID(lua_State* L, Unit* unit)
+    static int GetGuildId(lua_State* L, Unit* unit)
     {
         TO_PLAYER();
 
@@ -3290,7 +3399,16 @@ public:
     {
         TO_UNIT();
 
-        sEluna->PushGUID(L, unit->GetGUID());
+        sEluna->PushULong(L, unit->GetGUID());
+        return 1;
+    }
+
+    // GetGUIDLow()
+    static int GetGUIDLow(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        sEluna->PushUnsigned(L, unit->GetGUIDLow());
         return 1;
     }
 
@@ -3746,8 +3864,8 @@ public:
         return 0;
     }
 
-    // SetDisplayID(id)
-    static int SetDisplayID(lua_State* L, Unit* unit)
+    // SetDisplayId(id)
+    static int SetDisplayId(lua_State* L, Unit* unit)
     {
         TO_UNIT();
 
@@ -3756,8 +3874,8 @@ public:
         return 0;
     }
 
-    //SetNativeDisplayID(id)
-    static int SetNativeDisplayID(lua_State* L, Unit* unit)
+    //SetNativeDisplayId(id)
+    static int SetNativeDisplayId(lua_State* L, Unit* unit)
     {
         TO_UNIT();
 
@@ -3938,6 +4056,15 @@ public:
         TO_UNIT_BOOL();
 
         sEluna->PushBoolean(L, unit->isDead());
+        return 1;
+    }
+
+    // IsDying()
+    static int IsDying(lua_State* L, Unit* unit)
+    {
+        TO_UNIT_BOOL();
+
+        sEluna->PushBoolean(L, unit->isDying());
         return 1;
     }
 
@@ -4140,15 +4267,21 @@ public:
         return 0;
     }
 
-    // RemoveItem(entry, amount)
+    // RemoveItem(item/entry, amount)
     static int RemoveItem(lua_State* L, Unit* unit)
     {
         TO_PLAYER();
 
-        uint32 itemId = luaL_checkunsigned(L, 1);
+        Item* item = sEluna->CHECK_ITEM(L, 1);
+        uint32 itemId;
+        if (!item)
+            uint32 itemId = luaL_checkunsigned(L, 1);
         uint32 itemCount = luaL_checkunsigned(L, 2);
 
-        player->DestroyItemCount(itemId, itemCount, true);
+        if(!item)
+            player->DestroyItemCount(itemId, itemCount, true);
+        else
+            player->DestroyItemCount(item, itemCount, true);
         return 0;
     }
 
@@ -4730,13 +4863,14 @@ public:
         return 0;
     }
 
-    // RemoveAura(spellId, casterGuid(optional))
+    // RemoveAura(spellId[, casterGUID])
     static int RemoveAura(lua_State* L, Unit* unit)
     {
         TO_UNIT();
 
         uint32 spellId = luaL_checkunsigned(L, 1);
-        unit->RemoveAurasDueToSpell(spellId);
+        uint64 casterGUID = sEluna->CHECK_ULONG(L, 2);
+        unit->RemoveAurasDueToSpell(spellId, casterGUID);
         return 0;
     }
 
@@ -4887,8 +5021,8 @@ public:
 
     }
 
-    // RemoveEventByID(eventID)
-    static int RemoveEventByID(lua_State* L, Unit* unit)
+    // RemoveEventById(eventID)
+    static int RemoveEventById(lua_State* L, Unit* unit)
     {
         TO_CREATURE();
 

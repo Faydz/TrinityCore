@@ -21,7 +21,7 @@ public:
         if (!go || !go->IsInWorld())
             return 0;
 
-        sEluna->PushGUID(L, go->GetGUID());
+        sEluna->PushULong(L, go->GetGUID());
         return 1;
     }
 
@@ -239,8 +239,7 @@ public:
             sEluna->PushBoolean(L, false);
         else
         {
-            bool respond = go->IsInvisibleDueToDespawn();
-            sEluna->PushBoolean(L, respond);
+            sEluna->PushBoolean(L, go->IsInvisibleDueToDespawn());
         }
         return 1;
     }
@@ -327,8 +326,8 @@ public:
 
     }
 
-    // RemoveEventByID(eventID)
-    static int RemoveEventByID(lua_State* L, GameObject* go)
+    // RemoveEventById(eventID)
+    static int RemoveEventById(lua_State* L, GameObject* go)
     {
         if (!go || !go->IsInWorld())
             return 0;
@@ -482,6 +481,15 @@ public:
         int16 value = luaL_checkinteger(L, 3);
         go->SetInt16Value(index, offset, value);
         return 0;
+    }
+
+    static int GetGUIDLow(lua_State* L, GameObject* go)
+    {
+        if (!go || !go->IsInWorld())
+            return 0;
+
+        sEluna->PushUnsigned(L, go->GetGUIDLow());
+        return 1;
     }
 };
 

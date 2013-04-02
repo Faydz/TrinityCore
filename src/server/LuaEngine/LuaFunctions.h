@@ -7,7 +7,7 @@ ElunaRegister<Unit> UnitMethods[] =
     // Getters
     {"GetSelection", &LuaUnit::GetSelection},                       // :GetSelection()
     {"GetGMRank", &LuaUnit::GetSecurity},                           // :GetSecurity()
-    {"GetGuildID", &LuaUnit::GetGuildID},                           // :GetGuildID() - nil on no guild.
+    {"GetGuildId", &LuaUnit::GetGuildId},                           // :GetGuildId() - nil on no guild.
     {"GetCoinage", &LuaUnit::GetCoinage},                           // :GetCoinage()
     {"GetTeam", &LuaUnit::GetTeam},                                 // :GetTeam() - returns the player's team. 0 for ally, 1 for horde
     {"GetItemCount", &LuaUnit::GetItemCount},                       // :GetItemCount(item_id[, check_bank]) -
@@ -24,7 +24,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetTotalPlayedTime", &LuaUnit::GetTotalPlayedTime},           // :GetTotalPlayedTime() -- Returns the total played time of that player
     {"GetInventoryItem", &LuaUnit::GetInventoryItem},               // :GetInventoryItem(slot) -  Returns item at given inventory slot (0, 1, 2.. for equipment 19-23 for bags, 23-39 for backpack)
     {"GetBagItem", &LuaUnit::GetBagItem},                           // :GetBagItem(bagSlot, slot) -  Returns item at given slot (0, 1, 2 .. max slots for bag) in a bag (19-23).
-    {"GetObjectGlobally", &LuaUnit::GetObjectGlobally},             // :GetObjectGlobally(guid, entry) - Returns the gameobject of given guid and entry if in world.
+    {"GetObjectGlobally", &LuaUnit::GetObjectGlobally},             // :GetObjectGlobally(lowguid, entry) - Returns the gameobject of given lowguid and entry if in world.
     {"GetNearbyGameObject", &LuaUnit::GetNearbyGameObject},         // :GetNearbyGameObject() - Returns nearby gameobject if found.
     {"GetReputation", &LuaUnit::GetReputation},                     // :GetReputation(faction) -- Gets player's reputation with given faction.
     {"GetItemByEntry", &LuaUnit::GetItemByEntry},                   // :GetItemByEntry(entry) -- Gets an item if the player has it.
@@ -72,7 +72,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetRecruiterId", &LuaUnit::GetRecruiterId},                   // :GetRecruiterId() -- Returns player's recruiter's ID.
     {"GetSelectedPlayer", &LuaUnit::GetSelectedPlayer},             // :GetSelectedPlayer() -- Returns player's selected player. UNDOCUMENTED
     {"GetSelectedUnit", &LuaUnit::GetSelectedUnit},                 // :GetSelectedUnit() -- Returns player's selected unit. UNDOCUMENTED
-    {"GetDistance", &LuaUnit::GetDistance},                         // :GetDistance(x, y, z) -- UNDOCUMENTED
 
 
     // Setters
@@ -90,7 +89,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetLifetimeKills", &LuaUnit::SetLifetimeKills},               // :SetLifetimeKills(val) -- Sets the overall lifetime (honorable) kills of the player
     {"SetGameMaster", &LuaUnit::SetGameMaster},                     // :SetGameMaster(on) -- Sets GM mode on or off.
     {"SetGMChat", &LuaUnit::SetGMChat},                             // :SetGMChat(on) -- Sets GM chat on or off.
-    {"SetTaxiCheater", &LuaUnit::SetTaxiCheater},                   // :SetTaxiCheater(on) -- Sets taxi cheat on or off.
+    {"SetTaxiCheat", &LuaUnit::SetTaxiCheat},                       // :SetTaxiCheat(on) -- Sets taxi cheat on or off.
     {"SetGMVisible", &LuaUnit::SetGMVisible},                       // :SetGMVisible(on) -- Sets gm visibility on or off.
     {"SetPvPDeath", &LuaUnit::SetPvPDeath},                         // :SetPvPDeath(on) -- Sets PvP death on or off.
     {"SetAcceptWhispers", &LuaUnit::SetAcceptWhispers},             // :SetAcceptWhispers(on) -- Sets whisper accepting death on or off.
@@ -100,7 +99,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetQuestStatus", &LuaUnit::SetQuestStatus},                   // :SetQuestStatus(entry, status) -- Sets the quest's status.
     {"SetReputation", &LuaUnit::SetReputation},                     // :SetReputation(faction, value) -- Sets the faction reputation for the player.
     {"SetFreeTalentPoints", &LuaUnit::SetFreeTalentPoints},         // :SetFreeTalentPoints(points) -- Sets the amount of unused talent points.
-    {"SetPvP", &LuaUnit::SetPvP},                                   // :SetPvP([apply]) -- Sets the player's PvP on or off.
     {"SetGuildRank", &LuaUnit::SetRank},                            // :SetGuildRank(rank) -- Sets player's guild rank.
     {"SetMovement", &LuaUnit::SetMovement},                         // :SetMovement(type) -- Sets player's movement type.
     {"SetSkill", &LuaUnit::SetSkill},                               // :SetSkill(skill, step, currVal, maxVal) -- Sets the skill's boundaries and value.
@@ -140,14 +138,14 @@ ElunaRegister<Unit> UnitMethods[] =
     {"HasAchieved", &LuaUnit::HasAchieved},                         // :HasAchieved(achievementID) -- Returns true if the player has achieved the achievement.
     {"CanUninviteFromGroup", &LuaUnit::CanUninviteFromGroup},       // :CanUninviteFromGroup() -- Returns true if the player can uninvite from group.
     {"IsRested", &LuaUnit::isRested},                               // :IsRested() -- Returns true if the player is rested.
-    {"IsKnowHowFlyIn", &LuaUnit::IsKnowHowFlyIn},                   // :IsKnowHowFlyIn(mapid, zone) -- Returns true if the player can fly in the area.
+    {"CanFlyInZone", &LuaUnit::CanFlyInZone},                       // :CanFlyInZone(mapid, zone) -- Returns true if the player can fly in the area.
     {"IsNeverVisible", &LuaUnit::IsNeverVisible},                   // :IsNeverVisible() -- Returns true if the player is never visible.
-    {"IsVisibleGloballyFor", &LuaUnit::IsVisibleGloballyFor},       // :IsVisibleGloballyFor(player) -- Returns true if the player is visible for the target player.
+    {"IsVisibleForPlayer", &LuaUnit::IsVisibleForPlayer},           // :IsVisibleForPlayer(player) -- Returns true if the player is visible for the target player.
     {"IsUsingLfg", &LuaUnit::isUsingLfg},                           // :IsUsingLfg() -- Returns true if the player is using LFG.
     {"HasQuestForItem", &LuaUnit::HasQuestForItem},                 // :HasQuestForItem(entry) -- Returns true if the player has the quest for the item.
     {"HasQuestForGO", &LuaUnit::HasQuestForGO},                     // :HasQuestForGO(entry) -- Returns true if the player has the quest for the gameobject.
     {"CanShareQuest", &LuaUnit::CanShareQuest},                     // :CanShareQuest(entry) -- Returns true if the quest entry is shareable by the player.
-    {"IsQuestRewarded", &LuaUnit::IsQuestRewarded},                 // :IsQuestRewarded(entry) -- Returns true if the player has recieved the quest's reward.
+    {"HasReceivedQuestReward", &LuaUnit::HasReceivedQuestReward},   // :HasReceivedQuestReward(entry) -- Returns true if the player has recieved the quest's reward.
     {"HasTalent", &LuaUnit::HasTalent},                             // :HasTalent(spellid, spec) -- Returns true if the player has the talent spell in given spec.
     {"IsInSameGroupWith", &LuaUnit::IsInSameGroupWith},             // :IsInSameGroupWith(player) -- Returns true if the players are in the same group.
     {"IsInSameRaidWith", &LuaUnit::IsInSameRaidWith},               // :IsInSameRaidWith(player) -- Returns true if the players are in the same raid.
@@ -183,7 +181,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GiveCoinage", &LuaUnit::GiveCoinage},                         // :GiveCoinage(amount) - MODIFIES (does not set) coinage count.
     {"RemoveCoinage", &LuaUnit::RemoveCoinage},                     // :RemoveCoinage(amount) - Removes amount of coinage from plr.
     {"LearnSpell", &LuaUnit::LearnSpell},                           // :LearnSpell(id) - learns the given spell.
-    {"RemoveItem", &LuaUnit::RemoveItem},                           // :RemoveItem(id, amount) - Removes amount of item to player.
+    {"RemoveItem", &LuaUnit::RemoveItem},                           // :RemoveItem(item/entry, amount) - Removes amount of item from player.
     {"RemoveLifetimeKills", &LuaUnit::RemoveLifetimeKills},         // :RemoveLifetimeKills(val) - Removes a specified amount(val) of the player's lifetime (honorable) kills
     {"ResurrectPlayer", &LuaUnit::ResurrectPlayer},                 // :ResurrectPlayer([percent[, sickness(bool)]]) - Resurrects the player at percentage, player gets resurrection sickness if sickness set to true.
     {"PlaySoundToPlayer", &LuaUnit::PlaySoundToPlayer},             // :PlaySoundToPlayer(soundId) - Plays the specified sound to the player
@@ -198,7 +196,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"Say", &LuaUnit::Say},                                         // :Say(text, lang) -- The player says the text.
     {"Yell", &LuaUnit::Yell},                                       // :Yell(text, lang) -- The player yells the text.
     {"TextEmote", &LuaUnit::TextEmote},                             // :TextEmote(text) -- The player does a textemote with the text.
-    {"Whisper", &LuaUnit::Whisper},                                 // :Whisper(text, lang, receiverGuid) -- The player whispers the text to the playerguid.
+    {"Whisper", &LuaUnit::Whisper},                                 // :Whisper(text, lang, receiverGuid) -- The player whispers the text to the guid.
     {"CompleteQuest", &LuaUnit::CompleteQuest},                     // :CompleteQuest(entry) -- Completes a quest by entry.
     {"IncompleteQuest", &LuaUnit::IncompleteQuest},                 // :IncompleteQuest(entry) -- Uncompletes the quest by entry for the player.
     {"FailQuest", &LuaUnit::FailQuest},                             // :FailQuest(entry) -- Player fails the quest entry.
@@ -274,7 +272,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetRespawnDelay", &LuaUnit::GetRespawnDelay},                 // :GetRespawnDelay() - Returns respawn delay.
     {"GetRespawnRadius", &LuaUnit::GetRespawnRadius},               // :GetRespawnRadius() - Returns respawn radius.
     {"GetWaypointPath", &LuaUnit::GetWaypointPath},                 // :GetWaypointPath() - Returns waypoint path ID.
-    {"GetCurrentWaypointID", &LuaUnit::GetCurrentWaypointID},       // :GetCurrentWaypointID() - Returns waypoint ID.
+    {"GetCurrentWaypointId", &LuaUnit::GetCurrentWaypointId},       // :GetCurrentWaypointId() - Returns waypoint ID.
 
     // Setters
     {"SetHover", &LuaUnit::SetHover},                               // :SetHover([enable]) -- Sets hover on or off.
@@ -313,7 +311,7 @@ ElunaRegister<Unit> UnitMethods[] =
 
     // Other
     {"RegisterEvent", &LuaUnit::RegisterEvent},                     // :RegisterEvent(function, delay, calls)
-    {"RemoveEventByID", &LuaUnit::RemoveEventByID},                 // :RemoveEventByID(eventID)
+    {"RemoveEventById", &LuaUnit::RemoveEventById},                 // :RemoveEventById(eventID)
     {"RemoveEvents", &LuaUnit::RemoveEvents},                       // :RemoveEvents()
     {"Despawn", &LuaUnit::Despawn},                                 // :Despawn([despawnDelay]) - Creature despawns after given time
     {"FleeToGetAssistance", &LuaUnit::DoFleeToGetAssistance},       // :FleeToGetAssistance() - Creature flees for assistance
@@ -330,8 +328,8 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetName", &LuaUnit::GetName},                                 // :GetName()
     {"GetLevel", &LuaUnit::GetLevel},                               // :GetLevel()
     {"GetHealth", &LuaUnit::GetHealth},                             // :GetHealth()
-    {"GetDisplayID", &LuaUnit::GetDisplayID},                       // :GetDisplayID()
-    {"GetNativeDisplayID", &LuaUnit::GetNativeDisplayID},           // :GetNativeDisplayID() -- UNDOCUMENTED
+    {"GetDisplayId", &LuaUnit::GetDisplayId},                       // :GetDisplayId()
+    {"GetNativeDisplayId", &LuaUnit::GetNativeDisplayId},           // :GetNativeDisplayId()
     {"GetGUID", &LuaUnit::GetGUID},                                 // :GetGUID()
     {"GetMapId", &LuaUnit::GetMapId},                               // :GetMapId()
     {"GetX", &LuaUnit::GetX},                                       // :GetX()
@@ -367,6 +365,10 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetCreatureType", &LuaUnit::GetCreatureType},                 // :GetCreatureType() -- Returns the unit's type
     {"GetNearbyTarget", &LuaUnit::GetNearbyTarget},                 // :GetNearbyTarget([radius[, exclude]]) - Returns nearby target within sight or given radius. Excludes current target and given unit.
     {"GetShieldBlockValue", &LuaUnit::GetShieldBlockValue},         // :GetShieldBlockValue() - Returns block value.
+    {"GetMountId", &LuaUnit::GetMountId},                           // :GetMountId() -- UNDOCUMENTED
+    {"GetScale", &LuaUnit::GetScale},                               // :GetScale() - UNDOCUMENTED
+    {"GetDistance", &LuaUnit::GetDistance},                         // :GetDistance(x, y, z) -- UNDOCUMENTED
+    {"GetGUIDLow", &LuaUnit::GetGUIDLow},                           // :GetGUIDLow() -- Returns uint32 guid (low guid) that is used in database. UNDOCUMENTED
 
     // Setters
     {"SetFaction", &LuaUnit::SetFaction},                           // :SetFaction(factionId) -- Sets the unit's faction
@@ -375,8 +377,8 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetMaxHealth", &LuaUnit::SetMaxHealth},                       // :SetMaxHealth(amount)
     {"SetPower", &LuaUnit::SetPower},                               // :SetPower(index, amount)
     {"SetMaxPower", &LuaUnit::SetMaxPower},                         // :SetMaxPower(index, amount)
-    {"SetDisplayID", &LuaUnit::SetDisplayID},                       // :SetDisplayID(id)
-    {"SetNativeDisplayID", &LuaUnit::SetNativeDisplayID},           // :SetNativeDisplayID(id)
+    {"SetDisplayId", &LuaUnit::SetDisplayId},                       // :SetDisplayId(id)
+    {"SetNativeDisplayId", &LuaUnit::SetNativeDisplayId},           // :SetNativeDisplayId(id)
     {"SetFacing", &LuaUnit::SetFacing},                             // :SetFacing(o) -- Sets the Unit facing to arg
     {"SetDeathState", &LuaUnit::SetDeathState},                     // :SetDeathState(value) -- 0 = alive 1 = just died 2 = corpse 3 = dead
     {"SetInt32Value", &LuaUnit::SetInt32Value},                     // :SetInt32Value(index, value) - Sets an int value for the unit
@@ -394,10 +396,15 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetConfused", &LuaUnit::SetConfused},                         // :SetConfused([enable]) - Sets confused or removes confusion
     {"SetFeared", &LuaUnit::SetFeared},                             // :SetFeared([enable]) - Fears or removes fear
     {"SetGender", &LuaUnit::SetGender},                             // :SetGender(value) -- 0 = male 1 = female
+    {"SetPvP", &LuaUnit::SetPvP},                                   // :SetPvP([apply]) -- Sets the units PvP on or off.
+    {"SetFFA", &LuaUnit::SetFFA},                                   // :SetFFA([apply]) -- Sets the units FFA tag on or off.
+    {"SetSanctuary", &LuaUnit::SetSanctuary},                       // :SetSanctuary([apply]) -- Enables or disables units sanctuary flag.
+    {"SetScale", &LuaUnit::SetScale},                               // :SetScale(scale) - UNDOCUMENTED
 
     // Boolean
     {"IsAlive", &LuaUnit::IsAlive},                                 // :IsAlive()
     {"IsDead", &LuaUnit::IsDead},                                   // :IsDead() -- Returns true if the unit is dead, false if they are alive
+    {"IsDying", &LuaUnit::IsDying},                                 // :IsDying() -- Returns true if the unit death state is JUST_DIED. UNDOCUMENTED
     {"IsInWorld", &LuaUnit::IsInWorld},                             // :IsInWorld()
     {"IsPvPFlagged", &LuaUnit::IsPvPFlagged},                       // :IsPvPFlagged()
     {"HasQuest", &LuaUnit::HasQuest},                               // :HasQuest(id)
@@ -413,10 +420,13 @@ ElunaRegister<Unit> UnitMethods[] =
     {"HasAura", &LuaUnit::HasAura},                                 // :HasAura(spellId[, caster]) -- Returns true if the unit has the aura from the spell and casted by the caster if provided.
     {"CanFly", &LuaUnit::CanFly},                                   // :CanFly() -- Returns true if the unit can fly.
     {"HasSpellCooldown", &LuaUnit::HasSpellCooldown},               // :HasSpellCooldown(spellId) -- Returns true if the spell is on cooldown.
+    {"IsAuctioneer", &LuaUnit::IsAuctioneer},                       // :IsAuctioneer() -- UNDOCUMENTED
+    {"HealthBelowPct", &LuaUnit::HealthBelowPct},                   // :HealthBelowPct(int32 pct) -- UNDOCUMENTED
+    {"HealthAbovePct", &LuaUnit::HealthAbovePct},                   // :HealthAbovePct(int32 pct) -- UNDOCUMENTED
 
     // Other
     {"AddAura", &LuaUnit::AddAura},                                 // :AddAura(spellId, target) -- Adds an aura to the specified target
-    {"RemoveAura", &LuaUnit::RemoveAura},                           // :RemoveAura(spellId, casterGuid(optional)) -- Removes an aura from the unit by the spellId, casterGUID(Original caster) is optional.
+    {"RemoveAura", &LuaUnit::RemoveAura},                           // :RemoveAura(spellId[, casterGUID]) -- Removes an aura from the unit by the spellId, casterGUID(Original caster) is optional.
     {"RemoveAllAuras", &LuaUnit::RemoveAllAuras},                   // :RemoveAllAuras() -- Removes all the unit's auras
     {"ClearInCombat", &LuaUnit::ClearInCombat},                     // :ClearInCombat() -- Clears the unit's combat list (unit will be out of combat), resets the timer to 0, etc.
     {"DeMorph", &LuaUnit::DeMorph},                                 // :DeMorph() - Sets display back to native.
@@ -450,13 +460,15 @@ ElunaRegister<Unit> UnitMethods[] =
     {"InterruptSpell", &LuaUnit::InterruptSpell},                   // :InterruptSpell(spellType, delayed(optional), instant(optional)) -- Interrupts the unit's spell by the spellType. If delayed is true it will skip if the spell is delayed. If instant is true, it will skip that the spell has a cast time.
     {"SendChatMessageToPlayer", &LuaUnit::SendChatMessageToPlayer}, // :SendChatMessageToPlayer(type, lang, msg, target) -- Unit sends a chat message to the given target player
     {"SaveToDB", &LuaUnit::SaveToDB},                               // :SaveToDB() -- Saves the unit to database.
-    {"HandleEmoteCommand", &LuaUnit::HandleEmoteCommand},           // :HandleEmoteCommand(emote) -- UNDOCUMENTED
+    {"Emote", &LuaUnit::Emote},                                     // :Emote(emote) -- UNDOCUMENTED
+    {"CountPctFromCurHealth", &LuaUnit::CountPctFromCurHealth},     // :CountPctFromCurHealth(int32 pct) -- UNDOCUMENTED
+    {"CountPctFromMaxHealth", &LuaUnit::CountPctFromMaxHealth},     // :CountPctFromMaxHealth() -- UNDOCUMENTED
 
     /* Vehicle */
     {"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger},         // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
     {"IsOnVehicle", &LuaUnit::IsOnVehicle},                         // :IsOnVehicle() - Checks if the (unit) is in a vehicle
     //{"DismissVehicle", &LuaUnit::DismissVehicle},                   // :DismissVehicle() - Dismisses the (unit)'s vehicle (Unmounts)
-    //{"EjectPassenger", &LuaUnit::EjectPassenger},                   // :EjectPassenger(unit) - Ejects a specified unit out of the vehicle   (UNTESTED)
+    //{"EjectPassenger", &LuaUnit::EjectPassenger},                 // :EjectPassenger(unit) - Ejects a specified unit out of the vehicle   (UNTESTED)
     {"RemovePassenger", &LuaUnit::RemovePassenger},                 // :RemovePassenger(unit) - Removes a specific unit from the vehicle
     {"RemoveAllPassengers", &LuaUnit::RemoveAllPassengers},         // :RemoveAllPassengers() - Removes all the passengers from the vehicle
     {"GetPassenger", &LuaUnit::GetPassenger},                       // :GetPassenger(seatId) - Gets a passenger by their seatId
@@ -471,7 +483,7 @@ ElunaRegister<GameObject> GameObjectMethods[] =
 {
     // Getters
     {"GetUnitType", &LuaGameObject::GetUnitType},                   // :GetUnitType() - Returns unit type Ex. GameObject
-    {"GetGUID", &LuaGameObject::GetGUID},                           // :GetGUID() - returns object guid
+    {"GetGUID", &LuaGameObject::GetGUID},                           // :GetGUID() - returns object guid (string)
     {"GetName", &LuaGameObject::GetName},                           // :GetName() -
     {"GetDisplayId", &LuaGameObject::GetDisplayId},                 // :GetDisplayId() -
     {"GetScale", &LuaGameObject::GetScale},                         // :GetScale() -
@@ -489,6 +501,7 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     {"GetFloatValue", &LuaGameObject::GetFloatValue},               // :GetFloatValue(index) - returns a float value from object fields
     {"GetByteValue", &LuaGameObject::GetByteValue},                 // :GetByteValue(index, offset) - returns a byte value from object fields
     {"GetUInt16Value", &LuaGameObject::GetUInt16Value},             // :GetUInt16Value(index, offset) - returns a uint16 value from object fields
+    {"GetGUIDLow", &LuaGameObject::GetGUIDLow},                     // :GetGUIDLow() -- Returns uint32 guid (low guid) that is used in database. UNDOCUMENTED
 
     // Setters
     {"SetScale", &LuaGameObject::SetScale},                         // :SetScale(scale) -
@@ -513,7 +526,7 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     {"Move", &LuaGameObject::Move},                                 // :Move(x, y, z, o) - Moves the GO to coordinates -
     {"SpawnCreature", &LuaGameObject::SummonCreature},              // :SummonCreature(entry, x, y, z, o, despawntime) Summons a temporary creature. 0 for infinitely, otherwise despawns after despawntime (ms) -
     {"RegisterEvent", &LuaGameObject::RegisterEvent},               // :RegisterEvent(function, delay, calls) -
-    {"RemoveEventByID", &LuaGameObject::RemoveEventByID},           // :RemoveEventByID(eventID) -
+    {"RemoveEventById", &LuaGameObject::RemoveEventById},           // :RemoveEventById(eventID) -
     {"RemoveEvents", &LuaGameObject::RemoveEvents},                 // :RemoveEvents() -
     {"Despawn", &LuaGameObject::Despawn},                           // :Despawn() - Object despawns
     {"SummonGameObject", &LuaGameObject::SummonGameObject},         // :SummonGameObject(entry, x, y, z, o[, respawnDelay]) - Spawns an object to location. Returns the object or nil
@@ -525,7 +538,7 @@ ElunaRegister<Item> ItemMethods[] =
 {
     // Getters
     {"GetUnitType", &LuaItem::GetUnitType},                                 // :GetUnitType() - Returns object type, IE: Item, Creature
-    {"GetGUID", &LuaItem::GetGUID},                                         // :GetGUID() - Returns object guid
+    {"GetGUID", &LuaItem::GetGUID},                                         // :GetGUID() - Returns object guid (string)
     {"GetOwnerGUID", &LuaItem::GetOwnerGUID},                               // :GetOwnerGUID() - Returns the owner's guid
     {"GetOwner", &LuaItem::GetOwner},                                       // :GetOwner() - Returns the owner object (player)
     {"GetCount", &LuaItem::GetCount},                                       // :GetCount() - Returns item stack count
@@ -538,6 +551,8 @@ ElunaRegister<Item> ItemMethods[] =
     {"GetFloatValue", &LuaItem::GetFloatValue},                             // :GetFloatValue(index) - returns a float value from item fields
     {"GetByteValue", &LuaItem::GetByteValue},                               // :GetByteValue(index, offset) - returns a byte value from item fields
     {"GetUInt16Value", &LuaItem::GetUInt16Value},                           // :GetUInt16Value(index, offset) - returns a uint16 value from item fields
+    {"GetGUIDLow", &LuaItem::GetGUIDLow},                                   // :GetGUIDLow() -- Returns uint32 guid (low guid) that is used in database. UNDOCUMENTED
+
     // Setters
     {"SetOwner", &LuaItem::SetOwner},                                       // :SetOwner(player) - Sets the owner of the item
     {"SetBinding", &LuaItem::SetBinding},                                   // :SetBinding(bound) - Sets the item binding to true or false
@@ -554,8 +569,8 @@ ElunaRegister<Item> ItemMethods[] =
     {"IsSoulBound", &LuaItem::IsSoulBound},                                 // :IsSoulBound() - Returns true if the item is soulbound
     {"IsBoundAccountWide", &LuaItem::IsBoundAccountWide},                   // :IsBoundAccountWide() - Returns true if the item is account bound
     {"IsBoundByEnchant", &LuaItem::IsBoundByEnchant},                       // :IsBoundByEnchant() - Returns true if the item is bound with an enchant
-    {"IsBindedNotWith", &LuaItem::IsBindedNotWith},                         // :IsBindedNotWith(player) - Returns true if the item is not bound with player
-    {"IsLocked", &LuaItem::IsBindedNotWith},                                // :IsLocked() - Returns true if the item is locked
+    {"IsNotBoundToPlayer", &LuaItem::IsNotBoundToPlayer},                   // :IsNotBoundToPlayer(player) - Returns true if the item is not bound with player
+    {"IsLocked", &LuaItem::IsLocked},                                       // :IsLocked() - Returns true if the item is locked
     {"IsBag", &LuaItem::IsBag},                                             // :IsBag() - Returns true if the item is a bag
     {"IsCurrencyToken", &LuaItem::IsCurrencyToken},                         // :IsCurrencyToken() - Returns true if the item is a currency token
     {"IsNotEmptyBag", &LuaItem::IsNotEmptyBag},                             // :IsNotEmptyBag() - Returns true if the item is not an empty bag
@@ -590,7 +605,7 @@ ElunaRegister<Aura> AuraMethods[] =
     {"GetCharges", &LuaAura::GetCharges},                           // :GetCharges() - Returns remaining charges.               
     {"GetAuraId", &LuaAura::GetAuraId},                             // :GetAuraId() - Returns aura ID.                            
     {"GetStackAmount", &LuaAura::GetStackAmount},                   // :GetStackAmount() - Returns current stack amount.        
-    {"GetOwner", &LuaAura::GetOwner},                               // :GetOwner() - Gets the unit wearing the aura             
+    {"GetOwner", &LuaAura::GetOwner},                               // :GetOwner() - Gets the unit wearing the aura          
 
     // Setters
     {"SetDuration", &LuaAura::SetDuration},                         // :SetDuration(duration) - Sets remaining duration.        
@@ -728,14 +743,14 @@ ElunaRegister<QueryResult> QueryMethods[] =
     {"GetRowCount", &LuaQuery::GetRowCount},                        // :GetRowCount() - Gets the row count of the query
 
     {"GetBool", &LuaQuery::GetBool},                                // :GetBool(column) -- returns a bool from a number column (for example tinyint)
-    {"GetUInt8", &LuaQuery::GetUInt8},                              // :GetInt8(column) -- returns the value of an unsigned tinyint column
-    {"GetUInt16", &LuaQuery::GetUInt16},                            // :GetInt16(column) -- returns the value of a unsigned smallint column
-    {"GetUInt32", &LuaQuery::GetUInt32},                            // :GetInt32(column) -- returns the value of an unsigned int or mediumint column
-    //{"GetUInt64", &LuaQuery::GetUInt64},
+    {"GetUInt8", &LuaQuery::GetUInt8},                              // :GetUInt8(column) -- returns the value of an unsigned tinyint column
+    {"GetUInt16", &LuaQuery::GetUInt16},                            // :GetUInt16(column) -- returns the value of a unsigned smallint column
+    {"GetUInt32", &LuaQuery::GetUInt32},                            // :GetUInt32(column) -- returns the value of an unsigned int or mediumint column
+    {"GetUInt64", &LuaQuery::GetUInt64},                            // :GetUInt64(column) -- returns the value of an unsigned bigint column as string UNDOCUMENTED
     {"GetInt8", &LuaQuery::GetInt8},                                // :GetInt8(column) -- returns the value of an tinyint column
     {"GetInt16", &LuaQuery::GetInt16},                              // :GetInt16(column) -- returns the value of a smallint column
     {"GetInt32", &LuaQuery::GetInt32},                              // :GetInt32(column) -- returns the value of an int or mediumint column
-    //{"GetInt64", &LuaQuery::GetInt64},
+    {"GetInt64", &LuaQuery::GetInt64},                              // :GetInt64(column) -- returns the value of a bigint column as string UNDOCUMENTED
     {"GetFloat", &LuaQuery::GetFloat},                              // :GetFloat(column) -- returns the value of a float column
     {"GetDouble", &LuaQuery::GetDouble},                            // :GetDouble(column) -- returns the value of a double column
     {"GetString", &LuaQuery::GetString},                            // :GetString(column) -- returns the value of a string column
@@ -774,7 +789,7 @@ ElunaRegister<WorldPacket> PacketMethods[] =
     {"WriteString", &LuaPacket::WriteString},                       //  :WriteString(val) -- Writes a string value            (UNDOCUMENTED)
     {"WriteFloat", &LuaPacket::WriteFloat},                         //  :WriteFloat(val) -- Writes a float value              (UNDOCUMENTED)
     {"WriteDouble", &LuaPacket::WriteDouble},                       //  :WriteDouble(val) -- Writes a double value            (UNDOCUMENTED)
-    {"WriteGUID", &LuaPacket::WriteGUID},                           //  :WriteGUID(worldobject) -- Writes a uint64 guid value. WorldObject can be any unit: creature, gameobject, item.. (UNDOCUMENTED)
+    {"WriteGUID", &LuaPacket::WriteGUID},                           //  :WriteGUID(guid) -- Writes a uint64 guid value.       (UNDOCUMENTED)
     {"WriteLong", &LuaPacket::WriteLong},                           //  :WriteLong(val) -- Writes an int32 long value         (UNDOCUMENTED)
     {"WriteULong", &LuaPacket::WriteULong},                         //  :WriteULong(val) -- Writes a uint32 ulong value       (UNDOCUMENTED)
     {NULL, NULL},

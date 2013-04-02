@@ -79,6 +79,7 @@
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include "../../../scripts/Custom/Transmogrification.h"
+#include "HookMgr.h"
 
 #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
 
@@ -12471,6 +12472,7 @@ Item* Player::EquipItem(uint16 pos, Item* pItem, bool update)
 
         ApplyEquipCooldown(pItem2);
 
+        sHookMgr->OnEquip(this, pItem2, pos, update);
         return pItem2;
     }
 
@@ -12478,6 +12480,7 @@ Item* Player::EquipItem(uint16 pos, Item* pItem, bool update)
     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EQUIP_ITEM, pItem->GetEntry());
     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EQUIP_EPIC_ITEM, pItem->GetEntry(), slot);
 
+    sHookMgr->OnEquip(this, pItem, pos, update);
     return pItem;
 }
 
@@ -12499,6 +12502,8 @@ void Player::QuickEquipItem(uint16 pos, Item* pItem)
 
         UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EQUIP_ITEM, pItem->GetEntry());
         UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EQUIP_EPIC_ITEM, pItem->GetEntry(), slot);
+
+        sHookMgr->OnEquip(this, pItem, pos, IsInWorld());
     }
 }
 

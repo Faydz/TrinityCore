@@ -19,7 +19,7 @@ public:
         if (!item || !item->IsInWorld())
             return 0;
 
-        sEluna->PushGUID(L, item->GetGUID());
+        sEluna->PushULong(L, item->GetGUID());
         return 1;
     }
 
@@ -28,7 +28,7 @@ public:
         if (!item || !item->IsInWorld())
             return 0;
 
-        sEluna->PushGUID(L, item->GetOwnerGUID());
+        sEluna->PushULong(L, item->GetOwnerGUID());
         return 1;
     }
 
@@ -91,7 +91,7 @@ public:
         return 1;
     }
 
-    static int IsBindedNotWith(lua_State* L, Item* item)
+    static int IsNotBoundToPlayer(lua_State* L, Item* item)
     {
         if (!item || !item->IsInWorld())
             sEluna->PushBoolean(L, false);
@@ -491,5 +491,13 @@ public:
         return 1;
     }
 
+    static int GetGUIDLow(lua_State* L, Item* item)
+    {
+        if (!item || !item->IsInWorld())
+            return 0;
+
+        sEluna->PushUnsigned(L, item->GetGUIDLow());
+        return 1;
+    }
 };
 #endif

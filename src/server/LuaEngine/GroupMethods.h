@@ -36,7 +36,7 @@ public:
         if (!group)
             return 0;
 
-        sEluna->PushGUID(L, group->GetLeaderGUID());
+        sEluna->PushULong(L, group->GetLeaderGUID());
         return 1;
     }
 
@@ -63,7 +63,7 @@ public:
         if (!group)
             return 0;
 
-        sEluna->PushGUID(L, group->GetGUID());
+        sEluna->PushULong(L, group->GetGUID());
         return 1;
     }
 
@@ -114,10 +114,10 @@ public:
 
         WorldPacket* data = sEluna->CHECK_PACKET(L, 1);
         bool ignorePlayersInBg = luaL_checkbool(L, 2);
-        uint32 ignore = luaL_optunsigned(L, 3, 0);
+        uint64 ignore = sEluna->CHECK_ULONG(L, 3);
 
         if (data)
-            group->BroadcastPacket(data, ignorePlayersInBg, -1, (ignore ? MAKE_NEW_GUID(ignore, 0, HIGHGUID_PLAYER) : 0));
+            group->BroadcastPacket(data, ignorePlayersInBg, -1, ignore);
         return 0;
     }
 
@@ -271,7 +271,7 @@ public:
             return 0;
 
         const char* name = luaL_checkstring(L, 1);
-        sEluna->PushGUID(L, group->GetMemberGUID(name));
+        sEluna->PushULong(L, group->GetMemberGUID(name));
         return 1;
     }
 
