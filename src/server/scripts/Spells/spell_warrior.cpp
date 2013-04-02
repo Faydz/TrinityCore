@@ -66,6 +66,60 @@ enum WarriorSpellIcons
     WARRIOR_ICON_ID_IMPROVED_HAMSTRING              = 23,
 };
 
+// 2457, 71, 2458 Battle Stance
+class spell_warr_stance_handler : public SpellScriptLoader
+{
+    public:
+        spell_warr_stance_handler() : SpellScriptLoader("spell_warr_stance_handler") { }
+
+        class spell_warr_stance_handler_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warr_stance_handler_SpellScript);
+            
+            void HandleAfterHit()
+            {
+                Unit* caster = GetCaster();
+
+                if(caster)
+                {
+                    int32 Rage_val = 0;
+                    PlayerSpellMap const& sp_list = caster->ToPlayer()->GetSpellMap();
+
+                    // Retrieves max rage to retain
+                    for (PlayerSpellMap::const_iterator itr = sp_list.begin(); itr != sp_list.end(); ++itr)
+                    {
+                        if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled)
+                            continue;
+
+                        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(itr->first);
+                        if (spellInfo && spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && spellInfo->SpellIconID == 139)
+                        {
+                            Rage_val += caster->CalculateSpellDamage(caster, spellInfo, EFFECT_0);
+                        }
+                    }
+
+                    // Check and update (do not forget the * 10 on each SetPower with POWER_RAGE)
+                    if (caster->GetPower(POWER_RAGE) > Rage_val * 10)
+                    {
+                        Rage_val *= sWorld->getRate(RATE_POWER_RAGE_INCOME);
+
+                        caster->SetPower(POWER_RAGE, Rage_val * 10);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                BeforeCast += SpellCastFn(spell_warr_stance_handler_SpellScript::HandleAfterHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warr_stance_handler_SpellScript();
+        }
+};
+
 // 86346 - Colossus Smash
 class spell_warr_colussus_smash : public SpellScriptLoader
 {
@@ -465,7 +519,6 @@ class spell_warr_execute : public SpellScriptLoader
                     SetHitDamage(damage);
                 }
             }
-
             
             void HandleAfterHit()
             {
@@ -473,8 +526,10 @@ class spell_warr_execute : public SpellScriptLoader
 
                 if(caster && newPowerAmount)
                 {
+                    newPowerAmount *= sWorld->getRate(RATE_POWER_RAGE_INCOME);
+
                     // Sets new rage
-                    caster->SetPower(POWER_RAGE, newPowerAmount);
+                    caster->SetPower(POWER_RAGE, newPowerAmount * 10);
                 }
             }
 
@@ -999,6 +1054,7 @@ class spell_warr_death_wish : public SpellScriptLoader
 void AddSC_warrior_spell_scripts()
 {
     //new spell_warr_death_wish();
+    new spell_warr_stance_handler();
     new spell_warr_colussus_smash();
     new spell_warr_intercept();
     new spell_warr_hamstring();
