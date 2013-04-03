@@ -37,11 +37,59 @@ enum DruidSpells
     SPELL_DRUID_LIFEBLOOM_FINAL_HEAL            = 33778,
     SPELL_DRUID_LIFEBLOOM_ENERGIZE              = 64372,
     SPELL_DRUID_NATURES_SPLENDOR                = 57865,
+    SPELL_DRUID_REJUVENATION                    = 774,
+    SPELL_DRUID_REJUVENATION_ISTANT_SPELL       = 64801,
     SPELL_DRUID_SAVAGE_ROAR                     = 62071,
     SPELL_DRUID_SURVIVAL_INSTINCTS              = 50322,
     SPELL_ENRAGE_MOD_DAMAGE                     = 51185,
     SPELL_KING_OF_THE_JUNGLE                    = 48492,
     SPELL_TIGER_S_FURY_ENERGIZE                 = 51178,
+};
+
+class spell_dru_istant_rejuvenation : public SpellScriptLoader
+{
+    public:
+        spell_dru_istant_rejuvenation() : SpellScriptLoader("spell_dru_istant_rejuvenation") { }
+
+        class spell_dru_istant_rejuvenation_SpellScript : public SpellScript 
+        {
+            PrepareSpellScript(spell_dru_istant_rejuvenation_SpellScript);
+
+            void ChangeHeal(SpellEffIndex /*effIndex*/) 
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetExplTargetUnit();
+
+                if (!caster || !target)
+                    return;
+
+                if(Aura* rejAura = target->GetAura(SPELL_DRUID_REJUVENATION, caster->GetGUID()))
+                {
+                    // Gift of the Earthmother calculation
+                    if(AuraEffect* earthmother = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, 3186, EFFECT_0))
+                    {
+                        // Calculates Rejuvenation total heal
+                        int32 rejuvenationTickHeal = caster->SpellHealingBonusDone(target, rejAura->GetSpellInfo(), rejAura->GetEffect(EFFECT_0)->GetAmount(), HEAL);
+                        int32 healAmount = rejuvenationTickHeal * (rejAura->GetMaxDuration() / rejAura->GetSpellInfo()->Effects[EFFECT_0].Amplitude);
+
+                        // Applies talent mod
+                        ApplyPct(healAmount, earthmother->GetAmount());
+
+                        SetHitHeal(healAmount);
+                    }
+                }
+            }
+
+            void Register() 
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_dru_istant_rejuvenation_SpellScript::ChangeHeal, EFFECT_0, SPELL_EFFECT_HEAL);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_istant_rejuvenation_SpellScript();
+        }
 };
 
 // 774 - Rejuvenation
@@ -62,18 +110,11 @@ public:
             if(!caster || !target)
                 return;
             
-            // Gift of the Earthmother
-            if(AuraEffect* earthmother = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, 3186, EFFECT_0))
+            // Gift of the Earthmother check
+            if(caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, 3186, EFFECT_0))
             {
-                // Calculates Rejuvenation total heal
-                int32 rejuvenationTickHeal = caster->SpellHealingBonusDone(target, GetSpellInfo(), aurEff->GetAmount(), HEAL);
-                int32 bp0 = rejuvenationTickHeal * (aurEff->GetBase()->GetMaxDuration() / GetSpellInfo()->Effects[EFFECT_0].Amplitude);
-
-                // Applies talent mod
-                ApplyPct(bp0, earthmother->GetAmount());
-
                 // Casts istant heal
-                caster->CastCustomSpell(target, 64801, &bp0, NULL, NULL, true);
+                caster->CastSpell(target, SPELL_DRUID_REJUVENATION_ISTANT_SPELL, true);
             }
         }
 
@@ -1851,6 +1892,7 @@ class spell_dru_lunar_shower : public SpellScriptLoader
 
 void AddSC_druid_spell_scripts()
 {
+    new spell_dru_istant_rejuvenation();
     new spell_dru_rejuvenation();
     new spell_dru_efflorescence();
     new spell_dru_empowered_touch();
