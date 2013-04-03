@@ -116,7 +116,7 @@ class spell_pal_shield_of_the_righteous : public SpellScriptLoader
                 int32 hp = GetCaster()->GetPower(POWER_HOLY_POWER);
 
                 // Holy Power Scaling: 3 times damage at 2 HP, 6 times at 3 HP
-                damage *= 0.5*hp*hp + 1.5*hp + 1;
+                damage *= 0.5 * hp * hp + 1.5 * hp + 1;
 
                 SetHitDamage(damage);
             }
