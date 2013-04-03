@@ -78,6 +78,61 @@ enum PaladinSpells
     SPELL_GENERIC_BATTLEGROUND_DAMPENING         = 74411
 };
 
+// 53600 - Shield of the Righteous
+/// Updated 4.3.4
+class spell_pal_shield_of_the_righteous : public SpellScriptLoader
+{
+    public:
+        spell_pal_shield_of_the_righteous() : SpellScriptLoader("spell_pal_shield_of_the_righteous") { }
+
+        class spell_pal_shield_of_the_righteous_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_pal_shield_of_the_righteous_SpellScript);
+
+            bool Load()
+            {
+                if(!GetCaster())
+                    return false;
+
+                if (GetCaster()->GetTypeId() != TYPEID_PLAYER)
+                    return false;
+
+                if (GetCaster()->ToPlayer()->getClass() != CLASS_PALADIN)
+                    return false;
+
+                return true;
+            }
+
+            void ChangeDamage(SpellEffIndex /*effIndex*/)
+            {
+                if(!GetCaster())
+                    return;
+
+                int32 damage = GetHitDamage();
+
+                // Because 1 Holy Power (HP) is consumed when casting spell,
+                // GetPower(POWER_HOLY_POWER) will return 0 when player has 1 HP,
+                // return 1 at 2 HP, and 2 at 3 HP
+                int32 hp = GetCaster()->GetPower(POWER_HOLY_POWER);
+
+                // Holy Power Scaling: 3 times damage at 2 HP, 6 times at 3 HP
+                damage *= 0.5*hp*hp + 1.5*hp + 1;
+
+                SetHitDamage(damage);
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_pal_shield_of_the_righteous_SpellScript::ChangeDamage, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pal_shield_of_the_righteous_SpellScript();
+        }
+};
+
 // 31850 - Ardent Defender
 /*class spell_pal_ardent_defender : public SpellScriptLoader
 {
@@ -1263,11 +1318,11 @@ class spell_pal_divine_bulwark : public SpellScriptLoader
                 if (Player* caster = GetCaster()->ToPlayer())
                     if (caster->HasAuraType(SPELL_AURA_MASTERY))
                         if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_PALADIN_PROTECTION)
-						{
-							sLog->outError(LOG_FILTER_GENERAL,"mod");
-							amount += int32(2.25f * caster->GetMasteryPoints());
-						}
-							
+                        {
+                            sLog->outError(LOG_FILTER_GENERAL,"mod");
+                            amount += int32(2.25f * caster->GetMasteryPoints());
+                        }
+                            
             }
 
             void Register()
@@ -1423,6 +1478,7 @@ void AddSC_paladin_spell_scripts()
     new spell_pal_judgement_of_command();
     new spell_pal_lay_on_hands();
     new spell_pal_righteous_defense();
+    new spell_pal_shield_of_the_righteous(); 
     new spell_pal_divine_bulwark();
     new spell_pal_templar_s_verdict();
     new spell_pal_seal_of_righteousness();
