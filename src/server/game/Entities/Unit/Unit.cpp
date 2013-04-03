@@ -18884,9 +18884,35 @@ void Unit::RewardRage(uint32 baseRage, bool attacker)
     }
     else
     {
-        // Calculate rage from health and damage taken
-        //! ToDo: Check formula
-        addRage = floor(0.5f + (25.7f * baseRage / GetMaxHealth()));
+        // Old formula: calculate rage from health and damage taken
+        // addRage = floor(0.5f + (25.7f * baseRage / GetMaxHealth()));
+
+        // http://www.wowwiki.com/Rage
+        // Rage conversion value
+        float c = 1.0f;
+        
+        switch(this->getLevel())
+        {
+            case 80:
+                c = 453.3f;
+                break;
+            case 81:
+            case 82:
+            case 83:
+            case 84:
+            case 85:
+                // For this coefficient it has been used the following inverse formula:
+                // c = damageTaken * 2.5 / rageGained
+                c = 575.125f;
+                break;
+            default:
+                c = 0.0091107836 * pow((float)this->getLevel(), 2) 
+                    + 3.225598133f * (float)this->getLevel() + 4.2652911f;
+                break;
+        }
+
+        addRage = floor(2.5f * (baseRage / c));
+
         // Berserker Rage effect
         if (HasAura(18499))
             addRage *= 2.0f;
