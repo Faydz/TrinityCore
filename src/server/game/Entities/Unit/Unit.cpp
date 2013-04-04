@@ -7992,7 +7992,7 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
             // Blood of the North
             // Reaping
             // Death Rune Mastery
-			if (dummySpell->SpellIconID == 3041 || dummySpell->SpellIconID == 22 || dummySpell->SpellIconID == 2622)
+            if (dummySpell->SpellIconID == 3041 || dummySpell->SpellIconID == 22 || dummySpell->SpellIconID == 2622)
             {
                 *handled = true;
                 // Convert recently used Blood Rune to Death Rune
@@ -8026,12 +8026,12 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
                                 player->GetBaseRune(i) == RUNE_BLOOD)
                                 continue;
                         }
-						else if (dummySpell->SpellIconID == 22 && procSpell->Id == 85948)
-						{
-							if (player->GetCurrentRune(i) == RUNE_DEATH)
-								continue;
-						}
-						else
+                        else if (dummySpell->SpellIconID == 22 && procSpell->Id == 85948)
+                        {
+                            if (player->GetCurrentRune(i) == RUNE_DEATH)
+                                continue;
+                        }
+                        else
                         {
                             if (player->GetCurrentRune(i) == RUNE_DEATH ||
                                 player->GetBaseRune(i) != RUNE_BLOOD)
