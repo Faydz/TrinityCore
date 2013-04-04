@@ -483,63 +483,62 @@ class spell_warr_execute : public SpellScriptLoader
         {
             PrepareSpellScript(spell_warr_execute_SpellScript);
 
-            void HandleEffect(SpellEffIndex /*effIndex*/)
+            void HandleAfterCast()
             {
                 Unit* caster = GetCaster();
 
-                if(caster)
+                if(caster && caster->GetPower(POWER_RAGE) > 0)
                 {
                     float ap = caster->GetTotalAttackPowerValue(BASE_ATTACK);
-                    int32 damage = 0;
 
                     // Formula taken from the DBC: "${10+$AP*0.437*$m1/100}"
-                    damage = int32(10 + ap * 0.437 * GetEffectValue() / 100);
+                    damage = int32(10 + ap * 0.437);
 
-                    // Normalized rage (why do we need to do that?)
-                    uint32 power = (caster->GetPower(POWER_RAGE) + 100) /10;
+                    // Normalized rage (-10 because the execute base cost is not yet applied)
+                    uint32 powerAfterBaseCost = caster->GetPower(POWER_RAGE) /10 -10;
 
-                    if(power > 0)
+                    uint32 extraRage = powerAfterBaseCost > 20 ? 20 : powerAfterBaseCost;
+                    uint32 newPowerAmount = powerAfterBaseCost - extraRage;
+
+                    // Sudden Death rage saving
+                    if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_WARRIOR, WARRIOR_ICON_ID_SUDDEN_DEATH, EFFECT_0))
                     {
-                        uint32 mod = power > 20 ? 20 : power;
-                        newPowerAmount = power - mod;
+                        if(newPowerAmount < 10)
+                        {
+                            newPowerAmount = aurEff->GetAmount();
+                        }
+                    }
 
-                        // Sudden Death rage saving
-                        if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_WARRIOR, WARRIOR_ICON_ID_SUDDEN_DEATH, EFFECT_0))
-                            newPowerAmount += aurEff->GetAmount();
-
+                    // Enter if there is extra rage to add as bonus damage
+                    if(extraRage > 0)
+                    {
                         // Add bonus damage
                         // Formula taken from the DBC: "${$ap*0.874*$m1/100-1} = 20 rage"
-                        damage += int32 (ap * 0.874 * GetEffectValue() / 100 - 1);
-                    }
-                    else
-                    {
-                        newPowerAmount = 0;
+                        damage += int32 (ap * 0.874 * extraRage / 10 - 1);
                     }
 
-                    SetHitDamage(damage);
-                }
-            }
-            
-            void HandleAfterHit()
-            {
-                Unit* caster = GetCaster();
+                    // For remaining at the desidered rage when the warrior will use the base execute cost (10)
+                    newPowerAmount += 10;
 
-                if(caster && newPowerAmount)
-                {
                     newPowerAmount *= sWorld->getRate(RATE_POWER_RAGE_INCOME);
 
                     // Sets new rage
                     caster->SetPower(POWER_RAGE, newPowerAmount * 10);
                 }
             }
+            
+            void HandleEffect(SpellEffIndex /*effIndex*/)
+            {
+                SetHitDamage(damage);
+            }
 
         private:
-            uint32 newPowerAmount;
+            int32 damage;
 
             void Register()
             {
+                OnCast += SpellCastFn(spell_warr_execute_SpellScript::HandleAfterCast);
                 OnEffectHitTarget += SpellEffectFn(spell_warr_execute_SpellScript::HandleEffect, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
-                AfterHit += SpellHitFn(spell_warr_execute_SpellScript::HandleAfterHit);
             }
         };
 
@@ -811,7 +810,6 @@ class spell_warr_critical_block : public SpellScriptLoader
                     if (caster->HasAuraType(SPELL_AURA_MASTERY))
                         if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_WARRIOR_PROTECTION)
 						{
-                            sLog->outError(LOG_FILTER_GENERAL, "Modded war");
 							amount += int32(1.5f * caster->GetMasteryPoints());
 						}
 							
