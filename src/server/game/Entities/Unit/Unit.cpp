@@ -5795,7 +5795,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             {
                 // Strikes of Opportunity Arms Warrior Mastery
                 case 76838:
-                    if (triggerAmount == 0)
+                    if (triggerAmount == 0 || effIndex != EFFECT_1)
                         return false;
 
                     if (procSpell && procSpell->Id == 76858)
@@ -5810,8 +5810,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         int32 chance = int32(2.2f * caster->GetMasteryPoints());
                         if (roll_chance_i(chance))
                         {
-                           int32 bp0 = damage;
-                           caster->CastCustomSpell(target, 76858, &bp0, NULL, NULL, true);
+                           caster->CastSpell(target, 76858, true);
                         }
                     }
                     return true;

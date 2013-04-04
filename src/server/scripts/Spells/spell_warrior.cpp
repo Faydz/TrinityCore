@@ -66,6 +66,37 @@ enum WarriorSpellIcons
     WARRIOR_ICON_ID_IMPROVED_HAMSTRING              = 23,
 };
 
+// 76858 Opportunity Strike
+class spell_warr_opportunity_strike : public SpellScriptLoader
+{
+    public:
+        spell_warr_opportunity_strike() : SpellScriptLoader("spell_warr_opportunity_strike") { }
+
+        class spell_warr_opportunity_strike_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warr_opportunity_strike_SpellScript);
+            
+            void HandleEffect(SpellEffIndex /*effIndex*/)
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    int32 damage = caster->CalculateDamage(BASE_ATTACK, false, true);
+                    SetHitDamage(damage);
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_warr_opportunity_strike_SpellScript::HandleEffect, EFFECT_0, SPELL_EFFECT_NORMALIZED_WEAPON_DMG);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warr_opportunity_strike_SpellScript();
+        }
+};
+
 // 2457, 71, 2458 Battle Stance
 class spell_warr_stance_handler : public SpellScriptLoader
 {
@@ -483,7 +514,7 @@ class spell_warr_execute : public SpellScriptLoader
         {
             PrepareSpellScript(spell_warr_execute_SpellScript);
 
-            void HandleAfterCast()
+            void HandleOnCast()
             {
                 Unit* caster = GetCaster();
 
@@ -537,7 +568,7 @@ class spell_warr_execute : public SpellScriptLoader
 
             void Register()
             {
-                OnCast += SpellCastFn(spell_warr_execute_SpellScript::HandleAfterCast);
+                OnCast += SpellCastFn(spell_warr_execute_SpellScript::HandleOnCast);
                 OnEffectHitTarget += SpellEffectFn(spell_warr_execute_SpellScript::HandleEffect, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
             }
         };
@@ -1052,6 +1083,7 @@ class spell_warr_death_wish : public SpellScriptLoader
 void AddSC_warrior_spell_scripts()
 {
     //new spell_warr_death_wish();
+    new spell_warr_opportunity_strike();
     new spell_warr_stance_handler();
     new spell_warr_colussus_smash();
     new spell_warr_intercept();
