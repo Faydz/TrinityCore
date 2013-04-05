@@ -115,7 +115,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
                 return DIMINISHING_LIMITONLY;
             // Charge Stun (own diminishing)
             else if (spellproto->SpellFamilyFlags[0] & 0x01000000)
-                return DIMINISHING_CHARGE;
+                return DIMINISHING_NONE;
             break;
         }
         case SPELLFAMILY_WARLOCK:
@@ -3233,6 +3233,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Charge/Intercept stun
+                    case 7922:
+                    case 20253:
+                        spellInfo->AttributesEx8 |= SPELL_ATTR8_CANT_MISS;
+                        break;
                     // Bloodsurge
                     case 46916:
                         spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;

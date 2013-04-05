@@ -15,4 +15,3 @@ Questo documento tiene traccia delle ottimizzazioni da fare una volta stabilizza
 
 7 Da sistemare il metodo GetHealth() e derivati. Restituisce più hp degli effetivi posseduti dal target.
 8 Inserire lo script per SPELL_AURA_MOD_AUTOATTACK_DAMAGE e SPELL_AURA_MOD_SPELL_COOLDOWN_BY_HASTE.
-9 Sistemare il SetPower(POWER_RAGE, n), che internamente imposta il corretto valore di rage ma graficamente mantiene il valore precedente.
