@@ -3050,6 +3050,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case 29725:
                 spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
                 break;
+            // Pursuit of Justice
+            case 26022:
+            case 26023:
+                spellInfo->SpellFamilyName = SPELLFAMILY_PALADIN;
+                break;
             default:
                 break;
         }

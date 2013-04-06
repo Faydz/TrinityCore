@@ -7936,30 +7936,39 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
             break;
         case SPELLFAMILY_PALADIN:
         {
+            switch(dummySpell->Id)
+            {
+                // Pursuit of Justice
+                case 26022:
+                case 26023:
+                    if (procSpell && procSpell->GetAllEffectsMechanicMask() & 
+                        ((1<<MECHANIC_STUN) | (1<<MECHANIC_FEAR) | (1<<MECHANIC_ROOT)))
+                        this->CastSpell(this, 89024);
+                    break;
+                // Glyph of Divinity
+                case 54939:
+                    *handled = true;
+                    // Check if we are the target and prevent mana gain
+                    if (victim && triggeredByAura->GetCasterGUID() == victim->GetGUID())
+                        return false;
+                    // Lookup base amount mana restore
+                    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; i++)
+                    {
+                        if (procSpell->Effects[i].Effect == SPELL_EFFECT_ENERGIZE)
+                        {
+                            // value multiplied by 2 because you should get twice amount
+                            int32 mana = procSpell->Effects[i].CalcValue() * 2;
+                            CastCustomSpell(this, 54986, 0, &mana, NULL, true);
+                        }
+                    }
+                    return true;
+            }
+
             // Judgements of the Just
             if (dummySpell->SpellIconID == 3015)
             {
                 *handled = true;
                 CastSpell(victim, 68055, true);
-                return true;
-            }
-            // Glyph of Divinity
-            else if (dummySpell->Id == 54939)
-            {
-                *handled = true;
-                // Check if we are the target and prevent mana gain
-                if (victim && triggeredByAura->GetCasterGUID() == victim->GetGUID())
-                    return false;
-                // Lookup base amount mana restore
-                for (uint8 i = 0; i < MAX_SPELL_EFFECTS; i++)
-                {
-                    if (procSpell->Effects[i].Effect == SPELL_EFFECT_ENERGIZE)
-                    {
-                        // value multiplied by 2 because you should get twice amount
-                        int32 mana = procSpell->Effects[i].CalcValue() * 2;
-                        CastCustomSpell(this, 54986, 0, &mana, NULL, true);
-                    }
-                }
                 return true;
             }
             break;
