@@ -2430,6 +2430,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
     // Trigger info was not filled in spell::preparedatafortriggersystem - we do it now
     if (canEffectTrigger && !procAttacker && !procVictim)
     {
+        bool hasAura = m_spellInfo->HasAnyAura() ? true : false;
         bool positive = true;
         if (m_damage > 0)
             positive = false;
@@ -2450,11 +2451,23 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
                 {
                     procAttacker |= PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_POS;
                     procVictim   |= PROC_FLAG_TAKEN_SPELL_MAGIC_DMG_CLASS_POS;
+                    
+                    if(hasAura)
+                    {
+                        procAttacker |= PROC_FLAG_DONE_APPLY_AURA_POS;
+                        procVictim   |= PROC_FLAG_TAKEN_APPLY_AURA_POS;
+                    }
                 }
                 else
                 {
                     procAttacker |= PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG;
                     procVictim   |= PROC_FLAG_TAKEN_SPELL_MAGIC_DMG_CLASS_NEG;
+                    
+                    if(hasAura)
+                    {
+                        procAttacker |= PROC_FLAG_DONE_APPLY_AURA_NEG;
+                        procVictim   |= PROC_FLAG_TAKEN_APPLY_AURA_NEG;
+                    }
                 }
             break;
             case SPELL_DAMAGE_CLASS_NONE:

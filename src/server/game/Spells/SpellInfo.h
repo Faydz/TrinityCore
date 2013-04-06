@@ -423,6 +423,7 @@ public:
 
     bool HasEffect(SpellEffects effect) const;
     bool HasAura(AuraType aura) const;
+    bool HasAnyAura() const;
     bool HasAreaAuraEffect() const;
 
     bool IsExplicitDiscovery() const;
