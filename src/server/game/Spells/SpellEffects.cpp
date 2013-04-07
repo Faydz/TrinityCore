@@ -2001,6 +2001,14 @@ void Spell::EffectEnergize(SpellEffIndex effIndex)
     int level_diff = 0;
     switch (m_spellInfo->Id)
     {
+        case 53385:                                         // Divine Storm
+        {
+            int hpThreshold = m_UniqueTargetInfo.size() - 1;
+            if(hpThreshold < 4)
+                return;
+
+            break;
+        }
         case 9512:                                          // Restore Energy
             level_diff = m_caster->getLevel() - 40;
             level_multiplier = 2;
