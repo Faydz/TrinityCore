@@ -749,6 +749,11 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                 if (!m_caster || !unitTarget->isAlive())
                     return;
 
+                // Long Arm of the Law
+                if(AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3013, EFFECT_0))
+                    if(roll_chance_i(aurEff->GetAmount()) && m_caster->GetDistance(unitTarget) >= 15.0f)
+                        m_caster->CastSpell(m_caster, 87173);
+
                 // Communion
                 if(m_caster->HasAura(31876))
                     m_caster->CastSpell(m_caster, 57669);
