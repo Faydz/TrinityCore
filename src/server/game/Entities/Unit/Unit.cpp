@@ -156,26 +156,26 @@ _hitMask(hitMask), _spell(spell), _damageInfo(damageInfo), _healInfo(healInfo)
 #ifdef _MSC_VER
 #pragma warning(disable:4355)
 #endif
-Unit::Unit(bool isWorldObject): WorldObject(isWorldObject)
-    , m_movedPlayer(NULL)
-    , m_lastSanctuaryTime(0)
-    , m_TempSpeed(0.0f)
-    , IsAIEnabled(false)
-    , NeedChangeAI(false)
-    , m_ControlledByPlayer(false)
-    , movespline(new Movement::MoveSpline())
-    , i_AI(NULL)
-    , i_disabledAI(NULL)
-    , m_AutoRepeatFirstCast(false)
-    , m_procDeep(0)
-    , m_removedAurasCount(0)
-    , i_motionMaster(this)
-    , m_ThreatManager(this)
-    , m_vehicle(NULL)
-    , m_vehicleKit(NULL)
-    , m_unitTypeMask(UNIT_MASK_NONE)
-    , m_HostileRefManager(this)
-    , _lastDamagedTime(0)
+Unit::Unit(bool isWorldObject) : WorldObject(isWorldObject),
+    m_movedPlayer(NULL),
+    m_lastSanctuaryTime(0),
+    m_TempSpeed(0.0f),
+    IsAIEnabled(false),
+    NeedChangeAI(false),
+    m_ControlledByPlayer(false),
+    movespline(new Movement::MoveSpline()),
+    i_AI(NULL),
+    i_disabledAI(NULL),
+    m_AutoRepeatFirstCast(false),
+    m_procDeep(0),
+    m_removedAurasCount(0),
+    i_motionMaster(this),
+    m_ThreatManager(this),
+    m_vehicle(NULL),
+    m_vehicleKit(NULL),
+    m_unitTypeMask(UNIT_MASK_NONE),
+    m_HostileRefManager(this),
+    _lastDamagedTime(0)
 {
 #ifdef _MSC_VER
 #pragma warning(default:4355)
@@ -195,7 +195,7 @@ Unit::Unit(bool isWorldObject): WorldObject(isWorldObject)
     m_extraAttacks = 0;
     m_canDualWield = false;
 
-    m_rootTimes = 0;
+    m_movementCounter = 0;
 
     m_state = 0;
     m_deathState = ALIVE;
@@ -633,7 +633,7 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
 
             uint32 share = CalculatePct(damage, (*i)->GetAmount());
 
-            // TODO: check packets if damage is done by victim, or by attacker of victim
+            /// @todo check packets if damage is done by victim, or by attacker of victim
             DealDamageMods(shareDamageTarget, share, NULL);
             DealDamage(shareDamageTarget, share, NULL, NODAMAGE, spell->GetSchoolMask(), spell, false);
         }
@@ -834,7 +834,7 @@ void Unit::CastSpell(SpellCastTargets const& targets, SpellInfo const* spellInfo
         return;
     }
 
-    // TODO: this is a workaround - not needed anymore, but required for some scripts :(
+    /// @todo this is a workaround - not needed anymore, but required for some scripts :(
     if (!originalCaster && triggeredByAura)
         originalCaster = triggeredByAura->GetCasterGUID();
 
@@ -1086,7 +1086,7 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage* damageInfo, bool durabilityLoss)
     DealDamage(victim, damageInfo->damage, &cleanDamage, SPELL_DIRECT_DAMAGE, SpellSchoolMask(damageInfo->schoolMask), spellProto, durabilityLoss);
 }
 
-// TODO for melee need create structure as in
+/// @todo for melee need create structure as in
 void Unit::CalculateMeleeDamage(Unit* victim, uint32 damage, CalcDamageInfo* damageInfo, WeaponAttackType attackType)
 {
     damageInfo->attacker         = this;
@@ -1392,7 +1392,7 @@ void Unit::DealMeleeDamage(CalcDamageInfo* damageInfo, bool durabilityLoss)
             // No Unit::CalcAbsorbResist here - opcode doesn't send that data - this damage is probably not affected by that
             victim->DealDamageMods(this, damage, NULL);
 
-            // TODO: Move this to a packet handler
+            /// @todo Move this to a packet handler
             WorldPacket data(SMSG_SPELLDAMAGESHIELD, 8 + 8 + 4 + 4 + 4 + 4 + 4);
             data << uint64(victim->GetGUID());
             data << uint64(GetGUID());
@@ -2345,7 +2345,7 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* victim, SpellInfo const* spell)
     return SPELL_MISS_NONE;
 }
 
-// TODO need use unit spell resistances in calculations
+/// @todo need use unit spell resistances in calculations
 SpellMissInfo Unit::MagicSpellHitResult(Unit* victim, SpellInfo const* spell)
 {
     // Can`t miss on dead target (on skinning for example)
@@ -2434,7 +2434,7 @@ SpellMissInfo Unit::SpellHitResult(Unit* victim, SpellInfo const* spell, bool Ca
         return SPELL_MISS_IMMUNE;
 
     // All positive spells can`t miss
-    // TODO: client not show miss log for this spells - so need find info for this in dbc and use it!
+    /// @todo client not show miss log for this spells - so need find info for this in dbc and use it!
     if (spell->IsPositive()
         &&(!IsHostileTo(victim)))  // prevent from affecting enemy by "positive" spell
         return SPELL_MISS_NONE;
@@ -3925,7 +3925,7 @@ AuraEffect* Unit::GetAuraEffect(AuraType type, SpellFamilyNames name, uint32 ico
     return NULL;
 }
 
-AuraEffect* Unit::GetAuraEffect(AuraType type, SpellFamilyNames family, uint32 familyFlag1, uint32 familyFlag2, uint32 familyFlag3, uint64 casterGUID)
+AuraEffect* Unit::GetAuraEffect(AuraType type, SpellFamilyNames family, uint32 familyFlag1, uint32 familyFlag2, uint32 familyFlag3, uint64 casterGUID) const
 {
     AuraEffectList const& auras = GetAuraEffectsByType(type);
     for (AuraEffectList::const_iterator i = auras.begin(); i != auras.end(); ++i)
@@ -4241,7 +4241,7 @@ float Unit::GetTotalAuraMultiplier(AuraType auratype) const
     return multiplier;
 }
 
-int32 Unit::GetMaxPositiveAuraModifier(AuraType auratype)
+int32 Unit::GetMaxPositiveAuraModifier(AuraType auratype) const
 {
     int32 modifier = 0;
 
@@ -4267,7 +4267,7 @@ int32 Unit::GetMaxNegativeAuraModifier(AuraType auratype) const
     return modifier;
 }
 
-int32 Unit::GetTotalAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask) const
+int32 Unit::GetTotalAuraModifierByMiscMask(AuraType auratype, uint32 miscMask) const
 {
     std::map<SpellGroup, int32> SameEffectSpellGroup;
     int32 modifier = 0;
@@ -4275,7 +4275,7 @@ int32 Unit::GetTotalAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask) 
     AuraEffectList const& mTotalAuraList = GetAuraEffectsByType(auratype);
 
     for (AuraEffectList::const_iterator i = mTotalAuraList.begin(); i != mTotalAuraList.end(); ++i)
-        if ((*i)->GetMiscValue() & misc_mask)
+        if ((*i)->GetMiscValue() & miscMask)
             if (!sSpellMgr->AddSameEffectStackRuleSpellGroups((*i)->GetSpellInfo(), (*i)->GetAmount(), SameEffectSpellGroup))
                 modifier += (*i)->GetAmount();
 
@@ -4285,7 +4285,7 @@ int32 Unit::GetTotalAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask) 
     return modifier;
 }
 
-float Unit::GetTotalAuraMultiplierByMiscMask(AuraType auratype, uint32 misc_mask) const
+float Unit::GetTotalAuraMultiplierByMiscMask(AuraType auratype, uint32 miscMask) const
 {
     std::map<SpellGroup, int32> SameEffectSpellGroup;
     float multiplier = 1.0f;
@@ -4293,7 +4293,7 @@ float Unit::GetTotalAuraMultiplierByMiscMask(AuraType auratype, uint32 misc_mask
     AuraEffectList const& mTotalAuraList = GetAuraEffectsByType(auratype);
     for (AuraEffectList::const_iterator i = mTotalAuraList.begin(); i != mTotalAuraList.end(); ++i)
     {
-        if (((*i)->GetMiscValue() & misc_mask))
+        if (((*i)->GetMiscValue() & miscMask))
         {
             // Check if the Aura Effect has a the Same Effect Stack Rule and if so, use the highest amount of that SpellGroup
             // If the Aura Effect does not have this Stack Rule, it returns false so we can add to the multiplier as usual
@@ -4308,35 +4308,35 @@ float Unit::GetTotalAuraMultiplierByMiscMask(AuraType auratype, uint32 misc_mask
     return multiplier;
 }
 
-int32 Unit::GetMaxPositiveAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask, const AuraEffect* except) const
+int32 Unit::GetMaxPositiveAuraModifierByMiscMask(AuraType auratype, uint32 miscMask, const AuraEffect* except) const
 {
     int32 modifier = 0;
 
     AuraEffectList const& mTotalAuraList = GetAuraEffectsByType(auratype);
     for (AuraEffectList::const_iterator i = mTotalAuraList.begin(); i != mTotalAuraList.end(); ++i)
     {
-        if (except != (*i) && (*i)->GetMiscValue()& misc_mask && (*i)->GetAmount() > modifier)
+        if (except != (*i) && (*i)->GetMiscValue()& miscMask && (*i)->GetAmount() > modifier)
             modifier = (*i)->GetAmount();
     }
 
     return modifier;
 }
 
-int32 Unit::GetMaxNegativeAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask) const
+int32 Unit::GetMaxNegativeAuraModifierByMiscMask(AuraType auratype, uint32 miscMask) const
 {
     int32 modifier = 0;
 
     AuraEffectList const& mTotalAuraList = GetAuraEffectsByType(auratype);
     for (AuraEffectList::const_iterator i = mTotalAuraList.begin(); i != mTotalAuraList.end(); ++i)
     {
-        if ((*i)->GetMiscValue()& misc_mask && (*i)->GetAmount() < modifier)
+        if ((*i)->GetMiscValue()& miscMask && (*i)->GetAmount() < modifier)
             modifier = (*i)->GetAmount();
     }
 
     return modifier;
 }
 
-int32 Unit::GetTotalAuraModifierByMiscValue(AuraType auratype, int32 misc_value) const
+int32 Unit::GetTotalAuraModifierByMiscValue(AuraType auratype, int32 miscValue) const
 {
     std::map<SpellGroup, int32> SameEffectSpellGroup;
     int32 modifier = 0;
@@ -4344,7 +4344,7 @@ int32 Unit::GetTotalAuraModifierByMiscValue(AuraType auratype, int32 misc_value)
     AuraEffectList const& mTotalAuraList = GetAuraEffectsByType(auratype);
     for (AuraEffectList::const_iterator i = mTotalAuraList.begin(); i != mTotalAuraList.end(); ++i)
     {
-        if ((*i)->GetMiscValue() == misc_value)
+        if ((*i)->GetMiscValue() == miscValue)
             if (!sSpellMgr->AddSameEffectStackRuleSpellGroups((*i)->GetSpellInfo(), (*i)->GetAmount(), SameEffectSpellGroup))
                 modifier += (*i)->GetAmount();
     }
@@ -4355,7 +4355,7 @@ int32 Unit::GetTotalAuraModifierByMiscValue(AuraType auratype, int32 misc_value)
     return modifier;
 }
 
-float Unit::GetTotalAuraMultiplierByMiscValue(AuraType auratype, int32 misc_value) const
+float Unit::GetTotalAuraMultiplierByMiscValue(AuraType auratype, int32 miscValue) const
 {
     std::map<SpellGroup, int32> SameEffectSpellGroup;
     float multiplier = 1.0f;
@@ -4363,7 +4363,7 @@ float Unit::GetTotalAuraMultiplierByMiscValue(AuraType auratype, int32 misc_valu
     AuraEffectList const& mTotalAuraList = GetAuraEffectsByType(auratype);
     for (AuraEffectList::const_iterator i = mTotalAuraList.begin(); i != mTotalAuraList.end(); ++i)
     {
-        if ((*i)->GetMiscValue() == misc_value)
+        if ((*i)->GetMiscValue() == miscValue)
             if (!sSpellMgr->AddSameEffectStackRuleSpellGroups((*i)->GetSpellInfo(), (*i)->GetAmount(), SameEffectSpellGroup))
                 AddPct(multiplier, (*i)->GetAmount());
     }
@@ -4374,28 +4374,28 @@ float Unit::GetTotalAuraMultiplierByMiscValue(AuraType auratype, int32 misc_valu
     return multiplier;
 }
 
-int32 Unit::GetMaxPositiveAuraModifierByMiscValue(AuraType auratype, int32 misc_value) const
+int32 Unit::GetMaxPositiveAuraModifierByMiscValue(AuraType auratype, int32 miscValue) const
 {
     int32 modifier = 0;
 
     AuraEffectList const& mTotalAuraList = GetAuraEffectsByType(auratype);
     for (AuraEffectList::const_iterator i = mTotalAuraList.begin(); i != mTotalAuraList.end(); ++i)
     {
-        if ((*i)->GetMiscValue() == misc_value && (*i)->GetAmount() > modifier)
+        if ((*i)->GetMiscValue() == miscValue && (*i)->GetAmount() > modifier)
             modifier = (*i)->GetAmount();
     }
 
     return modifier;
 }
 
-int32 Unit::GetMaxNegativeAuraModifierByMiscValue(AuraType auratype, int32 misc_value) const
+int32 Unit::GetMaxNegativeAuraModifierByMiscValue(AuraType auratype, int32 miscValue) const
 {
     int32 modifier = 0;
 
     AuraEffectList const& mTotalAuraList = GetAuraEffectsByType(auratype);
     for (AuraEffectList::const_iterator i = mTotalAuraList.begin(); i != mTotalAuraList.end(); ++i)
     {
-        if ((*i)->GetMiscValue() == misc_value && (*i)->GetAmount() < modifier)
+        if ((*i)->GetMiscValue() == miscValue && (*i)->GetAmount() < modifier)
             modifier = (*i)->GetAmount();
     }
 
@@ -5098,7 +5098,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
                     target = this;
                     if (roll_chance_i(10))
-                        ToPlayer()->Say("This is Madness!", LANG_UNIVERSAL); // TODO: It should be moved to database, shouldn't it?
+                        ToPlayer()->Say("This is Madness!", LANG_UNIVERSAL); /// @todo It should be moved to database, shouldn't it?
                     break;
                 }
                 // Sunwell Exalted Caster Neck (??? neck)
@@ -8590,7 +8590,7 @@ void Unit::SetCharm(Unit* charm, bool apply)
                 sLog->outFatal(LOG_FILTER_UNITS, "Player %s is trying to charm unit %u, but it already has a charmed unit " UI64FMTD "", GetName().c_str(), charm->GetEntry(), GetCharmGUID());
 
             charm->m_ControlledByPlayer = true;
-            // TODO: maybe we can use this flag to check if controlled by player
+            /// @todo maybe we can use this flag to check if controlled by player
             charm->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
         }
         else
@@ -8707,7 +8707,7 @@ Unit* Unit::GetMagicHitRedirectTarget(Unit* victim, SpellInfo const* spellInfo)
                 && spellInfo->CheckTarget(this, magnet, false) == SPELL_CAST_OK
                 && _IsValidAttackTarget(magnet, spellInfo))
             {
-                // TODO: handle this charge drop by proc in cast phase on explicit target
+                /// @todo handle this charge drop by proc in cast phase on explicit target
                 (*itr)->GetBase()->DropCharge(AURA_REMOVE_BY_EXPIRE);
                 return magnet;
             }
@@ -8889,7 +8889,7 @@ void Unit::UnsummonAllTotems()
 void Unit::SendHealSpellLog(Unit* victim, uint32 SpellID, uint32 Damage, uint32 OverHeal, uint32 Absorb, bool critical)
 {
     // we guess size
-    WorldPacket data(SMSG_SPELLHEALLOG, 8+8+4+4+4+4+1+1);
+    WorldPacket data(SMSG_SPELLHEALLOG, 8 + 8 + 4 + 4 + 4 + 4 + 1 + 1);
     data.append(victim->GetPackGUID());
     data.append(GetPackGUID());
     data << uint32(SpellID);
@@ -8912,28 +8912,28 @@ int32 Unit::HealBySpell(Unit* victim, SpellInfo const* spellInfo, uint32 addHeal
     return gain;
 }
 
-void Unit::SendEnergizeSpellLog(Unit* victim, uint32 spellID, uint32 damage, Powers powerType)
+void Unit::SendEnergizeSpellLog(Unit* victim, uint32 spellId, int32 damage, Powers powerType)
 {
     WorldPacket data(SMSG_SPELLENERGIZELOG, (8+8+4+4+4+1));
     data.append(victim->GetPackGUID());
     data.append(GetPackGUID());
-    data << uint32(spellID);
+    data << uint32(spellId);
     data << uint32(powerType);
-    data << uint32(damage);
+    data << int32(damage);
     SendMessageToSet(&data, true);
 }
 
-void Unit::EnergizeBySpell(Unit* victim, uint32 spellID, int32 damage, Powers powerType)
+void Unit::EnergizeBySpell(Unit* victim, uint32 spellId, int32 damage, Powers powerType)
 {
-    SendEnergizeSpellLog(victim, spellID, damage, powerType);
+    SendEnergizeSpellLog(victim, spellId, damage, powerType);
     // needs to be called after sending spell log
     victim->ModifyPower(powerType, damage);
 
-    SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellID);
+    SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
     victim->getHostileRefManager().threatAssist(this, float(damage) * 0.5f, spellInfo);
 }
 
-uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack)
+uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack) const
 {
     if (!spellProto || !victim || damagetype == DIRECT_DAMAGE)
         return pdamage;
@@ -9000,7 +9000,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
     AddPct(DoneTotalMod, GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_DAMAGE_DONE_FOR_MECHANIC, spellProto->Mechanic));
 
     // done scripted mod (take it from owner)
-    Unit* owner = GetOwner() ? GetOwner() : this;
+    Unit const* owner = GetOwner() ? GetOwner() : this;
     AuraEffectList const& mOverrideClassScript= owner->GetAuraEffectsByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
     for (AuraEffectList::const_iterator i = mOverrideClassScript.begin(); i != mOverrideClassScript.end(); ++i)
     {
@@ -9204,7 +9204,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
     return uint32(std::max(tmpDamage, 0.0f));
 }
 
-uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack)
+uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack) const
 {
     if (!spellProto || damagetype == DIRECT_DAMAGE)
         return pdamage;
@@ -9303,7 +9303,7 @@ uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, ui
     return uint32(std::max(tmpDamage, 0.0f));
 }
 
-int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask)
+int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask) const
 {
     int32 DoneAdvertisedBenefit = 0;
 
@@ -9346,7 +9346,7 @@ int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask)
     return DoneAdvertisedBenefit;
 }
 
-int32 Unit::SpellBaseDamageBonusTaken(SpellSchoolMask schoolMask)
+int32 Unit::SpellBaseDamageBonusTaken(SpellSchoolMask schoolMask) const
 {
     int32 TakenAdvertisedBenefit = 0;
 
@@ -9566,7 +9566,7 @@ uint32 Unit::SpellCriticalDamageBonus(SpellInfo const* spellProto, uint32 damage
     {
         case SPELL_DAMAGE_CLASS_MELEE:                      // for melee based spells is 100%
         case SPELL_DAMAGE_CLASS_RANGED:
-            // TODO: write here full calculation for melee/ranged spells
+            /// @todo write here full calculation for melee/ranged spells
             crit_bonus += damage;
             break;
         default:
@@ -9605,7 +9605,7 @@ uint32 Unit::SpellCriticalHealingBonus(SpellInfo const* /*spellProto*/, uint32 d
     return damage;
 }
 
-uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, uint32 healamount, DamageEffectType damagetype, uint32 stack)
+uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, uint32 healamount, DamageEffectType damagetype, uint32 stack) const
 {
     // For totems get healing bonus from owner (statue isn't totem in fact)
     if (GetTypeId() == TYPEID_UNIT && isTotem())
@@ -9625,7 +9625,7 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
         AddPct(DoneTotalMod, (*i)->GetAmount());
 
     // done scripted mod (take it from owner)
-    Unit* owner = GetOwner() ? GetOwner() : this;
+    Unit const* owner = GetOwner() ? GetOwner() : this;
     AuraEffectList const& mOverrideClassScript= owner->GetAuraEffectsByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
     for (AuraEffectList::const_iterator i = mOverrideClassScript.begin(); i != mOverrideClassScript.end(); ++i)
     {
@@ -9740,7 +9740,7 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
     return uint32(std::max(heal, 0.0f));
 }
 
-uint32 Unit::SpellHealingBonusTaken(Unit* caster, SpellInfo const* spellProto, uint32 healamount, DamageEffectType damagetype, uint32 stack)
+uint32 Unit::SpellHealingBonusTaken(Unit* caster, SpellInfo const* spellProto, uint32 healamount, DamageEffectType damagetype, uint32 stack) const
 {
     float TakenTotalMod = 1.0f;
 
@@ -9829,24 +9829,24 @@ uint32 Unit::SpellHealingBonusTaken(Unit* caster, SpellInfo const* spellProto, u
     return uint32(std::max(heal, 0.0f));
 }
 
-int32 Unit::SpellBaseHealingBonusDone(SpellSchoolMask schoolMask)
+int32 Unit::SpellBaseHealingBonusDone(SpellSchoolMask schoolMask) const
 {
-    int32 AdvertisedBenefit = 0;
+    int32 advertisedBenefit = 0;
 
     AuraEffectList const& mHealingDone = GetAuraEffectsByType(SPELL_AURA_MOD_HEALING_DONE);
     for (AuraEffectList::const_iterator i = mHealingDone.begin(); i != mHealingDone.end(); ++i)
         if (!(*i)->GetMiscValue() || ((*i)->GetMiscValue() & schoolMask) != 0)
-            AdvertisedBenefit += (*i)->GetAmount();
+            advertisedBenefit += (*i)->GetAmount();
 
     // Healing bonus of spirit, intellect and strength
     if (GetTypeId() == TYPEID_PLAYER)
     {
         // Base value
-        AdvertisedBenefit += ToPlayer()->GetBaseSpellPowerBonus();
+        advertisedBenefit += ToPlayer()->GetBaseSpellPowerBonus();
 
         // Check if we are ever using mana - PaperDollFrame.lua
         if (GetPowerIndex(POWER_MANA) != MAX_POWERS)
-            AdvertisedBenefit += std::max(0, int32(GetStat(STAT_INTELLECT)) - 10);  // spellpower from intellect
+            advertisedBenefit += std::max(0, int32(GetStat(STAT_INTELLECT)) - 10);  // spellpower from intellect
 
         // Healing bonus from stats
         AuraEffectList const& mHealingDoneOfStatPercent = GetAuraEffectsByType(SPELL_AURA_MOD_SPELL_HEALING_OF_STAT_PERCENT);
@@ -9854,31 +9854,31 @@ int32 Unit::SpellBaseHealingBonusDone(SpellSchoolMask schoolMask)
         {
             // stat used dependent from misc value (stat index)
             Stats usedStat = Stats((*i)->GetSpellInfo()->Effects[(*i)->GetEffIndex()].MiscValue);
-            AdvertisedBenefit += int32(CalculatePct(GetStat(usedStat), (*i)->GetAmount()));
+            advertisedBenefit += int32(CalculatePct(GetStat(usedStat), (*i)->GetAmount()));
         }
 
         // ... and attack power
         AuraEffectList const& mHealingDonebyAP = GetAuraEffectsByType(SPELL_AURA_MOD_SPELL_HEALING_OF_ATTACK_POWER);
         for (AuraEffectList::const_iterator i = mHealingDonebyAP.begin(); i != mHealingDonebyAP.end(); ++i)
             if ((*i)->GetMiscValue() & schoolMask)
-                AdvertisedBenefit += int32(CalculatePct(GetTotalAttackPowerValue(BASE_ATTACK), (*i)->GetAmount()));
+                advertisedBenefit += int32(CalculatePct(GetTotalAttackPowerValue(BASE_ATTACK), (*i)->GetAmount()));
     }
-    return AdvertisedBenefit;
+    return advertisedBenefit;
 }
 
-int32 Unit::SpellBaseHealingBonusTaken(SpellSchoolMask schoolMask)
+int32 Unit::SpellBaseHealingBonusTaken(SpellSchoolMask schoolMask) const
 {
-    int32 AdvertisedBenefit = 0;
+    int32 advertisedBenefit = 0;
 
     AuraEffectList const& mDamageTaken = GetAuraEffectsByType(SPELL_AURA_MOD_HEALING);
     for (AuraEffectList::const_iterator i = mDamageTaken.begin(); i != mDamageTaken.end(); ++i)
         if (((*i)->GetMiscValue() & schoolMask) != 0)
-            AdvertisedBenefit += (*i)->GetAmount();
+            advertisedBenefit += (*i)->GetAmount();
 
-    return AdvertisedBenefit;
+    return advertisedBenefit;
 }
 
-bool Unit::IsImmunedToDamage(SpellSchoolMask shoolMask)
+bool Unit::IsImmunedToDamage(SpellSchoolMask shoolMask) const
 {
     // If m_immuneToSchool type contain this school type, IMMUNE damage.
     SpellImmuneList const& schoolList = m_spellImmune[IMMUNITY_SCHOOL];
@@ -9895,7 +9895,7 @@ bool Unit::IsImmunedToDamage(SpellSchoolMask shoolMask)
     return false;
 }
 
-bool Unit::IsImmunedToDamage(SpellInfo const* spellInfo)
+bool Unit::IsImmunedToDamage(SpellInfo const* spellInfo) const
 {
     if (spellInfo->Attributes & SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY)
         return false;
@@ -9919,7 +9919,7 @@ bool Unit::IsImmunedToDamage(SpellInfo const* spellInfo)
     return false;
 }
 
-bool Unit::IsImmunedToSpell(SpellInfo const* spellInfo)
+bool Unit::IsImmunedToSpell(SpellInfo const* spellInfo) const
 {
     if (!spellInfo)
         return false;
@@ -11114,7 +11114,7 @@ void Unit::UpdateSpeed(UnitMoveType mtype, bool forced)
             }
 
             // Normalize speed by 191 aura SPELL_AURA_USE_NORMAL_MOVEMENT_SPEED if need
-            // TODO: possible affect only on MOVE_RUN
+            /// @todo possible affect only on MOVE_RUN
             if (int32 normalization = GetMaxPositiveAuraModifier(SPELL_AURA_USE_NORMAL_MOVEMENT_SPEED))
             {
                 // Use speed from aura
@@ -11400,7 +11400,7 @@ void Unit::SetSpeed(UnitMoveType mtype, float rate, bool forced)
                 data.WriteByteSeq(guid[5]);
                 data << float(GetSpeed(mtype));
                 data.WriteByteSeq(guid[2]);
-                data << uint32(0);
+                data << uint32(m_movementCounter++);
                 data.WriteByteSeq(guid[4]);
                 data.WriteByteSeq(guid[0]);
                 data.WriteByteSeq(guid[7]);
@@ -11420,7 +11420,7 @@ void Unit::SetSpeed(UnitMoveType mtype, float rate, bool forced)
                 data.WriteByteSeq(guid[3]);
                 data.WriteByteSeq(guid[1]);
                 data.WriteByteSeq(guid[4]);
-                data << uint32(0);
+                data << uint32(m_movementCounter++);
                 data << float(GetSpeed(mtype));
                 data.WriteByteSeq(guid[6]);
                 data.WriteByteSeq(guid[0]);
@@ -11438,7 +11438,7 @@ void Unit::SetSpeed(UnitMoveType mtype, float rate, bool forced)
                 data.WriteBit(guid[5]);
                 data.WriteBit(guid[7]);
                 data.WriteByteSeq(guid[5]);
-                data << uint32(0);
+                data << uint32(m_movementCounter++);
                 data << float(GetSpeed(mtype));
                 data.WriteByteSeq(guid[0]);
                 data.WriteByteSeq(guid[4]);
@@ -11459,7 +11459,7 @@ void Unit::SetSpeed(UnitMoveType mtype, float rate, bool forced)
                 data.WriteBit(guid[1]);
                 data.WriteBit(guid[6]);
                 data.WriteByteSeq(guid[0]);
-                data << uint32(0);
+                data << uint32(m_movementCounter++);
                 data.WriteByteSeq(guid[6]);
                 data.WriteByteSeq(guid[3]);
                 data.WriteByteSeq(guid[5]);
@@ -11479,7 +11479,7 @@ void Unit::SetSpeed(UnitMoveType mtype, float rate, bool forced)
                 data.WriteBit(guid[1]);
                 data.WriteBit(guid[0]);
                 data.WriteBit(guid[7]);
-                data << uint32(0);
+                data << uint32(m_movementCounter++);
                 data.WriteByteSeq(guid[0]);
                 data.WriteByteSeq(guid[3]);
                 data.WriteByteSeq(guid[4]);
@@ -11507,7 +11507,7 @@ void Unit::SetSpeed(UnitMoveType mtype, float rate, bool forced)
                 data.WriteByteSeq(guid[3]);
                 data.WriteByteSeq(guid[1]);
                 data.WriteByteSeq(guid[0]);
-                data << uint32(0);
+                data << uint32(m_movementCounter++);
                 data.WriteByteSeq(guid[6]);
                 data.WriteByteSeq(guid[4]);
                 break;
@@ -11526,7 +11526,7 @@ void Unit::SetSpeed(UnitMoveType mtype, float rate, bool forced)
                 data.WriteByteSeq(guid[7]);
                 data.WriteByteSeq(guid[5]);
                 data << float(GetSpeed(mtype));
-                data << uint32(0);
+                data << uint32(m_movementCounter++);
                 data.WriteByteSeq(guid[2]);
                 data.WriteByteSeq(guid[6]);
                 data.WriteByteSeq(guid[3]);
@@ -11543,7 +11543,7 @@ void Unit::SetSpeed(UnitMoveType mtype, float rate, bool forced)
                 data.WriteBit(guid[0]);
                 data.WriteBit(guid[5]);
                 data.WriteByteSeq(guid[3]);
-                data << uint32(0);
+                data << uint32(m_movementCounter++);
                 data.WriteByteSeq(guid[6]);
                 data << float(GetSpeed(mtype));
                 data.WriteByteSeq(guid[1]);
@@ -11567,7 +11567,7 @@ void Unit::SetSpeed(UnitMoveType mtype, float rate, bool forced)
                 data.WriteByteSeq(guid[6]);
                 data.WriteByteSeq(guid[4]);
                 data.WriteByteSeq(guid[0]);
-                data << uint32(0);
+                data << uint32(m_movementCounter++);
                 data.WriteByteSeq(guid[1]);
                 data.WriteByteSeq(guid[2]);
                 data.WriteByteSeq(guid[7]);
@@ -11594,6 +11594,9 @@ void Unit::setDeathState(DeathState s)
         if (IsNonMeleeSpellCasted(false))
             InterruptNonMeleeSpells(false);
 
+        ExitVehicle();                                      // Exit vehicle before calling RemoveAllControlled
+                                                            // vehicles use special type of charm that is not removed by the next function
+                                                            // triggering an assert
         UnsummonAllTotems();
         RemoveAllControlled();
         RemoveAllAurasOnDeath();
@@ -11858,7 +11861,7 @@ Unit* Creature::SelectVictim()
             return NULL;
     }
 
-    // TODO: a vehicle may eat some mob, so mob should not evade
+    /// @todo a vehicle may eat some mob, so mob should not evade
     if (GetVehicle())
         return NULL;
 
@@ -14602,7 +14605,7 @@ void Unit::Kill(Unit* victim, bool durabilityLoss)
         {
             Map* instanceMap = creature->GetMap();
             Player* creditedPlayer = GetCharmerOrOwnerPlayerOrPlayerItself();
-            // TODO: do instance binding anyway if the charmer/owner is offline
+            /// @todo do instance binding anyway if the charmer/owner is offline
 
             if (instanceMap->IsDungeon() && creditedPlayer)
             {
@@ -14876,9 +14879,6 @@ void Unit::SetRooted(bool apply)
 {
     if (apply)
     {
-        if (m_rootTimes > 0) // blizzard internal check?
-            m_rootTimes++;
-
         // MOVEMENTFLAG_ROOT cannot be used in conjunction with MOVEMENTFLAG_MASK_MOVING (tested 3.3.5a)
         // this will freeze clients. That's why we remove MOVEMENTFLAG_MASK_MOVING before
         // setting MOVEMENTFLAG_ROOT
@@ -14886,7 +14886,7 @@ void Unit::SetRooted(bool apply)
         AddUnitMovementFlag(MOVEMENTFLAG_ROOT);
 
         if (GetTypeId() == TYPEID_PLAYER)
-            SendMoveRoot(m_rootTimes);
+            SendMoveRoot(m_movementCounter++);
         else
         {
             ObjectGuid guid = GetGUID();
@@ -14917,7 +14917,7 @@ void Unit::SetRooted(bool apply)
         if (!HasUnitState(UNIT_STATE_STUNNED))      // prevent moving if it also has stun effect
         {
             if (GetTypeId() == TYPEID_PLAYER)
-                SendMoveUnroot(++m_rootTimes);
+                SendMoveUnroot(m_movementCounter++);
             else
             {
                 ObjectGuid guid = GetGUID();
@@ -15038,7 +15038,7 @@ bool Unit::SetCharmedBy(Unit* charmer, CharmType type, AuraApplication const* au
     }
 
     CastStop();
-    CombatStop(); // TODO: CombatStop(true) may cause crash (interrupt spells)
+    CombatStop(); /// @todo CombatStop(true) may cause crash (interrupt spells)
     DeleteThreatList();
 
     // Charmer stop charming
@@ -15173,7 +15173,7 @@ void Unit::RemoveCharmedBy(Unit* charmer)
         type = CHARM_TYPE_CHARM;
 
     CastStop();
-    CombatStop(); // TODO: CombatStop(true) may cause crash (interrupt spells)
+    CombatStop(); /// @todo CombatStop(true) may cause crash (interrupt spells)
     getHostileRefManager().deleteReferences();
     DeleteThreatList();
     Map* map = GetMap();
@@ -16292,7 +16292,10 @@ void Unit::_EnterVehicle(Vehicle* vehicle, int8 seatId, AuraApplication const* a
     if (Player* player = ToPlayer())
     {
         if (vehicle->GetBase()->GetTypeId() == TYPEID_PLAYER && player->isInCombat())
+        {
+            vehicle->GetBase()->RemoveAura(const_cast<AuraApplication*>(aurApp));
             return;
+        }
     }
 
     ASSERT(!m_vehicle);
@@ -16356,7 +16359,7 @@ void Unit::_ExitVehicle(Position const* exitPosition)
 
     Player* player = ToPlayer();
 
-    // If player is on mouted duel and exits the mount should immediatly lose the duel
+    // If the player is on mounted duel and exits the mount, he should immediatly lose the duel
     if (player && player->duel && player->duel->isMounted)
         player->DuelComplete(DUEL_FLED);
 
@@ -16384,20 +16387,25 @@ void Unit::_ExitVehicle(Position const* exitPosition)
         SendMessageToSet(&data, false);
     }
 
+    float height = pos.GetPositionZ();
+
     Movement::MoveSplineInit init(this);
-    init.MoveTo(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), false);
+
+    // Creatures without inhabit type air should begin falling after exiting the vehicle
+    if (GetTypeId() == TYPEID_UNIT && !CanFly() && height > GetMap()->GetWaterOrGroundLevel(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), &height) + 0.1f)
+        init.SetFall();
+
+    init.MoveTo(pos.GetPositionX(), pos.GetPositionY(), height, false);
     init.SetFacing(GetOrientation());
     init.SetTransportExit();
     init.Launch();
 
-    //GetMotionMaster()->MoveFall();            // Enable this once passenger positions are calculater properly (see above)
-
     if (player)
         player->ResummonPetTemporaryUnSummonedIfAny();
 
-    if (vehicle->GetBase()->HasUnitTypeMask(UNIT_MASK_MINION))
+    if (vehicle->GetBase()->HasUnitTypeMask(UNIT_MASK_MINION) && vehicle->GetBase()->GetTypeId() == TYPEID_UNIT)
         if (((Minion*)vehicle->GetBase())->GetOwner() == this)
-            vehicle->Dismiss();
+            vehicle->GetBase()->ToCreature()->DespawnOrUnsummon();
 
     if (HasUnitTypeMask(UNIT_MASK_ACCESSORY))
     {
@@ -16408,92 +16416,6 @@ void Unit::_ExitVehicle(Position const* exitPosition)
         else
             ToTempSummon()->UnSummon(2000); // Approximation
     }
-}
-
-void Unit::BuildMovementPacket(ByteBuffer *data) const
-{
-    *data << uint32(GetUnitMovementFlags());            // movement flags
-    *data << uint16(GetExtraUnitMovementFlags());       // 2.3.0
-    *data << uint32(getMSTime());                       // time / counter
-    *data << GetPositionX();
-    *data << GetPositionY();
-    *data << GetPositionZMinusOffset();
-    *data << GetOrientation();
-
-    bool onTransport = m_movementInfo.t_guid != 0;
-    bool hasInterpolatedMovement = m_movementInfo.flags2 & MOVEMENTFLAG2_INTERPOLATED_MOVEMENT;
-    bool time3 = false;
-    bool swimming = ((GetUnitMovementFlags() & (MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_FLYING))
-        || (m_movementInfo.flags2 & MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING));
-    bool interPolatedTurning = m_movementInfo.flags2 & MOVEMENTFLAG2_INTERPOLATED_TURNING;
-    bool jumping = GetUnitMovementFlags() & MOVEMENTFLAG_FALLING;
-    bool splineElevation = GetUnitMovementFlags() & MOVEMENTFLAG_SPLINE_ELEVATION;
-    bool splineData = false;
-
-    data->WriteBits(GetUnitMovementFlags(), 30);
-    data->WriteBits(m_movementInfo.flags2, 12);
-    data->WriteBit(onTransport);
-    if (onTransport)
-    {
-        data->WriteBit(hasInterpolatedMovement);
-        data->WriteBit(time3);
-    }
-
-    data->WriteBit(swimming);
-    data->WriteBit(interPolatedTurning);
-    if (interPolatedTurning)
-        data->WriteBit(jumping);
-
-    data->WriteBit(splineElevation);
-    data->WriteBit(splineData);
-
-    data->FlushBits(); // reset bit stream
-
-    *data << uint64(GetGUID());
-    *data << uint32(getMSTime());
-    *data << float(GetPositionX());
-    *data << float(GetPositionY());
-    *data << float(GetPositionZ());
-    *data << float(GetOrientation());
-
-    if (onTransport)
-    {
-        if (m_vehicle)
-            *data << uint64(m_vehicle->GetBase()->GetGUID());
-        else if (GetTransport())
-            *data << uint64(GetTransport()->GetGUID());
-        else // probably should never happen
-            *data << (uint64)0;
-
-        *data << float (GetTransOffsetX());
-        *data << float (GetTransOffsetY());
-        *data << float (GetTransOffsetZ());
-        *data << float (GetTransOffsetO());
-        *data << uint8 (GetTransSeat());
-        *data << uint32(GetTransTime());
-        if (hasInterpolatedMovement)
-            *data << int32(0); // Transport Time 2
-        if (time3)
-            *data << int32(0); // Transport Time 3
-    }
-
-    if (swimming)
-        *data << (float)m_movementInfo.pitch;
-
-    if (interPolatedTurning)
-    {
-        *data << (uint32)m_movementInfo.fallTime;
-        *data << (float)m_movementInfo.j_zspeed;
-        if (jumping)
-        {
-            *data << (float)m_movementInfo.j_sinAngle;
-            *data << (float)m_movementInfo.j_cosAngle;
-            *data << (float)m_movementInfo.j_xyspeed;
-        }
-    }
-
-    if (splineElevation)
-        *data << (float)m_movementInfo.splineElevation;
 }
 
 void Unit::SetCanFly(bool apply)
@@ -16518,6 +16440,12 @@ void Unit::NearTeleportTo(float x, float y, float z, float orientation, bool cas
     }
 }
 
+void Unit::BuildHeartBeatMsg(WorldPacket* data)
+{
+    data->Initialize(MSG_MOVE_HEARTBEAT, 32);
+    WriteMovementInfo(*data);
+}
+
 void Unit::ReadMovementInfo(WorldPacket& data, MovementInfo* mi)
 {
     if (GetTypeId() != TYPEID_PLAYER)
@@ -16528,13 +16456,6 @@ void Unit::ReadMovementInfo(WorldPacket& data, MovementInfo* mi)
     bool hasTimestamp = false;
     bool hasOrientation = false;
     bool hasTransportData = false;
-    bool hasTransportTime2 = false;
-    bool hasTransportTime3 = false;
-    bool hasPitch = false;
-    bool hasFallData = false;
-    bool hasFallDirection = false;
-    bool hasSplineElevation = false;
-    bool hasSpline = false;
 
     MovementStatusElements* sequence = GetMovementStatusElementsSequence(data.GetOpcode());
     if (sequence == NULL)
@@ -16580,6 +16501,15 @@ void Unit::ReadMovementInfo(WorldPacket& data, MovementInfo* mi)
             continue;
         }
 
+        if (element >= MSESpeedWalk &&
+            element <= MSESpeedPitchRate)
+        {
+            /// @TODO: Possibly verify with current speed - but need to keep in mind that core
+            /// might trigger multiple changes before client has a chance to reply so only check the last value
+            data.read_skip<float>();
+            continue;
+        }
+
         switch (element)
         {
             case MSEHasMovementFlags:
@@ -16599,27 +16529,27 @@ void Unit::ReadMovementInfo(WorldPacket& data, MovementInfo* mi)
                 break;
             case MSEHasTransportTime2:
                 if (hasTransportData)
-                    hasTransportTime2 = data.ReadBit();
+                    mi->bits.hasTransportTime2 = data.ReadBit();
                 break;
             case MSEHasTransportTime3:
                 if (hasTransportData)
-                    hasTransportTime3 = data.ReadBit();
+                    mi->bits.hasTransportTime3 = data.ReadBit();
                 break;
             case MSEHasPitch:
-                hasPitch = !data.ReadBit();
+                mi->bits.hasPitch = !data.ReadBit();
                 break;
             case MSEHasFallData:
-                hasFallData = data.ReadBit();
+                mi->bits.hasFallData = data.ReadBit();
                 break;
             case MSEHasFallDirection:
-                if (hasFallData)
-                    hasFallDirection = data.ReadBit();
+                if (mi->bits.hasFallData)
+                    mi->bits.hasFallDirection = data.ReadBit();
                 break;
             case MSEHasSplineElevation:
-                hasSplineElevation = !data.ReadBit();
+                mi->bits.hasSplineElevation = !data.ReadBit();
                 break;
             case MSEHasSpline:
-                hasSpline = data.ReadBit();
+                data.ReadBit();
                 break;
             case MSEMovementFlags:
                 if (hasMovementFlags)
@@ -16671,40 +16601,43 @@ void Unit::ReadMovementInfo(WorldPacket& data, MovementInfo* mi)
                     data >> mi->t_time;
                 break;
             case MSETransportTime2:
-                if (hasTransportData && hasTransportTime2)
+                if (hasTransportData && mi->bits.hasTransportTime2)
                     data >> mi->t_time2;
                 break;
             case MSETransportTime3:
-                if (hasTransportData && hasTransportTime3)
+                if (hasTransportData && mi->bits.hasTransportTime3)
                     data >> mi->t_time3;
                 break;
             case MSEPitch:
-                if (hasPitch)
+                if (mi->bits.hasPitch)
                     data >> mi->pitch;
                 break;
             case MSEFallTime:
-                if (hasFallData)
+                if (mi->bits.hasFallData)
                     data >> mi->fallTime;
                 break;
             case MSEFallVerticalSpeed:
-                if (hasFallData)
+                if (mi->bits.hasFallData)
                     data >> mi->j_zspeed;
                 break;
             case MSEFallCosAngle:
-                if (hasFallData && hasFallDirection)
+                if (mi->bits.hasFallData && mi->bits.hasFallDirection)
                     data >> mi->j_cosAngle;
                 break;
             case MSEFallSinAngle:
-                if (hasFallData && hasFallDirection)
+                if (mi->bits.hasFallData && mi->bits.hasFallDirection)
                     data >> mi->j_sinAngle;
                 break;
             case MSEFallHorizontalSpeed:
-                if (hasFallData && hasFallDirection)
+                if (mi->bits.hasFallData && mi->bits.hasFallDirection)
                     data >> mi->j_xyspeed;
                 break;
             case MSESplineElevation:
-                if (hasSplineElevation)
+                if (mi->bits.hasSplineElevation)
                     data >> mi->splineElevation;
+                break;
+            case MSECounter:
+                data.read_skip<uint32>();   /// @TODO: Maybe compare it with m_movementCounter to verify that packets are sent & received in order?
                 break;
             case MSEZeroBit:
             case MSEOneBit:
@@ -16730,7 +16663,7 @@ void Unit::ReadMovementInfo(WorldPacket& data, MovementInfo* mi)
     { \
         if (check) \
         { \
-            sLog->outDebug(LOG_FILTER_UNITS, "WorldSession::ReadMovementInfo: Violation of MovementFlags found (%s). " \
+            sLog->outDebug(LOG_FILTER_UNITS, "Unit::ReadMovementInfo: Violation of MovementFlags found (%s). " \
                 "MovementFlags: %u, MovementFlags2: %u for player GUID: %u. Mask %u will be removed.", \
                 STRINGIZE(check), mi->GetMovementFlags(), mi->GetExtraMovementFlags(), GetGUIDLow(), maskToRemove); \
             mi->RemoveMovementFlag((maskToRemove)); \
@@ -16798,30 +16731,54 @@ void Unit::ReadMovementInfo(WorldPacket& data, MovementInfo* mi)
 
 void Unit::WriteMovementInfo(WorldPacket& data)
 {
-    Unit* mover = GetCharmerGUID() ? GetCharmer() : this;
+    Unit const* mover = GetCharmerGUID() ? GetCharmer() : this;
+    if (Player const* player = ToPlayer())
+        mover = player->m_mover;
 
     bool hasMovementFlags = mover->GetUnitMovementFlags() != 0;
     bool hasMovementFlags2 = mover->GetExtraUnitMovementFlags() != 0;
     bool hasTimestamp = GetTypeId() == TYPEID_PLAYER ? (mover->m_movementInfo.time != 0) : true;
     bool hasOrientation = !G3D::fuzzyEq(mover->GetOrientation(), 0.0f);
-    bool hasTransportData = mover->GetTransport() != NULL;
-    bool hasTransportTime2 = mover->HasExtraUnitMovementFlag(MOVEMENTFLAG2_INTERPOLATED_MOVEMENT);
-    bool hasTransportTime3 = false;
-    bool hasPitch = mover->HasUnitMovementFlag(MovementFlags(MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_FLYING)) || mover->HasExtraUnitMovementFlag(MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING);
-    bool hasFallData = mover->HasExtraUnitMovementFlag(MOVEMENTFLAG2_INTERPOLATED_TURNING);
-    bool hasFallDirection = mover->HasUnitMovementFlag(MOVEMENTFLAG_FALLING);
-    bool hasSplineElevation = mover->HasUnitMovementFlag(MOVEMENTFLAG_SPLINE_ELEVATION);
-    bool hasSpline = false;
+    bool hasTransportData = GetTransGUID() != 0;
+    bool hasSpline = mover->IsSplineEnabled();
+
+    bool hasTransportTime2;
+    bool hasTransportTime3;
+    bool hasPitch;
+    bool hasFallData;
+    bool hasFallDirection;
+    bool hasSplineElevation;
+
+    if (GetTypeId() == TYPEID_PLAYER)
+    {
+        hasTransportTime2 = mover->m_movementInfo.bits.hasTransportTime2;
+        hasTransportTime3 = mover->m_movementInfo.bits.hasTransportTime3;
+        hasPitch = mover->m_movementInfo.bits.hasPitch;
+        hasFallData = mover->m_movementInfo.bits.hasFallData;
+        hasFallDirection = mover->m_movementInfo.bits.hasFallDirection;
+        hasSplineElevation = mover->m_movementInfo.bits.hasSplineElevation;
+    }
+    else
+    {
+        hasTransportTime2 = mover->HasExtraUnitMovementFlag(MOVEMENTFLAG2_INTERPOLATED_MOVEMENT);
+        hasTransportTime3 = false;
+        hasPitch = mover->HasUnitMovementFlag(MovementFlags(MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_FLYING)) || mover->HasExtraUnitMovementFlag(MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING);
+        hasFallDirection = mover->HasUnitMovementFlag(MOVEMENTFLAG_FALLING);
+        hasFallData = hasFallDirection; // FallDirection implies that FallData is set as well
+                                        // the only case when hasFallData = 1 && hasFallDirection = 0
+                                        // is for MSG_MOVE_LAND, which is handled above, in player case
+        hasSplineElevation = mover->HasUnitMovementFlag(MOVEMENTFLAG_SPLINE_ELEVATION);
+    }
 
     MovementStatusElements* sequence = GetMovementStatusElementsSequence(data.GetOpcode());
     if (!sequence)
     {
-        sLog->outError(LOG_FILTER_NETWORKIO, "WorldSession::WriteMovementInfo: No movement sequence found for opcode 0x%04X", uint32(data.GetOpcode()));
+        sLog->outError(LOG_FILTER_NETWORKIO, "Unit::WriteMovementInfo: No movement sequence found for opcode 0x%04X", uint32(data.GetOpcode()));
         return;
     }
 
     ObjectGuid guid = mover->GetGUID();
-    ObjectGuid tguid = hasTransportData ? GetTransport()->GetGUID() : 0;
+    ObjectGuid tguid = hasTransportData ? GetTransGUID() : 0;
 
     for (uint32 i = 0; i < MSE_COUNT; ++i)
     {
@@ -16857,141 +16814,151 @@ void Unit::WriteMovementInfo(WorldPacket& data)
             continue;
         }
 
+        if (element >= MSESpeedWalk &&
+            element <= MSESpeedPitchRate)
+        {
+            data << mover->GetSpeed(UnitMoveType(element - MSESpeedWalk));
+            continue;
+        }
+
         switch (element)
         {
-        case MSEHasMovementFlags:
-            data.WriteBit(!hasMovementFlags);
-            break;
-        case MSEHasMovementFlags2:
-            data.WriteBit(!hasMovementFlags2);
-            break;
-        case MSEHasTimestamp:
-            data.WriteBit(!hasTimestamp);
-            break;
-        case MSEHasOrientation:
-            data.WriteBit(!hasOrientation);
-            break;
-        case MSEHasTransportData:
-            data.WriteBit(hasTransportData);
-            break;
-        case MSEHasTransportTime2:
-            if (hasTransportData)
-                data.WriteBit(hasTransportTime2);
-            break;
-        case MSEHasTransportTime3:
-            if (hasTransportData)
-                data.WriteBit(hasTransportTime3);
-            break;
-        case MSEHasPitch:
-            data.WriteBit(!hasPitch);
-            break;
-        case MSEHasFallData:
-            data.WriteBit(hasFallData);
-            break;
-        case MSEHasFallDirection:
-            if (hasFallData)
-                data.WriteBit(hasFallDirection);
-            break;
-        case MSEHasSplineElevation:
-            data.WriteBit(!hasSplineElevation);
-            break;
-        case MSEHasSpline:
-            data.WriteBit(hasSpline);
-            break;
-        case MSEMovementFlags:
-            if (hasMovementFlags)
-                data.WriteBits(mover->GetUnitMovementFlags(), 30);
-            break;
-        case MSEMovementFlags2:
-            if (hasMovementFlags2)
-                data.WriteBits(mover->GetExtraUnitMovementFlags(), 12);
-            break;
-        case MSETimestamp:
-            if (hasTimestamp)
-                data << getMSTime();
-            break;
-        case MSEPositionX:
-            data << mover->GetPositionX();
-            break;
-        case MSEPositionY:
-            data << mover->GetPositionY();
-            break;
-        case MSEPositionZ:
-            data << mover->GetPositionZ();
-            break;
-        case MSEOrientation:
-            if (hasOrientation)
-                data << mover->GetOrientation();
-            break;
-        case MSETransportPositionX:
-            if (hasTransportData)
-                data << mover->GetTransport()->GetPositionX();
-            break;
-        case MSETransportPositionY:
-            if (hasTransportData)
-                data << mover->GetTransport()->GetPositionY();
-            break;
-        case MSETransportPositionZ:
-            if (hasTransportData)
-                data << mover->GetTransport()->GetPositionZ();
-            break;
-        case MSETransportOrientation:
-            if (hasTransportData)
-                data << mover->GetTransport()->GetOrientation();
-            break;
-        case MSETransportSeat:
-            if (hasTransportData)
-                data << mover->GetTransSeat();
-            break;
-        case MSETransportTime:
-            if (hasTransportData)
-                data << mover->GetTransTime();
-            break;
-        case MSETransportTime2:
-            if (hasTransportData && hasTransportTime2)
-                data << mover->m_movementInfo.t_time2;
-            break;
-        case MSETransportTime3:
-            if (hasTransportData && hasTransportTime3)
-                data << mover->m_movementInfo.t_time3;
-            break;
-        case MSEPitch:
-            if (hasPitch)
-                data << mover->m_movementInfo.pitch;
-            break;
-        case MSEFallTime:
-            if (hasFallData)
-                data << mover->m_movementInfo.fallTime;
-            break;
-        case MSEFallVerticalSpeed:
-            if (hasFallData)
-                data << mover->m_movementInfo.j_zspeed;
-            break;
-        case MSEFallCosAngle:
-            if (hasFallData && hasFallDirection)
-                data << mover->m_movementInfo.j_cosAngle;
-            break;
-        case MSEFallSinAngle:
-            if (hasFallData && hasFallDirection)
-                data << mover->m_movementInfo.j_sinAngle;
-            break;
-        case MSEFallHorizontalSpeed:
-            if (hasFallData && hasFallDirection)
-                data << mover->m_movementInfo.j_xyspeed;
-            break;
-        case MSESplineElevation:
-            if (hasSplineElevation)
-                data << mover->m_movementInfo.splineElevation;
-            break;
-        case MSEZeroBit:
-            data.WriteBit(0);
-            break;
-        case MSEOneBit:
-            data.WriteBit(1);
-            break;
-        default:
-            ASSERT(false && "Incorrect sequence element detected at ReadMovementInfo");
-            break;
+            case MSEHasMovementFlags:
+                data.WriteBit(!hasMovementFlags);
+                break;
+            case MSEHasMovementFlags2:
+                data.WriteBit(!hasMovementFlags2);
+                break;
+            case MSEHasTimestamp:
+                data.WriteBit(!hasTimestamp);
+                break;
+            case MSEHasOrientation:
+                data.WriteBit(!hasOrientation);
+                break;
+            case MSEHasTransportData:
+                data.WriteBit(hasTransportData);
+                break;
+            case MSEHasTransportTime2:
+                if (hasTransportData)
+                    data.WriteBit(hasTransportTime2);
+                break;
+            case MSEHasTransportTime3:
+                if (hasTransportData)
+                    data.WriteBit(hasTransportTime3);
+                break;
+            case MSEHasPitch:
+                data.WriteBit(!hasPitch);
+                break;
+            case MSEHasFallData:
+                data.WriteBit(hasFallData);
+                break;
+            case MSEHasFallDirection:
+                if (hasFallData)
+                    data.WriteBit(hasFallDirection);
+                break;
+            case MSEHasSplineElevation:
+                data.WriteBit(!hasSplineElevation);
+                break;
+            case MSEHasSpline:
+                data.WriteBit(hasSpline);
+                break;
+            case MSEMovementFlags:
+                if (hasMovementFlags)
+                    data.WriteBits(mover->GetUnitMovementFlags(), 30);
+                break;
+            case MSEMovementFlags2:
+                if (hasMovementFlags2)
+                    data.WriteBits(mover->GetExtraUnitMovementFlags(), 12);
+                break;
+            case MSETimestamp:
+                if (hasTimestamp)
+                    data << getMSTime();
+                break;
+            case MSEPositionX:
+                data << mover->GetPositionX();
+                break;
+            case MSEPositionY:
+                data << mover->GetPositionY();
+                break;
+            case MSEPositionZ:
+                data << mover->GetPositionZ();
+                break;
+            case MSEOrientation:
+                if (hasOrientation)
+                    data << mover->GetOrientation();
+                break;
+            case MSETransportPositionX:
+                if (hasTransportData)
+                    data << mover->GetTransOffsetX();
+                break;
+            case MSETransportPositionY:
+                if (hasTransportData)
+                    data << mover->GetTransOffsetY();
+                break;
+            case MSETransportPositionZ:
+                if (hasTransportData)
+                    data << mover->GetTransOffsetZ();
+                break;
+            case MSETransportOrientation:
+                if (hasTransportData)
+                    data << mover->GetTransOffsetO();
+                break;
+            case MSETransportSeat:
+                if (hasTransportData)
+                    data << mover->GetTransSeat();
+                break;
+            case MSETransportTime:
+                if (hasTransportData)
+                    data << mover->GetTransTime();
+                break;
+            case MSETransportTime2:
+                if (hasTransportData && hasTransportTime2)
+                    data << mover->m_movementInfo.t_time2;
+                break;
+            case MSETransportTime3:
+                if (hasTransportData && hasTransportTime3)
+                    data << mover->m_movementInfo.t_time3;
+                break;
+            case MSEPitch:
+                if (hasPitch)
+                    data << mover->m_movementInfo.pitch;
+                break;
+            case MSEFallTime:
+                if (hasFallData)
+                    data << mover->m_movementInfo.fallTime;
+                break;
+            case MSEFallVerticalSpeed:
+                if (hasFallData)
+                    data << mover->m_movementInfo.j_zspeed;
+                break;
+            case MSEFallCosAngle:
+                if (hasFallData && hasFallDirection)
+                    data << mover->m_movementInfo.j_cosAngle;
+                break;
+            case MSEFallSinAngle:
+                if (hasFallData && hasFallDirection)
+                    data << mover->m_movementInfo.j_sinAngle;
+                break;
+            case MSEFallHorizontalSpeed:
+                if (hasFallData && hasFallDirection)
+                    data << mover->m_movementInfo.j_xyspeed;
+                break;
+            case MSESplineElevation:
+                if (hasSplineElevation)
+                    data << mover->m_movementInfo.splineElevation;
+                break;
+            case MSECounter:
+                data << m_movementCounter++;
+                break;
+            case MSEZeroBit:
+                data.WriteBit(0);
+                break;
+            case MSEOneBit:
+                data.WriteBit(1);
+                break;
+            default:
+                ASSERT(false && "Incorrect sequence element detected at ReadMovementInfo");
+                break;
         }
     }
 }
@@ -17411,7 +17378,7 @@ void Unit::SetFacingToObject(WorldObject* object)
     if (!IsStopped())
         return;
 
-    // TODO: figure out under what conditions creature will move towards object instead of facing it where it currently is.
+    /// @todo figure out under what conditions creature will move towards object instead of facing it where it currently is.
     SetFacingTo(GetAngle(object));
 }
 
@@ -17473,8 +17440,7 @@ void Unit::SendMovementHover()
         ToPlayer()->SendMovementSetHover(HasUnitMovementFlag(MOVEMENTFLAG_HOVER));
 
     WorldPacket data(MSG_MOVE_HOVER, 64);
-    data.append(GetPackGUID());
-    BuildMovementPacket(&data);
+    WriteMovementInfo(data);
     SendMessageToSet(&data, false);
 }
 
@@ -17484,8 +17450,7 @@ void Unit::SendMovementWaterWalking()
         ToPlayer()->SendMovementSetWaterWalking(HasUnitMovementFlag(MOVEMENTFLAG_WATERWALKING));
 
     WorldPacket data(MSG_MOVE_WATER_WALK, 64);
-    data.append(GetPackGUID());
-    BuildMovementPacket(&data);
+    WriteMovementInfo(data);
     SendMessageToSet(&data, false);
 }
 
@@ -17495,16 +17460,14 @@ void Unit::SendMovementFeatherFall()
         ToPlayer()->SendMovementSetFeatherFall(HasUnitMovementFlag(MOVEMENTFLAG_FALLING_SLOW));
 
     WorldPacket data(MSG_MOVE_FEATHER_FALL, 64);
-    data.append(GetPackGUID());
-    BuildMovementPacket(&data);
+    WriteMovementInfo(data);
     SendMessageToSet(&data, false);
 }
 
 void Unit::SendMovementGravityChange()
 {
     WorldPacket data(MSG_MOVE_GRAVITY_CHNG, 64);
-    data.append(GetPackGUID());
-    BuildMovementPacket(&data);
+    WriteMovementInfo(data);
     SendMessageToSet(&data, false);
 }
 
@@ -17528,8 +17491,7 @@ void Unit::SendMovementCanFlyChange()
         ToPlayer()->SendMovementSetCanFly(CanFly());
 
     WorldPacket data(MSG_MOVE_UPDATE_CAN_FLY, 64);
-    data.append(GetPackGUID());
-    BuildMovementPacket(&data);
+    WriteMovementInfo(data);
     SendMessageToSet(&data, false);
 }
 

@@ -55,6 +55,7 @@
 #include "BattlegroundMgr.h"
 #include "Battlefield.h"
 #include "BattlefieldMgr.h"
+#include "DB2Stores.h"
 
 void WorldSession::HandleRepopRequestOpcode(WorldPacket& recvData)
 {
@@ -242,7 +243,6 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recvData)
 
     uint32 team = _player->GetTeam();
 
-    bool allowTwoSideWhoList = sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_WHO_LIST);
     uint32 gmLevelInWhoList  = sWorld->getIntConfig(CONFIG_GM_LEVEL_IN_WHO_LIST);
     uint32 displaycount = 0;
 
@@ -256,7 +256,7 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recvData)
     {
         Player* target = itr->second;
         // player can see member of other team only if CONFIG_ALLOW_TWO_SIDE_WHO_LIST
-        if (target->GetTeam() != team && !allowTwoSideWhoList && !HasPermission(RBAC_PERM_TWO_SIDE_WHO_LIST))
+        if (target->GetTeam() != team && !HasPermission(RBAC_PERM_TWO_SIDE_WHO_LIST))
             continue;
 
         // player can see MODERATOR, GAME MASTER, ADMINISTRATOR only if CONFIG_GM_IN_WHO_LIST
@@ -389,7 +389,7 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket& /*recvData*/)
 
     WorldPacket data(SMSG_LOGOUT_RESPONSE, 1+4);
     data << uint32(reason);
-    data << uint8(0);
+    data << uint8(instantLogout);
     SendPacket(&data);
 
     if (reason)
@@ -572,14 +572,13 @@ void WorldSession::HandleAddFriendOpcodeCallBack(PreparedQueryResult result, std
         team = Player::TeamForRace(fields[1].GetUInt8());
         friendAccountId = fields[2].GetUInt32();
 
-        if (HasPermission(RBAC_PERM_ALLOW_GM_FRIEND) || sWorld->getBoolConfig(CONFIG_ALLOW_GM_FRIEND) ||
-            AccountMgr::IsPlayerAccount(AccountMgr::GetSecurity(friendAccountId, realmID)))
+        if (HasPermission(RBAC_PERM_ALLOW_GM_FRIEND) || AccountMgr::IsPlayerAccount(AccountMgr::GetSecurity(friendAccountId, realmID)))
         {
             if (friendGuid)
             {
                 if (friendGuid == GetPlayer()->GetGUID())
                     friendResult = FRIEND_SELF;
-                else if (GetPlayer()->GetTeam() != team && !sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_ADD_FRIEND) && !HasPermission(RBAC_PERM_TWO_SIDE_ADD_FRIEND))
+                else if (GetPlayer()->GetTeam() != team && !HasPermission(RBAC_PERM_TWO_SIDE_ADD_FRIEND))
                     friendResult = FRIEND_ENEMY;
                 else if (GetPlayer()->GetSocial()->HasFriend(GUID_LOPART(friendGuid)))
                     friendResult = FRIEND_ALREADY;
@@ -1096,7 +1095,7 @@ void WorldSession::HandleMoveTimeSkippedOpcode(WorldPacket& recvData)
         recvData >> time_skipped;
         sLog->outDebug(LOG_FILTER_PACKETIO, "WORLD: CMSG_MOVE_TIME_SKIPPED");
 
-        /// TODO
+        //// @todo
         must be need use in Trinity
         We substract server Lags to move time (AntiLags)
         for exmaple
@@ -1487,10 +1486,10 @@ void WorldSession::HandleTimeSyncResp(WorldPacket& recvData)
     sLog->outDebug(LOG_FILTER_NETWORKIO, "CMSG_TIME_SYNC_RESP");
 
     uint32 counter, clientTicks;
-    recvData >> clientTicks >> counter;
+    recvData >> counter >> clientTicks;
 
-    if (counter != _player->m_timeSyncCounter - 1)
-        sLog->outDebug(LOG_FILTER_NETWORKIO, "Wrong time sync counter from player %s (cheater?)", _player->GetName().c_str());
+    if (counter != _player->m_timeSyncCounter)
+        sLog->outError(LOG_FILTER_NETWORKIO, "Wrong time sync counter from player %s (cheater?)", _player->GetName().c_str());
 
     sLog->outDebug(LOG_FILTER_NETWORKIO, "Time sync received: counter %u, client ticks %u, time since last sync %u", counter, clientTicks, clientTicks - _player->m_timeSyncClient);
 
@@ -1866,6 +1865,14 @@ void WorldSession::HandleRequestHotfix(WorldPacket& recvPacket)
     uint32 type, count;
     recvPacket >> type;
 
+    DB2StorageBase const* store = GetDB2Storage(type);
+    if (!store)
+    {
+        sLog->outError(LOG_FILTER_NETWORKIO, "CMSG_REQUEST_HOTFIX: Received unknown hotfix type: %u", type);
+        recvPacket.rfinish();
+        return;
+    }
+
     count = recvPacket.ReadBits(23);
 
     ObjectGuid* guids = new ObjectGuid[count];
@@ -1894,19 +1901,28 @@ void WorldSession::HandleRequestHotfix(WorldPacket& recvPacket)
         recvPacket >> entry;
         recvPacket.ReadByteSeq(guids[i][2]);
 
-        switch (type)
+        if (!store->HasRecord(entry))
         {
-            case DB2_REPLY_ITEM:
-                SendItemDb2Reply(entry);
-                break;
-            case DB2_REPLY_SPARSE:
-                SendItemSparseDb2Reply(entry);
-                break;
-            default:
-                sLog->outError(LOG_FILTER_NETWORKIO, "CMSG_REQUEST_HOTFIX: Received unknown hotfix type: %u", type);
-                recvPacket.rfinish();
-                break;
+            WorldPacket data(SMSG_DB_REPLY, 4 * 4);
+            data << -int32(entry);
+            data << uint32(store->GetHash());
+            data << uint32(time(NULL));
+            data << uint32(0);
+            SendPacket(&data);
+            continue;
         }
+
+        WorldPacket data(SMSG_DB_REPLY);
+        data << int32(entry);
+        data << uint32(store->GetHash());
+        data << uint32(sObjectMgr->GetHotfixDate(entry, store->GetHash()));
+
+        size_t sizePos = data.wpos();
+        data << uint32(0);              // size of next block
+        store->WriteRecord(entry, uint32(GetSessionDbcLocale()), data);
+        data.put<uint32>(sizePos, data.wpos() - sizePos - 4);
+
+        SendPacket(&data);
     }
 
     delete[] guids;

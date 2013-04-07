@@ -19,6 +19,7 @@
 #ifndef __UNIT_H
 #define __UNIT_H
 
+#include "DBCStructure.h"
 #include "EventProcessor.h"
 #include "FollowerReference.h"
 #include "FollowerRefManager.h"
@@ -126,14 +127,32 @@ enum SpellValueMod
     SPELLVALUE_AURA_STACK
 };
 
-typedef std::pair<SpellValueMod, int32>     CustomSpellValueMod;
-class CustomSpellValues : public std::vector<CustomSpellValueMod>
+class CustomSpellValues
 {
-    public:
-        void AddSpellMod(SpellValueMod mod, int32 value)
-        {
-            push_back(std::make_pair(mod, value));
-        }
+    typedef std::pair<SpellValueMod, int32> CustomSpellValueMod;
+    typedef std::vector<CustomSpellValueMod> StorageType;
+
+public:
+    typedef StorageType::const_iterator const_iterator;
+
+public:
+    void AddSpellMod(SpellValueMod mod, int32 value)
+    {
+        storage_.push_back(CustomSpellValueMod(mod, value));
+    }
+
+    const_iterator begin() const
+    {
+        return storage_.begin();
+    }
+
+    const_iterator end() const
+    {
+        return storage_.end();
+    }
+
+private:
+    StorageType storage_;
 };
 
 enum SpellFacingFlags
@@ -709,7 +728,7 @@ enum MovementFlags
     MOVEMENTFLAG_FALLING_SLOW          = 0x08000000,               // active rogue safe fall spell (passive)
     MOVEMENTFLAG_HOVER                 = 0x10000000,               // hover, cannot jump
 
-    // TODO: Check if PITCH_UP and PITCH_DOWN really belong here..
+    /// @todo Check if PITCH_UP and PITCH_DOWN really belong here..
     MOVEMENTFLAG_MASK_MOVING =
         MOVEMENTFLAG_FORWARD | MOVEMENTFLAG_BACKWARD | MOVEMENTFLAG_STRAFE_LEFT | MOVEMENTFLAG_STRAFE_RIGHT |
         MOVEMENTFLAG_PITCH_UP | MOVEMENTFLAG_PITCH_DOWN | MOVEMENTFLAG_FALLING | MOVEMENTFLAG_FALLING_FAR | MOVEMENTFLAG_ASCENDING | MOVEMENTFLAG_DESCENDING |
@@ -727,7 +746,7 @@ enum MovementFlags
         MOVEMENTFLAG_FORWARD | MOVEMENTFLAG_DISABLE_GRAVITY | MOVEMENTFLAG_ROOT | MOVEMENTFLAG_SWIMMING |
         MOVEMENTFLAG_CAN_FLY | MOVEMENTFLAG_WATERWALKING | MOVEMENTFLAG_FALLING_SLOW | MOVEMENTFLAG_HOVER,
 
-    //! TODO if needed: add more flags to this masks that are exclusive to players
+    /// @todo if needed: add more flags to this masks that are exclusive to players
     MOVEMENTFLAG_MASK_PLAYER_ONLY =
         MOVEMENTFLAG_FLYING
 };
@@ -739,13 +758,17 @@ enum MovementFlags2
     MOVEMENTFLAG2_FULL_SPEED_TURNING       = 0x00000004,
     MOVEMENTFLAG2_FULL_SPEED_PITCHING      = 0x00000008,
     MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING    = 0x00000010,
-    MOVEMENTFLAG2_UNK7                     = 0x00000020,
-    MOVEMENTFLAG2_UNK8                     = 0x00000040,
-    MOVEMENTFLAG2_UNK9                     = 0x00000080,
-    MOVEMENTFLAG2_UNK10                    = 0x00000100,
-    MOVEMENTFLAG2_INTERPOLATED_MOVEMENT    = 0x00000200,
-    MOVEMENTFLAG2_INTERPOLATED_TURNING     = 0x00000400,
-    MOVEMENTFLAG2_INTERPOLATED_PITCHING    = 0x00000800
+    MOVEMENTFLAG2_UNK5                     = 0x00000020,
+    MOVEMENTFLAG2_UNK6                     = 0x00000040,
+    MOVEMENTFLAG2_UNK7                     = 0x00000080,
+    MOVEMENTFLAG2_UNK8                     = 0x00000100,
+    MOVEMENTFLAG2_UNK9                     = 0x00000200,
+    MOVEMENTFLAG2_UNK10                    = 0x00000400,
+    MOVEMENTFLAG2_UNK11                    = 0x00000800,
+    MOVEMENTFLAG2_UNK12                    = 0x00001000,
+    MOVEMENTFLAG2_INTERPOLATED_MOVEMENT    = 0x00002000,
+    MOVEMENTFLAG2_INTERPOLATED_TURNING     = 0x00004000,
+    MOVEMENTFLAG2_INTERPOLATED_PITCHING    = 0x00008000
 };
 
 enum UnitTypeMask
@@ -766,16 +789,6 @@ enum UnitTypeMask
 namespace Movement{
     class MoveSpline;
 }
-
-enum DiminishingLevels
-{
-    DIMINISHING_LEVEL_1             = 0,
-    DIMINISHING_LEVEL_2             = 1,
-    DIMINISHING_LEVEL_3             = 2,
-    DIMINISHING_LEVEL_IMMUNE        = 3,
-    DIMINISHING_LEVEL_4             = 3,
-    DIMINISHING_LEVEL_TAUNT_IMMUNE  = 4
-};
 
 struct DiminishingReturn
 {
@@ -850,16 +863,16 @@ public:
     void ResistDamage(uint32 amount);
     void BlockDamage(uint32 amount);
 
-    Unit* GetAttacker() const { return m_attacker; };
-    Unit* GetVictim() const { return m_victim; };
-    SpellInfo const* GetSpellInfo() const { return m_spellInfo; };
-    SpellSchoolMask GetSchoolMask() const { return m_schoolMask; };
-    DamageEffectType GetDamageType() const { return m_damageType; };
-    WeaponAttackType GetAttackType() const { return m_attackType; };
-    uint32 GetDamage() const { return m_damage; };
-    uint32 GetAbsorb() const { return m_absorb; };
-    uint32 GetResist() const { return m_resist; };
-    uint32 GetBlock() const { return m_block; };
+    Unit* GetAttacker() const { return m_attacker; }
+    Unit* GetVictim() const { return m_victim; }
+    SpellInfo const* GetSpellInfo() const { return m_spellInfo; }
+    SpellSchoolMask GetSchoolMask() const { return m_schoolMask; }
+    DamageEffectType GetDamageType() const { return m_damageType; }
+    WeaponAttackType GetAttackType() const { return m_attackType; }
+    uint32 GetDamage() const { return m_damage; }
+    uint32 GetAbsorb() const { return m_absorb; }
+    uint32 GetResist() const { return m_resist; }
+    uint32 GetBlock() const { return m_block; }
 };
 
 class HealInfo
@@ -884,11 +897,31 @@ public:
         m_heal -= amount;
     }
 
-    uint32 GetHeal() const { return m_heal; };
+    uint32 GetHeal() const { return m_heal; }
 };
 
 class ProcEventInfo
 {
+public:
+    ProcEventInfo(Unit* actor, Unit* actionTarget, Unit* procTarget, uint32 typeMask,
+                  uint32 spellTypeMask, uint32 spellPhaseMask, uint32 hitMask,
+                  Spell* spell, DamageInfo* damageInfo, HealInfo* healInfo);
+
+    Unit* GetActor() { return _actor; }
+    Unit* GetActionTarget() const { return _actionTarget; }
+    Unit* GetProcTarget() const { return _procTarget; }
+
+    uint32 GetTypeMask() const { return _typeMask; }
+    uint32 GetSpellTypeMask() const { return _spellTypeMask; }
+    uint32 GetSpellPhaseMask() const { return _spellPhaseMask; }
+    uint32 GetHitMask() const { return _hitMask; }
+
+    SpellInfo const* GetSpellInfo() const { return NULL; }
+    SpellSchoolMask GetSchoolMask() const { return SPELL_SCHOOL_MASK_NONE; }
+
+    DamageInfo* GetDamageInfo() const { return _damageInfo; }
+    HealInfo* GetHealInfo() const { return _healInfo; }
+
 private:
     Unit* const _actor;
     Unit* const _actionTarget;
@@ -900,19 +933,6 @@ private:
     Spell* _spell;
     DamageInfo* _damageInfo;
     HealInfo* _healInfo;
-public:
-    explicit ProcEventInfo(Unit* actor, Unit* actionTarget, Unit* procTarget, uint32 typeMask, uint32 spellTypeMask, uint32 spellPhaseMask, uint32 hitMask, Spell* spell, DamageInfo* damageInfo, HealInfo* healInfo);
-    Unit* GetActor() { return _actor; };
-    Unit* GetActionTarget() const { return _actionTarget; }
-    Unit* GetProcTarget() const { return _procTarget; }
-    uint32 GetTypeMask() const { return _typeMask; }
-    uint32 GetSpellTypeMask() const { return _spellTypeMask; }
-    uint32 GetSpellPhaseMask() const { return _spellPhaseMask; }
-    uint32 GetHitMask() const { return _hitMask; }
-    SpellInfo const* GetSpellInfo() const { return NULL; }
-    SpellSchoolMask GetSchoolMask() const { return SPELL_SCHOOL_MASK_NONE; }
-    DamageInfo* GetDamageInfo() const { return _damageInfo; }
-    HealInfo* GetHealInfo() const { return _healInfo; }
 };
 
 // Struct for use in Unit::CalculateMeleeDamage
@@ -934,7 +954,7 @@ struct CalcDamageInfo
     uint32 procVictim;
     uint32 procEx;
     uint32 cleanDamage;          // Used only for rage calculation
-    MeleeHitOutcome hitOutCome;  // TODO: remove this field (need use TargetState)
+    MeleeHitOutcome hitOutCome;  /// @todo remove this field (need use TargetState)
 };
 
 // Spell damage info structure based on structure sending in SMSG_SPELLNONMELEEDAMAGELOG opcode
@@ -1427,10 +1447,13 @@ class Unit : public WorldObject
         void ProcDamageAndSpell(Unit* victim, uint32 procAttacker, uint32 procVictim, uint32 procEx, uint32 amount, WeaponAttackType attType = BASE_ATTACK, SpellInfo const* procSpell = NULL, SpellInfo const* procAura = NULL);
         void ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, SpellInfo const* procSpell, uint32 damage, SpellInfo const* procAura = NULL);
 
-        void GetProcAurasTriggeredOnEvent(std::list<AuraApplication*>& aurasTriggeringProc, std::list<AuraApplication*>* procAuras, ProcEventInfo eventInfo);
+        void GetProcAurasTriggeredOnEvent(AuraApplicationList& aurasTriggeringProc, AuraApplicationList* procAuras, ProcEventInfo eventInfo);
         void TriggerAurasProcOnEvent(CalcDamageInfo& damageInfo);
-        void TriggerAurasProcOnEvent(std::list<AuraApplication*>* myProcAuras, std::list<AuraApplication*>* targetProcAuras, Unit* actionTarget, uint32 typeMaskActor, uint32 typeMaskActionTarget, uint32 spellTypeMask, uint32 spellPhaseMask, uint32 hitMask, Spell* spell, DamageInfo* damageInfo, HealInfo* healInfo);
-        void TriggerAurasProcOnEvent(ProcEventInfo& eventInfo, std::list<AuraApplication*>& procAuras);
+        void TriggerAurasProcOnEvent(AuraApplicationList* myProcAuras, AuraApplicationList* targetProcAuras,
+                                     Unit* actionTarget, uint32 typeMaskActor, uint32 typeMaskActionTarget,
+                                     uint32 spellTypeMask, uint32 spellPhaseMask, uint32 hitMask, Spell* spell,
+                                     DamageInfo* damageInfo, HealInfo* healInfo);
+        void TriggerAurasProcOnEvent(ProcEventInfo& eventInfo, AuraApplicationList& procAuras);
 
         void HandleEmoteCommand(uint32 anim_id);
         void AttackerStateUpdate (Unit* victim, WeaponAttackType attType = BASE_ATTACK, bool extra = false);
@@ -1525,7 +1548,7 @@ class Unit : public WorldObject
 
         void SendHealSpellLog(Unit* victim, uint32 SpellID, uint32 Damage, uint32 OverHeal, uint32 Absorb, bool critical = false);
         int32 HealBySpell(Unit* victim, SpellInfo const* spellInfo, uint32 addHealth, bool critical = false);
-        void SendEnergizeSpellLog(Unit* victim, uint32 SpellID, uint32 Damage, Powers powertype);
+        void SendEnergizeSpellLog(Unit* victim, uint32 spellID, int32 damage, Powers powertype);
         void EnergizeBySpell(Unit* victim, uint32 SpellID, int32 Damage, Powers powertype);
         uint32 SpellNonMeleeDamageLog(Unit* victim, uint32 spellID, uint32 damage);
 
@@ -1602,12 +1625,12 @@ class Unit : public WorldObject
 
         void SendClearTarget();
 
-        void BuildHeartBeatMsg(WorldPacket* data) const;
+        void BuildHeartBeatMsg(WorldPacket* data);
 
-        bool isAlive() const { return (m_deathState == ALIVE); };
-        bool isDying() const { return (m_deathState == JUST_DIED); };
-        bool isDead() const { return (m_deathState == DEAD || m_deathState == CORPSE); };
-        DeathState getDeathState() { return m_deathState; };
+        bool isAlive() const { return (m_deathState == ALIVE); }
+        bool isDying() const { return (m_deathState == JUST_DIED); }
+        bool isDead() const { return (m_deathState == DEAD || m_deathState == CORPSE); }
+        DeathState getDeathState() const { return m_deathState; }
         virtual void setDeathState(DeathState s);           // overwrited in Creature/Player/Pet
 
         uint64 GetOwnerGUID() const { return  GetUInt64Value(UNIT_FIELD_SUMMONEDBY); }
@@ -1740,7 +1763,7 @@ class Unit : public WorldObject
         AuraEffect* GetAuraEffect(uint32 spellId, uint8 effIndex, uint64 casterGUID = 0) const;
         AuraEffect* GetAuraEffectOfRankedSpell(uint32 spellId, uint8 effIndex, uint64 casterGUID = 0) const;
         AuraEffect* GetAuraEffect(AuraType type, SpellFamilyNames name, uint32 iconId, uint8 effIndex) const; // spell mustn't have familyflags
-        AuraEffect* GetAuraEffect(AuraType type, SpellFamilyNames family, uint32 familyFlag1, uint32 familyFlag2, uint32 familyFlag3, uint64 casterGUID =0);
+        AuraEffect* GetAuraEffect(AuraType type, SpellFamilyNames family, uint32 familyFlag1, uint32 familyFlag2, uint32 familyFlag3, uint64 casterGUID =0) const;
         AuraEffect* GetDummyAuraEffect(SpellFamilyNames name, uint32 iconId, uint8 effIndex) const;
 
         AuraApplication * GetAuraApplication(uint32 spellId, uint64 casterGUID = 0, uint64 itemCasterGUID = 0, uint8 reqEffMask = 0, AuraApplication * except = NULL) const;
@@ -1769,7 +1792,7 @@ class Unit : public WorldObject
 
         int32 GetTotalAuraModifier(AuraType auratype) const;
         float GetTotalAuraMultiplier(AuraType auratype) const;
-        int32 GetMaxPositiveAuraModifier(AuraType auratype);
+        int32 GetMaxPositiveAuraModifier(AuraType auratype) const;
         int32 GetMaxNegativeAuraModifier(AuraType auratype) const;
 
         int32 GetTotalAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask) const;
@@ -1934,14 +1957,14 @@ class Unit : public WorldObject
         Unit* GetMagicHitRedirectTarget(Unit* victim, SpellInfo const* spellInfo);
         Unit* GetMeleeHitRedirectTarget(Unit* victim, SpellInfo const* spellInfo = NULL);
 
-        int32 SpellBaseDamageBonusDone(SpellSchoolMask schoolMask);
-        int32 SpellBaseDamageBonusTaken(SpellSchoolMask schoolMask);
-        uint32 SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack = 1);
-        uint32 SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack = 1);
-        int32 SpellBaseHealingBonusDone(SpellSchoolMask schoolMask);
-        int32 SpellBaseHealingBonusTaken(SpellSchoolMask schoolMask);
-        uint32 SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, uint32 healamount, DamageEffectType damagetype, uint32 stack = 1);
-        uint32 SpellHealingBonusTaken(Unit* caster, SpellInfo const* spellProto, uint32 healamount, DamageEffectType damagetype, uint32 stack = 1);
+        int32 SpellBaseDamageBonusDone(SpellSchoolMask schoolMask) const;
+        int32 SpellBaseDamageBonusTaken(SpellSchoolMask schoolMask) const;
+        uint32 SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack = 1) const;
+        uint32 SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack = 1) const;
+        int32 SpellBaseHealingBonusDone(SpellSchoolMask schoolMask) const;
+        int32 SpellBaseHealingBonusTaken(SpellSchoolMask schoolMask) const;
+        uint32 SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, uint32 healamount, DamageEffectType damagetype, uint32 stack = 1) const;
+        uint32 SpellHealingBonusTaken(Unit* caster, SpellInfo const* spellProto, uint32 healamount, DamageEffectType damagetype, uint32 stack = 1) const;
 
         uint32 MeleeDamageBonusDone(Unit* pVictim, uint32 damage, WeaponAttackType attType, SpellInfo const* spellProto = NULL);
         uint32 MeleeDamageBonusTaken(Unit* attacker, uint32 pdamage, WeaponAttackType attType, SpellInfo const* spellProto = NULL);
@@ -1962,10 +1985,10 @@ class Unit : public WorldObject
 
         void ApplySpellImmune(uint32 spellId, uint32 op, uint32 type, bool apply);
         void ApplySpellDispelImmunity(const SpellInfo* spellProto, DispelType type, bool apply);
-        virtual bool IsImmunedToSpell(SpellInfo const* spellInfo);
+        virtual bool IsImmunedToSpell(SpellInfo const* spellInfo) const;
                                                             // redefined in Creature
-        bool IsImmunedToDamage(SpellSchoolMask meleeSchoolMask);
-        bool IsImmunedToDamage(SpellInfo const* spellInfo);
+        bool IsImmunedToDamage(SpellSchoolMask meleeSchoolMask) const;
+        bool IsImmunedToDamage(SpellInfo const* spellInfo) const;
         virtual bool IsImmunedToSpellEffect(SpellInfo const* spellInfo, uint32 index) const;
                                                             // redefined in Creature
         static bool IsDamageReducedByArmor(SpellSchoolMask damageSchoolMask, SpellInfo const* spellInfo = NULL, uint8 effIndex = MAX_SPELL_EFFECTS);
@@ -2088,7 +2111,6 @@ class Unit : public WorldObject
         void _ExitVehicle(Position const* exitPosition = NULL);
         void _EnterVehicle(Vehicle* vehicle, int8 seatId, AuraApplication const* aurApp = NULL);
 
-        void BuildMovementPacket(ByteBuffer *data) const;
         void ReadMovementInfo(WorldPacket& data, MovementInfo* mi);
         void WriteMovementInfo(WorldPacket& data);
 
@@ -2227,8 +2249,9 @@ class Unit : public WorldObject
         void SetStunned(bool apply);
         void SetRooted(bool apply);
 
+        uint32 m_movementCounter;       ///< Incrementing counter used in movement packets
+
     private:
-        uint32 m_rootTimes;
 
         uint32 m_state;                                     // Even derived shouldn't modify
         uint32 m_CombatTimer;
