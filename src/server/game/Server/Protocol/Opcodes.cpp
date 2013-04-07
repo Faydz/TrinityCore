@@ -204,7 +204,7 @@ void OpcodeTable::Initialize()
     DEFINE_OPCODE_HANDLER(CMSG_DISMISS_CRITTER,                         STATUS_UNHANDLED, PROCESS_THREADUNSAFE, &WorldSession::HandleDismissCritter            );
     DEFINE_OPCODE_HANDLER(CMSG_DUEL_ACCEPTED,                           STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleDuelAcceptedOpcode        );
     DEFINE_OPCODE_HANDLER(CMSG_DUEL_CANCELLED,                          STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleDuelCancelledOpcode       );
-    DEFINE_OPCODE_HANDLER(CMSG_DUNGEON_FINDER_GET_SYSTEM_INFO,          STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_NULL                     );
+    DEFINE_OPCODE_HANDLER(CMSG_DUNGEON_FINDER_GET_SYSTEM_INFO,          STATUS_LOGGEDIN,  PROCESS_INPLACE,      &WorldSession::HandleLfgPlayerLockInfoRequestOpcode);
     DEFINE_OPCODE_HANDLER(CMSG_EJECT_PASSENGER,                         STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_NULL                     );
     DEFINE_OPCODE_HANDLER(CMSG_EMOTE,                                   STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleEmoteOpcode               );
     DEFINE_OPCODE_HANDLER(CMSG_ENABLETAXI,                              STATUS_LOGGEDIN,  PROCESS_THREADSAFE,   &WorldSession::HandleTaxiQueryAvailableNodes   );
@@ -300,7 +300,7 @@ void OpcodeTable::Initialize()
     DEFINE_OPCODE_HANDLER(CMSG_LEARN_TALENT,                            STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleLearnTalentOpcode         );
     DEFINE_OPCODE_HANDLER(CMSG_LEAVE_CHANNEL,                           STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleLeaveChannel              );
     DEFINE_OPCODE_HANDLER(CMSG_LFG_GET_STATUS,                          STATUS_LOGGEDIN,  PROCESS_THREADSAFE,   &WorldSession::HandleLfgGetStatus              );
-    DEFINE_OPCODE_HANDLER(CMSG_LFG_JOIN,                                STATUS_UNHANDLED, PROCESS_THREADUNSAFE, &WorldSession::HandleLfgJoinOpcode             );
+    DEFINE_OPCODE_HANDLER(CMSG_LFG_JOIN,                                STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleLfgJoinOpcode             );
     DEFINE_OPCODE_HANDLER(CMSG_LFG_LEAVE,                               STATUS_UNHANDLED, PROCESS_THREADUNSAFE, &WorldSession::HandleLfgLeaveOpcode            );
     DEFINE_OPCODE_HANDLER(CMSG_LFG_LFR_JOIN,                            STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_NULL                     );
     DEFINE_OPCODE_HANDLER(CMSG_LFG_LFR_LEAVE,                           STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_NULL                     );
@@ -926,13 +926,13 @@ void OpcodeTable::Initialize()
     DEFINE_OPCODE_HANDLER(SMSG_LEVELUP_INFO,                            STATUS_NEVER,     PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
     DEFINE_OPCODE_HANDLER(SMSG_LFG_BOOT_PROPOSAL_UPDATE,                STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
     DEFINE_OPCODE_HANDLER(SMSG_LFG_DISABLED,                            STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
-    DEFINE_OPCODE_HANDLER(SMSG_LFG_JOIN_RESULT,                         STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
+    DEFINE_OPCODE_HANDLER(SMSG_LFG_JOIN_RESULT,                         STATUS_LOGGEDIN,  PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
     DEFINE_OPCODE_HANDLER(SMSG_LFG_OFFER_CONTINUE,                      STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
     DEFINE_OPCODE_HANDLER(SMSG_LFG_PARTY_INFO,                          STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
-    DEFINE_OPCODE_HANDLER(SMSG_LFG_PLAYER_INFO,                         STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
+    DEFINE_OPCODE_HANDLER(SMSG_LFG_PLAYER_INFO,                         STATUS_LOGGEDIN,  PROCESS_INPLACE,      &WorldSession::Handle_ServerSide);
     DEFINE_OPCODE_HANDLER(SMSG_LFG_PLAYER_REWARD,                       STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
     DEFINE_OPCODE_HANDLER(SMSG_LFG_PROPOSAL_UPDATE,                     STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
-    DEFINE_OPCODE_HANDLER(SMSG_LFG_QUEUE_STATUS,                        STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
+    DEFINE_OPCODE_HANDLER(SMSG_LFG_QUEUE_STATUS,                        STATUS_LOGGEDIN,  PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
     DEFINE_OPCODE_HANDLER(SMSG_LFG_ROLE_CHECK_UPDATE,                   STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
     DEFINE_OPCODE_HANDLER(SMSG_LFG_ROLE_CHOSEN,                         STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
     DEFINE_OPCODE_HANDLER(SMSG_LFG_SLOT_INVALID,                        STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
@@ -1640,7 +1640,7 @@ void OpcodeTable::Initialize()
   //DEFINE_OPCODE_HANDLER(SMSG_LFG_OPEN_FROM_GOSSIP,                    STATUS_NEVER,     PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
   //DEFINE_OPCODE_HANDLER(SMSG_LFG_UPDATE_LIST,                         STATUS_NEVER,     PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
   //DEFINE_OPCODE_HANDLER(SMSG_LFG_UPDATE_PARTY,                        STATUS_NEVER,     PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
-  //DEFINE_OPCODE_HANDLER(SMSG_LFG_UPDATE_PLAYER,                       STATUS_NEVER,     PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
+  DEFINE_OPCODE_HANDLER(SMSG_LFG_UPDATE_PLAYER,                         STATUS_LOGGEDIN,  PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
   //DEFINE_OPCODE_HANDLER(SMSG_LF_GUILD_SEARCH_RESULT,                  STATUS_NEVER,     PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
   //DEFINE_OPCODE_HANDLER(SMSG_LOTTERY_QUERY_RESULT_OBSOLETE,           STATUS_NEVER,     PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
   //DEFINE_OPCODE_HANDLER(SMSG_LOTTERY_RESULT_OBSOLETE,                 STATUS_NEVER,     PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               );
