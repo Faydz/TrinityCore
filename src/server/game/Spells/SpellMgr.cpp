@@ -3050,6 +3050,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case 29725:
                 spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
                 break;
+            // Pursuit of Justice
+            case 26022:
+            case 26023:
+                spellInfo->SpellFamilyName = SPELLFAMILY_PALADIN;
+                break;
             default:
                 break;
         }
@@ -3132,6 +3137,27 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    //Devotion Aura
+                    case 465:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AREA_AURA_RAID;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].MiscValue = 127;
+                        break;
+                    //Concentration Aura
+                    case 19746:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AREA_AURA_RAID;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].MiscValue = 127;
+                        break;
+                    //Fire Resistance Aura
+                    case 19891:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AREA_AURA_RAID;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].MiscValue = 127;
+                        break;
                     // Seal of Insight
                     case 20167:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_ENERGIZE_PCT;
