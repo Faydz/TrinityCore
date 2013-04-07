@@ -78,6 +78,39 @@ enum PaladinSpells
     SPELL_GENERIC_BATTLEGROUND_DAMPENING         = 74411
 };
 
+// 465, 19746, 19891 Communion ammount with auras
+class spell_pal_communion : public SpellScriptLoader
+{
+    public:
+        spell_pal_communion() : SpellScriptLoader("spell_pal_communion") { }
+
+        class spell_pal_communion_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_pal_communion_AuraScript);
+
+            void ChangeAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = false;
+
+                if (Unit* caster = GetCaster())
+                {
+                    if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_PALADIN, 3017, EFFECT_1))
+                        amount = aurEff->GetAmount();
+                }       
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_pal_communion_AuraScript::ChangeAmount, EFFECT_1, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_pal_communion_AuraScript();
+        }
+};
+
 // 53600 - Shield of the Righteous
 /// Updated 4.3.4
 class spell_pal_shield_of_the_righteous : public SpellScriptLoader
@@ -1459,6 +1492,7 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 void AddSC_paladin_spell_scripts()
 {
     //new spell_pal_ardent_defender();
+    new spell_pal_communion();
     new spell_pal_forberance_handler();
     new spell_pal_holy_wrath();
     new spell_pal_light_of_dawn();

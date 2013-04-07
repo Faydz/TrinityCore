@@ -746,8 +746,12 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
             // Judgement (seal trigger)
             if (m_spellInfo->Category == SPELLCATEGORY_JUDGEMENT)
             {
-                if (!unitTarget->isAlive())
+                if (!m_caster || !unitTarget->isAlive())
                     return;
+
+                // Communion
+                if(m_caster->HasAura(31876))
+                    m_caster->CastSpell(m_caster, 57669);
 
                 Unit::AuraApplicationMap & sealAuras = m_caster->GetAppliedAuras();
                 for (Unit::AuraApplicationMap::iterator iter = sealAuras.begin(); iter != sealAuras.end();)
