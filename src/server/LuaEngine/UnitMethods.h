@@ -5184,8 +5184,8 @@ public:
     //{
     //    TO_UNIT();
 
-        if (Creature* vehicle = unit->GetVehicleCreatureBase())
-            vehicle->DespawnOrUnsummon();
+        //if (Creature* vehicle = unit->GetVehicleCreatureBase())
+        //    vehicle->DespawnOrUnsummon();
     //    return 0;
     //}
 
