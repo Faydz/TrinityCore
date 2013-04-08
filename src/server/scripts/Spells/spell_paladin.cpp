@@ -78,6 +78,90 @@ enum PaladinSpells
     SPELL_GENERIC_BATTLEGROUND_DAMPENING         = 74411
 };
 
+// 90811 - Selfless (Selfless Healer spell)
+class spell_pal_selfless : public SpellScriptLoader
+{
+    public:
+        spell_pal_selfless() : SpellScriptLoader("spell_pal_selfless") { }
+
+        class spell_pal_selfless_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_pal_selfless_AuraScript);
+
+            void ChangeAmountDamage(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = false;
+
+                if (Unit* caster = GetCaster())
+                {
+                    if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_PALADIN, 3924, EFFECT_1))
+                    {
+                        if(int32 woGHP = caster->GetWordOfGloryHolyPower())
+                        {
+                            amount = aurEff->GetAmount() * woGHP;
+                        }
+                    }
+                }       
+            }
+            
+            void ChangeAmountHealing(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = false;
+
+                if (Unit* caster = GetCaster())
+                {
+                    if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_PALADIN, 3924, EFFECT_0))
+                    {
+                        amount = aurEff->GetAmount();
+                    }
+                }       
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_pal_selfless_AuraScript::ChangeAmountDamage, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_pal_selfless_AuraScript::ChangeAmountHealing, EFFECT_1, SPELL_AURA_ADD_PCT_MODIFIER);
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_pal_selfless_AuraScript::ChangeAmountHealing, EFFECT_2, SPELL_AURA_ADD_PCT_MODIFIER);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_pal_selfless_AuraScript();
+        }
+
+};
+
+// 85673 Word of Glory
+class spell_paladin_word_of_glory : public SpellScriptLoader
+{
+    public:
+        spell_paladin_word_of_glory() : SpellScriptLoader("spell_paladin_word_of_glory") { }
+
+        class spell_paladin_word_of_glory_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_paladin_word_of_glory_SpellScript);
+            
+            void HandleBeforeCast()
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    caster->SetWordOfGloryHolyPower(caster->GetPower(POWER_HOLY_POWER));
+                }
+            }
+
+            void Register()
+            {
+                BeforeCast += SpellCastFn(spell_paladin_word_of_glory_SpellScript::HandleBeforeCast);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_paladin_word_of_glory_SpellScript();
+        }
+};
+
 // 465, 19746, 19891 Communion ammount with auras
 class spell_pal_communion : public SpellScriptLoader
 {
@@ -1492,6 +1576,8 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 void AddSC_paladin_spell_scripts()
 {
     //new spell_pal_ardent_defender();
+    new spell_paladin_word_of_glory();
+    new spell_pal_selfless();
     new spell_pal_communion();
     new spell_pal_forberance_handler();
     new spell_pal_holy_wrath();
