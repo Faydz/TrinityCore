@@ -3137,21 +3137,35 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
-                    //Devotion Aura
+                    // Selfless healing bonus
+                    case 90811:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_DAMAGE;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0xC0000000, 0x30000, 0x44600);
+
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_2].MiscValue = SPELLMOD_DOT;
+                        spellInfo->Effects[EFFECT_2].SpellClassMask = flag96(0xC0000000, 0x30000, 0x44600);
+                        break;
+                    // Devotion Aura
                     case 465:
-                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AREA_AURA_RAID;
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_AURA_ADD_PCT_MODIFIER;
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
                         spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
                         spellInfo->Effects[EFFECT_1].MiscValue = 127;
                         break;
-                    //Concentration Aura
+                    // Concentration Aura
                     case 19746:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AREA_AURA_RAID;
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
                         spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
                         spellInfo->Effects[EFFECT_1].MiscValue = 127;
                         break;
-                    //Fire Resistance Aura
+                    // Fire Resistance Aura
                     case 19891:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AREA_AURA_RAID;
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
