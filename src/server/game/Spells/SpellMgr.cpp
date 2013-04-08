@@ -3160,7 +3160,7 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                     // Devotion Aura
                     case 465:
-                        spellInfo->Effects[EFFECT_1].Effect = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AREA_AURA_RAID;
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
                         spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
                         spellInfo->Effects[EFFECT_1].MiscValue = 127;
