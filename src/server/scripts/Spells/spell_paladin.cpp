@@ -94,7 +94,8 @@ class spell_pal_selfless : public SpellScriptLoader
 
                 if (Unit* caster = GetCaster())
                 {
-                    if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_PALADIN, 3924, EFFECT_1))
+                    //if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_PALADIN, 3924, EFFECT_1))
+                    if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3924, EFFECT_1))
                     {
                         if(int32 woGHP = caster->GetWordOfGloryHolyPower())
                         {
@@ -110,7 +111,8 @@ class spell_pal_selfless : public SpellScriptLoader
 
                 if (Unit* caster = GetCaster())
                 {
-                    if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_PALADIN, 3924, EFFECT_0))
+                    //if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_PALADIN, 3924, EFFECT_0))
+                    if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3924, EFFECT_0))
                     {
                         amount = aurEff->GetAmount();
                     }
@@ -1526,6 +1528,43 @@ class spell_pal_templar_s_verdict : public SpellScriptLoader
         }
 };
 
+// 25742 - Seal of Righteousness damage handler
+class spell_pal_seal_of_righteousness_aoe_check : public SpellScriptLoader
+{
+    public:
+        spell_pal_seal_of_righteousness_aoe_check() : SpellScriptLoader("spell_pal_seal_of_righteousness_aoe_check") { }
+
+        class spell_pal_seal_of_righteousness_aoe_check_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_pal_seal_of_righteousness_aoe_check_SpellScript);
+
+            void HandleTargetSelect(std::list<WorldObject*>& targetList)
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetExplTargetUnit();
+
+                if(caster && target)
+                {
+                    targetList.remove(target);
+                    if(!caster->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 561, EFFECT_1))
+                    {
+                        targetList.clear();
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_seal_of_righteousness_aoe_check_SpellScript::HandleTargetSelect, EFFECT_1, TARGET_UNIT_SRC_AREA_ENEMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pal_seal_of_righteousness_aoe_check_SpellScript();
+        }
+};
+
 // 20154, 21084 - Seal of Righteousness - melee proc dummy (addition ${$MWS*(0.022*$AP+0.044*$SPH)} damage)
 class spell_pal_seal_of_righteousness : public SpellScriptLoader
 {
@@ -1604,5 +1643,6 @@ void AddSC_paladin_spell_scripts()
     new spell_pal_shield_of_the_righteous(); 
     new spell_pal_divine_bulwark();
     new spell_pal_templar_s_verdict();
+    new spell_pal_seal_of_righteousness_aoe_check();
     new spell_pal_seal_of_righteousness();
 }

@@ -441,6 +441,22 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         break;
                 }
                 break;
+            case SPELLFAMILY_PALADIN:
+                switch(m_spellInfo->Id)
+                {
+                    // Seal of Righteousness aoe damage
+                    case 25742:
+                        if(m_caster && effIndex == EFFECT_1)
+                        {
+                            float ap = m_caster->GetTotalAttackPowerValue(BASE_ATTACK);
+                            int32 holy = m_caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_HOLY);
+                            holy += m_caster->SpellBaseDamageBonusTaken(SPELL_SCHOOL_MASK_HOLY);
+
+                            damage = int32((ap * 0.022f + 0.044f * holy) * m_caster->GetAttackTime(BASE_ATTACK) / 1000);
+                        }
+                        break;
+                }
+            break;
             case SPELLFAMILY_WARRIOR:
             {
                 switch(m_spellInfo->Id)
