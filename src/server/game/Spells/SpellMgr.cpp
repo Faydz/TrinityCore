@@ -3137,6 +3137,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    // Seal of Righteousness
+                    case 25742:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_SCHOOL_DAMAGE;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_SRC_CASTER);
+                        spellInfo->Effects[EFFECT_1].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_SRC_AREA_ENEMY);
+                        spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_4_YARDS);
+                        break;
                     // Selfless healing bonus
                     case 90811:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
