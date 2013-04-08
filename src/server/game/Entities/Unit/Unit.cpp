@@ -8740,7 +8740,8 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 return false;
             break;
         // Blessed Resilience
-        case 33143:
+        case 33142:
+        case 33145:
             if (procEx & PROC_EX_NORMAL_HIT)
             {
                 if (damage < GetMaxHealth() / 10)
