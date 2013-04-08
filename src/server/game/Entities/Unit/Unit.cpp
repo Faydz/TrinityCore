@@ -6156,6 +6156,12 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 case 78202:
                 case 78203:
                 case 78204:
+                    if (effIndex != EFFECT_0)
+                        return false;
+
+                    if (procSpell->Id != 589)
+                        return false;
+
                     if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_PRIEST, 4879, 0))
                     {
                         int32 chance = aurEff->GetAmount();
@@ -6174,17 +6180,24 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
                         if (roll_chance_i(chance) && appCount < 4)
                         {
-                            if (Unit* apparition = SummonCreature(46954, GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 0))
+                            Position pos;
+                            GetPosition(&pos);
+                            pos.m_positionX += float(urand(1, 3));
+                            pos.m_positionY += float(urand(1, 3));
+                            SummonPropertiesEntry const* properties = sSummonPropertiesStore.LookupEntry(3062);
+                            TempSummon* apparition = GetMap()->SummonCreature(46954, pos, properties, 20000, this, 87426);
+                            if (apparition)
                             {
                                 apparition->SetLevel(85);
                                 apparition->setFaction(getFaction());
+                                apparition->AddAura(87427, apparition);
                                 apparition->SetMaxHealth(GetMaxHealth() * 0.4);
                                 apparition->SetHealth(apparition->GetMaxHealth());
                                 apparition->SetSpeed(MOVE_WALK, 0.35f, true);
                                 apparition->SetSpeed(MOVE_RUN, 0.35f, true);
-
                                 CastSpell(apparition, 87213, true);
                                 apparition->GetMotionMaster()->MoveChase(victim, 0.0f, 0.0f);
+                                apparition->GetMotionMaster()->MoveFollow(victim, 0.0f, 0.0f);
                             }
                         }
                     }
