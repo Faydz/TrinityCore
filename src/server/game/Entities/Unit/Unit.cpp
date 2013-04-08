@@ -7968,6 +7968,13 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
         {
             switch(dummySpell->Id)
             {
+                // Repentance
+                case 20066:
+                    *handled = true;
+                    if(procSpell && procSpell->Id == 31803)
+                        return false;
+                    return true;
+                    break;
                 // Pursuit of Justice
                 case 26022:
                 case 26023:
