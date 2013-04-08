@@ -3134,9 +3134,11 @@ public:
        npc_shadowy_apparitionAI(Creature* c) : ScriptedAI(c) 
        {
            me->SetReactState(REACT_AGGRESSIVE);
+           hit = false;
        }
 
        uint64 targetGuid;
+       bool hit;
 
        void InitializeAI()
        {
@@ -3155,9 +3157,9 @@ public:
            }
        }
 
-       void Reset()
+       void EnterEvadeMode()
        {
-           me->CastSpell(me, 87427, true);
+            return;
        }
 
        void MoveInLineOfSight(Unit* who)
@@ -3168,10 +3170,13 @@ public:
                if (me->ToTempSummon())
                    ownerGuid = me->ToTempSummon()->GetSummonerGUID();
 
-               sLog->outError(LOG_FILTER_GENERAL, "guid %d", ownerGuid);
-               me->CastCustomSpell(who, 87532, NULL, NULL, NULL, true, 0, 0, ownerGuid);
-               me->CastSpell(me, 87529, true);
-               me->DisappearAndDie();
+               if (!hit)
+               {
+                   hit = true;
+                   me->CastCustomSpell(who, 87532, NULL, NULL, NULL, true, 0, 0, ownerGuid);
+                   me->CastSpell(me, 87529, true);
+                   me->DisappearAndDie();
+               }
            }
        }
 

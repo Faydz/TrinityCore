@@ -2164,9 +2164,12 @@ class Unit : public WorldObject
             m_darkIntentUnit = target;
         }
 
-        int GetRejuvenationCounter(){ return m_rejuvenationCounter; }
+        int GetRejuvenationCounter(){ return 1; }
         void SetRejuvenationCounter(int counter){ m_rejuvenationCounter = counter; }
         void ModRejuvenationCounter(bool add){ add ? m_rejuvenationCounter++ : m_rejuvenationCounter--; }
+        
+        int32 GetWordOfGloryHolyPower(){ return m_wordOfGloryHolyPower; }
+        void SetWordOfGloryHolyPower(int32 counter){ m_wordOfGloryHolyPower = counter; }
 
         //used for Improved steady shot (ID 53224)
         uint32 m_lastSpell;
@@ -2273,6 +2276,7 @@ class Unit : public WorldObject
         Unit* m_darkIntentUnit; //Could be either the warlock owner of the DI or  the friendly buffed target
 
         int m_rejuvenationCounter;
+        int32 m_wordOfGloryHolyPower;
 
         void DisableSpline();
     private:

@@ -97,7 +97,7 @@ class spell_warr_opportunity_strike : public SpellScriptLoader
         }
 };
 
-// 2457, 71, 2458 Battle Stance
+// 2457, 71, 2458 Battle, Defensive, Berserker Stance
 class spell_warr_stance_handler : public SpellScriptLoader
 {
     public:
@@ -107,7 +107,7 @@ class spell_warr_stance_handler : public SpellScriptLoader
         {
             PrepareSpellScript(spell_warr_stance_handler_SpellScript);
             
-            void HandleAfterHit()
+            void HandleBeforeCast()
             {
                 Unit* caster = GetCaster();
 
@@ -141,7 +141,7 @@ class spell_warr_stance_handler : public SpellScriptLoader
 
             void Register()
             {
-                BeforeCast += SpellCastFn(spell_warr_stance_handler_SpellScript::HandleAfterHit);
+                BeforeCast += SpellCastFn(spell_warr_stance_handler_SpellScript::HandleBeforeCast);
             }
         };
 
