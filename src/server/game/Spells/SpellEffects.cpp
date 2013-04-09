@@ -1643,6 +1643,17 @@ void Spell::EffectHeal(SpellEffIndex /*effIndex*/)
         if (unitTarget->HasAura(48920) && (unitTarget->GetHealth() + addhealth >= unitTarget->GetMaxHealth()))
             unitTarget->RemoveAura(48920);
 
+        // Healing Rain & Holy Word: Sanctuary
+        if (m_spellInfo->AttributesCu & SPELL_ATTR0_CU_LIMIT_HEAL)
+        {
+            uint32 count = 0;
+            for (std::list<TargetInfo>::iterator ihit= m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
+                ++count;
+
+            if (count > 6)
+                addhealth *= (6.0f / count);
+        }
+
         m_damage -= addhealth;
     }
 }
@@ -6133,6 +6144,7 @@ void Spell::SummonGuardian(uint32 i, uint32 entry, SummonPropertiesEntry const* 
         TempSummon* summon = map->SummonCreature(entry, pos, properties, duration, caster, m_spellInfo->Id);
         if (!summon)
             return;
+
         if (summon->HasUnitTypeMask(UNIT_MASK_GUARDIAN))
             ((Guardian*)summon)->InitStatsForLevel(level);
 

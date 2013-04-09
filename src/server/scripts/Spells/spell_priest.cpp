@@ -1041,6 +1041,42 @@ class spell_pri_vampiric_touch : public SpellScriptLoader
         }
 };
 
+// 73920 - Healing Rain
+class spell_pri_holy_word_sanctuary : public SpellScriptLoader
+{
+public:
+    spell_pri_holy_word_sanctuary() : SpellScriptLoader("spell_pri_holy_word_sanctuary") { }
+
+    class spell_pri_holy_word_sanctuary_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_pri_holy_word_sanctuary_AuraScript);
+       
+        void OnTick(AuraEffect const* aurEff)
+        {
+            if(!GetCaster())
+                return;
+
+            if (DynamicObject* dynObj = GetCaster()->GetDynObject(88685))
+            {
+                GetCaster()->CastSpell(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ(), 88686, true);
+            }
+        }
+
+        void Register()
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_pri_holy_word_sanctuary_AuraScript::OnTick, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+        }
+        
+        public:
+            std::list<Unit*> targetList;
+    };
+    
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_pri_holy_word_sanctuary_AuraScript();
+    }
+};
+
 void AddSC_priest_spell_scripts()
 {
     new spell_pri_divine_aegis();
@@ -1066,4 +1102,5 @@ void AddSC_priest_spell_scripts()
     new spell_pri_chakra();
     new spell_pri_fade();
     new spell_pri_vampiric_touch();
+    new spell_pri_holy_word_sanctuary();
 }
