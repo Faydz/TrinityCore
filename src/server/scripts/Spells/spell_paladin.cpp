@@ -78,6 +78,78 @@ enum PaladinSpells
     SPELL_GENERIC_BATTLEGROUND_DAMPENING         = 74411
 };
 
+// 85117, 86172 - Divine Purpose
+class spell_pal_divine_purpose : public SpellScriptLoader
+{
+    public:
+        spell_pal_divine_purpose() : SpellScriptLoader("spell_pal_divine_purpose") { }
+
+        class spell_pal_divine_purpose_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_pal_divine_purpose_AuraScript);
+
+            bool CheckProc(ProcEventInfo& eventInfo)
+            {
+                if(eventInfo.GetDamageInfo() 
+                    && eventInfo.GetDamageInfo()->GetSpellInfo() 
+                    && eventInfo.GetDamageInfo()->GetSpellInfo()->Id == SPELL_PALADIN_DIVINE_STORM)
+                {
+                    return eventInfo.GetDamageInfo()->GetDamage();
+                }
+                else
+                    return true;
+            }
+
+            void Register()
+            {
+                DoCheckProc += AuraCheckProcFn(spell_pal_divine_purpose_AuraScript::CheckProc);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_pal_divine_purpose_AuraScript();
+        }
+};
+
+// 84963 - Inquisition
+class spell_pal_inquisition : public SpellScriptLoader
+{
+    public:
+        spell_pal_inquisition() : SpellScriptLoader("spell_pal_inquisition") { }
+
+        class spell_pal_inquisition_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_pal_inquisition_SpellScript);
+            
+            void HandleBeforeCast()
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    if (caster->HasAura(SPELL_PALADIN_DIVINE_PURPOSE_PROC))
+                    {
+                        caster->RemoveAurasDueToSpell(SPELL_PALADIN_DIVINE_PURPOSE_PROC);
+                    }
+                    else
+                    {
+                        // If the Divine Purpose is not active, gives to Inquisition the normal behaviour
+                        caster->SetPower(POWER_HOLY_POWER, 0);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                BeforeCast += SpellCastFn(spell_pal_inquisition_SpellScript::HandleBeforeCast);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pal_inquisition_SpellScript();
+        }
+};
+
 // 90811 - Selfless (Selfless Healer spell)
 class spell_pal_selfless : public SpellScriptLoader
 {
@@ -148,7 +220,10 @@ class spell_paladin_word_of_glory : public SpellScriptLoader
             {
                 if(Unit* caster = GetCaster())
                 {
-                    caster->SetWordOfGloryHolyPower(caster->GetPower(POWER_HOLY_POWER));
+                    if (caster->HasAura(SPELL_PALADIN_DIVINE_PURPOSE_PROC))
+                        caster->SetWordOfGloryHolyPower(3);
+                    else
+                        caster->SetWordOfGloryHolyPower(caster->GetPower(POWER_HOLY_POWER));
                 }
             }
 
@@ -1496,7 +1571,10 @@ class spell_pal_templar_s_verdict : public SpellScriptLoader
                     return;
 
                 if (caster->HasAura(SPELL_PALADIN_DIVINE_PURPOSE_PROC))
+                {
+                    caster->RemoveAurasDueToSpell(SPELL_PALADIN_DIVINE_PURPOSE_PROC);
                     damage *= 7.5;  // 7.5*30% = 225%
+                }
                 else
                 {
                     switch (caster->GetPower(POWER_HOLY_POWER))
@@ -1615,6 +1693,8 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 void AddSC_paladin_spell_scripts()
 {
     //new spell_pal_ardent_defender();
+    new spell_pal_divine_purpose();
+    new spell_pal_inquisition();
     new spell_paladin_word_of_glory();
     new spell_pal_selfless();
     new spell_pal_communion();

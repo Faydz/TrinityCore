@@ -3146,6 +3146,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    // Divine Purpose
+                    case 90174:
+                        spellInfo->Effects[EFFECT_0].SpellClassMask = flag96(0x0, 0x0, 0x20E000);
+                        break;
                     // Seal of Righteousness
                     case 25742:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_SCHOOL_DAMAGE;

@@ -5486,18 +5486,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     owner->CastSpell(owner, 58227, true, castItem, triggeredByAura);
                     return true;
                 }
-                // Divine purpose
-                case 31871:
-                case 31872:
-                {
-                    // Roll chane
-                    if (!victim || !victim->isAlive() || !roll_chance_i(triggerAmount))
-                        return false;
-
-                    // Remove any stun effect on target
-                    victim->RemoveAurasWithMechanic(1<<MECHANIC_STUN, AURA_REMOVE_BY_ENEMY_SPELL);
-                    return true;
-                }
                 // Glyph of Scourge Strike
                 case 58642:
                 {
@@ -6902,6 +6890,11 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Divine Purpose
+                case 85117:
+                case 86172:
+                    triggered_spell_id = 90174;
+                    break;
                 // Judgements of the Wise
                 case 31878:
                     target = this;
@@ -7967,6 +7960,12 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
         {
             switch(dummySpell->Id)
             {
+                // Divine Purpose
+                case 85117:
+                case 86172:
+                    /*if(procSpell && procSpell->Id == 53385)
+                        return false;*/
+                    break;
                 // Repentance
                 case 20066:
                     *handled = true;
@@ -11425,7 +11424,11 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
             {
                 // Word of Glory
                 case 85673:
-                    DoneTotalMod += this->GetPower(POWER_HOLY_POWER);
+                    // Divine Purpose check
+                    if (this->HasAura(90174))
+                        DoneTotalMod += 3;
+                    else
+                        DoneTotalMod += this->GetPower(POWER_HOLY_POWER);
                     break;
             }
             break;
