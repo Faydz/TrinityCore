@@ -7960,12 +7960,6 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
         {
             switch(dummySpell->Id)
             {
-                // Divine Purpose
-                case 85117:
-                case 86172:
-                    /*if(procSpell && procSpell->Id == 53385)
-                        return false;*/
-                    break;
                 // Repentance
                 case 20066:
                     *handled = true;
