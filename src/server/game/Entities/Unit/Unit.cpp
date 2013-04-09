@@ -8641,6 +8641,12 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Shadow orb Power
+        case 77486:
+            // Don't need to proc shadow orbs
+            if (trigger_spell_id == 77487)
+                return false;
+            break;
         // Enduring Winter
         case 44561:
         case 86500:
@@ -9074,6 +9080,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
             }
             break;
         case 16246: // Elemental Focus
+        {
             int32 bp1 = 0;
 
             // Elemental Oath
@@ -9087,6 +9094,11 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 CastCustomSpell(this, trigger_spell_id, NULL, &bp1, &bp1, true, 0, 0, 0);
                 return true;
             }
+            break;
+        }
+        case 77487: // Shadow Orbs
+            if (ToPlayer() && ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) != BS_PRIEST_SHADOW)
+                return false;
             break;
     }
 
