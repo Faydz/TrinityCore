@@ -2475,11 +2475,23 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
                 {
                     procAttacker |= PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_POS;
                     procVictim   |= PROC_FLAG_TAKEN_SPELL_NONE_DMG_CLASS_POS;
+                    
+                    if(hasAura)
+                    {
+                        procAttacker |= PROC_FLAG_DONE_APPLY_AURA_POS;
+                        procVictim   |= PROC_FLAG_TAKEN_APPLY_AURA_POS;
+                    }
                 }
                 else
                 {
                     procAttacker |= PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG;
                     procVictim   |= PROC_FLAG_TAKEN_SPELL_NONE_DMG_CLASS_NEG;
+                    
+                    if(hasAura)
+                    {
+                        procAttacker |= PROC_FLAG_DONE_APPLY_AURA_NEG;
+                        procVictim   |= PROC_FLAG_TAKEN_APPLY_AURA_NEG;
+                    }
                 }
             break;
         }
