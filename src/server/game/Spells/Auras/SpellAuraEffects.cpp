@@ -542,41 +542,41 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
             switch (GetSpellInfo()->SpellFamilyName)
             {
                 case SPELLFAMILY_MAGE:
-                    /* Ice Barrier TODO MOVE TO SPELL SCRIPT
+                    // Ice Barrier
                     if (GetSpellInfo()->SpellFamilyFlags[1] & 0x1 && GetSpellInfo()->SpellFamilyFlags[2] & 0x8)
                     {
                         // +87% from sp bonus
-                        DoneActualBenefit += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.87f;
+                        amount += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.87f;
 
                         //Glyph of ice barrier
-                        if (caster->HasAura(63095)) DoneActualBenefit += (amount + DoneActualBenefit) * 0.3f ;
+                        if (caster->HasAura(63095))
+                            amount += (amount * 0.3f);
                     }
                     // Mage Ward
                     else if (GetSpellInfo()->SpellFamilyFlags[0] & 0x8 && GetSpellInfo()->SpellFamilyFlags[2] & 0x8)
                     {
                         // +80.68% from sp bonus
-                        DoneActualBenefit += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
-                    }*/
+                        amount += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
+                    }
                     break;
                 case SPELLFAMILY_WARLOCK:
-                    /* Shadow Ward TODO MOVE TO SPELL SCRIPT
+                    // Shadow Ward
                     if (m_spellInfo->SpellFamilyFlags[2] & 0x80000000)
                     {
                         // +80.68% from sp bonus
-                        DoneActualBenefit += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
-                    }*/
+                        amount += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
+                    }
                     break;
                 case SPELLFAMILY_PRIEST:
-                    /* Power Word: Shield TODO MOVE TO SPELL SCRIPTS
+                    // Power Word: Shield
                     if (GetId() == 17)
                     {
                         //+80.68% from sp bonus
                         float bonus = 0.8068f;
 
-                        DoneActualBenefit += caster->SpellBaseHealingBonusDone(m_spellInfo->GetSchoolMask()) * bonus;
-                        DoneActualBenefit *= caster->CalculateLevelPenalty(GetSpellInfo());
-                        amount += int32(DoneActualBenefit);
-
+                        amount += caster->SpellBaseHealingBonusDone(m_spellInfo->GetSchoolMask()) * bonus;
+                        amount *= caster->CalculateLevelPenalty(GetSpellInfo());
+                        
                         // Improved PW: Shield
                         if (AuraEffect const* pAurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 566, 1))
                             AddPct(amount, pAurEff->GetAmount());
@@ -586,9 +586,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                             AddPct(amount, pAurEff->GetAmount());
 
                         // Twin Disciplines
-                        DoneActualBenefit = float(amount);
-                        DoneActualBenefit *= caster->GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_DONE_PERCENT);
-                        amount = int32(DoneActualBenefit);
+                        amount *= caster->GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_DONE_PERCENT);
 
                         // Mastery: Shield Discipline
                         if (caster->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY))
@@ -603,7 +601,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                             }
                         }
                         return amount;
-                    }*/
+                    }
                     break;
                 default:
                     break;
@@ -613,12 +611,12 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
             m_canBeRecalculated = false;
             if (!caster)
                 break;
-            /* Mana Shield TODO MOVE TO SPELL SCRIPTS
+            // Mana Shield
             if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_MAGE && GetSpellInfo()->SpellFamilyFlags[0] & 0x8000 && m_spellInfo->SpellFamilyFlags[2] & 0x8)
             {
                 // +80.7% from +spd bonus
-                DoneActualBenefit += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.807f;
-            }*/
+                amount += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.807f;
+            }
             break;
         case SPELL_AURA_DUMMY:
             if (!caster)
