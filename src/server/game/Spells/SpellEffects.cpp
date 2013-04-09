@@ -854,14 +854,8 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                         // or guardian
                         bp = 46585;
 
-                   // if (m_targets.HasDst())
                         targets.SetDst(*m_targets.GetDstPos());
-                    /*else
-                    {
-                        targets.SetDst(*m_caster);
-                        // Corpse not found - take reagents (only not triggered cast can take them)
-                        triggered = false;
-                    }*/
+                   
                     // Remove cooldown - summon spellls have category
                     m_caster->ToPlayer()->RemoveSpellCooldown(m_spellInfo->Id, true);
                     spell_id = 48289;
