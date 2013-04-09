@@ -2589,8 +2589,11 @@ void Player::Regenerate(Powers power)
         }
         break;
         case POWER_FOCUS:
-            addvalue += (6.0f + CalculatePct(6.0f, rangedHaste)) * sWorld->getRate(RATE_POWER_FOCUS);
+        {
+            float focusPerSecond = GetFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER);
+            addvalue += focusPerSecond * sWorld->getRate(RATE_POWER_FOCUS);
             break;
+        }
         case POWER_ENERGY:                                              // Regenerate energy (rogue)
             addvalue += ((0.01f * m_regenTimer) + CalculatePct(0.01f, meleeHaste)) * sWorld->getRate(RATE_POWER_ENERGY);
             break;
@@ -5989,6 +5992,8 @@ void Player::UpdateRating(CombatRating cr)
         case CR_HASTE_MELEE:                                // Implemented in Player::ApplyRatingMod
         case CR_HASTE_RANGED:
         case CR_HASTE_SPELL:
+            if (getClass() == CLASS_HUNTER)
+                SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER, (6.0 * (((100.0f / GetFloatValue(PLAYER_FIELD_MOD_RANGED_HASTE) - 100) / 100.0f) + 1)) - 5.0f);
             break;
         case CR_WEAPON_SKILL_MAINHAND:                      // Implemented in Unit::RollMeleeOutcomeAgainst
         case CR_WEAPON_SKILL_OFFHAND:
@@ -21999,7 +22004,6 @@ bool Player::BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 
     if (count < 1) 
         count = 1;
 
-    sLog->outError(LOG_FILTER_GENERAL, "dentro %d", item);
     // cheating attempt
     if (slot > MAX_BAG_SIZE && slot != NULL_SLOT)
         return false;
