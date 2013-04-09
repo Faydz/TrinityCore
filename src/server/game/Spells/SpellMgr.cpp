@@ -3055,6 +3055,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case 26023:
                 spellInfo->SpellFamilyName = SPELLFAMILY_PALADIN;
                 break;
+            // Shadowfiend
+            case 34433:
+                spellInfo->Effects[0].MiscValueB = 67;
+                break;
             default:
                 break;
         }
