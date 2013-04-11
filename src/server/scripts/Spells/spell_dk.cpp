@@ -1004,13 +1004,11 @@ class spell_dk_will_of_the_necropolis : public SpellScriptLoader
                 if (Unit* caster = GetCaster())
                     if (caster->GetTypeId() == TYPEID_PLAYER)
                         caster->ToPlayer()->RemoveSpellCooldown(48982, true);
-                sLog->outError(LOG_FILTER_GENERAL, "apply");
             }
 
             void Register()
             {
                 OnEffectApply += AuraEffectApplyFn(spell_dk_will_of_the_necropolis_AuraScript::OnApply, EFFECT_0, SPELL_AURA_ADD_PCT_MODIFIER, AURA_EFFECT_HANDLE_REAL);
-                sLog->outError(LOG_FILTER_GENERAL, "hook");
             }
         };
 
