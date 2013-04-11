@@ -3945,6 +3945,30 @@ void Unit::RemoveAurasWithMechanic(uint32 mechanic_mask, AuraRemoveMode removemo
     }
 }
 
+
+void Unit::RemoveRandomAuraWithMechanic(uint32 mechanic_mask, AuraRemoveMode removemode, uint32 except)
+{
+    std::list<Aura*> auraListSpecific;
+    for (AuraApplicationMap::iterator iter = m_appliedAuras.begin(); iter != m_appliedAuras.end();)
+    {
+        Aura* aura = iter->second->GetBase();
+        if (!except || aura->GetId() != except)
+        {
+            // Saves all auras with specific mask
+            if (aura->GetSpellInfo()->GetAllEffectsMechanicMask() & mechanic_mask)
+            {
+                auraListSpecific.push_front(aura);
+            }
+        }
+        ++iter;
+    }
+
+    if(auraListSpecific.size() > 0)
+    {
+        RemoveAura(Trinity::Containers::SelectRandomContainerElement(auraListSpecific), removemode);
+    }
+}
+
 void Unit::RemoveAreaAurasDueToLeaveWorld()
 {
     // make sure that all area auras not applied on self are removed - prevent access to deleted pointer later

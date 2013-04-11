@@ -2749,6 +2749,22 @@ void Spell::EffectDispel(SpellEffIndex effIndex)
                         owner->CastCustomSpell(owner, 19658, &heal_amount, NULL, NULL, true);
             }
             break;
+        case SPELLFAMILY_PALADIN:
+            switch (m_spellInfo->Id)
+            {
+                // Cleanse
+                case 4987:
+                    if(m_caster == unitTarget)
+                    {
+                        // Acts of Sacrifice
+                        if(m_caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_PALADIN, 3022, EFFECT_0))
+                        {
+                            m_caster->RemoveRandomAuraWithMechanic((1<<MECHANIC_ROOT));
+                        }
+                    }
+                    break;
+            }
+            break;
         case SPELLFAMILY_SHAMAN:
             switch (m_spellInfo->Id)
             {
