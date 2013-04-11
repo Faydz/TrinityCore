@@ -8905,6 +8905,11 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // dummy basepoints or other customs
     switch (trigger_spell_id)
     {
+        // Will of the Necropolis
+        case 81162:
+            if (HealthAbovePct(30))
+                return false;
+            break;
         // Brain Freeze and Fingers of Frost should proc via Frosfire Orb only with rank 2
         case 57761: 
         case 44544:
