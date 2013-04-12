@@ -3146,6 +3146,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    // Zealotry
+                    case 85696:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 0;
+                        break;
                     // Divine Purpose
                     case 90174:
                         spellInfo->Effects[EFFECT_0].SpellClassMask = flag96(0x0, 0x0, 0x20E000);

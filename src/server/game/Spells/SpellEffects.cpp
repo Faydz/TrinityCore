@@ -2022,12 +2022,15 @@ void Spell::EffectEnergize(SpellEffIndex effIndex)
     int level_diff = 0;
     switch (m_spellInfo->Id)
     {
+        case 35395:                                         // Crusader Strike
+            if(m_caster->HasAura(85696))
+                damage = 3;
+            break;
         case 53385:                                         // Divine Storm
         {
             int hpThreshold = m_UniqueTargetInfo.size() - 1;
             if(hpThreshold < 4)
                 return;
-
             break;
         }
         case 9512:                                          // Restore Energy
