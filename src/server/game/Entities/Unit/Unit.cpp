@@ -5202,6 +5202,10 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                                int32 bp0 = aurEff->GetAmount();
                                CastCustomSpell(this, 81070, &bp0, 0, 0, true, 0, 0, 0);
                            }
+
+                           // Sunfire
+                           if (AuraEffect* aura = GetDummyAuraEffect(SPELLFAMILY_DRUID, 3262, 0))
+                               CastSpell(this, 94338, true);
                         }
                         break;
                     }
@@ -5223,6 +5227,10 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                                CastCustomSpell(this, 81070, &bp0, 0, 0, true, 0, 0, 0);
                            }
                         }
+
+                        // Sunfire (remove)
+                        if (AuraEffect* aura = GetDummyAuraEffect(SPELLFAMILY_DRUID, 3262, 0))
+                            RemoveAura(94338);
 
                         break;
                     }
