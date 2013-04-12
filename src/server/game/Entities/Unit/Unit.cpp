@@ -5196,6 +5196,9 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                             RemoveAurasDueToSpell(solarEclipseMarker);
                             CastSpell(this, lunarEclipseMarker, true);
 
+                            // Nature's Grace
+                            ToPlayer()->RemoveSpellCooldown(16886); 
+
                             // Euphoria
                            if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DRUID, 4431, 2))
                            {
@@ -5219,6 +5222,9 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                         {
                             RemoveAurasDueToSpell(lunarEclipseMarker);
                             CastSpell(this, solarEclipseMarker, true);
+
+                            // Nature's Grace
+                            ToPlayer()->RemoveSpellCooldown(16886);
 
                             // Euphoria
                            if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DRUID, 4431, 2))
