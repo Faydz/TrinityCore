@@ -842,6 +842,39 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
         case SPELLFAMILY_DEATHKNIGHT:
             switch (m_spellInfo->Id)
             {
+                // Death strike
+                case 49998:
+                {
+                    int32 bp;
+                    uint32 healthPct = m_caster->CountPctFromMaxHealth(7);
+                    uint32 damageTaken = m_caster->GetDamageTakenInPastSecs(5) * 0.20f;
+
+                    // Improved Death Strike
+                    if (AuraEffect const * aurEff = m_caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, 2751, 0)) 
+                        damageTaken = uint32(damageTaken * (m_caster->CalculateSpellDamage(m_caster, aurEff->GetSpellInfo(), 2) + 100.0f) / 100.0f);
+
+                    if (healthPct > damageTaken)
+                        bp = int32(healthPct);
+                    else 
+                        bp = int32(damageTaken);                
+
+                    if (m_caster->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY))
+                    {
+                        if (m_caster->ToPlayer()->GetPrimaryTalentTree(m_caster->ToPlayer()->GetActiveSpec()) == BS_DEATH_KNIGHT_BLOOD)
+                        {
+                            int32 shield = int32(bp * (50.0f + (6.25f * m_caster->ToPlayer()->GetMasteryPoints())) / 100.0f);
+
+                            // This effect stacks
+                            if (m_caster->HasAura(77535, m_caster->GetGUID()))
+                                shield += m_caster->GetAura(77535, m_caster->GetGUID())->GetEffect(0)->GetAmount();
+
+                            m_caster->CastCustomSpell(m_caster, 77535, &shield, NULL, NULL, false);
+                        }
+                    }
+
+                    m_caster->CastCustomSpell(m_caster, 45470, &bp, NULL, NULL, false);
+                    break;
+                }
                 case 46584: // Raise Dead
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
                         return;

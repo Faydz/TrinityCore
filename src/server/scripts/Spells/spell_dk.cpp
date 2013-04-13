@@ -584,50 +584,6 @@ class spell_dk_death_pact : public SpellScriptLoader
         }
 };
 
-// -49998 - Death Strike
-class spell_dk_death_strike : public SpellScriptLoader
-{
-    public:
-        spell_dk_death_strike() : SpellScriptLoader("spell_dk_death_strike") { }
-
-        class spell_dk_death_strike_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_dk_death_strike_SpellScript);
-
-            bool Validate(SpellInfo const* /*spellInfo*/)
-            {
-                if (!sSpellMgr->GetSpellInfo(SPELL_DK_DEATH_STRIKE_HEAL))
-                    return false;
-                return true;
-            }
-
-            void HandleDummy(SpellEffIndex /*effIndex*/)
-            {
-                Unit* caster = GetCaster();
-                if (Unit* target = GetHitUnit())
-                {
-                    uint32 count = target->GetDiseasesByCaster(caster->GetGUID());
-                    int32 bp = int32(count * caster->CountPctFromMaxHealth(int32(GetSpellInfo()->Effects[EFFECT_0].DamageMultiplier)));
-                    // Improved Death Strike
-                    if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, DK_ICON_ID_IMPROVED_DEATH_STRIKE, 0))
-                        AddPct(bp, caster->CalculateSpellDamage(caster, aurEff->GetSpellInfo(), 2));
-                    caster->CastCustomSpell(caster, SPELL_DK_DEATH_STRIKE_HEAL, &bp, NULL, NULL, false);
-                }
-            }
-
-            void Register()
-            {
-                OnEffectHitTarget += SpellEffectFn(spell_dk_death_strike_SpellScript::HandleDummy, EFFECT_2, SPELL_EFFECT_DUMMY);
-            }
-
-        };
-
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_dk_death_strike_SpellScript();
-        }
-};
-
 // 47496 - Explode, Ghoul spell for Corpse Explosion
 class spell_dk_ghoul_explode : public SpellScriptLoader
 {
@@ -1101,7 +1057,6 @@ void AddSC_deathknight_spell_scripts()
     new spell_dk_death_gate();
     new spell_dk_death_grip();
     new spell_dk_death_pact();
-    new spell_dk_death_strike();
     new spell_dk_ghoul_explode();
     new spell_dk_icebound_fortitude();
     new spell_dk_improved_blood_presence();
