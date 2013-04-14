@@ -4138,6 +4138,34 @@ void Spell::SendSpellGo()
     }
 
     m_caster->SendMessageToSet(&data, true);
+
+    // Sanctity of Battle
+    if (m_caster->ToPlayer() && m_caster->HasAura(25956))
+    {
+        // category spells
+        if (m_spellInfo->Category == 1264)
+        {
+            // Crusader Strike & Divine Storm benefit from haste Sanctity of Battle
+            float haste = (2 - m_caster->ToPlayer()->GetFloatValue(UNIT_MOD_CAST_SPEED));
+            int32 cooldown = 4500;
+            int32 diffCool = 0;
+            if (haste > 0)
+            {
+                cooldown /= haste;
+                diffCool = 4500-cooldown;
+            }
+
+            m_caster->ToPlayer()->AddSpellCooldown(m_spellInfo->Id, 0, uint32(time(NULL) + cooldown/1000));
+            WorldPacket data(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
+            data << uint32(m_spellInfo->Id);
+            data << uint64(m_caster->GetGUID());
+            data << int32(-diffCool);
+            m_caster->ToPlayer()->GetSession()->SendPacket(&data);
+
+            //sLog->outError(LOG_FILTER_GENERAL, "GetFloatValue %f haste %f cooldown %d diffcool %d AddSpellCooldown %d", 
+                //m_caster->ToPlayer()->GetFloatValue(UNIT_MOD_CAST_SPEED), haste, cooldown, diffCool, uint32(time(NULL) + cooldown/1000));
+        }
+    }
 }
 
 /// Writes miss and hit targets for a SMSG_SPELL_GO packet
