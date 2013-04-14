@@ -76,6 +76,8 @@ enum PaladinSpells
 
     SPELL_PALADIN_AURA_MASTERY                   = 19891,
 
+    SPELL_PALADIN_INQUISITION                    = 84963,
+
     SPELL_GENERIC_ARENA_DAMPENING                = 74410,
     SPELL_GENERIC_BATTLEGROUND_DAMPENING         = 74411
 };
@@ -164,6 +166,8 @@ class spell_pal_inquisition : public SpellScriptLoader
             {
                 if(Unit* caster = GetCaster())
                 {
+                    calculatedDuration = caster->GetPower(POWER_HOLY_POWER) * 12;
+
                     if (caster->HasAura(SPELL_PALADIN_DIVINE_PURPOSE_PROC))
                     {
                         caster->RemoveAurasDueToSpell(SPELL_PALADIN_DIVINE_PURPOSE_PROC);
@@ -175,10 +179,28 @@ class spell_pal_inquisition : public SpellScriptLoader
                     }
                 }
             }
+            
+            void HandleAfterCast()
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    if (Aura* aura = caster->GetAura(SPELL_PALADIN_INQUISITION))
+                    {
+                        if(calculatedDuration)
+                        {
+                            aura->SetDuration(calculatedDuration * IN_MILLISECONDS);
+                        }
+                    }
+                }
+            }
+
+        private:
+            int32 calculatedDuration;
 
             void Register()
             {
                 BeforeCast += SpellCastFn(spell_pal_inquisition_SpellScript::HandleBeforeCast);
+                AfterCast += SpellCastFn(spell_pal_inquisition_SpellScript::HandleAfterCast);
             }
         };
 
