@@ -78,6 +78,9 @@ enum PaladinSpells
 
     SPELL_PALADIN_INQUISITION                    = 84963,
 
+    SPELL_PALADIN_GUARDED_BY_THE_LIGHT_RANK_2    = 85646,
+    SPELL_PALADIN_GUARDED_BY_THE_LIGHT_SHIELD    = 88063,
+
     SPELL_GENERIC_ARENA_DAMPENING                = 74410,
     SPELL_GENERIC_BATTLEGROUND_DAMPENING         = 74411
 };
@@ -287,7 +290,7 @@ class spell_paladin_word_of_glory : public SpellScriptLoader
                 }
             }
 
-            void HandleAfterHit()
+            void HandleAfterCast()
             {
                 if(Unit* caster = GetCaster())
                 {
@@ -300,13 +303,33 @@ class spell_paladin_word_of_glory : public SpellScriptLoader
                         }
                     }
                 }
-                this->GetSpellInfo()->Attributes;
+            }
+            
+            void HandleOnEffectHit(SpellEffIndex /*effIndex*/) 
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    // Guarded by the Light rank 2 check
+                    if(caster->HasAura(SPELL_PALADIN_GUARDED_BY_THE_LIGHT_RANK_2))
+                    {
+                        uint32 currHealth = caster->GetHealth();
+                        uint32 maxHealth = caster->GetMaxHealth();
+                        int32 overHeal = (currHealth + GetHitHeal()) - maxHealth;
+
+                        if(overHeal > 0)
+                        {
+                            // Overheal shield
+                            caster->CastCustomSpell(caster, SPELL_PALADIN_GUARDED_BY_THE_LIGHT_SHIELD, &overHeal, NULL, NULL, true);
+                        }
+                    }
+                }
             }
 
             void Register()
             {
                 BeforeCast += SpellCastFn(spell_paladin_word_of_glory_SpellScript::HandleBeforeCast);
-                AfterCast += SpellCastFn(spell_paladin_word_of_glory_SpellScript::HandleAfterHit);
+                AfterCast += SpellCastFn(spell_paladin_word_of_glory_SpellScript::HandleAfterCast);
+                OnEffectHitTarget += SpellEffectFn(spell_paladin_word_of_glory_SpellScript::HandleOnEffectHit, EFFECT_0, SPELL_EFFECT_HEAL);
             }
         };
 

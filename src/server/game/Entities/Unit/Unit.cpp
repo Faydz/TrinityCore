@@ -11469,6 +11469,16 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                         DoneTotalMod += 3;
                     else
                         DoneTotalMod += this->GetPower(POWER_HOLY_POWER);
+
+                    // Guarded by the Light check
+                    if(AuraEffect* aurEff = this->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3026, EFFECT_0))
+                    {
+                        // Only for himself
+                        if(this == victim)
+                        {
+                            AddPct(DoneTotalMod, aurEff->GetAmount());
+                        }
+                    }
                     break;
             }
             break;
