@@ -3352,6 +3352,16 @@ void SpellMgr::LoadSpellCustomAttr()
                 if (spellInfo->SpellFamilyFlags[0] & 0x20000 || spellInfo->SpellFamilyFlags[1] & 0x20)
                     spellInfo->AttributesCu |= SPELL_ATTR0_CU_AURA_CC;
                 break;
+            case SPELLFAMILY_SHAMAN:
+                switch(spellInfo->Id)
+                {
+                    // Mental Quickness (Passive)
+                    case 30814:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_OVERRIDE_SPELL_POWER_BY_AP_PCT;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        break;
+                }
+                break;
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
