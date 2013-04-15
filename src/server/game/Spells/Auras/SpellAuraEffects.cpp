@@ -6610,7 +6610,7 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
                     case 16488: 
                     case 16490: 
                     case 16491: // Blood Craze
-                        damage = caster->CountPctFromMaxHealth(GetAmount()) / (GetBase()->GetMaxDuration() / IN_MILLISECONDS);
+                        damage = caster->CountPctFromMaxHealth(GetAmount() / 2) / (GetBase()->GetMaxDuration() / IN_MILLISECONDS);
                         break;
                 }
                 break;
