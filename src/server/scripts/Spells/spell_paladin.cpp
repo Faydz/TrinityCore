@@ -287,9 +287,26 @@ class spell_paladin_word_of_glory : public SpellScriptLoader
                 }
             }
 
+            void HandleAfterHit()
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 2944, EFFECT_0))
+                    {
+                        if(roll_chance_i(aurEff->GetAmount()))
+                        {
+                            int32 bp0 = caster->GetWordOfGloryHolyPower();
+                            caster->SetPower(POWER_HOLY_POWER, bp0);
+                        }
+                    }
+                }
+                this->GetSpellInfo()->Attributes;
+            }
+
             void Register()
             {
                 BeforeCast += SpellCastFn(spell_paladin_word_of_glory_SpellScript::HandleBeforeCast);
+                AfterCast += SpellCastFn(spell_paladin_word_of_glory_SpellScript::HandleAfterHit);
             }
         };
 

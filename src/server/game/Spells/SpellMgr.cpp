@@ -3203,6 +3203,7 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Word of Glory
                     case 85673:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_DUMMY;
+                        spellInfo->ManaCost = 0;
                         break;
                     // Zealotry
                     case 84535:
