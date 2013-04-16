@@ -4233,6 +4233,9 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank)
 
     if (spell_id == 46917 && m_canTitanGrip)
         SetCanTitanGrip(false);
+    if (spell_id == 86629 && m_canParry)
+        SetCanParry(false);
+
     if (m_canDualWield)
     {
         SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spell_id);
