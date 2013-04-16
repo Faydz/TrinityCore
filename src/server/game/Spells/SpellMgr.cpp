@@ -3146,6 +3146,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    // Consecration
+                    case 26573:
+                        spellInfo->Effects[EFFECT_2].TriggerSpell = 36946;
+                        break;
                     // Zealotry
                     case 85696:
                         spellInfo->Effects[EFFECT_0].BasePoints = 0;
