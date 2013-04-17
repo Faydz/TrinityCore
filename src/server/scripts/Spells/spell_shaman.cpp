@@ -990,6 +990,76 @@ public:
     }
 };
 
+// 61882 Earthquake
+class spell_sha_earthquake : public SpellScriptLoader
+{
+public:
+    spell_sha_earthquake() : SpellScriptLoader("spell_sha_earthquake") { }
+
+    class spell_sha_earthquake_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_sha_earthquake_AuraScript);
+       
+        void OnTick(AuraEffect const* aurEff)
+        {
+            if(!GetCaster())
+                return;
+
+            if (DynamicObject* dynObj = GetCaster()->GetDynObject(61882))
+            {
+                GetCaster()->CastSpell(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ(), 77478, true);
+            }
+        }
+
+        void Register()
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_sha_earthquake_AuraScript::OnTick, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+        }
+        
+        public:
+            std::list<Unit*> targetList;
+    };
+    
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_sha_earthquake_AuraScript();
+    }
+};
+
+// 77478 - 77505 Earthquake damage & stun effect
+class spell_sha_earthquake_effect : public SpellScriptLoader
+{
+public:
+    spell_sha_earthquake_effect() : SpellScriptLoader("spell_sha_earthquake_effect")
+    { } 
+
+    class spell_sha_earthquake_effect_SpellScript: public SpellScript
+    {
+        PrepareSpellScript(spell_sha_earthquake_effect_SpellScript)
+
+        void HandleStun(SpellEffIndex effIndex) 
+        {
+            if (!GetCaster() || !GetHitUnit())
+                return;
+
+            if (roll_chance_i(10))
+                GetCaster()->CastSpell(GetHitUnit(), 77505, true);
+        }
+
+        // Register functions used in spell script - names of these functions do not matter
+        void Register() 
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_sha_earthquake_effect_SpellScript::HandleStun, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
+        }
+    };
+
+    // function which creates SpellScript
+    SpellScript *GetSpellScript() const 
+    {
+        return new spell_sha_earthquake_effect_SpellScript();
+    }
+};
+
 void AddSC_shaman_spell_scripts()
 {
     new spell_sha_ancestral_awakening_proc();
@@ -1011,4 +1081,6 @@ void AddSC_shaman_spell_scripts()
     new spell_sha_fulmination();
     new spell_sha_totemic_wrath();
     new spell_sha_healing_rain();
+    new spell_sha_earthquake();
+    new spell_sha_earthquake_effect();
 }
