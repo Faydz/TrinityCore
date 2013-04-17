@@ -169,7 +169,7 @@ class boss_high_priestess_azil: public CreatureScript
                         events.CancelEvent(EVENT_GRAVITY_WELL);
                         me->AddAura(SPELL_ENERGY_SHIELD, me);
                         me->SetReactState(REACT_PASSIVE);
-                        me->GetMotionMaster()->MoveJump(me->GetHomePosition().GetPositionX(), me->GetHomePosition().GetPositionY(), me->GetHomePosition().GetPositionZ(), 1.0f, 1.0f);
+                        me->NearTeleportTo(me->GetHomePosition().GetPositionX(), me->GetHomePosition().GetPositionY(), me->GetHomePosition().GetPositionZ(), me->GetHomePosition().GetOrientation(), true);
                         events.ScheduleEvent(EVENT_SEISMIC_SHARD, 3000, 0, 0);
                         events.ScheduleEvent(EVENT_SEISMIC_SHARD_THROW, urand(5000, 8000), 0, 0);
                         events.ScheduleEvent(EVENT_SUMMON_DEVOUT_FOLLOWER, 1000, 0, 0);
@@ -182,6 +182,8 @@ class boss_high_priestess_azil: public CreatureScript
                                 shard->AddAura(SPELL_SEISMIC_SHARD_VISUAL, shard);
                                 shard->SetReactState(REACT_PASSIVE);
                                 shard->SetCanFly(true);
+                                shard->SetDisableGravity(true);
+                                me->SetByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_HOVER);
                                 shard->AddUnitMovementFlag(MOVEMENTFLAG_DISABLE_GRAVITY);
                                 shard->SetDisplayId(11686);
                                 shard->setFaction(14);

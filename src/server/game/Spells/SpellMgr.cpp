@@ -3064,6 +3064,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case 34433:
                 spellInfo->Effects[0].MiscValueB = 67;
                 break;
+            // Gravity Well Effect
+            case 47764:
+            case 47765:
+                spellInfo->Effects[0].RadiusEntry = sSpellRadiusStore.LookupEntry(13);
+                break;
             default:
                 break;
         }
