@@ -452,7 +452,10 @@ class spell_dru_eclipse_energize : public SpellScriptLoader
                         }
                         // The energizing effect brought us out of the solar eclipse, remove the aura
                         if (caster->HasAura(SPELL_DRUID_SOLAR_ECLIPSE) && caster->GetPower(POWER_ECLIPSE) <= 0)
+                        {
                             caster->RemoveAurasDueToSpell(SPELL_DRUID_SOLAR_ECLIPSE);
+                            caster->RemoveAura(94338);
+                        }
                         break;
                     }
                     case SPELL_DRUID_STARFIRE:
@@ -516,7 +519,10 @@ class spell_dru_eclipse_energize : public SpellScriptLoader
                             caster->RemoveAura(SPELL_DRUID_LUNAR_ECLIPSE);
                         // The energizing effect brought us out of the solar eclipse, remove the aura
                         else if (caster->HasAura(SPELL_DRUID_SOLAR_ECLIPSE) && caster->GetPower(POWER_ECLIPSE) <= 0)
-                            caster->RemoveAura(SPELL_DRUID_SOLAR_ECLIPSE);
+                        {
+                            caster->RemoveAurasDueToSpell(SPELL_DRUID_SOLAR_ECLIPSE);
+                            caster->RemoveAura(94338);
+                        }
                         break;
                     }
                 }
