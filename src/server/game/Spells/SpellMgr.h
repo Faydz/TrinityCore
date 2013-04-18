@@ -149,6 +149,12 @@ enum ProcFlags
 
     PROC_FLAG_DEATH                           = 0x01000000,    // 24 Died in any way
 
+    PROC_FLAG_DONE_APPLY_AURA_POS             = 0x10000000,    // 25 Done positive apply spell aura
+    PROC_FLAG_TAKEN_APPLY_AURA_POS            = 0x20000000,    // 26 Taken positive apply spell aura
+
+    PROC_FLAG_DONE_APPLY_AURA_NEG             = 0x30000000,    // 27 Done negative apply spell aura
+    PROC_FLAG_TAKEN_APPLY_AURA_NEG            = 0x40000000,    // 28 Taken negative apply spell aura
+
     // flag masks
     AUTO_ATTACK_PROC_FLAG_MASK                = PROC_FLAG_DONE_MELEE_AUTO_ATTACK | PROC_FLAG_TAKEN_MELEE_AUTO_ATTACK
                                                 | PROC_FLAG_DONE_RANGED_AUTO_ATTACK | PROC_FLAG_TAKEN_RANGED_AUTO_ATTACK,

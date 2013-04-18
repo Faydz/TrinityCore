@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * Copyright (C) 2012-2013 Forgotten Lands <http://www.forgottenlands.eu/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -18,10 +17,10 @@
 
 /* ScriptData
 SDName: boss_Akilzon
-SD%Complete: 75%
+SD%Complete: 0 %
 SDComment: Missing timer for Call Lightning and Sound ID's
 SQLUpdate:
-#Temporary fix for Soaring Eagles
+SDAuthor: dimiandre
 
 EndScriptData */
 

@@ -305,6 +305,9 @@ class AuraEffect
         void HandleProcTriggerDamageAuraProc(AuraApplication* aurApp, ProcEventInfo& eventInfo);
         void HandleRaidProcFromChargeAuraProc(AuraApplication* aurApp, ProcEventInfo& eventInfo);
         void HandleRaidProcFromChargeWithValueAuraProc(AuraApplication* aurApp, ProcEventInfo& eventInfo);
+
+        // aura effect modify spellpower
+        void HandleAuraOverrideSpellpowerByAPPercent(AuraApplication const* aurApp, uint8 mode, bool apply) const;
 };
 
 namespace Trinity

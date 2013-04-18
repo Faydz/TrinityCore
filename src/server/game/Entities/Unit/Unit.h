@@ -1748,6 +1748,7 @@ class Unit : public WorldObject
         void RemoveAurasWithAttribute(uint32 flags);
         void RemoveAurasWithFamily(SpellFamilyNames family, uint32 familyFlag1, uint32 familyFlag2, uint32 familyFlag3, uint64 casterGUID);
         void RemoveAurasWithMechanic(uint32 mechanic_mask, AuraRemoveMode removemode = AURA_REMOVE_BY_DEFAULT, uint32 except=0);
+        void RemoveRandomAuraWithMechanic(uint32 mechanic_mask, AuraRemoveMode removemode = AURA_REMOVE_BY_DEFAULT, uint32 except=0);
         void RemoveMovementImpairingAuras();
         
         void RemoveAndSaveSoulSwapDots(Unit* caster);
@@ -2164,9 +2165,12 @@ class Unit : public WorldObject
             m_darkIntentUnit = target;
         }
 
-        int GetRejuvenationCounter(){ return m_rejuvenationCounter; }
+        int GetRejuvenationCounter(){ return 1; }
         void SetRejuvenationCounter(int counter){ m_rejuvenationCounter = counter; }
         void ModRejuvenationCounter(bool add){ add ? m_rejuvenationCounter++ : m_rejuvenationCounter--; }
+        
+        int32 GetWordOfGloryHolyPower(){ return m_wordOfGloryHolyPower; }
+        void SetWordOfGloryHolyPower(int32 counter){ m_wordOfGloryHolyPower = counter; }
 
         //used for Improved steady shot (ID 53224)
         uint32 m_lastSpell;
@@ -2273,6 +2277,7 @@ class Unit : public WorldObject
         Unit* m_darkIntentUnit; //Could be either the warlock owner of the DI or  the friendly buffed target
 
         int m_rejuvenationCounter;
+        int32 m_wordOfGloryHolyPower;
 
         void DisableSpline();
     private:

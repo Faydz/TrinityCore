@@ -330,7 +330,8 @@ class npc_harrison_jones : public CreatureScript
                         switch (_gongEvent)
                         {
                             case GONG_EVENT_1:
-                                me->GetMotionMaster()->MovePath(HARRISON_MOVE_1, false);
+                                // me->GetMotionMaster()->MovePath(HARRISON_MOVE_1, false);
+                                me->GetMotionMaster()->MovePoint(0, 132.16f, 1642.87f, 42.02f, false);
                                 _gongEvent = GONG_EVENT_2;
                                 _gongTimer = 12000;
                                 break;

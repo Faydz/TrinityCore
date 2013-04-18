@@ -579,10 +579,11 @@ void LFGMgr::JoinLfg(Player* player, uint8 roles, LfgDungeonSet& dungeons, const
         sLog->outDebug(LOG_FILTER_LFG, "LFGMgr::Join: [" UI64FMTD "] trying to join raid browser and it's disabled.", guid);
         return;
     }
-
+    sLog->outError(LOG_FILTER_GENERAL, "STEP 0");
     std::string debugNames = "";
     if (grp)                                               // Begin rolecheck
     {
+        sLog->outError(LOG_FILTER_GENERAL, "STEP 1");
         // Create new rolecheck
         LfgRoleCheck& roleCheck = RoleChecksStore[gguid];
         roleCheck.cancelTime = time_t(time(NULL)) + LFG_TIME_ROLECHECK;
@@ -620,13 +621,14 @@ void LFGMgr::JoinLfg(Player* player, uint8 roles, LfgDungeonSet& dungeons, const
     }
     else                                                   // Add player to queue
     {
+        sLog->outError(LOG_FILTER_GENERAL, "STEP 2");
         LfgRolesMap rolesMap;
         rolesMap[guid] = roles;
         LFGQueue& queue = GetQueue(guid);
         queue.AddQueueData(guid, time(NULL), dungeons, rolesMap);
 
         if (!isContinue)
-        {
+        {   
             if (rDungeonId)
             {
                 dungeons.clear();

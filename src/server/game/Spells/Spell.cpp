@@ -2430,6 +2430,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
     // Trigger info was not filled in spell::preparedatafortriggersystem - we do it now
     if (canEffectTrigger && !procAttacker && !procVictim)
     {
+        bool hasAura = m_spellInfo->HasAnyAura() ? true : false;
         bool positive = true;
         if (m_damage > 0)
             positive = false;
@@ -2450,11 +2451,23 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
                 {
                     procAttacker |= PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_POS;
                     procVictim   |= PROC_FLAG_TAKEN_SPELL_MAGIC_DMG_CLASS_POS;
+                    
+                    if(hasAura)
+                    {
+                        procAttacker |= PROC_FLAG_DONE_APPLY_AURA_POS;
+                        procVictim   |= PROC_FLAG_TAKEN_APPLY_AURA_POS;
+                    }
                 }
                 else
                 {
                     procAttacker |= PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG;
                     procVictim   |= PROC_FLAG_TAKEN_SPELL_MAGIC_DMG_CLASS_NEG;
+                    
+                    if(hasAura)
+                    {
+                        procAttacker |= PROC_FLAG_DONE_APPLY_AURA_NEG;
+                        procVictim   |= PROC_FLAG_TAKEN_APPLY_AURA_NEG;
+                    }
                 }
             break;
             case SPELL_DAMAGE_CLASS_NONE:
@@ -2462,11 +2475,23 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
                 {
                     procAttacker |= PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_POS;
                     procVictim   |= PROC_FLAG_TAKEN_SPELL_NONE_DMG_CLASS_POS;
+                    
+                    if(hasAura)
+                    {
+                        procAttacker |= PROC_FLAG_DONE_APPLY_AURA_POS;
+                        procVictim   |= PROC_FLAG_TAKEN_APPLY_AURA_POS;
+                    }
                 }
                 else
                 {
                     procAttacker |= PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG;
                     procVictim   |= PROC_FLAG_TAKEN_SPELL_NONE_DMG_CLASS_NEG;
+                    
+                    if(hasAura)
+                    {
+                        procAttacker |= PROC_FLAG_DONE_APPLY_AURA_NEG;
+                        procVictim   |= PROC_FLAG_TAKEN_APPLY_AURA_NEG;
+                    }
                 }
             break;
         }
@@ -4113,6 +4138,34 @@ void Spell::SendSpellGo()
     }
 
     m_caster->SendMessageToSet(&data, true);
+
+    // Sanctity of Battle
+    if (m_caster->ToPlayer() && m_caster->HasAura(25956))
+    {
+        // category spells
+        if (m_spellInfo->Category == 1264)
+        {
+            // Crusader Strike & Divine Storm benefit from haste Sanctity of Battle
+            float haste = (2 - m_caster->ToPlayer()->GetFloatValue(UNIT_MOD_CAST_SPEED));
+            int32 cooldown = 4500;
+            int32 diffCool = 0;
+            if (haste > 0)
+            {
+                cooldown /= haste;
+                diffCool = 4500-cooldown;
+            }
+
+            m_caster->ToPlayer()->AddSpellCooldown(m_spellInfo->Id, 0, uint32(time(NULL) + cooldown/1000));
+            WorldPacket data(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
+            data << uint32(m_spellInfo->Id);
+            data << uint64(m_caster->GetGUID());
+            data << int32(-diffCool);
+            m_caster->ToPlayer()->GetSession()->SendPacket(&data);
+
+            //sLog->outError(LOG_FILTER_GENERAL, "GetFloatValue %f haste %f cooldown %d diffcool %d AddSpellCooldown %d", 
+                //m_caster->ToPlayer()->GetFloatValue(UNIT_MOD_CAST_SPEED), haste, cooldown, diffCool, uint32(time(NULL) + cooldown/1000));
+        }
+    }
 }
 
 /// Writes miss and hit targets for a SMSG_SPELL_GO packet

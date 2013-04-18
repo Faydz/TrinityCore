@@ -441,6 +441,22 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         break;
                 }
                 break;
+            case SPELLFAMILY_PALADIN:
+                switch(m_spellInfo->Id)
+                {
+                    // Seal of Righteousness aoe damage
+                    case 25742:
+                        if(m_caster && effIndex == EFFECT_1)
+                        {
+                            float ap = m_caster->GetTotalAttackPowerValue(BASE_ATTACK);
+                            int32 holy = m_caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_HOLY);
+                            holy += m_caster->SpellBaseDamageBonusTaken(SPELL_SCHOOL_MASK_HOLY);
+
+                            damage = int32((ap * 0.022f + 0.044f * holy) * m_caster->GetAttackTime(BASE_ATTACK) / 1000);
+                        }
+                        break;
+                }
+            break;
             case SPELLFAMILY_WARRIOR:
             {
                 switch(m_spellInfo->Id)
@@ -746,8 +762,17 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
             // Judgement (seal trigger)
             if (m_spellInfo->Category == SPELLCATEGORY_JUDGEMENT)
             {
-                if (!unitTarget->isAlive())
+                if (!m_caster || !unitTarget->isAlive())
                     return;
+
+                // Long Arm of the Law
+                if(AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3013, EFFECT_0))
+                    if(roll_chance_i(aurEff->GetAmount()) && m_caster->GetDistance(unitTarget) >= 15.0f)
+                        m_caster->CastSpell(m_caster, 87173);
+
+                // Communion
+                if(m_caster->HasAura(31876))
+                    m_caster->CastSpell(m_caster, 57669);
 
                 Unit::AuraApplicationMap & sealAuras = m_caster->GetAppliedAuras();
                 for (Unit::AuraApplicationMap::iterator iter = sealAuras.begin(); iter != sealAuras.end();)
@@ -817,6 +842,39 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
         case SPELLFAMILY_DEATHKNIGHT:
             switch (m_spellInfo->Id)
             {
+                // Death strike
+                case 49998:
+                {
+                    int32 bp;
+                    uint32 healthPct = m_caster->CountPctFromMaxHealth(7);
+                    uint32 damageTaken = m_caster->GetDamageTakenInPastSecs(5) * 0.20f;
+
+                    // Improved Death Strike
+                    if (AuraEffect const * aurEff = m_caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, 2751, 0)) 
+                        damageTaken = uint32(damageTaken * (m_caster->CalculateSpellDamage(m_caster, aurEff->GetSpellInfo(), 2) + 100.0f) / 100.0f);
+
+                    if (healthPct > damageTaken)
+                        bp = int32(healthPct);
+                    else 
+                        bp = int32(damageTaken);                
+
+                    if (m_caster->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY))
+                    {
+                        if (m_caster->ToPlayer()->GetPrimaryTalentTree(m_caster->ToPlayer()->GetActiveSpec()) == BS_DEATH_KNIGHT_BLOOD)
+                        {
+                            int32 shield = int32(bp * (50.0f + (6.25f * m_caster->ToPlayer()->GetMasteryPoints())) / 100.0f);
+
+                            // This effect stacks
+                            if (m_caster->HasAura(77535, m_caster->GetGUID()))
+                                shield += m_caster->GetAura(77535, m_caster->GetGUID())->GetEffect(0)->GetAmount();
+
+                            m_caster->CastCustomSpell(m_caster, 77535, &shield, NULL, NULL, false);
+                        }
+                    }
+
+                    m_caster->CastCustomSpell(m_caster, 45470, &bp, NULL, NULL, false);
+                    break;
+                }
                 case 46584: // Raise Dead
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
                         return;
@@ -829,22 +887,16 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                         // or guardian
                         bp = 46585;
 
-                    if (m_targets.HasDst())
                         targets.SetDst(*m_targets.GetDstPos());
-                    else
-                    {
-                        targets.SetDst(*m_caster);
-                        // Corpse not found - take reagents (only not triggered cast can take them)
-                        triggered = false;
-                    }
+                   
                     // Remove cooldown - summon spellls have category
                     m_caster->ToPlayer()->RemoveSpellCooldown(m_spellInfo->Id, true);
                     spell_id = 48289;
                     break;
-                // Raise dead - take reagents and trigger summon spells
+                // Raise dead - trigger summon spells
                 case 48289:
-                    if (m_targets.HasDst())
-                        targets.SetDst(*m_targets.GetDstPos());
+
+                    targets.SetDst(*m_targets.GetDstPos());
                     spell_id = CalculateDamage(0, NULL);
                     break;
             }
@@ -1618,6 +1670,17 @@ void Spell::EffectHeal(SpellEffIndex /*effIndex*/)
         if (unitTarget->HasAura(48920) && (unitTarget->GetHealth() + addhealth >= unitTarget->GetMaxHealth()))
             unitTarget->RemoveAura(48920);
 
+        // Healing Rain & Holy Word: Sanctuary
+        if (m_spellInfo->AttributesCu & SPELL_ATTR0_CU_LIMIT_HEAL)
+        {
+            uint32 count = 0;
+            for (std::list<TargetInfo>::iterator ihit= m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
+                ++count;
+
+            if (count > 6)
+                addhealth *= (6.0f / count);
+        }
+
         m_damage -= addhealth;
     }
 }
@@ -1992,6 +2055,17 @@ void Spell::EffectEnergize(SpellEffIndex effIndex)
     int level_diff = 0;
     switch (m_spellInfo->Id)
     {
+        case 35395:                                         // Crusader Strike
+            if(m_caster->HasAura(85696))
+                damage = 3;
+            break;
+        case 53385:                                         // Divine Storm
+        {
+            int hpThreshold = m_UniqueTargetInfo.size() - 1;
+            if(hpThreshold < 4)
+                return;
+            break;
+        }
         case 9512:                                          // Restore Energy
             level_diff = m_caster->getLevel() - 40;
             level_multiplier = 2;
@@ -2709,6 +2783,22 @@ void Spell::EffectDispel(SpellEffIndex effIndex)
                 if (Unit* owner = m_caster->GetOwner())
                     if (owner->GetAura(56249))
                         owner->CastCustomSpell(owner, 19658, &heal_amount, NULL, NULL, true);
+            }
+            break;
+        case SPELLFAMILY_PALADIN:
+            switch (m_spellInfo->Id)
+            {
+                // Cleanse
+                case 4987:
+                    if(m_caster == unitTarget)
+                    {
+                        // Acts of Sacrifice
+                        if(m_caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_PALADIN, 3022, EFFECT_0))
+                        {
+                            m_caster->RemoveRandomAuraWithMechanic((1<<MECHANIC_ROOT));
+                        }
+                    }
+                    break;
             }
             break;
         case SPELLFAMILY_SHAMAN:
@@ -6100,6 +6190,7 @@ void Spell::SummonGuardian(uint32 i, uint32 entry, SummonPropertiesEntry const* 
         TempSummon* summon = map->SummonCreature(entry, pos, properties, duration, caster, m_spellInfo->Id);
         if (!summon)
             return;
+
         if (summon->HasUnitTypeMask(UNIT_MASK_GUARDIAN))
             ((Guardian*)summon)->InitStatsForLevel(level);
 
