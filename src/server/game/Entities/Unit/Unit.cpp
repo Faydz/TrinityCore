@@ -5234,10 +5234,6 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                            }
                         }
 
-                        // Sunfire (remove)
-                        if (AuraEffect* aura = GetDummyAuraEffect(SPELLFAMILY_DRUID, 3262, 0))
-                            RemoveAura(94338);
-
                         break;
                     }
                 }
