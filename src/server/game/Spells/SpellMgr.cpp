@@ -3470,6 +3470,12 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 34600:
                         spellInfo->Effects[0].Effect = SPELL_EFFECT_SUMMON_OBJECT_SLOT4;
                         break;
+                    // Camouflage
+                    case 51755:
+                        spellInfo->Effects[0].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
+                        spellInfo->Effects[1].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
+                        spellInfo->Effects[2].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
+                        break;
                 }
                 break;
             default:
