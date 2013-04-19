@@ -7029,6 +7029,25 @@ void Player::RewardReputation(Unit* victim, float rate)
         return;
 
     ReputationOnKillEntry const* Rep = sObjectMgr->GetReputationOnKilEntry(victim->ToCreature()->GetCreatureTemplate()->Entry);
+
+    // All mob in level 85 dungeons give championing reputation
+    if (!Rep)
+    {
+        if (Map* map = victim->GetMap())
+        {
+            if (map->IsDungeon())
+            {
+                if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 45000)
+                {
+                    if (!map->IsHeroic())
+                        Rep = sObjectMgr->GetReputationOnKilEntry(42696);
+                    else
+                        Rep = sObjectMgr->GetReputationOnKilEntry(49667);
+                }
+            }
+        }
+    }
+
     if (!Rep)
         return;
 

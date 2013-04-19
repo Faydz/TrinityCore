@@ -819,7 +819,6 @@ class ObjectMgr
 
         CurrencyOnKillEntry const* GetCurrencyOnKilEntry(uint32 id) const
         {
-            sLog->outError(LOG_FILTER_GENERAL, "ID %d", id);
             CurrencyOnKillContainer::const_iterator itr = _currencyOnKillStore.find(id);
             if (itr != _currencyOnKillStore.end())
                 return &itr->second;
