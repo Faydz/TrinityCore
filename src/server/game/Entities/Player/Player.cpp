@@ -7056,13 +7056,14 @@ void Player::RewardReputation(Unit* victim, float rate)
     if (GetChampioningFaction())
     {
         // support for: Championing - http://www.wowwiki.com/Championing
-
         Map const* map = GetMap();
         if (map && map->IsNonRaidDungeon())
         {
             if (AccessRequirement const* accessRequirement = sObjectMgr->GetAccessRequirement(map->GetId(), map->GetDifficulty()))
-                if (accessRequirement->levelMin == 80)
+            {
+                if (accessRequirement->levelMin == 80 || accessRequirement->levelMin == 85)
                     ChampioningFaction = GetChampioningFaction();
+            }
         }
     }
 
