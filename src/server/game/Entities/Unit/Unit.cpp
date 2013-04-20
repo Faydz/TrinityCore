@@ -11952,10 +11952,11 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
 
     // Done total percent damage auras
     float DoneTotalMod = 1.0f;
-
-    // SPELL_AURA_MOD_AUTOATTACK_DAMAGE
+    
+    // Autoattack pct done mods
     if (!spellProto)
     {
+        // SPELL_AURA_MOD_AUTOATTACK_DAMAGE
         AuraEffectList const & autoattackDamage = GetAuraEffectsByType(SPELL_AURA_MOD_AUTOATTACK_DAMAGE);
         for (AuraEffectList::const_iterator i = autoattackDamage.begin(); i != autoattackDamage.end(); ++i)
         {
