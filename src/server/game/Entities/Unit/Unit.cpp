@@ -6874,6 +6874,26 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     }
                     return true;
                     break;
+                // Improved Steady Shot
+                case 53221:
+                case 53222:
+                case 53224:
+                    if (!procSpell)
+                        return false;
+
+                    if (GetLastSpell() == 56641 && procSpell->Id == 56641)
+                    {
+                        int32 bp0 = triggerAmount;
+                        CastCustomSpell(this, 53220, &bp0, NULL, NULL, true);
+                        SetLastSpell(0);
+                        return true;
+                    } else
+                    {
+                        SetLastSpell(procSpell->Id);
+                    }
+
+                    return false;
+                    break;
             }
             switch (dummySpell->SpellIconID)
             {

@@ -3386,9 +3386,6 @@ void Spell::cast(bool skipCheck)
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
     {
-        // Set Last spell casted;
-        m_caster->SetLastSpell(m_spellInfo->Id);
-
         if(m_caster->getClass() == CLASS_HUNTER)
             if(m_spellInfo->Id == 3044 || m_spellInfo->Id == 53209)
                 if(AuraEffect* auraEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 3524, EFFECT_0))
