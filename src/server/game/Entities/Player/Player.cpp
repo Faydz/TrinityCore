@@ -2519,10 +2519,10 @@ void Player::RegenerateAll()
         }
     }
 
-    if (m_focusRegenTimerCount >= 1000 && getClass() == CLASS_HUNTER)
+    if (m_focusRegenTimerCount >= 500 && getClass() == CLASS_HUNTER)
     {
         Regenerate(POWER_FOCUS);
-        m_focusRegenTimerCount -= 1000;
+        m_focusRegenTimerCount -= 500;
     }
 
     if (m_regenTimerCount >= 2000)
@@ -2598,8 +2598,12 @@ void Player::Regenerate(Powers power)
         break;
         case POWER_FOCUS:
         {
-            float focusPerSecond = GetFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER);
-            addvalue += focusPerSecond * sWorld->getRate(RATE_POWER_FOCUS);
+            float focusPerSecond = GetFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER) - 1.0f;
+            focusPerSecond = floor(focusPerSecond * 100.0f + 0.5f) / 100.0f;
+            focusPerSecond += 6.0f;
+            focusPerSecond *= sWorld->getRate(RATE_POWER_FOCUS);
+            focusPerSecond /= 2.0f
+            addvalue += focusPerSecond;
             break;
         }
         case POWER_ENERGY:                                              // Regenerate energy (rogue)
