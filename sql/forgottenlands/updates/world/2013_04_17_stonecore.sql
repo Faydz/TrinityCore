@@ -1,4 +1,4 @@
-DELETE FORM `creature` WHERE `id` IN (43438, 43214, 42188, 42333);
+DELETE FROM `creature` WHERE `id` IN (43438, 43214, 42188, 42333);
 INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES 
 (NULL, 43438, 725, 3, 1, 0, 0, 1164.41, 874.28, 285.348, 3.07851, 86400, 0, 0, 1, 0, 0, 0, 0, 0),
 (NULL, 43214, 725, 3, 1, 0, 0, 1282.7, 1229.77, 247.155, 3.82227, 7200, 0, 0, 1, 0, 0, 0, 0, 0),
