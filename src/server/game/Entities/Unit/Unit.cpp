@@ -6848,7 +6848,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     triggered_spell_id = 88466;
                     break;
                 //Sic 'em Rank 1
-                case 53340:
+                case 83340:
                 {
                     triggered_spell_id = 83359;
                     target = this;
