@@ -11321,9 +11321,9 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
 					case 19434:
 					case 56641:
 					case 77767:
-						if(AuraEffect* auraEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2222, 0))
-							if(victim->GetHealthPct() > 90.0f)
-								crit_chance += auraEff->GetAmount();
+                        if(AuraEffect* auraEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2222, 0))
+                            if(victim->GetHealthPct() > 90.0f)
+                                crit_chance += auraEff->GetAmount();
 						break;
                     //Serpent Sting - Black Arrow (Toxicology - 82833)
                     case 3674:
