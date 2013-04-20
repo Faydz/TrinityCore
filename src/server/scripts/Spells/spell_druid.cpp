@@ -41,9 +41,225 @@ enum DruidSpells
     SPELL_DRUID_REJUVENATION_ISTANT_SPELL       = 64801,
     SPELL_DRUID_SAVAGE_ROAR                     = 62071,
     SPELL_DRUID_SURVIVAL_INSTINCTS              = 50322,
+    SPELL_DRUID_NPC_WILD_MUSHROOM               = 47649,
+    SPELL_DRUID_NPC_FUNGAL_GROWTH_1             = 43497,
+    SPELL_DRUID_NPC_FUNGAL_GROWTH_2             = 43484,
+    SPELL_DRUID_TALENT_FUNGAL_GROWTH_1          = 78788,
+    SPELL_DRUID_TALENT_FUNGAL_GROWTH_2          = 78789,
+    SPELL_DRUID_SPELL_FUNGAL_GROWTH_1           = 81291,
+    SPELL_DRUID_SPELL_FUNGAL_GROWTH_2           = 81283,
+    SPELL_DRUID_SPELL_WILD_MUSHROOM_SUICIDE     = 92853,
+    SPELL_DRUID_SPELL_WILD_MUSHROOM_DAMAGE      = 78777,
     SPELL_ENRAGE_MOD_DAMAGE                     = 51185,
     SPELL_KING_OF_THE_JUNGLE                    = 48492,
     SPELL_TIGER_S_FURY_ENERGIZE                 = 51178,
+};
+
+// 88747 - Wild mushroom
+class spell_dru_wild_mushroom : public SpellScriptLoader
+{
+    public:
+        spell_dru_wild_mushroom() : SpellScriptLoader("spell_dru_wild_mushroom") { }
+
+        class spell_dru_wild_mushroom_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_wild_mushroom_SpellScript)
+
+            void HandleSummon(SpellEffIndex effIndex)
+            {
+                PreventHitDefaultEffect(effIndex);
+
+                Unit* caster = GetCaster();
+                WorldLocation const* targetDest = GetExplTargetDest();
+                SpellInfo const* spellInfo = GetSpellInfo();
+
+                if(caster && targetDest)
+                {
+                    if (Player* player = caster->ToPlayer())
+                    {
+                        Position pos;
+                        std::list<Creature*> list;
+
+                        player->GetCreatureListWithEntryInGrid(list, SPELL_DRUID_NPC_WILD_MUSHROOM, 100.0f);
+                        for (std::list<Creature*>::iterator i = list.begin(); i != list.end(); i)
+                        {
+                            if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
+                            {
+                                if (!player)
+                                {
+                                    return;
+                                }
+                            }
+                            else
+                                list.remove((*i));
+
+                            i++;
+                        }
+
+                        // Max 3 Wild Mushroom
+                        if ((int32)list.size() >= GetEffectValue())
+                        {
+                            if(TempSummon* temp = list.back()->ToTempSummon())
+                            {
+                                temp->UnSummon();
+                            }
+                        }
+                        
+                        // Summon position
+                        targetDest->GetPosition(&pos);
+
+                        // Summon properties
+                        const SummonPropertiesEntry* properties = sSummonPropertiesStore.LookupEntry(spellInfo->Effects[effIndex].MiscValueB);
+                                                      
+                        TempSummon* summon = player->SummonCreature(spellInfo->Effects[0].MiscValue, pos, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, spellInfo->GetDuration());
+
+                        if (!summon)
+                            return;
+                    
+                        summon->SetUInt64Value(UNIT_FIELD_SUMMONEDBY, player->GetGUID());
+                        summon->setFaction(player->getFaction());
+                        summon->SetUInt32Value(UNIT_CREATED_BY_SPELL, GetSpellInfo()->Id);
+                        summon->SetMaxHealth(5);
+                        summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+                        summon->StopMoving();
+                        summon->SetControlled(true, UNIT_STATE_STUNNED);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHit += SpellEffectFn(spell_dru_wild_mushroom_SpellScript::HandleSummon, EFFECT_0, SPELL_EFFECT_SUMMON);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_wild_mushroom_SpellScript();
+        }
+};
+
+// 88751 - Wild mushroom : Detonate
+class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
+{
+    public:
+        spell_dru_wild_mushroom_detonate() : SpellScriptLoader("spell_dru_wild_mushroom_detonate") { }
+
+        class spell_dru_wild_mushroom_detonate_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_wild_mushroom_detonate_SpellScript)
+
+            bool Load()
+            {
+                spellRange = GetSpellInfo()->GetMaxRange();
+
+                if (!spellRange)
+                    return false;
+
+                if(Unit* caster = GetCaster())
+                {
+                    if(Player* player = caster->ToPlayer())
+                    {
+                        std::list<Creature*> list;
+                        std::list<TempSummon*> summonList;
+
+                        player->GetCreatureListWithEntryInGrid(list, SPELL_DRUID_NPC_WILD_MUSHROOM, 100.0f);
+                        for (std::list<Creature*>::const_iterator i = list.begin(); i != list.end(); i)
+                        {
+                            if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
+                            {
+                                if(TempSummon* tempMushroom = (*i)->ToTempSummon())
+                                {
+                                    mushroomList.push_back(tempMushroom);
+                                }
+                            }
+                            i++;
+                        }
+                        //mushroomList = summonList;
+
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            SpellCastResult CheckCast()
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    if(Player* player = caster->ToPlayer())
+                    {
+                        if (mushroomList.empty())
+                            return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
+
+                        bool inRange = false;
+
+                        for (std::list<TempSummon*>::const_iterator i = mushroomList.begin(); i != mushroomList.end(); i)
+                        {
+                            Position pos;
+                            (*i)->GetPosition(&pos);
+
+                            // Must have at least one mushroom within 40 yards
+                            if (player->IsWithinDist3d(&pos, spellRange))
+                            {
+                                return SPELL_CAST_OK;
+                            }
+                        }
+
+                        SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_TARGET_TOO_FAR);
+                        return SPELL_FAILED_CUSTOM_ERROR;
+                    }
+                }
+                return SPELL_FAILED_CASTER_DEAD;
+            }
+
+            void HandleDummy(SpellEffIndex /*effIndex*/)
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    if(Player* player = caster->ToPlayer())
+                    {
+
+                        for (std::list<TempSummon*>::const_iterator i = mushroomList.begin(); i != mushroomList.end(); i)
+                        {
+                            Position pos;
+                            TempSummon* tempMushroom = (*i);
+                            tempMushroom->GetPosition(&pos);
+                            
+                            if(tempMushroom)
+                            {
+                                // Explosion visual and suicide
+                                tempMushroom->CastSpell(tempMushroom, SPELL_DRUID_SPELL_WILD_MUSHROOM_SUICIDE, true);
+
+                                // Explosion damage
+                                player->CastSpell(tempMushroom->GetPositionX(), tempMushroom->GetPositionY(), tempMushroom->GetPositionZ(), SPELL_DRUID_SPELL_WILD_MUSHROOM_DAMAGE, true);
+
+                            }
+                            i++;
+                        }
+                        
+                        // Frees the memory
+                        mushroomList.clear();
+                    }
+                }
+            }
+            
+        private:
+            float spellRange;
+            std::list<TempSummon*> mushroomList;
+            std::list<TempSummon*> fungal_List;
+
+            void Register() 
+            {
+                OnCheckCast += SpellCheckCastFn(spell_dru_wild_mushroom_detonate_SpellScript::CheckCast);
+                OnEffectHitTarget += SpellEffectFn(spell_dru_wild_mushroom_detonate_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_wild_mushroom_detonate_SpellScript();
+        }
 };
 
 // 52610 - Form aura state check
@@ -1932,6 +2148,8 @@ class spell_dru_lunar_shower : public SpellScriptLoader
 
 void AddSC_druid_spell_scripts()
 {
+    new spell_dru_wild_mushroom();
+    new spell_dru_wild_mushroom_detonate();
     new spell_dru_form_aura_state_check();
     new spell_dru_istant_rejuvenation();
     new spell_dru_rejuvenation();
