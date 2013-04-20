@@ -6928,6 +6928,23 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Ancient Crusader
+                case 86701:
+                    triggered_spell_id = 86700;
+                    break;
+                // Ancient Healer
+                case 86674:
+                {
+                    int32 bp0 = damage;
+                    int32 bp1 = CalculatePct(bp0, 10);
+
+                    if (!bp0 || !bp1 || !victim) 
+                        return false;
+
+                    this->CastCustomSpell(victim, 86678, &bp0, &bp1, NULL, true, NULL, triggeredByAura);
+
+                    return true;
+                }
                 // Divine Purpose
                 case 85117:
                 case 86172:

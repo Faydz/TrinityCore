@@ -3146,6 +3146,14 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    // Ancient Healer
+                    case 86674: 
+                        spellInfo->ProcCharges = 5;
+                        break;
+                    // Guardian of Ancient Kings
+                    case 86150:
+                        spellInfo->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        break;
                     // Consecration
                     case 26573:
                         spellInfo->Effects[EFFECT_2].TriggerSpell = 36946;

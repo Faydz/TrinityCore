@@ -35,6 +35,95 @@ EndContentData */
 #include "Player.h"
 #include "SpellInfo.h"
 
+enum GuardianOfAncientKings
+{
+    GOAK_HOLY_ENTRY                 = 46499,
+
+    GOAK_PROTECTION_ENTRY           = 46490,
+
+    GOAK_RETRIBUTION_ENTRY          = 46506,
+};
+
+class guard_guardian_of_ancient_kings : public CreatureScript
+{
+public:
+    guard_guardian_of_ancient_kings() : CreatureScript("guard_guardian_of_ancient_kings") { }
+
+    struct guard_guardian_of_ancient_kingsAI : public GuardAI
+    {
+        guard_guardian_of_ancient_kingsAI(Creature* creature) : GuardAI(creature) {}
+        
+        void InitializeAI()
+        {
+            owner = me->GetCharmerOrOwner();
+            guardianEntry = me->GetEntry();
+            isRetribution = guardianEntry == GOAK_RETRIBUTION_ENTRY;
+
+            if (owner && !isRetribution)
+            {
+                // Holy and Protection guardian are passive
+                dummyGuard();
+            }
+        }
+
+        void UpdateAI(uint32 diff)
+        {
+            // All operations available only for Retribution Guardian
+            if(owner && isRetribution)
+            {
+                Unit* ownerVictim = owner->getVictim();
+                
+                // Paladin's attacking check, also check range because state is applied when right clicking (even out of melee range)
+                if(ownerVictim && owner->HasUnitState(UNIT_STATE_MELEE_ATTACKING)
+                    && owner->IsInRange(ownerVictim, 0.0f, NOMINAL_MELEE_RANGE))
+                {
+                    meVictim = me->getVictim();
+
+                    // Guardian's target switching only when paladin switch
+                    if(ownerVictim != meVictim)
+                    {
+                        meVictim = ownerVictim;
+                        
+                        me->Attack(meVictim, true);
+                        me->GetMotionMaster()->MoveChase(meVictim);
+                    }
+
+                    // Required with me->Attack
+                    if(me->isInCombat())
+                    {
+                        DoMeleeAttackIfReady();
+                    }
+                }
+                else
+                {
+                    dummyGuard();
+                }
+            }
+        }
+
+        void dummyGuard()
+        {
+            followdist = PET_FOLLOW_DIST *2;
+
+            me->SetReactState(REACT_PASSIVE);
+            me->GetMotionMaster()->Clear(false);
+            me->GetMotionMaster()->MoveFollow(owner, followdist, me->GetFollowAngle());
+        }
+
+    private:
+        Unit* owner;
+        Unit* meVictim;
+        uint32 guardianEntry;
+        float followdist;
+        bool isRetribution;
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new guard_guardian_of_ancient_kingsAI(creature);
+    }
+};
+
 enum GuardGeneric
 {
     GENERIC_CREATURE_COOLDOWN       = 5000,
@@ -387,6 +476,7 @@ public:
 
 void AddSC_guards()
 {
+    new guard_guardian_of_ancient_kings();
     new guard_generic;
     new guard_shattrath_aldor;
     new guard_shattrath_scryer;
