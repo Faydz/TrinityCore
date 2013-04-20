@@ -3069,6 +3069,15 @@ void SpellMgr::LoadSpellCustomAttr()
             case 47765:
                 spellInfo->Effects[0].RadiusEntry = sSpellRadiusStore.LookupEntry(13);
                 break;
+            // Steady Shot
+            case 56641:
+                spellInfo->Effects[2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                break;
+            // Cobra Shot
+            case 77767:
+                spellInfo->Effects[1].Effect = SPELL_EFFECT_DUMMY;
+                spellInfo->Effects[1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                break;
             default:
                 break;
         }
