@@ -46,6 +46,40 @@ enum DruidSpells
     SPELL_TIGER_S_FURY_ENERGIZE                 = 51178,
 };
 
+// 52610 - Form aura state check
+class spell_dru_form_aura_state_check : public SpellScriptLoader
+{
+    public:
+        spell_dru_form_aura_state_check() : SpellScriptLoader("spell_dru_form_aura_state_check") { }
+
+        class spell_dru_form_aura_state_check_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_form_aura_state_check_SpellScript);
+
+            SpellCastResult CheckCast()
+            {
+                Unit* caster = GetCaster();
+                {
+                    if (caster->HasAuraType(SPELL_AURA_MOD_SILENCE) 
+                        || caster->HasAuraType(SPELL_AURA_MOD_PACIFY) 
+                        || caster->HasAuraType(SPELL_AURA_MOD_PACIFY_SILENCE))
+                        return SPELL_FAILED_SILENCED;
+                }
+                return SPELL_CAST_OK;
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_dru_form_aura_state_check_SpellScript::CheckCast);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_form_aura_state_check_SpellScript();
+        }
+};
+
 class spell_dru_istant_rejuvenation : public SpellScriptLoader
 {
     public:
@@ -1898,6 +1932,7 @@ class spell_dru_lunar_shower : public SpellScriptLoader
 
 void AddSC_druid_spell_scripts()
 {
+    new spell_dru_form_aura_state_check();
     new spell_dru_istant_rejuvenation();
     new spell_dru_rejuvenation();
     new spell_dru_efflorescence();
