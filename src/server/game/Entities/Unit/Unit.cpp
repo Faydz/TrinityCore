@@ -6854,18 +6854,31 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     target = this;
                     break;
                 }
-            // Sic 'Em Rank 2
+                // Sic 'Em Rank 2
                 case 83356:
                 {
                     triggered_spell_id = 89388;
                     target = this;
                     break;
                 }
+                // Wild Quiver Hunter Marksmanship Mastery 
+                case 76659:
+                    if (effIndex != EFFECT_0)
+                        return false;
+
+                    if (Player* caster = ToPlayer())
+                    {
+                       float chance = 2.1f * caster->GetMasteryPoints();
+                       if (roll_chance_f(chance))
+                           caster->CastSpell(target, 53254, true);
+                    }
+                    return true;
+                    break;
             }
             switch (dummySpell->SpellIconID)
             {
                 // Lock and Load
-            case 3579:
+                case 3579:
                 {
                     // Proc only from periodic (from trap activation proc another aura of this spell)
                     if (!(procFlag & PROC_FLAG_DONE_PERIODIC)
@@ -6874,16 +6887,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     target = this;
                     break;
                 }
-                // Wild Quiver Hunter Marksmanship Mastery 
-                case 76659:
-                    if (Player* caster = ToPlayer())
-                    {
-                       int32 chance = int32(2.1f * caster->GetMasteryPoints());
-                       if (roll_chance_i(chance))
-                           caster->CastSpell(target, 53254, true);
-                    }
-                    return true;
-                    break;
                 case 267: // Improved Mend Pet
                 {
                     if (!roll_chance_i(triggerAmount))
