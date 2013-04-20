@@ -13670,6 +13670,13 @@ bool Player::IsUseEquipedWeapon(bool mainhand) const
     return !IsInFeralForm() && (!mainhand || !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED));
 }
 
+bool Player::IsOneHandUsed(bool mainhand) const
+{
+    Item* mainItem = GetItemByPos(INVENTORY_SLOT_BAG_0, mainhand ? EQUIPMENT_SLOT_MAINHAND : EQUIPMENT_SLOT_OFFHAND);
+    return mainItem && (mainItem->GetTemplate()->InventoryType == INVTYPE_WEAPON 
+        || mainItem->GetTemplate()->InventoryType == INVTYPE_WEAPONMAINHAND);
+}
+
 bool Player::IsTwoHandUsed() const
 {
     Item* mainItem = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);

@@ -10844,6 +10844,19 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                         DoneTotalMod *= 1.0f + 0.031f *  owner->ToPlayer()->GetMasteryPoints();
             break;
         case SPELLFAMILY_WARRIOR:
+            if(Player const* player = this->ToPlayer())
+            {        
+                // Single-Minded Fury check
+                if(AuraEffect* aurEff = this->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_WARRIOR, 4975, EFFECT_0))
+                {
+                    if(!player->IsOneHandUsed(true)
+                        || !player->IsOneHandUsed(false))
+                    {
+                        AddPct(DoneTotalMod, -aurEff->GetAmount());
+                    }
+                }
+            }
+
             // Raging Blow (damage increased by mastery)
             if (owner->ToPlayer() && owner->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && spellProto->Id == 8680)
                     if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARRIOR_FURY)
@@ -11981,6 +11994,20 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                     if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2656, EFFECT_0))
                         if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
                             DoneTotalMod += float(aurEff->GetAmount() / 100.0f);
+                break;
+            case SPELLFAMILY_WARRIOR:
+                // Single-Minded Fury check
+                if(Player* player = this->ToPlayer())
+                {        
+                    if(AuraEffect* aurEff = this->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_WARRIOR, 4975, EFFECT_0))
+                    {
+                        if(!player->IsOneHandUsed(true)
+                            || !player->IsOneHandUsed(false))
+                        {
+                            AddPct(DoneTotalMod, -aurEff->GetAmount());
+                        }
+                    }
+                }
                 break;
         }
     }

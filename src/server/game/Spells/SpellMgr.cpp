@@ -3315,6 +3315,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Offhand Slam
+                    case 50783:
+                        spellInfo->AttributesEx3 |= SPELL_ATTR3_REQ_OFFHAND;
+                        break;
                     // Charge/Intercept stun
                     case 7922:
                     case 20253:
