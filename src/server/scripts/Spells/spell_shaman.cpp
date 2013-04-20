@@ -58,12 +58,97 @@ enum ShamanSpells
     SHAMAN_TOTEM_SPELL_EARTHEN_POWER            = 59566,
     SPELL_SHAMAN_TOTEM_TOTEMIC_WRATH            = 77746,
     SPELL_SHAMAN_TOTEM_TOTEMIC_WRATH_AURA       = 77747,
+    SPELL_SHAMAN_TOTEM_HEALING_STREAM_HEAL      = 52042,
+    SPELL_SHAMAN_UNLEASH_EARTH                  = 73684,
+    SPELL_SHAMAN_UNLEASH_ELEMENTS               = 73680,
+    SPELL_SHAMAN_UNLEASH_FLAME                  = 73683,
+    SPELL_SHAMAN_UNLEASH_FROST                  = 73682,
+    SPELL_SHAMAN_UNLEASH_LIFE                   = 73685,
+    SPELL_SHAMAN_UNLEASH_WIND                   = 73681
 };
 
 enum ShamanSpellIcons
 {
     SHAMAN_ICON_ID_SOOTHING_RAIN                = 2011,
     SHAMAN_ICON_ID_SHAMAN_LAVA_FLOW             = 3087
+};
+
+// 73680 - Unleash Elements
+/// Updated 4.3.4
+class spell_sha_unleash_elements : public SpellScriptLoader
+{
+    public:
+        spell_sha_unleash_elements() : SpellScriptLoader("spell_sha_unleash_elements") { }
+
+        class spell_sha_unleash_elements_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_sha_unleash_elements_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellStore.LookupEntry(SPELL_SHAMAN_UNLEASH_ELEMENTS))
+                    return false;
+                return true;
+            }
+
+            void HandleDummy(SpellEffIndex /*effIndex*/)
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if (Unit* target = GetExplTargetUnit())
+                    {
+                        Item* weapons[2]= {0,0};
+                        weapons[0] = caster->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
+                        weapons[1] = caster->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
+
+                        for(int i = 0; i < 2; i++)
+                        {
+                            if(!weapons[i])
+                                continue;
+                        
+                            switch (weapons[i]->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT))
+                            {
+                                case 3345:  // Earthliving Weapon
+                                    caster->CastSpell(caster, SPELL_SHAMAN_UNLEASH_LIFE, true);
+                                    break;
+                                case 5:     // Flametongue Weapon
+                                    caster->CastSpell(target, SPELL_SHAMAN_UNLEASH_FLAME, true);
+                                    break;
+                                case 2:     // Frostbrand Weapon
+                                    caster->CastSpell(target, SPELL_SHAMAN_UNLEASH_FROST, true);
+                                    break;
+                                case 3021:  // Rockbiter Weapon
+                                    caster->CastSpell(target, SPELL_SHAMAN_UNLEASH_EARTH, true);
+                                    break;
+                                case 283:   // Windfury Weapon
+                                    caster->CastSpell(target, SPELL_SHAMAN_UNLEASH_WIND, true);
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            SpellCastResult CheckCast()
+            {
+                Unit* target = GetExplTargetUnit();
+                Unit* caster = GetCaster();
+                if (caster->ToPlayer()->IsFriendlyTo(target))
+                    return SPELL_FAILED_TARGET_FRIENDLY;
+                return SPELL_CAST_OK;
+            }
+
+            void Register()
+            {
+                OnEffectHit += SpellEffectFn(spell_sha_unleash_elements_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+                OnCheckCast += SpellCheckCastFn(spell_sha_unleash_elements_SpellScript::CheckCast);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_sha_unleash_elements_SpellScript();
+        }
 };
 
 // 52759 - Ancestral Awakening
@@ -1062,6 +1147,7 @@ public:
 
 void AddSC_shaman_spell_scripts()
 {
+    new spell_sha_unleash_elements();
     new spell_sha_ancestral_awakening_proc();
     new spell_sha_bloodlust();
     new spell_sha_chain_heal();
