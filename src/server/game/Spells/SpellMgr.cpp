@@ -3064,6 +3064,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case 34433:
                 spellInfo->Effects[0].MiscValueB = 67;
                 break;
+            // Gravity Well Effect
+            case 47764:
+            case 47765:
+                spellInfo->Effects[0].RadiusEntry = sSpellRadiusStore.LookupEntry(13);
+                break;
             default:
                 break;
         }
@@ -3472,6 +3477,12 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Snake Trap
                     case 34600:
                         spellInfo->Effects[0].Effect = SPELL_EFFECT_SUMMON_OBJECT_SLOT4;
+                        break;
+                    // Camouflage
+                    case 51755:
+                        spellInfo->Effects[0].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
+                        spellInfo->Effects[1].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
+                        spellInfo->Effects[2].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
                         break;
                 }
                 break;

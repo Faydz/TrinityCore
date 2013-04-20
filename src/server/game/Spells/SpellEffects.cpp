@@ -882,6 +882,9 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                             m_caster->CastCustomSpell(m_caster, 77535, &shield, NULL, NULL, false);
                         }
                     }
+                    // Improved Death Strike
+                    if (AuraEffect const * aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2751, EFFECT_2))
+                        AddPct(bp, aurEff->GetAmount());
 
                     m_caster->CastCustomSpell(m_caster, 45470, &bp, NULL, NULL, false);
                     break;

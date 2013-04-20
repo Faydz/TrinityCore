@@ -531,6 +531,13 @@ inline void KillRewarder::_RewardReputation(Player* player, float rate)
     player->RewardReputation(_victim, rate);
 }
 
+inline void KillRewarder::_RewardCurrency(Player* player)
+{
+    // 4.3.2 Give currency
+    // Even dead players and corpses are rewarded.
+    player->RewardCurrency(_victim);
+}
+
 inline void KillRewarder::_RewardKillCredit(Player* player)
 {
     // 4.4. Give kill credit (player must not be in group, or he must be alive or without corpse).
@@ -564,6 +571,7 @@ void KillRewarder::_RewardPlayer(Player* player, bool isDungeon)
         {
             // If killer is in dungeon then all members receive full reputation at kill.
             _RewardReputation(player, isDungeon ? 1.0f : rate);
+            _RewardCurrency(player);
             _RewardKillCredit(player);
         }
     }
@@ -7021,6 +7029,25 @@ void Player::RewardReputation(Unit* victim, float rate)
         return;
 
     ReputationOnKillEntry const* Rep = sObjectMgr->GetReputationOnKilEntry(victim->ToCreature()->GetCreatureTemplate()->Entry);
+
+    // All mob in level 85 dungeons give championing reputation
+    if (!Rep)
+    {
+        if (Map* map = victim->GetMap())
+        {
+            if (map->IsDungeon())
+            {
+                if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 45000)
+                {
+                    if (!map->IsHeroic())
+                        Rep = sObjectMgr->GetReputationOnKilEntry(42696);
+                    else
+                        Rep = sObjectMgr->GetReputationOnKilEntry(49667);
+                }
+            }
+        }
+    }
+
     if (!Rep)
         return;
 
@@ -7029,13 +7056,14 @@ void Player::RewardReputation(Unit* victim, float rate)
     if (GetChampioningFaction())
     {
         // support for: Championing - http://www.wowwiki.com/Championing
-
         Map const* map = GetMap();
         if (map && map->IsNonRaidDungeon())
         {
             if (AccessRequirement const* accessRequirement = sObjectMgr->GetAccessRequirement(map->GetId(), map->GetDifficulty()))
-                if (accessRequirement->levelMin == 80)
+            {
+                if (accessRequirement->levelMin == 80 || accessRequirement->levelMin == 85)
                     ChampioningFaction = GetChampioningFaction();
+            }
         }
     }
 
@@ -7063,6 +7091,33 @@ void Player::RewardReputation(Unit* victim, float rate)
             GetReputationMgr().ModifyReputation(factionEntry2, donerep2);
     }
 }
+
+void Player::RewardCurrency(Unit* victim)
+{
+    if (!victim || victim->GetTypeId() == TYPEID_PLAYER)
+        return;
+
+    CurrencyOnKillEntry const* Cur = sObjectMgr->GetCurrencyOnKilEntry(victim->ToCreature()->GetCreatureTemplate()->Entry);
+
+    if (!Cur)
+        return;
+
+    if (Cur->CurrencyId1 && Cur->CurrencyValue1)
+    {
+        ModifyCurrency(Cur->CurrencyId1, Cur->CurrencyValue1 * 100, true, true);
+    }
+
+    if (Cur->CurrencyId2 && Cur->CurrencyValue2)
+    {
+        ModifyCurrency(Cur->CurrencyId2, Cur->CurrencyValue2 * 100, true, true);
+    }
+
+    if (Cur->CurrencyId3 && Cur->CurrencyValue3)
+    {
+        ModifyCurrency(Cur->CurrencyId3, Cur->CurrencyValue3 * 100, true, true);
+    }
+}
+
 
 // Calculate how many reputation points player gain with the quest
 void Player::RewardReputation(Quest const* quest)
