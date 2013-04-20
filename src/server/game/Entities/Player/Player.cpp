@@ -2602,7 +2602,7 @@ void Player::Regenerate(Powers power)
             focusPerSecond = floor(focusPerSecond * 100.0f + 0.5f) / 100.0f;
             focusPerSecond += 6.0f;
             focusPerSecond *= sWorld->getRate(RATE_POWER_FOCUS);
-            focusPerSecond /= 2.0f
+            focusPerSecond /= 2.0f;
             addvalue += focusPerSecond;
             break;
         }
