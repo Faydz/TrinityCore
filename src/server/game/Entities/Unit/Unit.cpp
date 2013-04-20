@@ -8959,6 +8959,16 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
             if (!victim->HasAura(55078))
                 return false;
             break;
+        // Rapid Killing 
+        case 35098:
+        case 35099:
+            // Rapid Recuperation
+            if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 3560, 1))
+            {
+                int32 bp0 = aurEff->GetAmount();
+                CastCustomSpell(this, 58883, &bp0, NULL, NULL, true);
+            }
+            break;
         // Will of the Necropolis
         case 81162:
             if (HealthAbovePct(30))
