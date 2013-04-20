@@ -14,5 +14,5 @@ Questo documento tiene traccia delle ottimizzazioni da fare una volta stabilizza
 	SpellScaling.dbc				id(1277)
 
 7 Da sistemare il metodo GetHealth() e derivati. Restituisce più hp degli effetivi posseduti dal target.
-8 Inserire lo script per SPELL_AURA_MOD_AUTOATTACK_DAMAGE e SPELL_AURA_MOD_SPELL_COOLDOWN_BY_HASTE.
+8 Inserire lo script per SPELL_AURA_MOD_SPELL_COOLDOWN_BY_HASTE (aura usata solo per il talento Sanctity of Battle - Pally Retri, ora fixato tramite hackfix).
 9 Sistemare l'hackfix di Dual Wield (Player::RemoveSpell, if con id 86629) e controllare che lo stesso non si ripeta per le altre classi (vedi mantis ticket #348).

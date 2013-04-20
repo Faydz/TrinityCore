@@ -45,6 +45,7 @@ enum WarriorSpells
     SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_TALENT      = 64976,
     SPELL_WARRIOR_LAST_STAND_TRIGGERED              = 12976,
     SPELL_WARRIOR_SLAM                              = 50782,
+    SPELL_WARRIOR_SLAM_OFFHAND                      = 50783,
     SPELL_WARRIOR_SWEEPING_STRIKES_EXTRA_ATTACK     = 26654,
     SPELL_WARRIOR_TAUNT                             = 355,
     SPELL_WARRIOR_UNRELENTING_ASSAULT_RANK_1        = 46859,
@@ -803,9 +804,27 @@ class spell_warr_slam : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
+                Unit* caster = GetCaster();
+                Unit* target = GetHitUnit();
+
                 int32 bp0 = GetEffectValue();
-                if (GetHitUnit())
-                    GetCaster()->CastCustomSpell(GetHitUnit(), SPELL_WARRIOR_SLAM, &bp0, NULL, NULL, true, 0);
+
+                if (caster && target)
+                {
+                    caster->CastCustomSpell(target, SPELL_WARRIOR_SLAM, &bp0, NULL, NULL, true);
+                    
+                    if(Player* player = caster->ToPlayer())
+                    {        
+                        if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_WARRIOR, 4975, EFFECT_0))
+                        {
+                            if(player->IsOneHandUsed(true)
+                                || player->IsOneHandUsed(false))
+                            {
+                                caster->CastCustomSpell(target, SPELL_WARRIOR_SLAM_OFFHAND, &bp0, NULL, NULL, true);
+                            }
+                        }
+                    }
+                }
             }
 
             void Register()

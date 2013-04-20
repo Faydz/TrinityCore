@@ -5829,8 +5829,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
                     if (Player* caster = ToPlayer())
                     { 
-                        int32 chance = int32(2.2f * caster->GetMasteryPoints());
-                        if (roll_chance_i(chance))
+                        float chance = float(2.2f * caster->GetMasteryPoints());
+                        if (roll_chance_f(chance))
                         {
                            caster->CastSpell(target, 76858, true);
                         }
@@ -6794,8 +6794,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
                     if (Player* caster = ToPlayer())
                     { 
-                        int32 chance = int32(2.0f * caster->GetMasteryPoints());
-                        if (roll_chance_i(chance))
+                        float chance = float(2.0f * caster->GetMasteryPoints());
+                        if (roll_chance_f(chance))
                         {
                            int32 bp0 = damage;
                            caster->CastCustomSpell(target, 86392, &bp0, NULL, NULL, true);
@@ -7301,12 +7301,12 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     {
                        if (procSpell->Id == 403 || procSpell->Id == 51505 || procSpell->Id == 421)
                        {
-                           int32 chance = 0;
-                           chance += int32(caster->GetMasteryPoints() * 2);
+                           float chance = 0;
+                           chance += float(caster->GetMasteryPoints() * 2);
                            if (procSpell->Id == 421)
                                chance = chance / 3;
                            triggered_spell_id = 0;
-                           if (roll_chance_i(chance))
+                           if (roll_chance_f(chance))
                            {
                                switch (procSpell->Id)
                                {
@@ -10847,6 +10847,19 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                         DoneTotalMod *= 1.0f + 0.031f *  owner->ToPlayer()->GetMasteryPoints();
             break;
         case SPELLFAMILY_WARRIOR:
+            if(Player const* player = this->ToPlayer())
+            {        
+                // Single-Minded Fury check
+                if(AuraEffect* aurEff = this->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_WARRIOR, 4975, EFFECT_0))
+                {
+                    if(!player->IsOneHandUsed(true)
+                        || !player->IsOneHandUsed(false))
+                    {
+                        AddPct(DoneTotalMod, -aurEff->GetAmount());
+                    }
+                }
+            }
+
             // Raging Blow (damage increased by mastery)
             if (owner->ToPlayer() && owner->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && spellProto->Id == 8680)
                     if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARRIOR_FURY)
@@ -11939,10 +11952,11 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
 
     // Done total percent damage auras
     float DoneTotalMod = 1.0f;
-
-    // SPELL_AURA_MOD_AUTOATTACK_DAMAGE
+    
+    // Autoattack pct done mods
     if (!spellProto)
     {
+        // SPELL_AURA_MOD_AUTOATTACK_DAMAGE
         AuraEffectList const & autoattackDamage = GetAuraEffectsByType(SPELL_AURA_MOD_AUTOATTACK_DAMAGE);
         for (AuraEffectList::const_iterator i = autoattackDamage.begin(); i != autoattackDamage.end(); ++i)
         {
@@ -11984,6 +11998,20 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                     if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2656, EFFECT_0))
                         if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
                             DoneTotalMod += float(aurEff->GetAmount() / 100.0f);
+                break;
+            case SPELLFAMILY_WARRIOR:
+                // Single-Minded Fury check
+                if(Player* player = this->ToPlayer())
+                {        
+                    if(AuraEffect* aurEff = this->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_WARRIOR, 4975, EFFECT_0))
+                    {
+                        if(!player->IsOneHandUsed(true)
+                            || !player->IsOneHandUsed(false))
+                        {
+                            AddPct(DoneTotalMod, -aurEff->GetAmount());
+                        }
+                    }
+                }
                 break;
         }
     }
