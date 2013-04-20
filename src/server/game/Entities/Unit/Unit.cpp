@@ -5829,8 +5829,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
                     if (Player* caster = ToPlayer())
                     { 
-                        int32 chance = int32(2.2f * caster->GetMasteryPoints());
-                        if (roll_chance_i(chance))
+                        float chance = float(2.2f * caster->GetMasteryPoints());
+                        if (roll_chance_f(chance))
                         {
                            caster->CastSpell(target, 76858, true);
                         }
@@ -6794,8 +6794,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
                     if (Player* caster = ToPlayer())
                     { 
-                        int32 chance = int32(2.0f * caster->GetMasteryPoints());
-                        if (roll_chance_i(chance))
+                        float chance = float(2.0f * caster->GetMasteryPoints());
+                        if (roll_chance_f(chance))
                         {
                            int32 bp0 = damage;
                            caster->CastCustomSpell(target, 86392, &bp0, NULL, NULL, true);
@@ -7301,12 +7301,12 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     {
                        if (procSpell->Id == 403 || procSpell->Id == 51505 || procSpell->Id == 421)
                        {
-                           int32 chance = 0;
-                           chance += int32(caster->GetMasteryPoints() * 2);
+                           float chance = 0;
+                           chance += float(caster->GetMasteryPoints() * 2);
                            if (procSpell->Id == 421)
                                chance = chance / 3;
                            triggered_spell_id = 0;
-                           if (roll_chance_i(chance))
+                           if (roll_chance_f(chance))
                            {
                                switch (procSpell->Id)
                                {

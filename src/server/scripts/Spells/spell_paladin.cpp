@@ -1703,7 +1703,6 @@ class spell_pal_divine_bulwark : public SpellScriptLoader
                     if (caster->HasAuraType(SPELL_AURA_MASTERY))
                         if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_PALADIN_PROTECTION)
                         {
-                            sLog->outError(LOG_FILTER_GENERAL,"mod");
                             amount += int32(2.25f * caster->GetMasteryPoints());
                         }
                             
