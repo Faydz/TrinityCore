@@ -9192,10 +9192,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
         // Incite
         case 86627:
             if (HasAura(86627)) 
-            {
-                sLog->outError(LOG_FILTER_GENERAL, "incite");
                 return false;
-            }
             break;
     }
 
