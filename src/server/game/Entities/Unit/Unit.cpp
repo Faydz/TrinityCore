@@ -8955,6 +8955,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // dummy basepoints or other customs
     switch (trigger_spell_id)
     {
+        // Crimson Scourge
         case 81141:
             if (!victim->HasAura(55078))
                 return false;
@@ -9186,6 +9187,11 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
         }
         case 77487: // Shadow Orbs
             if (ToPlayer() && ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) != BS_PRIEST_SHADOW)
+                return false;
+            break;
+        // Incite
+        case 86627:
+            if (HasAura(86627)) 
                 return false;
             break;
     }
