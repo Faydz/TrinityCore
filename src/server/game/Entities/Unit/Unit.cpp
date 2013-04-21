@@ -7720,117 +7720,117 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         }
         case SPELLFAMILY_DEATHKNIGHT:
         {
-            // Blood-Caked Blade
-            if (dummySpell->SpellIconID == 138)
+            switch(dummySpell->SpellIconID)
             {
-                if (!target || !target->isAlive())
-                    return false;
-
-                triggered_spell_id = dummySpell->Effects[effIndex].TriggerSpell;
-                break;
-            }
-            // Butchery
-            if (dummySpell->SpellIconID == 2664)
-            {
-                basepoints0 = triggerAmount;
-                triggered_spell_id = 50163;
-                target = this;
-                break;
-            }
-            // Dancing Rune Weapon
-            if (dummySpell->Id == 49028)
-            {
-                // 1 dummy aura for dismiss rune blade
-                if (effIndex != 1)
-                    return false;
-
-                Unit* pPet = NULL;
-                for (ControlList::const_iterator itr = m_Controlled.begin(); itr != m_Controlled.end(); ++itr) // Find Rune Weapon
-                    if ((*itr)->GetEntry() == 27893)
-                    {
-                        pPet = *itr;
-                        break;
-                    }
-
-                if (pPet && pPet->getVictim() && damage && procSpell)
-                {
-                    pPet->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE);
-                    pPet->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NOT_SELECTABLE);
-                    uint32 procDmg = damage / 2;
-                    pPet->SendSpellNonMeleeDamageLog(pPet->getVictim(), procSpell->Id, procDmg, procSpell->GetSchoolMask(), 0, 0, false, 0, false);
-                    pPet->DealDamage(pPet->getVictim(), procDmg, NULL, SPELL_DIRECT_DAMAGE, procSpell->GetSchoolMask(), procSpell, true);
-                    break;
-                }
-				else
-					if (pPet && pPet->getVictim() && damage && !procSpell)
-					 {
-						CalcDamageInfo damageInfo;
-						CalculateMeleeDamage(pPet->getVictim(), 0, &damageInfo, BASE_ATTACK);
-						damageInfo.attacker = pPet;
-						damageInfo.damage = damageInfo.damage / 2;
-						// Send log damage message to client
-						pPet->DealDamageMods(pPet->getVictim(),damageInfo.damage,&damageInfo.absorb);
-						pPet->SendAttackStateUpdate(&damageInfo);
-						pPet->ProcDamageAndSpell(damageInfo.target, damageInfo.procAttacker, damageInfo.procVictim, damageInfo.procEx, damageInfo.damage, damageInfo.attackType);
-						pPet->DealMeleeDamage(&damageInfo,true);
-					}
-
-                else
-                    return false;
-            }
-            // Unholy Blight
-            if (dummySpell->Id == 49194)
-            {
-                triggered_spell_id = 50536;
-                SpellInfo const* unholyBlight = sSpellMgr->GetSpellInfo(triggered_spell_id);
-                if (!unholyBlight)
-                    return false;
-
-                basepoints0 = CalculatePct(int32(damage), triggerAmount);
-
-                //Glyph of Unholy Blight
-                if (AuraEffect* glyph=GetAuraEffect(63332, 0))
-                    AddPct(basepoints0, glyph->GetAmount());
-
-                basepoints0 = basepoints0 / (unholyBlight->GetMaxDuration() / unholyBlight->Effects[0].Amplitude);
-                basepoints0 += victim->GetRemainingPeriodicAmount(GetGUID(), triggered_spell_id, SPELL_AURA_PERIODIC_DAMAGE);
-                break;
-            }
-            // Threat of Thassarian
-            if (dummySpell->SpellIconID == 2023)
-            {
-                // Must Dual Wield
-                if (!procSpell || !haveOffhandWeapon())
-                    return false;
-                // Chance as basepoints for dummy aura
-                if (!roll_chance_i(triggerAmount))
-                    return false;
-
-                switch (procSpell->Id)
-                {
-                    case 49020: triggered_spell_id = 66198; break; // Obliterate
-                    case 49143: triggered_spell_id = 66196; break; // Frost Strike
-                    case 45462: triggered_spell_id = 66216; break; // Plague Strike
-                    case 49998: triggered_spell_id = 66188; break; // Death Strike
-                    case 56815: triggered_spell_id = 66217; break; // Rune Strike
-                    case 45902: triggered_spell_id = 66215; break; // Blood Strike
-                    default:
+                // Blood-Caked Blade
+                case 138:
+                    if (!target || !target->isAlive())
                         return false;
-                }
-                break;
+
+                    triggered_spell_id = dummySpell->Effects[effIndex].TriggerSpell;
+                    break;
+                // Butchery
+                case 2664:
+                    basepoints0 = triggerAmount;
+                    triggered_spell_id = 50163;
+                    target = this;
+                    break;
+                // Threat of Thassarian
+                case 2023:
+                    // Must Dual Wield
+                    if (!procSpell || !haveOffhandWeapon())
+                        return false;
+                    // Chance as basepoints for dummy aura
+                    if (!roll_chance_i(triggerAmount))
+                        return false;
+
+                    switch (procSpell->Id)
+                    {
+                        case 49020: triggered_spell_id = 66198; break; // Obliterate
+                        case 49143: triggered_spell_id = 66196; break; // Frost Strike
+                        case 45462: triggered_spell_id = 66216; break; // Plague Strike
+                        case 49998: triggered_spell_id = 66188; break; // Death Strike
+                        case 56815: triggered_spell_id = 66217; break; // Rune Strike
+                        case 45902: triggered_spell_id = 66215; break; // Blood Strike
+                        default:
+                            return false;
+                    }
+                    break;
             }
-            // Runic Power Back on Snare/Root
-            if (dummySpell->Id == 61257)
+
+            switch(dummySpell->Id)
             {
-                // only for spells and hit/crit (trigger start always) and not start from self casted spells
-                if (procSpell == 0 || !(procEx & (PROC_EX_NORMAL_HIT|PROC_EX_CRITICAL_HIT)) || this == victim)
-                    return false;
-                // Need snare or root mechanic
-                if (!(procSpell->GetAllEffectsMechanicMask() & ((1<<MECHANIC_ROOT)|(1<<MECHANIC_SNARE))))
-                    return false;
-                triggered_spell_id = 61258;
-                target = this;
-                break;
+                // Dancing Rune Weapon
+                case 49028:
+                    {
+                        // 1 dummy aura for dismiss rune blade
+                        if (effIndex != 1)
+                            return false;
+
+                        Unit* pPet = NULL;
+                        for (ControlList::const_iterator itr = m_Controlled.begin(); itr != m_Controlled.end(); ++itr) // Find Rune Weapon
+                            if ((*itr)->GetEntry() == 27893)
+                            {
+                                pPet = *itr;
+                                break;
+                            }
+
+                        if (pPet && pPet->getVictim() && damage && procSpell)
+                        {
+                            pPet->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE);
+                            pPet->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NOT_SELECTABLE);
+                            uint32 procDmg = damage / 2;
+                            pPet->SendSpellNonMeleeDamageLog(pPet->getVictim(), procSpell->Id, procDmg, procSpell->GetSchoolMask(), 0, 0, false, 0, false);
+                            pPet->DealDamage(pPet->getVictim(), procDmg, NULL, SPELL_DIRECT_DAMAGE, procSpell->GetSchoolMask(), procSpell, true);
+                            break;
+                        }
+				        else
+					        if (pPet && pPet->getVictim() && damage && !procSpell)
+					         {
+						        CalcDamageInfo damageInfo;
+						        CalculateMeleeDamage(pPet->getVictim(), 0, &damageInfo, BASE_ATTACK);
+						        damageInfo.attacker = pPet;
+						        damageInfo.damage = damageInfo.damage / 2;
+						        // Send log damage message to client
+						        pPet->DealDamageMods(pPet->getVictim(),damageInfo.damage,&damageInfo.absorb);
+						        pPet->SendAttackStateUpdate(&damageInfo);
+						        pPet->ProcDamageAndSpell(damageInfo.target, damageInfo.procAttacker, damageInfo.procVictim, damageInfo.procEx, damageInfo.damage, damageInfo.attackType);
+						        pPet->DealMeleeDamage(&damageInfo,true);
+					        }
+
+                        else
+                            return false;
+                    }
+                    break;
+                    // Unholy Blight
+                case 49194:
+                    {
+                        triggered_spell_id = 50536;
+                        SpellInfo const* unholyBlight = sSpellMgr->GetSpellInfo(triggered_spell_id);
+                        if (!unholyBlight)
+                            return false;
+
+                        basepoints0 = CalculatePct(int32(damage), triggerAmount);
+
+                        //Glyph of Unholy Blight
+                        if (AuraEffect* glyph=GetAuraEffect(63332, 0))
+                            AddPct(basepoints0, glyph->GetAmount());
+
+                        basepoints0 = basepoints0 / (unholyBlight->GetMaxDuration() / unholyBlight->Effects[0].Amplitude);
+                        basepoints0 += victim->GetRemainingPeriodicAmount(GetGUID(), triggered_spell_id, SPELL_AURA_PERIODIC_DAMAGE);
+                    }
+                    break;
+                // Runic Power Back on Snare/Root
+                case 61257:
+                    // only for spells and hit/crit (trigger start always) and not start from self casted spells
+                    if (procSpell == 0 || !(procEx & (PROC_EX_NORMAL_HIT|PROC_EX_CRITICAL_HIT)) || this == victim)
+                        return false;
+                    // Need snare or root mechanic
+                    if (!(procSpell->GetAllEffectsMechanicMask() & ((1<<MECHANIC_ROOT)|(1<<MECHANIC_SNARE))))
+                        return false;
+                    triggered_spell_id = 61258;
+                    target = this;
+                    break;
             }
             break;
         }

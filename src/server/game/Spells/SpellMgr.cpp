@@ -3307,6 +3307,18 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Ebon Plaguebringer
+                    case 51099:
+                    case 51160:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE;
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 65142;
+                        break;
+                    // Ebon Plague
+                    case 65142:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN;
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELL_SCHOOL_MASK_MAGIC;
+                        break;
                     // Blood Plague
                     case 55078:
                         spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
