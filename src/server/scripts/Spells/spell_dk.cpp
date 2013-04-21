@@ -718,49 +718,47 @@ class spell_dk_improved_blood_presence : public SpellScriptLoader
         }
 };
 
-// 50391, 50392 - Improved Unholy Presence
+// 48263, 48266, 48265 - Improved Unholy Presence
 class spell_dk_improved_unholy_presence : public SpellScriptLoader
 {
     public:
         spell_dk_improved_unholy_presence() : SpellScriptLoader("spell_dk_improved_unholy_presence") { }
 
-        class spell_dk_improved_unholy_presence_AuraScript : public AuraScript
+        class spell_dk_improved_unholy_presence_SpellScript : public SpellScript
         {
-            PrepareAuraScript(spell_dk_improved_unholy_presence_AuraScript);
+            PrepareSpellScript(spell_dk_improved_unholy_presence_SpellScript);
 
-            bool Validate(SpellInfo const* /*spellInfo*/)
+            void HandleOnHit()
             {
-                if (!sSpellMgr->GetSpellInfo(SPELL_DK_UNHOLY_PRESENCE) || !sSpellMgr->GetSpellInfo(SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED))
-                    return false;
-                return true;
-            }
+                Unit* caster = GetCaster();
 
-            void HandleEffectApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
-            {
-                Unit* target = GetTarget();
-                if (target->HasAura(SPELL_DK_UNHOLY_PRESENCE) && !target->HasAura(SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED))
+                if(caster)
                 {
-                    // Not listed as any effect, only base points set in dbc
-                    int32 basePoints0 = aurEff->GetSpellInfo()->Effects[EFFECT_1].CalcValue();
-                    target->CastCustomSpell(target, SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED, &basePoints0, &basePoints0, &basePoints0, true, 0, aurEff);
-                }
-            }
+                    if(GetSpellInfo()->Id != SPELL_DK_UNHOLY_PRESENCE)
+                    {
+                        if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2633, EFFECT_0))
+                        {
+                            int32 bp0 = aurEff->GetAmount();
 
-            void HandleEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-            {
-                GetTarget()->RemoveAura(SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED);
+                            caster->CastCustomSpell(caster, SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED, &bp0, NULL, NULL, true);
+                        }
+                    }
+                    else
+                    {
+                        caster->RemoveAurasDueToSpell(SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED);
+                    }
+                }
             }
 
             void Register()
             {
-                AfterEffectApply += AuraEffectApplyFn(spell_dk_improved_unholy_presence_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
-                AfterEffectRemove += AuraEffectRemoveFn(spell_dk_improved_unholy_presence_AuraScript::HandleEffectRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+                OnHit += SpellHitFn(spell_dk_improved_unholy_presence_SpellScript::HandleOnHit);
             }
         };
 
-        AuraScript* GetAuraScript() const
+        SpellScript* GetSpellScript() const
         {
-            return new spell_dk_improved_unholy_presence_AuraScript();
+            return new spell_dk_improved_unholy_presence_SpellScript();
         }
 };
 
