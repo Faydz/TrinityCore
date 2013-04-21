@@ -510,7 +510,7 @@ void WorldSession::SendLfgJoinResult(lfg::LfgJoinResultData const& joinData)
     for (lfg::LfgLockPartyMap::const_iterator it = joinData.lockmap.begin(); it != joinData.lockmap.end(); ++it)
         size += 8 + 4 + uint32(it->second.size()) * (4 + 4 + 4 + 4);
 
-    sLog->outDebug(LOG_FILTER_NETWORKIO, "SMSG_LFG_JOIN_RESULT [" UI64FMTD "] checkResult: %u checkValue: %u", GetPlayer()->GetGUID(), joinData.result, joinData.state);
+    sLog->outError(LOG_FILTER_GENERAL, "SMSG_LFG_JOIN_RESULT [" UI64FMTD "] checkResult: %u checkValue: %u", GetPlayer()->GetGUID(), joinData.result, joinData.state);
     WorldPacket data(SMSG_LFG_JOIN_RESULT);
 
     data << uint32(3);                                      //Unk_UInt32_1
@@ -518,7 +518,7 @@ void WorldSession::SendLfgJoinResult(lfg::LfgJoinResultData const& joinData)
     data << uint32(queueId);
     data << uint8(joinData.state);                          // state
     // data << uint32(sLFGMgr->GetJoinedTime(GetPlayer()->GetGUID()));
-    data << uint32(0);
+    data << uint32(100);
 
     data.WriteBit(playerGuid[2]);
     data.WriteBit(playerGuid[7]);
