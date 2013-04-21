@@ -587,16 +587,16 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     int32 energy = -(m_caster->ModifyPower(POWER_ENERGY, -25));
                     // 25 energy = 100% more damage
                     AddPct(damage, energy * 4);
-                    // Maul - Rend And Tear
-                    if (m_spellInfo->Id == 6807 && unitTarget->HasAuraState(AURA_STATE_BLEEDING))
+                }
+                // Maul - Rend And Tear
+                if (m_spellInfo->Id == 6807 && unitTarget->HasAuraState(AURA_STATE_BLEEDING))
+                {
+                    if (AuraEffect const* rendAndTear = m_caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2859, 0))
                     {
-                        if (AuraEffect const* rendAndTear = m_caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2859, 0))
-                        {
-                            uint32 dmg;
-                            dmg = m_originalCaster->SpellDamageBonusDone(unitTarget, m_spellInfo, (uint32)damage, SPELL_DIRECT_DAMAGE);
-                            dmg = unitTarget->SpellDamageBonusTaken(m_originalCaster, m_spellInfo, (uint32)dmg, SPELL_DIRECT_DAMAGE);
-                            damage += CalculatePct(dmg, rendAndTear->GetAmount());
-                        }
+                        uint32 dmg;
+                        dmg = m_originalCaster->SpellDamageBonusDone(unitTarget, m_spellInfo, (uint32)damage, SPELL_DIRECT_DAMAGE);
+                        dmg = unitTarget->SpellDamageBonusTaken(m_originalCaster, m_spellInfo, (uint32)dmg, SPELL_DIRECT_DAMAGE);
+                        damage += CalculatePct(dmg, rendAndTear->GetAmount());
                     }
                 }
                 break;
@@ -4507,13 +4507,22 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                         if (m_targets.GetUnitTarget() &&  // Glyph of Disease - cast on unit target too to refresh aura
                             (m_targets.GetUnitTarget() != unitTarget || m_caster->GetAura(63334)))
                         {
+                            AuraEffect* aurEff = m_caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, 97, EFFECT_0);
+                            int32 bp2 = aurEff ? aurEff->GetAmount() : 0;
+
                             // And spread them on target
                             // Blood Plague
                             if (m_targets.GetUnitTarget()->GetAura(55078))
-                                m_caster->CastSpell(unitTarget, 55078, true);
+                            {
+                                m_caster->CastCustomSpell(unitTarget, 55078, NULL, NULL, &bp2, true);
+                            }
+
                             // Frost Fever
                             if (m_targets.GetUnitTarget()->GetAura(55095))
-                                m_caster->CastSpell(unitTarget, 55095, true);
+                            {
+                                int32 bp2 = 1;
+                                m_caster->CastCustomSpell(unitTarget, 55095, NULL, NULL, &bp2, true);
+                            }
                         }
                     }
                     break;
