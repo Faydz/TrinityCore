@@ -3386,6 +3386,16 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Fungal Growth Rank 1
+                    case 78788:
+                        spellInfo->Effects[EFFECT_0].MiscValue = 81291;
+                        spellInfo->Effects[EFFECT_0].MiscValueB = 81289;
+                        break;
+                    // Fungal Growth Rank 2
+                    case 78789:
+                        spellInfo->Effects[EFFECT_0].MiscValue = 81283;
+                        spellInfo->Effects[EFFECT_0].MiscValueB = 81282;
+                        break;
                     // Nature's Bounty Rank 1
                     case 17074:
                         spellInfo->Effects[EFFECT_1].BasePoints = 0;

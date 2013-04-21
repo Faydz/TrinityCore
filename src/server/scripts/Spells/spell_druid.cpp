@@ -42,14 +42,9 @@ enum DruidSpells
     SPELL_DRUID_SAVAGE_ROAR                     = 62071,
     SPELL_DRUID_SURVIVAL_INSTINCTS              = 50322,
     SPELL_DRUID_NPC_WILD_MUSHROOM               = 47649,
-    SPELL_DRUID_NPC_FUNGAL_GROWTH_1             = 43497,
-    SPELL_DRUID_NPC_FUNGAL_GROWTH_2             = 43484,
-    SPELL_DRUID_TALENT_FUNGAL_GROWTH_1          = 78788,
-    SPELL_DRUID_TALENT_FUNGAL_GROWTH_2          = 78789,
-    SPELL_DRUID_SPELL_FUNGAL_GROWTH_1           = 81291,
-    SPELL_DRUID_SPELL_FUNGAL_GROWTH_2           = 81283,
     SPELL_DRUID_SPELL_WILD_MUSHROOM_SUICIDE     = 92853,
     SPELL_DRUID_SPELL_WILD_MUSHROOM_DAMAGE      = 78777,
+    SPELL_DRUID_FUNGAL_GROWTH_GRAPHIC           = 94339 ,
     SPELL_ENRAGE_MOD_DAMAGE                     = 51185,
     SPELL_KING_OF_THE_JUNGLE                    = 48492,
     SPELL_TIGER_S_FURY_ENERGIZE                 = 51178,
@@ -161,7 +156,6 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
                     if(Player* player = caster->ToPlayer())
                     {
                         std::list<Creature*> list;
-                        std::list<TempSummon*> summonList;
 
                         player->GetCreatureListWithEntryInGrid(list, SPELL_DRUID_NPC_WILD_MUSHROOM, 100.0f);
                         for (std::list<Creature*>::const_iterator i = list.begin(); i != list.end(); i)
@@ -175,7 +169,6 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
                             }
                             i++;
                         }
-                        //mushroomList = summonList;
 
                         return true;
                     }
@@ -219,6 +212,8 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
                 {
                     if(Player* player = caster->ToPlayer())
                     {
+                        int32 fungalGrowthSummonSpell;
+                        int32 fungalGrowthSlowSpell;
 
                         for (std::list<TempSummon*>::const_iterator i = mushroomList.begin(); i != mushroomList.end(); i)
                         {
@@ -232,12 +227,64 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
                                 tempMushroom->CastSpell(tempMushroom, SPELL_DRUID_SPELL_WILD_MUSHROOM_SUICIDE, true);
 
                                 // Explosion damage
-                                player->CastSpell(tempMushroom->GetPositionX(), tempMushroom->GetPositionY(), tempMushroom->GetPositionZ(), SPELL_DRUID_SPELL_WILD_MUSHROOM_DAMAGE, true);
+                                player->CastSpell(
+                                    pos.GetPositionX(), 
+                                    pos.GetPositionY(), 
+                                    pos.GetPositionZ(), 
+                                    SPELL_DRUID_SPELL_WILD_MUSHROOM_DAMAGE, true);
 
+                                // Fungal Growth
+                                if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2681, EFFECT_0))
+                                {
+                                    fungalGrowthSummonSpell = aurEff->GetMiscValue();
+                                    fungalGrowthSlowSpell = aurEff->GetMiscValueB();
+                                    
+                                    // Fungal summon
+                                    player->CastSpell(
+                                        pos.GetPositionX(), 
+                                        pos.GetPositionY(), 
+                                        pos.GetPositionZ(), 
+                                        fungalGrowthSummonSpell, true);
+                                }
                             }
                             i++;
                         }
                         
+                        // Fungal Growth summon properties and casts
+                        if (caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2681, EFFECT_0) && fungalGrowthSummonSpell && fungalGrowthSlowSpell)
+                        {
+                            SpellInfo const* summonSpellInfo = sSpellMgr->GetSpellInfo(fungalGrowthSummonSpell);
+                            std::list<Creature*> list;
+                            int32 fungalGrowthCreID;
+
+                            if(summonSpellInfo)
+                            {
+                                fungalGrowthCreID = summonSpellInfo->Effects[EFFECT_0].MiscValue;
+                                
+                                player->GetCreatureListWithEntryInGrid(list, fungalGrowthCreID, 100.0f);
+                                for (std::list<Creature*>::const_iterator i = list.begin(); i != list.end(); i)
+                                {
+                                    if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
+                                    {
+                                        if(TempSummon* tempMushroom = (*i)->ToTempSummon())
+                                        {
+                                            // Stops moving
+                                            tempMushroom->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+                                            tempMushroom->StopMoving();
+                                            tempMushroom->SetControlled(true, UNIT_STATE_STUNNED);
+
+                                            // Graphical effect
+                                            tempMushroom->CastSpell(tempMushroom, SPELL_DRUID_FUNGAL_GROWTH_GRAPHIC, true);
+
+                                            // Slow effect
+                                            tempMushroom->CastSpell(tempMushroom, fungalGrowthSlowSpell, true);
+                                        }
+                                    }
+                                    i++;
+                                }
+                            }
+                        }
+
                         // Frees the memory
                         mushroomList.clear();
                     }
@@ -247,7 +294,6 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
         private:
             float spellRange;
             std::list<TempSummon*> mushroomList;
-            std::list<TempSummon*> fungal_List;
 
             void Register() 
             {
