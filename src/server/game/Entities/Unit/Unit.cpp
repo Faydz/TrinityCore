@@ -8957,23 +8957,29 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     {
         // Death's Advance
         case 96268:
-        {
-            if(Player* player = this->ToPlayer())
             {
-                if(player->getClass() == CLASS_DEATH_KNIGHT)
+                if(Player* player = this->ToPlayer())
                 {
-                    for (uint32 i = 0; i < MAX_RUNES; ++i)
+                    if(player->getClass() == CLASS_DEATH_KNIGHT)
                     {
-                        RuneType rune = player->GetCurrentRune(i);
-                        if (rune == RUNE_UNHOLY && !player->GetRuneCooldown(i))
+                        for (uint32 i = 0; i < MAX_RUNES; ++i)
                         {
-                            player->RemoveAura(trigger_spell_id);
+                            RuneType rune = player->GetCurrentRune(i);
+                            if (rune == RUNE_UNHOLY && !player->GetRuneCooldown(i))
+                            {
+                                player->RemoveAura(trigger_spell_id);
+                                return false;
+                            }
+                        }
+
+                        if(player->HasAura(trigger_spell_id))
+                        {
                             return false;
                         }
                     }
                 }
             }
-        }
+            break;
         // Crimson Scourge
         case 81141:
             if (!victim->HasAura(55078))
