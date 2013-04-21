@@ -10829,6 +10829,22 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             }
             break;
         case SPELLFAMILY_DEATHKNIGHT:
+            switch(spellProto->Id)
+            {
+                // Blood Plague
+                case 55078:
+                    // Checks the custom effect2, if > 0 that buff has been casted by a Death Knight with the talent "Contagion" learned, througth Pestilence.
+                    // The EFFECT_2 basepoint brings the increasing percent mod from Contagion talent.
+                    if(AuraEffect* aurEff = victim->GetAuraEffect(spellProto->Id, EFFECT_2))
+                    {
+                        if(int32 bp = aurEff->GetAmount())
+                        {
+                            AddPct(DoneTotalMod, bp);
+                        }
+                    }
+                    break;
+            }
+
             // Sigil of the Vengeful Heart
             if (spellProto->SpellFamilyFlags[0] & 0x2000)
                 if (AuraEffect* aurEff = GetAuraEffect(64962, EFFECT_1))
