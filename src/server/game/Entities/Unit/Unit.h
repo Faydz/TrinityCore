@@ -1474,7 +1474,7 @@ class Unit : public WorldObject
 
         // player or player's pet resilience (-1%)
         uint32 GetCritDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_RESILIENCE_CRIT_TAKEN, 2.2f, 33.0f, damage); }
-        uint32 GetDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_RESILIENCE_PLAYER_DAMAGE_TAKEN, 2.0f, 100.0f, damage); }
+        uint32 GetDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_RESILIENCE_PLAYER_DAMAGE_TAKEN, 1.0f, 100.0f, damage); }
 
         void ApplyResilience(const Unit* victim, int32 * damage, bool isCrit) const;
 
