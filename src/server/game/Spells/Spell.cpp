@@ -2813,6 +2813,10 @@ void Spell::DoTriggersOnSpellHit(Unit* unit, uint8 effMask)
             unit->CastSpell(unit, 61987, true);
         }
 
+        // WTF ? Need more research...
+        if (m_preCastSpell == 51690)
+            return;
+
         // Avenging Wrath
         if (m_preCastSpell == 61987)
             // Cast the serverside immunity shield marker

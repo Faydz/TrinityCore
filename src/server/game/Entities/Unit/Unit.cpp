@@ -8955,9 +8955,20 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // dummy basepoints or other customs
     switch (trigger_spell_id)
     {
+        // Crimson Scourge
         case 81141:
             if (!victim->HasAura(55078))
                 return false;
+            break;
+        // Rapid Killing 
+        case 35098:
+        case 35099:
+            // Rapid Recuperation
+            if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 3560, 1))
+            {
+                int32 bp0 = aurEff->GetAmount();
+                CastCustomSpell(this, 58883, &bp0, NULL, NULL, true);
+            }
             break;
         // Will of the Necropolis
         case 81162:
@@ -9176,6 +9187,11 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
         }
         case 77487: // Shadow Orbs
             if (ToPlayer() && ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) != BS_PRIEST_SHADOW)
+                return false;
+            break;
+        // Incite
+        case 86627:
+            if (HasAura(86627)) 
                 return false;
             break;
     }
@@ -17499,6 +17515,16 @@ float Unit::MeleeSpellMissChance(const Unit* victim, WeaponAttackType attType, u
 
     // Calculate hit chance
     float hitChance = 100.0f;
+
+    // Cloak of Shadow
+    if (victim->HasAura(31224))
+    {
+        if (const SpellEntry* spell = sSpellStore.LookupEntry(spellId))
+        {
+            if (spell->SchoolMask != SPELL_SCHOOL_MASK_NORMAL)
+                hitChance += victim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_HIT_CHANCE);
+        }
+    }
 
     // Spellmod from SPELLMOD_RESIST_MISS_CHANCE
     if (spellId)

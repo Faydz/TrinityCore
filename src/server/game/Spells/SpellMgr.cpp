@@ -3069,6 +3069,26 @@ void SpellMgr::LoadSpellCustomAttr()
             case 47765:
                 spellInfo->Effects[0].RadiusEntry = sSpellRadiusStore.LookupEntry(13);
                 break;
+            // Steady Shot
+            case 56641:
+                spellInfo->Effects[2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                break;
+            // Cobra Shot
+            case 77767:
+                spellInfo->Effects[1].Effect = SPELL_EFFECT_DUMMY;
+                spellInfo->Effects[1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                break;
+            // Master Marksman
+            case 82926:
+                spellInfo->Effects[0].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                spellInfo->Effects[0].BasePoints = -100;
+                break;
+            // Aimed Shot!
+            case 82928:
+                spellInfo->CastTimeEntry = sSpellCastTimesStore.LookupEntry(1);
+                spellInfo->CastTimeMax = 0;
+                spellInfo->CastTimeMin = 0;
+                break;
             default:
                 break;
         }

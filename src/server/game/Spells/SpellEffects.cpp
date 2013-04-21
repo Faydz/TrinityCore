@@ -930,6 +930,31 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                     break;
             }
             break;
+        case SPELLFAMILY_HUNTER:
+            switch (m_spellInfo->Id)
+            {
+                // Steady Shot focus regen
+                case 56641:
+                {
+                    int32 bp0 = 9;
+                    if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, 0))
+                        bp0 += aurEff->GetAmount();
+
+                    m_caster->CastCustomSpell(m_caster, 77443, &bp0, NULL, NULL, true);
+                    break;
+                }
+                // Cobra Shot Focus Regen
+                case 77767:
+                {                
+                    int32 bp0 = 9;
+                    if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, 0))
+                        bp0 += aurEff->GetAmount();
+
+                    m_caster->CastCustomSpell(m_caster, 91954, &bp0, NULL, NULL, true);                
+                    break;
+                }
+            }
+            break;
     }
 
     //spells triggered by dummy effect should not miss
@@ -1011,8 +1036,6 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
                 // Reset cooldown on stealth if needed
                 if (unitTarget->ToPlayer()->HasSpellCooldown(1784))
                     unitTarget->ToPlayer()->RemoveSpellCooldown(1784);
-
-                unitTarget->CastSpell(unitTarget, 1784, true);
                 return;
             }
             // Demonic Empowerment -- succubus
