@@ -411,7 +411,7 @@ pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS]=
     &AuraEffect::HandleNULL,                                      //350 SPELL_AURA_MOD_GATHERING_ITEMS_GAINED_PERCENT
     &AuraEffect::HandleNULL,                                      //351 SPELL_AURA_351
     &AuraEffect::HandleNULL,                                      //352 SPELL_AURA_352
-    &AuraEffect::HandleNULL,                                      //353 SPELL_AURA_MOD_CAMOUFLAGE
+    &AuraEffect::HandleModCamouflage,                             //353 SPELL_AURA_MOD_CAMOUFLAGE
     &AuraEffect::HandleNULL,                                      //354 SPELL_AURA_354
     &AuraEffect::HandleUnused,                                    //355 unused (4.3.4)
     &AuraEffect::HandleNULL,                                      //356 SPELL_AURA_356
@@ -424,7 +424,7 @@ pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS]=
     &AuraEffect::HandleNULL,                                      //363 SPELL_AURA_MOD_NEXT_SPELL
     &AuraEffect::HandleUnused,                                    //364 unused (4.3.4)
     &AuraEffect::HandleNULL,                                      //365 SPELL_AURA_MAX_FAR_CLIP_PLANE
-    &AuraEffect::HandleNULL,                                      //366 SPELL_AURA_OVERRIDE_SPELL_POWER_BY_AP_PCT
+    &AuraEffect::HandleAuraOverrideSpellpowerByAPPercent,         //366 SPELL_AURA_OVERRIDE_SPELL_POWER_BY_AP_PCT
     &AuraEffect::HandleNULL,                                      //367 SPELL_AURA_367
     &AuraEffect::HandleUnused,                                    //368 unused (4.3.4)
     &AuraEffect::HandleNULL,                                      //369 SPELL_AURA_ENABLE_POWER_BAR_TIMER
@@ -542,41 +542,41 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
             switch (GetSpellInfo()->SpellFamilyName)
             {
                 case SPELLFAMILY_MAGE:
-                    /* Ice Barrier TODO MOVE TO SPELL SCRIPT
+                    // Ice Barrier
                     if (GetSpellInfo()->SpellFamilyFlags[1] & 0x1 && GetSpellInfo()->SpellFamilyFlags[2] & 0x8)
                     {
                         // +87% from sp bonus
-                        DoneActualBenefit += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.87f;
+                        amount += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.87f;
 
                         //Glyph of ice barrier
-                        if (caster->HasAura(63095)) DoneActualBenefit += (amount + DoneActualBenefit) * 0.3f ;
+                        if (caster->HasAura(63095))
+                            amount += (amount * 0.3f);
                     }
                     // Mage Ward
                     else if (GetSpellInfo()->SpellFamilyFlags[0] & 0x8 && GetSpellInfo()->SpellFamilyFlags[2] & 0x8)
                     {
                         // +80.68% from sp bonus
-                        DoneActualBenefit += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
-                    }*/
+                        amount += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
+                    }
                     break;
                 case SPELLFAMILY_WARLOCK:
-                    /* Shadow Ward TODO MOVE TO SPELL SCRIPT
+                    // Shadow Ward
                     if (m_spellInfo->SpellFamilyFlags[2] & 0x80000000)
                     {
                         // +80.68% from sp bonus
-                        DoneActualBenefit += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
-                    }*/
+                        amount += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
+                    }
                     break;
                 case SPELLFAMILY_PRIEST:
-                    /* Power Word: Shield TODO MOVE TO SPELL SCRIPTS
+                    // Power Word: Shield
                     if (GetId() == 17)
                     {
                         //+80.68% from sp bonus
                         float bonus = 0.8068f;
 
-                        DoneActualBenefit += caster->SpellBaseHealingBonusDone(m_spellInfo->GetSchoolMask()) * bonus;
-                        DoneActualBenefit *= caster->CalculateLevelPenalty(GetSpellInfo());
-                        amount += int32(DoneActualBenefit);
-
+                        amount += caster->SpellBaseHealingBonusDone(m_spellInfo->GetSchoolMask()) * bonus;
+                        amount *= caster->CalculateLevelPenalty(GetSpellInfo());
+                        
                         // Improved PW: Shield
                         if (AuraEffect const* pAurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 566, 1))
                             AddPct(amount, pAurEff->GetAmount());
@@ -586,9 +586,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                             AddPct(amount, pAurEff->GetAmount());
 
                         // Twin Disciplines
-                        DoneActualBenefit = float(amount);
-                        DoneActualBenefit *= caster->GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_DONE_PERCENT);
-                        amount = int32(DoneActualBenefit);
+                        amount *= caster->GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_DONE_PERCENT);
 
                         // Mastery: Shield Discipline
                         if (caster->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY))
@@ -603,7 +601,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                             }
                         }
                         return amount;
-                    }*/
+                    }
                     break;
                 default:
                     break;
@@ -613,12 +611,12 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
             m_canBeRecalculated = false;
             if (!caster)
                 break;
-            /* Mana Shield TODO MOVE TO SPELL SCRIPTS
+            // Mana Shield
             if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_MAGE && GetSpellInfo()->SpellFamilyFlags[0] & 0x8000 && m_spellInfo->SpellFamilyFlags[2] & 0x8)
             {
                 // +80.7% from +spd bonus
-                DoneActualBenefit += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.807f;
-            }*/
+                amount += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.807f;
+            }
             break;
         case SPELL_AURA_DUMMY:
             if (!caster)
@@ -1766,6 +1764,37 @@ void AuraEffect::HandleModStealthDetect(AuraApplication const* aurApp, uint8 mod
 
     // call functions which may have additional effects after chainging state of unit
     target->UpdateObjectVisibility();
+}
+
+void AuraEffect::HandleModCamouflage(AuraApplication const *aurApp, uint8 mode, bool apply) const 
+{
+    if (!(mode & AURA_EFFECT_HANDLE_SEND_FOR_CLIENT_MASK))
+        return;
+
+    Unit *target = aurApp->GetTarget();
+
+    if (apply)
+    {
+        target->CastSpell(target, 80326, true);
+    } else if (!(target->HasAuraType(SPELL_AURA_MOD_CAMOUFLAGE)))
+    {
+        target->RemoveAura(80326);
+        target->RemoveAura(80325);
+    }
+
+    if(Player* player = target->ToPlayer())
+    {
+        if(GetId() == 51755 && player->getClass() == CLASS_HUNTER)
+        {
+            if(Pet* pet = player->GetPet())
+            {
+                if(pet->HasAura(GetId()))
+                {
+                    pet->RemoveAurasDueToSpell(GetId());
+                }
+            }
+        }
+    }
 }
 
 void AuraEffect::HandleModStealth(AuraApplication const* aurApp, uint8 mode, bool apply) const
@@ -4113,6 +4142,21 @@ void AuraEffect::HandleModSpellHealingPercentFromStat(AuraApplication const* aur
     target->ToPlayer()->UpdateSpellDamageAndHealingBonus();
 }
 
+void AuraEffect::HandleAuraOverrideSpellpowerByAPPercent(AuraApplication const* aurApp, uint8 mode, bool apply) const
+{
+    if (!(mode & (AURA_EFFECT_HANDLE_CHANGE_AMOUNT_MASK | AURA_EFFECT_HANDLE_STAT)))
+        return;
+
+    Unit* target = aurApp->GetTarget();
+
+
+    if (target->GetTypeId() != TYPEID_PLAYER && target->ToPlayer()->getClass() != CLASS_SHAMAN)
+        return;
+
+    // Recalculate bonus
+    target->ToPlayer()->UpdateSpellDamageAndHealingBonus();
+}
+
 void AuraEffect::HandleModSpellDamagePercentFromAttackPower(AuraApplication const* aurApp, uint8 mode, bool /*apply*/) const
 {
     if (!(mode & (AURA_EFFECT_HANDLE_CHANGE_AMOUNT_MASK | AURA_EFFECT_HANDLE_STAT)))
@@ -5238,20 +5282,61 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                 case 57820: // Ebon Champion
                 case 57821: // Champion of the Kirin Tor
                 case 57822: // Wyrmrest Champion
+                case 93337: // Champion of Ramkahen
+                case 93339: // Champion of the Earthen Ring
+                case 93341: // Champion of the Guardians of Hyjal
+                case 93347: // Champion of Therazane
+                case 93368: // Champion of the Wildhammer Clan
+                case 94158: // Champion of the Dragonmaw Clan
+                case 93795: // Stormwind Champion
+                case 93805: // Ironforge Champion
+                case 93806: // Darnassus Champion
+                case 93811: // Exodar Champion
+                case 93816: // Gilneas Champion
+                case 93821: // Gnomeregan Champion
+                case 93825: // Orgrimmar Champion
+                case 93827: // Darkspear Champion
+                case 93828: // Silvermoon Champion
+                case 93830: // Bilgewater Champion
+                case 94462: // Undercity Champion
+                case 94463: // Thunder Bluff Champion
                 {
                     if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
                         break;
 
                     uint32 FactionID = 0;
+                    uint16 DungeonLevel = 0;
 
                     if (apply)
                     {
                         switch (m_spellInfo->Id)
                         {
-                            case 57819: FactionID = 1106; break; // Argent Crusade
-                            case 57820: FactionID = 1098; break; // Knights of the Ebon Blade
-                            case 57821: FactionID = 1090; break; // Kirin Tor
-                            case 57822: FactionID = 1091; break; // The Wyrmrest Accord
+                            // Wrath of the Lich King factions
+                            case 57819: FactionID = 1106; DungeonLevel = 80; break; // Argent Crusade
+                            case 57820: FactionID = 1098; DungeonLevel = 80; break; // Knights of the Ebon Blade
+                            case 57821: FactionID = 1090; DungeonLevel = 80; break; // Kirin Tor
+                            case 57822: FactionID = 1091; DungeonLevel = 80; break; // The Wyrmrest Accord
+                            // Cataclysm factions
+                            case 93337: FactionID = 1173; DungeonLevel = 85; break; // Ramkahen
+                            case 93339: FactionID = 1135; DungeonLevel = 85; break; // The Earthen Ring
+                            case 93341: FactionID = 1158; DungeonLevel = 85; break; // Guardians of Hyjal
+                            case 93347: FactionID = 1171; DungeonLevel = 85; break; // Therazane
+                            case 93368: FactionID = 1174; DungeonLevel = 85; break; // Wildhammer Clan
+                            case 94158: FactionID = 1172; DungeonLevel = 85; break; // Dragonmaw Clan
+                            // Alliance factions
+                            case 93795: FactionID = 72;   DungeonLevel = 0;  break; // Stormwind
+                            case 93805: FactionID = 47;   DungeonLevel = 0;  break; // Ironforge
+                            case 93806: FactionID = 69;   DungeonLevel = 0;  break; // Darnassus
+                            case 93811: FactionID = 930;  DungeonLevel = 0;  break; // Exodar
+                            case 93816: FactionID = 1134; DungeonLevel = 0;  break; // Gilneas
+                            case 93821: FactionID = 54;   DungeonLevel = 0;  break; // Gnomeregan
+                            // Horde factions
+                            case 93825: FactionID = 76;   DungeonLevel = 0;  break; // Orgrimmar
+                            case 93827: FactionID = 530;  DungeonLevel = 0;  break; // Darkspear Trolls
+                            case 93828: FactionID = 911;  DungeonLevel = 0;  break; // Silvermoon
+                            case 93830: FactionID = 1133; DungeonLevel = 0;  break; // Bilgewater Cartel
+                            case 94462: FactionID = 68;   DungeonLevel = 0;  break; // Undercity
+                            case 94463: FactionID = 81;   DungeonLevel = 0;  break; // Thunder Bluff
                         }
                     }
                     caster->ToPlayer()->SetChampioningFaction(FactionID);
@@ -5956,7 +6041,8 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
             // Blood of the North
             // Reaping
             // Death Rune Mastery
-            if (GetSpellInfo()->SpellIconID == 3041 || GetSpellInfo()->SpellIconID == 22 || GetSpellInfo()->SpellIconID == 2622)
+            // Blood rites
+            if (GetSpellInfo()->SpellIconID == 3041 || GetSpellInfo()->SpellIconID == 22 || GetSpellInfo()->SpellIconID == 2622 || GetSpellInfo()->SpellIconID == 2724)
             {
                 if (target->GetTypeId() != TYPEID_PLAYER)
                     return;
@@ -6611,7 +6697,7 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
                     case 16488: 
                     case 16490: 
                     case 16491: // Blood Craze
-                        damage = caster->CountPctFromMaxHealth(GetAmount()) / (GetBase()->GetMaxDuration() / IN_MILLISECONDS);
+                        damage = (caster->CountPctFromMaxHealth(GetAmount()) / (GetBase()->GetMaxDuration() / IN_MILLISECONDS)) / 2;
                         break;
                 }
                 break;

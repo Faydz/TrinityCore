@@ -531,6 +531,13 @@ inline void KillRewarder::_RewardReputation(Player* player, float rate)
     player->RewardReputation(_victim, rate);
 }
 
+inline void KillRewarder::_RewardCurrency(Player* player)
+{
+    // 4.3.2 Give currency
+    // Even dead players and corpses are rewarded.
+    player->RewardCurrency(_victim);
+}
+
 inline void KillRewarder::_RewardKillCredit(Player* player)
 {
     // 4.4. Give kill credit (player must not be in group, or he must be alive or without corpse).
@@ -564,6 +571,7 @@ void KillRewarder::_RewardPlayer(Player* player, bool isDungeon)
         {
             // If killer is in dungeon then all members receive full reputation at kill.
             _RewardReputation(player, isDungeon ? 1.0f : rate);
+            _RewardCurrency(player);
             _RewardKillCredit(player);
         }
     }
@@ -2511,10 +2519,10 @@ void Player::RegenerateAll()
         }
     }
 
-    if (m_focusRegenTimerCount >= 1000 && getClass() == CLASS_HUNTER)
+    if (m_focusRegenTimerCount >= 500 && getClass() == CLASS_HUNTER)
     {
         Regenerate(POWER_FOCUS);
-        m_focusRegenTimerCount -= 1000;
+        m_focusRegenTimerCount -= 500;
     }
 
     if (m_regenTimerCount >= 2000)
@@ -2589,10 +2597,17 @@ void Player::Regenerate(Powers power)
         }
         break;
         case POWER_FOCUS:
-            addvalue += (6.0f + CalculatePct(6.0f, rangedHaste)) * sWorld->getRate(RATE_POWER_FOCUS);
+        {
+            float focusPerSecond = GetFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER) - 1.0f;
+            focusPerSecond = floor(focusPerSecond * 100.0f + 0.5f) / 100.0f;
+            focusPerSecond += 6.0f;
+            focusPerSecond *= sWorld->getRate(RATE_POWER_FOCUS);
+            focusPerSecond /= 2.0f;
+            addvalue += focusPerSecond;
             break;
+        }
         case POWER_ENERGY:                                              // Regenerate energy (rogue)
-            addvalue += ((0.01f * m_regenTimer) + CalculatePct(0.01f, meleeHaste)) * sWorld->getRate(RATE_POWER_ENERGY);
+            addvalue += ((0.01f * m_regenTimer) + (CalculatePct(0.01f, GetRatingBonusValue(CR_HASTE_MELEE)) * m_regenTimer)) * sWorld->getRate(RATE_POWER_ENERGY);
             break;
         case POWER_RUNIC_POWER:
         {
@@ -4230,6 +4245,9 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank)
 
     if (spell_id == 46917 && m_canTitanGrip)
         SetCanTitanGrip(false);
+    if (spell_id == 86629 && m_canParry)
+        SetCanParry(false);
+
     if (m_canDualWield)
     {
         SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spell_id);
@@ -5709,6 +5727,7 @@ void Player::HandleBaseModValue(BaseModGroup modGroup, BaseModType modType, floa
         case CRIT_PERCENTAGE:              UpdateCritPercentage(BASE_ATTACK);                          break;
         case RANGED_CRIT_PERCENTAGE:       UpdateCritPercentage(RANGED_ATTACK);                        break;
         case OFFHAND_CRIT_PERCENTAGE:      UpdateCritPercentage(OFF_ATTACK);                           break;
+        case SHIELD_BLOCK_VALUE:           UpdateBlockValue();                                         break;
         default: break;
     }
 }
@@ -5925,10 +5944,18 @@ void Player::UpdateRating(CombatRating cr)
     // stat used stored in miscValueB for this aura
     AuraEffectList const& modRatingFromStat = GetAuraEffectsByType(SPELL_AURA_MOD_RATING_FROM_STAT);
     for (AuraEffectList::const_iterator i = modRatingFromStat.begin(); i != modRatingFromStat.end(); ++i)
+    {
         if ((*i)->GetMiscValue() & (1<<cr))
             amount += int32(CalculatePct(GetStat(Stats((*i)->GetMiscValueB())), (*i)->GetAmount()));
+
+        // Skip base spirit on spirit to hit conversion
+        if ((*i)->GetMiscValueB() == STAT_SPIRIT)
+            amount -= GetCreateStat(Stats((*i)->GetMiscValueB()));
+    }
+
     if (amount < 0)
         amount = 0;
+
     SetUInt32Value(PLAYER_FIELD_COMBAT_RATING_1 + cr, uint32(amount));
 
     bool affectStats = CanModifyStats();
@@ -5981,6 +6008,10 @@ void Player::UpdateRating(CombatRating cr)
         case CR_HASTE_MELEE:                                // Implemented in Player::ApplyRatingMod
         case CR_HASTE_RANGED:
         case CR_HASTE_SPELL:
+            if (getClass() == CLASS_HUNTER)
+                SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER, (6.0f * (((100.0f / GetFloatValue(PLAYER_FIELD_MOD_RANGED_HASTE) - 100) / 100.0f) + 1)) - 5.0f);
+            else if (getClass() == CLASS_ROGUE)
+                SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER, (GetRatingBonusValue(CR_HASTE_MELEE) / 10.0f));
             break;
         case CR_WEAPON_SKILL_MAINHAND:                      // Implemented in Unit::RollMeleeOutcomeAgainst
         case CR_WEAPON_SKILL_OFFHAND:
@@ -7002,6 +7033,25 @@ void Player::RewardReputation(Unit* victim, float rate)
         return;
 
     ReputationOnKillEntry const* Rep = sObjectMgr->GetReputationOnKilEntry(victim->ToCreature()->GetCreatureTemplate()->Entry);
+
+    // All mob in level 85 dungeons give championing reputation
+    if (!Rep)
+    {
+        if (Map* map = victim->GetMap())
+        {
+            if (map->IsDungeon())
+            {
+                if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 45000)
+                {
+                    if (!map->IsHeroic())
+                        Rep = sObjectMgr->GetReputationOnKilEntry(42696);
+                    else
+                        Rep = sObjectMgr->GetReputationOnKilEntry(49667);
+                }
+            }
+        }
+    }
+
     if (!Rep)
         return;
 
@@ -7010,13 +7060,14 @@ void Player::RewardReputation(Unit* victim, float rate)
     if (GetChampioningFaction())
     {
         // support for: Championing - http://www.wowwiki.com/Championing
-
         Map const* map = GetMap();
         if (map && map->IsNonRaidDungeon())
         {
             if (AccessRequirement const* accessRequirement = sObjectMgr->GetAccessRequirement(map->GetId(), map->GetDifficulty()))
-                if (accessRequirement->levelMin == 80)
+            {
+                if (accessRequirement->levelMin == 80 || accessRequirement->levelMin == 85)
                     ChampioningFaction = GetChampioningFaction();
+            }
         }
     }
 
@@ -7044,6 +7095,33 @@ void Player::RewardReputation(Unit* victim, float rate)
             GetReputationMgr().ModifyReputation(factionEntry2, donerep2);
     }
 }
+
+void Player::RewardCurrency(Unit* victim)
+{
+    if (!victim || victim->GetTypeId() == TYPEID_PLAYER)
+        return;
+
+    CurrencyOnKillEntry const* Cur = sObjectMgr->GetCurrencyOnKilEntry(victim->ToCreature()->GetCreatureTemplate()->Entry);
+
+    if (!Cur)
+        return;
+
+    if (Cur->CurrencyId1 && Cur->CurrencyValue1)
+    {
+        ModifyCurrency(Cur->CurrencyId1, Cur->CurrencyValue1 * 100, true, true);
+    }
+
+    if (Cur->CurrencyId2 && Cur->CurrencyValue2)
+    {
+        ModifyCurrency(Cur->CurrencyId2, Cur->CurrencyValue2 * 100, true, true);
+    }
+
+    if (Cur->CurrencyId3 && Cur->CurrencyValue3)
+    {
+        ModifyCurrency(Cur->CurrencyId3, Cur->CurrencyValue3 * 100, true, true);
+    }
+}
+
 
 // Calculate how many reputation points player gain with the quest
 void Player::RewardReputation(Quest const* quest)
@@ -7507,7 +7585,7 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
     int32 newWeekCount = int32(oldWeekCount) + (count > 0 ? count : 0);
     if (newWeekCount < 0)
         newWeekCount = 0;
-    sLog->outError(LOG_FILTER_GENERAL, "AA %d bb %d", weekCap, oldWeekCount);
+
     // if we get more then weekCap just set to limit
     if (weekCap && int32(weekCap) < newWeekCount)
     {
@@ -13596,6 +13674,13 @@ bool Player::IsUseEquipedWeapon(bool mainhand) const
     return !IsInFeralForm() && (!mainhand || !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED));
 }
 
+bool Player::IsOneHandUsed(bool mainhand) const
+{
+    Item* mainItem = GetItemByPos(INVENTORY_SLOT_BAG_0, mainhand ? EQUIPMENT_SLOT_MAINHAND : EQUIPMENT_SLOT_OFFHAND);
+    return mainItem && (mainItem->GetTemplate()->InventoryType == INVTYPE_WEAPON 
+        || mainItem->GetTemplate()->InventoryType == INVTYPE_WEAPONMAINHAND);
+}
+
 bool Player::IsTwoHandUsed() const
 {
     Item* mainItem = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
@@ -15248,6 +15333,10 @@ bool Player::CanRewardQuest(Quest const* quest, bool msg)
         }
     }
 
+    for (uint8 i = 0; i < QUEST_REQUIRED_CURRENCY_COUNT; i++)
+        if (quest->RequiredCurrencyId[i] && !HasCurrency(quest->RequiredCurrencyId[i], quest->RequiredCurrencyCount[i]))
+            return false;
+            
     // prevent receive reward with low money and GetRewOrReqMoney() < 0
     if (quest->GetRewOrReqMoney() < 0 && !HasEnoughMoney(-int64(quest->GetRewOrReqMoney())))
         return false;
@@ -15412,6 +15501,10 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
         if (quest->RequiredItemId[i])
             DestroyItemCount(quest->RequiredItemId[i], quest->RequiredItemCount[i], true);
 
+    for (uint8 i = 0; i < QUEST_REQUIRED_CURRENCY_COUNT; ++i)
+        if (quest->RequiredCurrencyId[i])
+            ModifyCurrency(quest->RequiredCurrencyId[i], -int32(quest->RequiredCurrencyCount[i]));
+            
     for (uint8 i = 0; i < QUEST_SOURCE_ITEM_IDS_COUNT; ++i)
     {
         if (quest->RequiredSourceItemId[i])
@@ -15451,7 +15544,14 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
             }
         }
     }
-
+    
+    for (uint8 i = 0; i < QUEST_REWARD_CURRENCY_COUNT; ++i)
+        if (quest->RewardCurrencyId[i])
+            ModifyCurrency(quest->RewardCurrencyId[i], quest->RewardCurrencyCount[i]);
+    
+    if (uint32 skill = quest->GetRewardSkillId())
+        UpdateSkillPro(skill, 1000, quest->GetRewardSkillPoints());
+    
     RewardReputation(quest);
 
     uint16 log_slot = FindQuestSlot(quest_id);
@@ -21867,7 +21967,8 @@ inline bool Player::_StoreOrEquipNewItem(uint32 vendorslot, uint32 item, uint8 c
 bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uint32 currency, uint32 count)
 {
     // cheating attempt
-    if (count < 1) count = 1;
+    if (count < 1) 
+        count = 1;
 
     if (!isAlive())
         return false;
@@ -21902,19 +22003,13 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
 
     VendorItem const* crItem = vItems->GetItem(vendorSlot);
     // store diff item (cheating)
+
     if (!crItem || crItem->item != currency || crItem->Type != ITEM_VENDOR_TYPE_CURRENCY)
     {
         SendBuyError(BUY_ERR_CANT_FIND_ITEM, creature, currency, 0);
         return false;
     }
 
-    if (count % crItem->maxcount)
-    {
-        SendEquipError(EQUIP_ERR_CANT_BUY_QUANTITY, NULL, NULL);
-        return false;
-    }
-
-    uint32 stacks = count / crItem->maxcount;
     ItemExtendedCostEntry const* iece = NULL;
     if (crItem->ExtendedCost)
     {
@@ -21923,15 +22018,6 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
         {
             sLog->outError(LOG_FILTER_PLAYER, "Currency %u have wrong ExtendedCost field value %u", currency, crItem->ExtendedCost);
             return false;
-        }
-
-        for (uint8 i = 0; i < MAX_ITEM_EXT_COST_ITEMS; ++i)
-        {
-            if (iece->RequiredItem[i] && !HasItemCount(iece->RequiredItem[i], (iece->RequiredItemCount[i] * stacks)))
-            {
-                SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, NULL, NULL);
-                return false;
-            }
         }
 
         for (uint8 i = 0; i < MAX_ITEM_EXT_COST_CURRENCIES; ++i)
@@ -21946,7 +22032,7 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
                 return false;
             }
 
-            if (!HasCurrency(iece->RequiredCurrency[i], (iece->RequiredCurrencyCount[i] * stacks)))
+            if (!HasCurrency(iece->RequiredCurrency[i], (iece->RequiredCurrencyCount[i])))
             {
                 SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, NULL, NULL); // Find correct error
                 return false;
@@ -21967,26 +22053,19 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
         return false;
     }
 
-    ModifyCurrency(currency, count, true, true);
     if (iece)
     {
-        for (uint8 i = 0; i < MAX_ITEM_EXT_COST_ITEMS; ++i)
-        {
-            if (!iece->RequiredItem[i])
-                continue;
-
-            DestroyItemCount(iece->RequiredItem[i], iece->RequiredItemCount[i] * stacks, true);
-        }
-
         for (uint8 i = 0; i < MAX_ITEM_EXT_COST_CURRENCIES; ++i)
         {
             if (!iece->RequiredCurrency[i])
                 continue;
 
-            ModifyCurrency(iece->RequiredCurrency[i], -int32(iece->RequiredCurrencyCount[i]) * stacks, false, true);
+            count = iece->RequiredCurrencyCount[i];
+            ModifyCurrency(iece->RequiredCurrency[i], -int32(count), false, true);
         }
     }
 
+    ModifyCurrency(currency, count, true, true);
     return true;
 }
 
@@ -21994,7 +22073,8 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
 bool Player::BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 item, uint8 count, uint8 bag, uint8 slot)
 {
     // cheating attempt
-    if (count < 1) count = 1;
+    if (count < 1) 
+        count = 1;
 
     // cheating attempt
     if (slot > MAX_BAG_SIZE && slot != NULL_SLOT)
@@ -24956,7 +25036,6 @@ uint32 Player::GetRuneTypeBaseCooldown(RuneType runeType) const
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE_3);
 
     cooldown *=  1.0f - (hastePct / 100.0f);
-
     return cooldown;
 }
 

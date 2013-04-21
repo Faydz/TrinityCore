@@ -2475,11 +2475,23 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
                 {
                     procAttacker |= PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_POS;
                     procVictim   |= PROC_FLAG_TAKEN_SPELL_NONE_DMG_CLASS_POS;
+                    
+                    if(hasAura)
+                    {
+                        procAttacker |= PROC_FLAG_DONE_APPLY_AURA_POS;
+                        procVictim   |= PROC_FLAG_TAKEN_APPLY_AURA_POS;
+                    }
                 }
                 else
                 {
                     procAttacker |= PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG;
                     procVictim   |= PROC_FLAG_TAKEN_SPELL_NONE_DMG_CLASS_NEG;
+                    
+                    if(hasAura)
+                    {
+                        procAttacker |= PROC_FLAG_DONE_APPLY_AURA_NEG;
+                        procVictim   |= PROC_FLAG_TAKEN_APPLY_AURA_NEG;
+                    }
                 }
             break;
         }
@@ -2800,6 +2812,10 @@ void Spell::DoTriggersOnSpellHit(Unit* unit, uint8 effMask)
             // Cast Avenging Wrath Marker
             unit->CastSpell(unit, 61987, true);
         }
+
+        // WTF ? Need more research...
+        if (m_preCastSpell == 51690)
+            return;
 
         // Avenging Wrath
         if (m_preCastSpell == 61987)
@@ -3374,9 +3390,6 @@ void Spell::cast(bool skipCheck)
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
     {
-        // Set Last spell casted;
-        m_caster->SetLastSpell(m_spellInfo->Id);
-
         if(m_caster->getClass() == CLASS_HUNTER)
             if(m_spellInfo->Id == 3044 || m_spellInfo->Id == 53209)
                 if(AuraEffect* auraEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 3524, EFFECT_0))
@@ -4126,6 +4139,34 @@ void Spell::SendSpellGo()
     }
 
     m_caster->SendMessageToSet(&data, true);
+
+    // Sanctity of Battle
+    if (m_caster->ToPlayer() && m_caster->HasAura(25956))
+    {
+        // category spells
+        if (m_spellInfo->Category == 1264)
+        {
+            // Crusader Strike & Divine Storm benefit from haste Sanctity of Battle
+            float haste = (2 - m_caster->ToPlayer()->GetFloatValue(UNIT_MOD_CAST_SPEED));
+            int32 cooldown = 4500;
+            int32 diffCool = 0;
+            if (haste > 0)
+            {
+                cooldown /= haste;
+                diffCool = 4500-cooldown;
+            }
+
+            m_caster->ToPlayer()->AddSpellCooldown(m_spellInfo->Id, 0, uint32(time(NULL) + cooldown/1000));
+            WorldPacket data(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
+            data << uint32(m_spellInfo->Id);
+            data << uint64(m_caster->GetGUID());
+            data << int32(-diffCool);
+            m_caster->ToPlayer()->GetSession()->SendPacket(&data);
+
+            //sLog->outError(LOG_FILTER_GENERAL, "GetFloatValue %f haste %f cooldown %d diffcool %d AddSpellCooldown %d", 
+                //m_caster->ToPlayer()->GetFloatValue(UNIT_MOD_CAST_SPEED), haste, cooldown, diffCool, uint32(time(NULL) + cooldown/1000));
+        }
+    }
 }
 
 /// Writes miss and hit targets for a SMSG_SPELL_GO packet
@@ -4980,8 +5021,13 @@ SpellCastResult Spell::CheckCast(bool strict)
                 return SPELL_FAILED_NOT_INFRONT;
 
             if (m_caster->GetEntry() != WORLD_TRIGGER) // Ignore LOS for gameobjects casts (wrongly casted by a trigger)
+            {
                 if (!(m_spellInfo->AttributesEx2 & SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS) && !DisableMgr::IsDisabledFor(DISABLE_TYPE_SPELL, m_spellInfo->Id, NULL, SPELL_DISABLE_LOS) && !m_caster->IsWithinLOSInMap(target))
                     return SPELL_FAILED_LINE_OF_SIGHT;
+
+                if (m_caster->IsVisionObscured(target))
+                    return SPELL_FAILED_VISION_OBSCURED; // smoke bomb, camouflage...
+            }
         }
     }
 

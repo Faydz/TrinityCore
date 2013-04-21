@@ -1179,6 +1179,7 @@ private:
     void _RewardHonor(Player* player);
     void _RewardXP(Player* player, float rate);
     void _RewardReputation(Player* player, float rate);
+    void _RewardCurrency(Player* player);
     void _RewardKillCredit(Player* player);
     void _RewardPlayer(Player* player, bool isDungeon);
     void _RewardGroup();
@@ -1495,6 +1496,7 @@ class Player : public Unit, public GridObject<Player>
         uint32 GetWeaponProficiency() const { return m_WeaponProficiency; }
         uint32 GetArmorProficiency() const { return m_ArmorProficiency; }
         bool IsUseEquipedWeapon(bool mainhand) const;
+        bool IsOneHandUsed(bool mainhand) const;
         bool IsTwoHandUsed() const;
         void SendNewItem(Item* item, uint32 count, bool received, bool created, bool broadcast = false);
         bool BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 item, uint8 count, uint8 bag, uint8 slot);
@@ -2014,6 +2016,7 @@ class Player : public Unit, public GridObject<Player>
 
         float GetExpertiseDodgeOrParryReduction(WeaponAttackType attType) const;
         void UpdateBlockPercentage();
+        void UpdateBlockValue();
         void UpdateCritPercentage(WeaponAttackType attType);
         void UpdateAllCritPercentages();
         void UpdateParryPercentage();
@@ -2140,6 +2143,7 @@ class Player : public Unit, public GridObject<Player>
         ReputationMgr const& GetReputationMgr() const { return *m_reputationMgr; }
         ReputationRank GetReputationRank(uint32 faction_id) const;
         void RewardReputation(Unit* victim, float rate);
+        void RewardCurrency(Unit* victim);
         void RewardReputation(Quest const* quest);
 
         int32 CalculateReputationGain(ReputationSource source, uint32 creatureOrQuestLevel, int32 rep, int32 faction, bool noQuestBonus = false);

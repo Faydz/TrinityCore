@@ -959,7 +959,7 @@ bool Aura::CanBeSaved() const
     }
 
     // When a druid logins, he doesnt have either eclipse power, nor the marker auras, nor the eclipse buffs. Dont save them.
-    if (GetId() == 67483 || GetId() == 67484 || GetId() == 48517 || GetId() == 48518)
+    if (GetId() == 67483 || GetId() == 67484 || GetId() == 48517 || GetId() == 48518 || GetId() == 94338)
         return false;
 
     // don't save auras removed by proc system
@@ -1268,13 +1268,21 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
             case SPELLFAMILY_HUNTER:
                 switch(GetId())
                 {
-                case 1978:
-                    if (AuraEffect* auraEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 536, 0))
+                    case 1978:
+                        if (AuraEffect* auraEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 536, 0))
+                            {
+                                int32 bp0 = (GetEffect(EFFECT_0)->CalculateAmount(caster) * GetEffect(EFFECT_0)->GetTotalTicks()) / 100 * auraEff->GetAmount();
+                                caster->CastCustomSpell(target, 83077, &bp0, NULL, NULL, true, NULL, GetEffect(0));
+                            }
+                        break;
+                    // Master Marksman
+                    case 82925:
+                        if (target->GetTypeId() == TYPEID_PLAYER && GetStackAmount() == 5)
                         {
-                            int32 bp0 = (GetEffect(EFFECT_0)->CalculateAmount(caster) * GetEffect(EFFECT_0)->GetTotalTicks()) / 100 * auraEff->GetAmount();
-                            caster->CastCustomSpell(target, 83077, &bp0, NULL, NULL, true, NULL, GetEffect(0));
+                            target->CastSpell(target, 82926, true);
+                            target->RemoveAura(82925);
                         }
-                    break;
+                        break;
                 }
                 break;
             case SPELLFAMILY_PRIEST:
@@ -1438,7 +1446,8 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                 // Blood of the North
                 // Reaping
                 // Death Rune Mastery
-                if (GetSpellInfo()->SpellIconID == 3041 || GetSpellInfo()->SpellIconID == 22 || GetSpellInfo()->SpellIconID == 2622)
+                // Blood rites
+                if (GetSpellInfo()->SpellIconID == 3041 || GetSpellInfo()->SpellIconID == 22 || GetSpellInfo()->SpellIconID == 2622 || GetSpellInfo()->SpellIconID == 2724)
                 {
                     if (!GetEffect(0) || GetEffect(0)->GetAuraType() != SPELL_AURA_PERIODIC_DUMMY)
                         break;

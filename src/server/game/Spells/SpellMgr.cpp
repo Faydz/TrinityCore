@@ -2877,6 +2877,11 @@ void SpellMgr::LoadSpellCustomAttr()
                 // ONLY SPELLS WITH SPELLFAMILY_GENERIC and EFFECT_SCHOOL_DAMAGE
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_SHARE_DAMAGE;
                 break;
+            case 73921: // Healing Rain
+            case 88686: // Holy Word Sanctuary
+                // ONLY SPELLS WITH EFFECT_HEAL
+                spellInfo->AttributesCu |= SPELL_ATTR0_CU_LIMIT_HEAL;
+                break;
             case 18500: // Wing Buffet
             case 33086: // Wild Bite
             case 49749: // Piercing Blow
@@ -3055,6 +3060,35 @@ void SpellMgr::LoadSpellCustomAttr()
             case 26023:
                 spellInfo->SpellFamilyName = SPELLFAMILY_PALADIN;
                 break;
+            // Shadowfiend
+            case 34433:
+                spellInfo->Effects[0].MiscValueB = 67;
+                break;
+            // Gravity Well Effect
+            case 47764:
+            case 47765:
+                spellInfo->Effects[0].RadiusEntry = sSpellRadiusStore.LookupEntry(13);
+                break;
+            // Steady Shot
+            case 56641:
+                spellInfo->Effects[2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                break;
+            // Cobra Shot
+            case 77767:
+                spellInfo->Effects[1].Effect = SPELL_EFFECT_DUMMY;
+                spellInfo->Effects[1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                break;
+            // Master Marksman
+            case 82926:
+                spellInfo->Effects[0].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                spellInfo->Effects[0].BasePoints = -100;
+                break;
+            // Aimed Shot!
+            case 82928:
+                spellInfo->CastTimeEntry = sSpellCastTimesStore.LookupEntry(1);
+                spellInfo->CastTimeMax = 0;
+                spellInfo->CastTimeMin = 0;
+                break;
             default:
                 break;
         }
@@ -3137,21 +3171,62 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
-                    //Devotion Aura
+                    // Ancient Healer
+                    case 86674: 
+                        spellInfo->ProcCharges = 5;
+                        break;
+                    // Guardian of Ancient Kings
+                    case 86150:
+                        spellInfo->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        break;
+                    // Consecration
+                    case 26573:
+                        spellInfo->Effects[EFFECT_2].TriggerSpell = 36946;
+                        break;
+                    // Zealotry
+                    case 85696:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 0;
+                        break;
+                    // Divine Purpose
+                    case 90174:
+                        spellInfo->Effects[EFFECT_0].SpellClassMask = flag96(0x0, 0x0, 0x20E000);
+                        break;
+                    // Seal of Righteousness
+                    case 25742:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_SCHOOL_DAMAGE;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_SRC_CASTER);
+                        spellInfo->Effects[EFFECT_1].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_SRC_AREA_ENEMY);
+                        spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_4_YARDS);
+                        break;
+                    // Selfless healing bonus
+                    case 90811:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_DAMAGE;
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0xC0000000, 0x30000, 0x44600);
+
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_2].MiscValue = SPELLMOD_DOT;
+                        spellInfo->Effects[EFFECT_2].SpellClassMask = flag96(0xC0000000, 0x30000, 0x44600);
+                        break;
+                    // Devotion Aura
                     case 465:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AREA_AURA_RAID;
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
                         spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
                         spellInfo->Effects[EFFECT_1].MiscValue = 127;
                         break;
-                    //Concentration Aura
+                    // Concentration Aura
                     case 19746:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AREA_AURA_RAID;
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
                         spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
                         spellInfo->Effects[EFFECT_1].MiscValue = 127;
                         break;
-                    //Fire Resistance Aura
+                    // Fire Resistance Aura
                     case 19891:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AREA_AURA_RAID;
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
@@ -3165,6 +3240,7 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Word of Glory
                     case 85673:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_DUMMY;
+                        spellInfo->ManaCost = 0;
                         break;
                     // Zealotry
                     case 84535:
@@ -3259,6 +3335,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Offhand Slam
+                    case 50783:
+                        spellInfo->AttributesEx3 |= SPELL_ATTR3_REQ_OFFHAND;
+                        break;
                     // Charge/Intercept stun
                     case 7922:
                     case 20253:
@@ -3313,9 +3393,29 @@ void SpellMgr::LoadSpellCustomAttr()
                 if (spellInfo->SpellFamilyFlags[0] & 0x20000 || spellInfo->SpellFamilyFlags[1] & 0x20)
                     spellInfo->AttributesCu |= SPELL_ATTR0_CU_AURA_CC;
                 break;
+            case SPELLFAMILY_SHAMAN:
+                switch(spellInfo->Id)
+                {
+                    // Mental Quickness (Passive)
+                    case 30814:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_OVERRIDE_SPELL_POWER_BY_AP_PCT;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                        break;
+                }
+                break;
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Fungal Growth Rank 1
+                    case 78788:
+                        spellInfo->Effects[EFFECT_0].MiscValue = 81291;
+                        spellInfo->Effects[EFFECT_0].MiscValueB = 81289;
+                        break;
+                    // Fungal Growth Rank 2
+                    case 78789:
+                        spellInfo->Effects[EFFECT_0].MiscValue = 81283;
+                        spellInfo->Effects[EFFECT_0].MiscValueB = 81282;
+                        break;
                     // Nature's Bounty Rank 1
                     case 17074:
                         spellInfo->Effects[EFFECT_1].BasePoints = 0;
@@ -3411,6 +3511,12 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Snake Trap
                     case 34600:
                         spellInfo->Effects[0].Effect = SPELL_EFFECT_SUMMON_OBJECT_SLOT4;
+                        break;
+                    // Camouflage
+                    case 51755:
+                        spellInfo->Effects[0].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
+                        spellInfo->Effects[1].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
+                        spellInfo->Effects[2].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
                         break;
                 }
                 break;

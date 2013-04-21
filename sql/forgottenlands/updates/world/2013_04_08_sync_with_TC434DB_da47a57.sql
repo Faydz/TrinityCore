@@ -10425,16 +10425,10 @@ UPDATE `gameobject_template` SET `flags`=16 WHERE `entry`=@GO_ELUNE_ALTAR; -- st
 DELETE FROM `spell_dbc` WHERE `id`=18954;
 INSERT INTO `spell_dbc` (`id`, `Attributes`, `CastingTimeIndex`, `ProcChance`, `RangeIndex`, `EquippedItemClass`, `Effect1`, `EffectImplicitTargetA1`, `DmgMultiplier1`, `Comment`) VALUES
 (18954, 256, 1, 101, 1, -1, 3, 1, 1, 'Ranshalla Despawn');
+
+
 TRUNCATE TABLE `playercreateinfo_spell`;
 TRUNCATE TABLE `playercreateinfo_spell_custom`;
-
-ALTER TABLE `playercreateinfo_spell`
-  CHANGE `race` `racemask` INT(10) UNSIGNED DEFAULT 0 NOT NULL,
-  CHANGE `class` `classmask` INT(10) UNSIGNED DEFAULT 0 NOT NULL;
-
-ALTER TABLE `playercreateinfo_spell_custom`
-  CHANGE `race` `racemask` INT(10) UNSIGNED DEFAULT 0 NOT NULL,
-  CHANGE `class` `classmask` INT(10) UNSIGNED DEFAULT 0 NOT NULL;
 
 INSERT INTO `playercreateinfo_spell` (`racemask`, `classmask`, `Spell`, `Note`) VALUES
 -- Races:   All

@@ -6812,6 +6812,54 @@ void ObjectMgr::LoadReputationOnKill()
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, ">> Loaded %u creature award reputation definitions in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
 }
 
+void ObjectMgr::LoadCurrencyOnKill()
+{
+    uint32 oldMSTime = getMSTime();
+
+    // For reload case
+    _currencyOnKillStore.clear();
+
+    uint32 count = 0;
+
+    //                                                0            1                     2
+    QueryResult result = WorldDatabase.Query("SELECT creature_id, CurrencyId1, CurrencyId2, "
+    //   3             4             5                   6          
+        "CurrencyId3, CurrencyCount1, CurrencyCount2, CurrencyCount3 FROM creature_onkill_currency");
+
+    if (!result)
+    {
+        sLog->outError(LOG_FILTER_SERVER_LOADING, ">> Loaded 0 creature award currency definitions. DB table `creature_onkill_currency` is empty.");
+        return;
+    }
+
+    do
+    {
+        Field* fields = result->Fetch();
+
+        uint32 creature_id = fields[0].GetUInt32();
+
+        CurrencyOnKillEntry currencyOnKill;
+        currencyOnKill.CurrencyId1     = fields[1].GetInt16();
+        currencyOnKill.CurrencyId2     = fields[2].GetInt16();
+        currencyOnKill.CurrencyId3     = fields[3].GetInt16();
+        currencyOnKill.CurrencyValue1  = fields[4].GetInt32();
+        currencyOnKill.CurrencyValue2  = fields[5].GetInt32();
+        currencyOnKill.CurrencyValue3  = fields[6].GetInt32();
+
+        if (!GetCreatureTemplate(creature_id))
+        {
+            sLog->outError(LOG_FILTER_SQL, "Table `creature_onkill_currency` have data for not existed creature entry (%u), skipped", creature_id);
+            continue;
+        }
+
+        _currencyOnKillStore[creature_id] = currencyOnKill;
+
+        ++count;
+    } while (result->NextRow());
+
+    sLog->outInfo(LOG_FILTER_SERVER_LOADING, ">> Loaded %u creature award currency definitions in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
+}
+
 void ObjectMgr::LoadReputationSpilloverTemplate()
 {
     uint32 oldMSTime = getMSTime();

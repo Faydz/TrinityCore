@@ -97,12 +97,13 @@ class boss_slabhide: public CreatureScript
             switch (point)
             {
                 case POINT_CENTER:
+                    me->SetReactState(REACT_PASSIVE);
                     me->SetCanFly(true);
                     me->AddUnitMovementFlag(MOVEMENTFLAG_DISABLE_GRAVITY);
                     Position pos;
                     pos.Relocate(me);
                     pos.m_positionZ += 9.0f;
-                    me->GetMotionMaster()->MoveTakeoff(POINT_TAKEOFF, pos);
+                    me->GetMotionMaster()->MovePoint(POINT_TAKEOFF, pos);
                     break;
                 case POINT_TAKEOFF:
                     if (Creature* summoner = me->FindNearestCreature(200000, 30.0f, true))

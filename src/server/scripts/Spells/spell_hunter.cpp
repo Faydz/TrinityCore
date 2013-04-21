@@ -873,6 +873,47 @@ class spell_hun_kill_command : public SpellScriptLoader
         }
 };
 
+//80326 Camouflage
+class spell_hun_camouflage: public SpellScriptLoader 
+{
+    public:
+    spell_hun_camouflage() : SpellScriptLoader("spell_hun_camouflage"){ }
+
+    class spell_hun_camouflage_AuraScript: public AuraScript 
+    {
+        PrepareAuraScript(spell_hun_camouflage_AuraScript)
+
+		void HandlePeriodic(AuraEffect const * aurEff) 
+        {
+            PreventDefaultAction();
+            
+            if(Unit * target = GetTarget())
+            {
+                if (!target->ToPlayer() && !target->ToPet())
+				    return;
+
+                if(!target->isMoving())
+                {
+                    if(!target->HasAura(80325))
+                    {
+                        target->AddAura(80325, target);
+                    }
+                }
+            }
+		}
+
+		void Register() 
+        {
+			OnEffectPeriodic += AuraEffectPeriodicFn(spell_hun_camouflage_AuraScript::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
+		}
+    };
+
+    AuraScript* GetAuraScript() const 
+    {
+        return new spell_hun_camouflage_AuraScript();
+    }
+};
+
 void AddSC_hunter_spell_scripts()
 {
     new spell_hun_aspect_of_the_beast();
@@ -892,4 +933,5 @@ void AddSC_hunter_spell_scripts()
     new spell_hun_tame_beast();
     new spell_hun_target_only_pet_and_owner();
     new spell_hun_kill_command();
+    new spell_hun_camouflage();
 }

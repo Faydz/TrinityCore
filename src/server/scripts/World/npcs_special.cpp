@@ -269,6 +269,89 @@ public:
 };
 
 /*######
+## npc_force_of_nature
+######*/
+
+class npc_force_of_nature : public CreatureScript
+{
+public:
+    npc_force_of_nature() : CreatureScript("npc_force_of_nature") { }
+
+    struct npc_force_of_natureAI : PetAI
+    {
+        npc_force_of_natureAI(Creature* creature) : PetAI(creature) {}
+
+        void InitializeAI() {}
+
+        void JustDied(Unit* /*killer*/)
+        {
+            sLog->outError(LOG_FILTER_GENERAL, "Check");
+            Unit* owner = me->GetOwner();
+            int32 fungalGrowthSummonSpell;
+            int32 fungalGrowthSlowSpell;
+
+            if (!owner)
+                return;
+
+            // Fungal Growth
+            if (AuraEffect* aurEff = owner->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2681, EFFECT_0))
+            {
+                Position pos;
+                me->GetPosition(&pos);
+
+                fungalGrowthSummonSpell = aurEff->GetMiscValue();
+                fungalGrowthSlowSpell = aurEff->GetMiscValueB();
+                           
+                if (!fungalGrowthSummonSpell || !fungalGrowthSlowSpell)
+                    return;
+
+                SpellInfo const* summonSpellInfo = sSpellMgr->GetSpellInfo(fungalGrowthSummonSpell);
+                int32 fungalGrowthCreID = summonSpellInfo->Effects[EFFECT_0].MiscValue;
+
+                // Fungal summon
+                owner->CastSpell(
+                    pos.GetPositionX(), 
+                    pos.GetPositionY(), 
+                    pos.GetPositionZ(), 
+                    fungalGrowthSummonSpell, true);
+
+                if(summonSpellInfo)
+                {     
+                    std::list<Creature*> list;
+
+                    owner->GetCreatureListWithEntryInGrid(list, fungalGrowthCreID, 100.0f);
+                    for (std::list<Creature*>::const_iterator i = list.begin(); i != list.end(); i)
+                    {
+                        if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == owner)
+                        {
+                            if(TempSummon* tempMushroom = (*i)->ToTempSummon())
+                            {
+                                // Stops moving
+                                tempMushroom->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+                                tempMushroom->StopMoving();
+                                tempMushroom->SetControlled(true, UNIT_STATE_STUNNED);
+
+                                // Graphical effect
+                                tempMushroom->CastSpell(tempMushroom, 94339, true);
+
+                                // Slow effect
+                                tempMushroom->CastSpell(tempMushroom, fungalGrowthSlowSpell, true);
+                            }
+                        }
+                        i++;
+                    }
+                }
+            }
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_force_of_natureAI(creature);
+    }
+};
+
+/*######
 ## npc_lunaclaw_spirit
 ######*/
 
@@ -3134,9 +3217,11 @@ public:
        npc_shadowy_apparitionAI(Creature* c) : ScriptedAI(c) 
        {
            me->SetReactState(REACT_AGGRESSIVE);
+           hit = false;
        }
 
        uint64 targetGuid;
+       bool hit;
 
        void InitializeAI()
        {
@@ -3155,9 +3240,9 @@ public:
            }
        }
 
-       void Reset()
+       void EnterEvadeMode()
        {
-           me->CastSpell(me, 87427, true);
+            return;
        }
 
        void MoveInLineOfSight(Unit* who)
@@ -3168,10 +3253,13 @@ public:
                if (me->ToTempSummon())
                    ownerGuid = me->ToTempSummon()->GetSummonerGUID();
 
-               sLog->outError(LOG_FILTER_GENERAL, "guid %d", ownerGuid);
-               me->CastCustomSpell(who, 87532, NULL, NULL, NULL, true, 0, 0, ownerGuid);
-               me->CastSpell(me, 87529, true);
-               me->DisappearAndDie();
+               if (!hit)
+               {
+                   hit = true;
+                   me->CastCustomSpell(who, 87532, NULL, NULL, NULL, true, 0, 0, ownerGuid);
+                   me->CastSpell(me, 87529, true);
+                   me->DisappearAndDie();
+               }
            }
        }
 
@@ -3428,6 +3516,7 @@ public:
 void AddSC_npcs_special()
 {
     new npc_air_force_bots();
+    new npc_force_of_nature();
     new npc_lunaclaw_spirit();
     new npc_chicken_cluck();
     new npc_dancing_flames();

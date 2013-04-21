@@ -131,6 +131,9 @@ void Player::UpdateSpellDamageAndHealingBonus()
     // This information for client side use only
     // Get healing bonus for all schools
     SetStatInt32Value(PLAYER_FIELD_MOD_HEALING_DONE_POS, SpellBaseHealingBonusDone(SPELL_SCHOOL_MASK_ALL));
+
+    SetStatFloatValue(PLAYER_FIELD_OVERRIDE_SPELL_POWER_BY_AP_PCT, GetTotalAuraModifier(SPELL_AURA_OVERRIDE_SPELL_POWER_BY_AP_PCT));
+
     // Get damage bonus for all schools
     for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
         SetStatInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS+i, SpellBaseDamageBonusDone(SpellSchoolMask(1 << i)));
@@ -445,6 +448,18 @@ void Player::UpdateBlockPercentage()
     SetStatFloatValue(PLAYER_BLOCK_PERCENTAGE, value);
 }
 
+void Player::UpdateBlockValue()
+{
+    float value = 0.0f;
+    if (CanBlock())
+    {
+        value = 30.0f;
+        value += GetTotalAuraModifier(SPELL_AURA_MOD_SHIELD_BLOCKVALUE_PCT);
+        value = value < 0.0f ? 0.0f : value;
+    }
+    SetUInt32Value(PLAYER_SHIELD_BLOCK, value);
+}
+
 void Player::UpdateCritPercentage(WeaponAttackType attType)
 {
     BaseModGroup modGroup;
@@ -686,7 +701,11 @@ void Player::UpdateManaRegen()
     int32 modManaRegenInterrupt = GetTotalAuraModifier(SPELL_AURA_MOD_MANA_REGEN_INTERRUPT);
 
     SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER, base_regen + CalculatePct(spirit_regen, modManaRegenInterrupt));
-    SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER, 0.001f + spirit_regen + base_regen);
+
+    if (getClass() == CLASS_HUNTER)
+        SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER, (6.0 * ((1.0f - GetFloatValue(PLAYER_FIELD_MOD_RANGED_HASTE)) + 1)) - 5.0f );
+    else
+        SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER, 0.001f + spirit_regen + base_regen);
 }
 
 void Player::UpdateRuneRegen(RuneType rune)
