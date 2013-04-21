@@ -3307,6 +3307,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Death's Advance
+                    case 96268:
+                        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(21); // Infinite
+                        break;
                     // Howling Blast
                     case 49184:
                         spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_SCHOOL_DAMAGE;
