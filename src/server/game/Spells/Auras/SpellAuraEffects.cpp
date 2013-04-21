@@ -6026,6 +6026,26 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
         case SPELLFAMILY_DEATHKNIGHT:
             switch (GetId())
             {
+                case 96268: // Death's Advance
+                {
+                    if(caster)
+                    {
+                        if(Player* player = caster->ToPlayer())
+                        {
+                            if(player->getClass() == CLASS_DEATH_KNIGHT)
+                            {
+                                for (uint32 i = 0; i < MAX_RUNES; ++i)
+                                {
+                                    RuneType rune = player->GetCurrentRune(i);
+                                    if (rune == RUNE_UNHOLY && !player->GetRuneCooldown(i))
+                                    {
+                                        player->RemoveAura(GetId());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 case 49016: // Hysteria
                     uint32 damage = uint32(target->CountPctFromMaxHealth(1));
                     target->DealDamage(target, damage, NULL, NODAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);

@@ -8955,6 +8955,25 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // dummy basepoints or other customs
     switch (trigger_spell_id)
     {
+        // Death's Advance
+        case 96268:
+        {
+            if(Player* player = this->ToPlayer())
+            {
+                if(player->getClass() == CLASS_DEATH_KNIGHT)
+                {
+                    for (uint32 i = 0; i < MAX_RUNES; ++i)
+                    {
+                        RuneType rune = player->GetCurrentRune(i);
+                        if (rune == RUNE_UNHOLY && !player->GetRuneCooldown(i))
+                        {
+                            player->RemoveAura(trigger_spell_id);
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
         // Crimson Scourge
         case 81141:
             if (!victim->HasAura(55078))
