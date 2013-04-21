@@ -17516,6 +17516,16 @@ float Unit::MeleeSpellMissChance(const Unit* victim, WeaponAttackType attType, u
     // Calculate hit chance
     float hitChance = 100.0f;
 
+    // Cloak of Shadow
+    if (victim->HasAura(31224))
+    {
+        if (const SpellEntry* spell = sSpellStore.LookupEntry(spellId))
+        {
+            if (spell->SchoolMask != SPELL_SCHOOL_MASK_NORMAL)
+                hitChance += victim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_HIT_CHANCE);
+        }
+    }
+
     // Spellmod from SPELLMOD_RESIST_MISS_CHANCE
     if (spellId)
     {
