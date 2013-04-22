@@ -2504,6 +2504,11 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
     {
         bool crit = caster->isSpellCrit(unitTarget, m_spellInfo, m_spellSchoolMask);
         uint32 addhealth = m_healing;
+
+		// Victory rush heal can't crit
+		if(m_spellInfo->Id == 34428)
+			crit = false;
+
         if (crit)
         {
             procEx |= PROC_EX_CRITICAL_HIT;

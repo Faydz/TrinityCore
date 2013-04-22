@@ -16229,9 +16229,18 @@ bool Unit::IsTriggeredAtSpellProcEvent(Unit* victim, Aura* aura, SpellInfo const
         if (victim)
             allow = ToPlayer()->isHonorOrXPTarget(victim);
 
+		// Don't proc victory rush on totems
+		if (victim->isTotem())
+                allow = false;
+
+		// Don't proc vistory rush on shadowflend and mirror images
+		if (victim->GetEntry() == 19668 || victim->GetEntry() == 46956)
+                allow = false;
+
         // Shadow Word: Death - can trigger from every kill
-        if (aura->GetId() == 32409)
+		if (aura->GetId() == 32409 || aura->GetId() == 32215)
             allow = true;
+
         if (!allow)
             return false;
     }
