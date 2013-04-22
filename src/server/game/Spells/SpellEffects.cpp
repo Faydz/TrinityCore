@@ -693,6 +693,15 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             {
                 switch (m_spellInfo->Id)
                 {
+                    // Death and Decay
+                    case 52212:
+                    {
+                        if (Unit* caster = GetCaster())
+                        {
+                            damage+= caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.064f;
+                        }
+                    }
+                    break;
                     // Howling Blast
                     case 49184:
                         float mod = 1.0f;
@@ -3539,7 +3548,7 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             // Blood Strike
             if (m_spellInfo->SpellFamilyFlags[0] & 0x400000)
             {
-                float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue(m_caster) * unitTarget->GetDiseasesByCaster(m_caster->GetGUID()) / 2.0f;
+                float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue(m_caster) * unitTarget->GetDiseasesByCaster(m_caster->GetGUID()) / 10.0f;
                 // Death Knight T8 Melee 4P Bonus
                 if (AuraEffect const* aurEff = m_caster->GetAuraEffect(64736, EFFECT_0))
                     AddPct(bonusPct, aurEff->GetAmount());
