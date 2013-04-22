@@ -62,13 +62,61 @@ enum ShamanSpells
     SPELL_SHAMAN_UNLEASH_FLAME                  = 73683,
     SPELL_SHAMAN_UNLEASH_FROST                  = 73682,
     SPELL_SHAMAN_UNLEASH_LIFE                   = 73685,
-    SPELL_SHAMAN_UNLEASH_WIND                   = 73681
+    SPELL_SHAMAN_UNLEASH_WIND                   = 73681,
+    SPELL_SHAMAN_FROST_SHOCK                    = 8056,
 };
 
 enum ShamanSpellIcons
 {
     SHAMAN_ICON_ID_SOOTHING_RAIN                = 2011,
-    SHAMAN_ICON_ID_SHAMAN_LAVA_FLOW             = 3087
+    SHAMAN_ICON_ID_SHAMAN_LAVA_FLOW             = 3087,
+    SHAMAN_ICON_ID_FROZEN_POWER                 = 3780
+};
+
+// 8056 - Frost Shock 
+/// Updated 4.3.4
+class spell_sha_frost_shock : public SpellScriptLoader
+{
+    public:
+        spell_sha_frost_shock() : SpellScriptLoader("spell_sha_frost_shock") { }
+
+        class spell_sha_frost_shock_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_sha_frost_shock_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellStore.LookupEntry(SPELL_SHAMAN_FROST_SHOCK))
+                    return false;
+                return true;
+            }
+
+            void HandleEffect(SpellEffIndex /*effIndex*/)
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if (Unit* target = GetExplTargetUnit())
+                    {
+                        // Frozen Power
+                        if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, SHAMAN_ICON_ID_FROZEN_POWER, EFFECT_1))
+                        {
+                            if (roll_chance_i(aurEff->GetAmount()))
+                                caster->CastSpell(target, 63685, true);
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHit += SpellEffectFn(spell_sha_frost_shock_SpellScript::HandleEffect, EFFECT_1, SPELL_EFFECT_SCHOOL_DAMAGE);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_sha_frost_shock_SpellScript();
+        }
 };
 
 // 73680 - Unleash Elements
@@ -1056,6 +1104,7 @@ public:
 
 void AddSC_shaman_spell_scripts()
 {
+    new spell_sha_frost_shock();
     new spell_sha_unleash_elements();
     new spell_sha_ancestral_awakening_proc();
     new spell_sha_bloodlust();
