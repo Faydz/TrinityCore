@@ -384,57 +384,56 @@ public:
 	};
 };
 
-class npc_oathsworn_axemaster: public CreatureScript {
+class npc_oathsworn_axemaster: public CreatureScript
+{
 public:
-	npc_oathsworn_axemaster() :
-			CreatureScript("npc_oathsworn_axemaster") {
-	}
+    npc_oathsworn_axemaster() : CreatureScript("npc_oathsworn_axemaster")
+    { }
 
-	CreatureAI* GetAI(Creature* pCreature) const {
-		return new npc_oathsworn_axemasterAI(pCreature);
-	}
+    CreatureAI* GetAI(Creature* pCreature) const 
+    {
+        return new npc_oathsworn_axemasterAI(pCreature);
+    }
 
-	struct npc_oathsworn_axemasterAI: public ScriptedAI {
-		npc_oathsworn_axemasterAI(Creature* c) :
-				ScriptedAI(c) {
-		}
+    struct npc_oathsworn_axemasterAI: public ScriptedAI
+    {
+        npc_oathsworn_axemasterAI(Creature* c) : ScriptedAI(c) { 
+        }
 
-		EventMap events;
+        EventMap events;
 
-		void Reset() {
-			events.Reset();
-		}
+        void Reset() {
+            events.Reset();
+        }
 
-		void EnterCombat(Unit* /*who*/) {
-			events.ScheduleEvent(EVENT_SKULL_CRUSH, 5000);
-			events.ScheduleEvent(EVENT_SLAM, 3000);
-		}
+        void EnterCombat(Unit* /*who*/) 
+        {
+            events.ScheduleEvent(EVENT_SLAM, urand(6000, 8000));
+        }
 
-		void UpdateAI(const uint32 diff) {
-			if (!UpdateVictim())
-				return;
+        void UpdateAI(const uint32 diff) {
+            if (!UpdateVictim())
+                return;
 
-			events.Update(diff);
+            events.Update(diff);
 
-			if (me->HasUnitState(UNIT_STATE_CASTING))
-				return;
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
 
-			while (uint32 eventId = events.ExecuteEvent()) {
-				switch (eventId) {
-				case EVENT_SKULL_CRUSH:
-					DoCast(me->getVictim(), SPELL_SKULL_CRUSH);
-					events.RescheduleEvent(EVENT_SKULL_CRUSH, 3000);
-					return;
-				case EVENT_SLAM:
-					DoCast(me->getVictim(), SPELL_SLAM);
-					events.RescheduleEvent(EVENT_SLAM, 2000);
-					return;
-				}
-			}
+            while (uint32 eventId = events.ExecuteEvent()) 
+            { 
+                switch (eventId)
+                {
+                    case EVENT_SLAM:
+                        DoCast(me->getVictim(), SPELL_SLAM);
+                        events.RescheduleEvent(EVENT_SLAM, urand(6000, 8000));
+                        return;
+                }
+            }
 
-			DoMeleeAttackIfReady();
-		}
-	};
+            DoMeleeAttackIfReady();
+        }
+    };
 };
 
 class npc_oathsworn_captain: public CreatureScript {
