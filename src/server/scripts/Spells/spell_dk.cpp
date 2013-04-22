@@ -29,7 +29,6 @@
 enum DeathKnightSpells
 {
     SPELL_DK_ANTI_MAGIC_SHELL_TALENT            = 51052,
-    SPELL_DK_BLACK_ICE_R1                       = 49140,
     SPELL_DK_BLOOD_BOIL_TRIGGERED               = 65658,
     SPELL_DK_BLOOD_GORGED_HEAL                  = 50454,
     SPELL_DK_CORPSE_EXPLOSION_TRIGGERED         = 43999,
@@ -932,12 +931,14 @@ class spell_dk_scourge_strike : public SpellScriptLoader
             void HandleAfterHit()
             {
                 Unit* caster = GetCaster();
-                if (Unit* unitTarget = GetHitUnit())
+                Unit* unitTarget = GetHitUnit();
+                if (caster && unitTarget)
                 {
-                    int32 bp = GetHitDamage() * multiplier;
+                    int32 bp = GetHitDamage();
+                    uint32 disease = unitTarget->GetDoTsByCaster(caster->GetGUID());
+                    uint32 scourgeMul = GetSpellInfo()->Effects[EFFECT_2].BasePoints;
 
-                    if (AuraEffect* aurEff = caster->GetAuraEffectOfRankedSpell(SPELL_DK_BLACK_ICE_R1, EFFECT_0))
-                        AddPct(bp, aurEff->GetAmount());
+                    bp = CalculatePct(bp, disease * scourgeMul);
 
                     caster->CastCustomSpell(unitTarget, SPELL_DK_SCOURGE_STRIKE_TRIGGERED, &bp, NULL, NULL, true);
                 }
