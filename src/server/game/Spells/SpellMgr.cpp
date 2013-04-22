@@ -3307,6 +3307,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Necrotic Strike
+                    case 73975:
+                        spellInfo->StackAmount = 20;
+                        break;
                     // Ebon Plaguebringer
                     case 51099:
                     case 51160:

@@ -50,11 +50,45 @@ enum DeathKnightSpells
     SPELL_DK_ITEM_T8_MELEE_4P_BONUS             = 64736,
     SPELL_DK_SHADOW_INFUSION                    = 91342,
     SPELL_DK_DARK_TRANSFORMATION_ACTIVATION     = 93426,
+    SPELL_DK_NECROTIC_STRIKE                    = 73975,
 };
 
 enum DeathKnightSpellIcons
 {
     DK_ICON_ID_IMPROVED_DEATH_STRIKE            = 2751
+};
+
+class spell_dk_necrotic_strike : public SpellScriptLoader
+{
+    public:
+        spell_dk_necrotic_strike() : SpellScriptLoader("spell_dk_necrotic_strike") { }
+
+        class spell_dk_necrotic_strike_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dk_necrotic_strike_AuraScript);
+
+            void HandleEffectCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                Unit* caster = GetCaster();
+
+                if (caster)
+                {
+                    canBeRecalculated = false;
+
+                    amount = caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.70f;
+                }
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dk_necrotic_strike_AuraScript::HandleEffectCalcAmount, EFFECT_0, SPELL_AURA_SCHOOL_HEAL_ABSORB);
+            }
+        };
+
+        AuraScript *GetAuraScript() const
+        {
+            return new spell_dk_necrotic_strike_AuraScript();
+        }
 };
 
 // 91342 - Shadow Infusion (PET BUFF)
@@ -1129,6 +1163,7 @@ class spell_dk_dreadblade : public SpellScriptLoader
 
 void AddSC_deathknight_spell_scripts()
 {
+    new spell_dk_necrotic_strike();
     new spell_dk_shadow_infusion();
     new spell_dk_dark_transformation();
     new spell_dk_howling_blast();
