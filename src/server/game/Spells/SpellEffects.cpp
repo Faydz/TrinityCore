@@ -693,6 +693,15 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             {
                 switch (m_spellInfo->Id)
                 {
+                    // Death and Decay
+                    case 52212:
+                    {
+                        if (Unit* caster = GetCaster())
+                        {
+                            damage+= caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.064f;
+                        }
+                    }
+                    break;
                     // Howling Blast
                     case 49184:
                         float mod = 1.0f;
