@@ -14,8 +14,8 @@ INSERT INTO `creature_onkill_currency` (`creature_id`, `CurrencyId1`, `CurrencyI
 (49045, 395, 0, 0, 70, 0, 0);
 
 DELETE FROM `creature` WHERE `id` IN (49045, 44819, 43612, 44577);
-INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES 
-(NULL, 43612, 755, 3, 1, 0, 0, -11019.1, -1259.95, 13.5349, 4.87964, 86400, 0, 0, 1, 0, 0, 0, 0, 0, 0),
-(NULL, 44577, 755, 3, 1, 0, 0, -10863.7, -1365.82, 15.3554, 3.29315, 86400, 0, 0, 1, 0, 0, 0, 0, 0, 0),
-(NULL, 44819, 755, 3, 1, 0, 0, -10948.2, -1417.47, 35.1853, 4.78158, 86400, 10, 0, 1, 0, 0, 1, 0, 0, 0),
-(NULL, 49045, 755, 2, 1, 0, 0, -11071.3, -1663.87, 0.74509, 0.662058, 86400, 0, 0, 1, 0, 0, 0, 0, 0, 0);
+INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES 
+(NULL, 43612, 755, 3, 1, 0, 0, -11019.1, -1259.95, 13.5349, 4.87964, 86400, 0, 0, 1, 0, 0, 0, 0, 0),
+(NULL, 44577, 755, 3, 1, 0, 0, -10863.7, -1365.82, 15.3554, 3.29315, 86400, 0, 0, 1, 0, 0, 0, 0, 0),
+(NULL, 44819, 755, 3, 1, 0, 0, -10948.2, -1417.47, 35.1853, 4.78158, 86400, 10, 0, 1, 0, 1, 0, 0, 0),
+(NULL, 49045, 755, 2, 1, 0, 0, -11071.3, -1663.87, 0.74509, 0.662058, 86400, 0, 0, 1, 0, 0, 0, 0, 0);
