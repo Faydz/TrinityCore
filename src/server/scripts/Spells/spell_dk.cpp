@@ -48,12 +48,81 @@ enum DeathKnightSpells
     SPELL_DK_UNHOLY_PRESENCE                    = 48265,
     SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED = 63622,
     SPELL_DK_ITEM_SIGIL_VENGEFUL_HEART          = 64962,
-    SPELL_DK_ITEM_T8_MELEE_4P_BONUS             = 64736
+    SPELL_DK_ITEM_T8_MELEE_4P_BONUS             = 64736,
+    SPELL_DK_SHADOW_INFUSION                    = 91342,
+    SPELL_DK_DARK_TRANSFORMATION_ACTIVATION     = 93426,
 };
 
 enum DeathKnightSpellIcons
 {
     DK_ICON_ID_IMPROVED_DEATH_STRIKE            = 2751
+};
+
+// 91342 - Shadow Infusion (PET BUFF)
+class spell_dk_shadow_infusion : public SpellScriptLoader
+{
+    public:
+        spell_dk_shadow_infusion() : SpellScriptLoader("spell_dk_shadow_infusion") { }
+
+        class spell_dk_shadow_infusion_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dk_shadow_infusion_SpellScript)
+
+            void HandleAfterHit()
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetHitUnit();
+
+                if(caster && target && target->GetAura(SPELL_DK_SHADOW_INFUSION)->GetStackAmount() >= 5)
+                {
+                    caster->AddAura(SPELL_DK_DARK_TRANSFORMATION_ACTIVATION, GetCaster());
+                }
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_dk_shadow_infusion_SpellScript::HandleAfterHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dk_shadow_infusion_SpellScript();
+        }
+};
+
+// 63560 - Dark Transformation
+class spell_dk_dark_transformation : public SpellScriptLoader
+{
+    public:
+        spell_dk_dark_transformation() : SpellScriptLoader("spell_dk_dark_transformation") { }
+
+        class spell_dk_dark_transformation_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dk_dark_transformation_SpellScript)
+
+            void HandleAfterHit()
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetHitUnit();
+
+                if(target && target->GetAura(SPELL_DK_SHADOW_INFUSION) && target->GetAura(SPELL_DK_SHADOW_INFUSION)->GetStackAmount() == 5)
+                    target->RemoveAura(SPELL_DK_SHADOW_INFUSION);
+
+                if(caster)
+                    caster->RemoveAura(SPELL_DK_DARK_TRANSFORMATION_ACTIVATION);
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_dk_dark_transformation_SpellScript::HandleAfterHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dk_dark_transformation_SpellScript();
+        }
 };
 
 // 49184 - Howling Blast
@@ -1059,6 +1128,8 @@ class spell_dk_dreadblade : public SpellScriptLoader
 
 void AddSC_deathknight_spell_scripts()
 {
+    new spell_dk_shadow_infusion();
+    new spell_dk_dark_transformation();
     new spell_dk_howling_blast();
     new spell_dk_anti_magic_shell_raid();
     new spell_dk_anti_magic_shell_self();
