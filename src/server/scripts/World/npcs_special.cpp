@@ -285,7 +285,6 @@ public:
 
         void JustDied(Unit* /*killer*/)
         {
-            sLog->outError(LOG_FILTER_GENERAL, "Check");
             Unit* owner = me->GetOwner();
             int32 fungalGrowthSummonSpell;
             int32 fungalGrowthSlowSpell;
@@ -2111,6 +2110,22 @@ public:
                 return;
             }
             CasterAI::UpdateAI(diff);
+            
+            Unit* owner = me->GetOwner();
+
+            if(owner)
+            {
+                Unit* ownerVictim = owner->getVictim();
+                Unit* meVictim = me->getVictim();
+
+                // Gargoyle's target switching only when paladin switch
+                if(ownerVictim != meVictim)
+                {
+                    meVictim = ownerVictim;
+                        
+                    me->Attack(meVictim, true);
+                }
+            }
         }
     };
 
