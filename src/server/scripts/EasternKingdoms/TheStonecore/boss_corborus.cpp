@@ -45,7 +45,8 @@ class boss_corborus: public CreatureScript
 
     struct boss_corborusAI: public BossAI
     {
-        boss_corborusAI(Creature* creature) : BossAI(creature, DATA_CORBORUS), summons(me) { }
+        boss_corborusAI(Creature* creature) : BossAI(creature, DATA_CORBORUS_EVENT), summons(me) 
+        { }
 
         uint8 teleCount;
         uint8 phase;
@@ -70,6 +71,9 @@ class boss_corborus: public CreatureScript
         void JustDied(Unit* killer)
         {
             summons.DespawnAll();
+
+            if (GameObject* wall = me->FindNearestGameObject(207343, 100.0f))
+                wall->SetGoState(GO_STATE_ACTIVE);
         }
 
         void JustSummoned(Creature* summoned)
