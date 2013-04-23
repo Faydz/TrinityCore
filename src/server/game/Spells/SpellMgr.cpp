@@ -3089,6 +3089,10 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->CastTimeMax = 0;
                 spellInfo->CastTimeMin = 0;
                 break;
+            // Quicksand
+            case 75547:
+                spellInfo->Effects[1].TriggerSpell = 0;
+                break;
             default:
                 break;
         }
