@@ -2192,6 +2192,38 @@ class spell_dru_lunar_shower : public SpellScriptLoader
         }
 };
 
+class spell_dru_survival_instincts : public SpellScriptLoader
+{
+    public:
+        spell_dru_survival_instincts() : SpellScriptLoader("spell_dru_survival_instincts") { }
+
+        class spell_dru_survival_instincts_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_survival_instincts_SpellScript);
+
+            SpellCastResult CheckCast()
+            {
+                if (!GetCaster()->IsInFeralForm())
+                {
+                    SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_MUST_BE_IN_FERAL_FORM);
+                    return SPELL_FAILED_CUSTOM_ERROR;
+                }
+
+                return SPELL_CAST_OK;
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_dru_survival_instincts_SpellScript::CheckCast);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_survival_instincts_SpellScript;
+        }
+};
+
 void AddSC_druid_spell_scripts()
 {
     new spell_dru_wild_mushroom();
@@ -2237,4 +2269,5 @@ void AddSC_druid_spell_scripts()
     new spell_dru_lacerate();
     new spell_dru_mangle_bear();
     new spell_dru_lunar_shower();
+    new spell_dru_survival_instincts();
 }
