@@ -847,6 +847,7 @@ class spell_dk_improved_unholy_presence : public SpellScriptLoader
             {
                 if(Unit* caster = GetCaster())
                 {
+                    caster->ToPlayer()->UpdateAllRunesRegen();
                     caster->RemoveAurasDueToSpell(SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED);
                 }
             }
@@ -855,6 +856,7 @@ class spell_dk_improved_unholy_presence : public SpellScriptLoader
             {
                 if(Unit* caster = GetCaster())
                 {
+                    caster->ToPlayer()->UpdateAllRunesRegen();
                     // Improved Unholy Presence
                     if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2633, EFFECT_0))
                     {
