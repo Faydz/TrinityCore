@@ -269,6 +269,72 @@ public:
 };
 
 /*######
+## npc_blood_parasite
+######*/
+
+enum 
+{
+    BLOODWORM_BLOOD_GORGED_PASSIVE   = 50453,
+    BLOODWORM_BLOOD_GORGED_BUFF      = 81277,
+    BLOODWORM_BLOOD_GORGED_HEAL      = 50454,
+};
+
+class npc_blood_parasite : public CreatureScript
+{
+public:
+    npc_blood_parasite() : CreatureScript("npc_blood_parasite") { }
+
+    struct npc_blood_parasiteAI : PetAI
+    {
+        npc_blood_parasiteAI(Creature* creature) : PetAI(creature) {}
+        
+        void UpdateAI(uint32 /*diff*/)
+        {   
+            Unit* owner = me->GetOwner();
+            bloodGorged = me->GetAura(BLOODWORM_BLOOD_GORGED_BUFF, me->GetGUID());
+
+            if(owner)
+            {
+                Unit* ownerVictim = owner->getVictim();
+                Unit* meVictim = me->getVictim();
+
+                // Worm's target switching only when paladin switch
+                if(ownerVictim != meVictim)
+                {
+                    meVictim = ownerVictim;
+                        
+                    me->Attack(meVictim, true);
+                }
+            }
+
+            DoMeleeAttackIfReady();
+        }
+
+        void JustDied(Unit* /*killer*/)
+        {
+            Unit* owner = me->GetOwner();
+
+            if (!owner || !bloodGorged)
+            {
+                return;
+            }
+
+            int32 bp0 = CalculatePct(me->GetMaxHealth(), bloodGorged->GetStackAmount() * 10);
+
+            me->CastCustomSpell(owner, BLOODWORM_BLOOD_GORGED_HEAL, &bp0, NULL, NULL, true);
+        }
+
+    private:
+        Aura* bloodGorged;
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_blood_parasiteAI(creature);
+    }
+};
+
+/*######
 ## npc_force_of_nature
 ######*/
 
@@ -3531,6 +3597,7 @@ public:
 void AddSC_npcs_special()
 {
     new npc_air_force_bots();
+    new npc_blood_parasite();
     new npc_force_of_nature();
     new npc_lunaclaw_spirit();
     new npc_chicken_cluck();
