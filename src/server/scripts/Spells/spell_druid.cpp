@@ -1982,6 +1982,27 @@ class spell_dru_berserk : public SpellScriptLoader
 {
     public:
         spell_dru_berserk() : SpellScriptLoader("spell_dru_berserk") { }
+        
+        class spell_dru_berserk_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_berserk_SpellScript);
+
+            SpellCastResult CheckCast()
+            {
+                if (!GetCaster()->IsInFeralForm())
+                {
+                    SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_MUST_BE_IN_FERAL_FORM);
+                    return SPELL_FAILED_CUSTOM_ERROR;
+                }
+
+                return SPELL_CAST_OK;
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_dru_berserk_SpellScript::CheckCast);
+            }
+        };
 
         class spell_dru_berserk_AuraScript : public AuraScript
         {
@@ -2030,6 +2051,11 @@ class spell_dru_berserk : public SpellScriptLoader
                 AfterEffectRemove += AuraEffectRemoveFn(spell_dru_berserk_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_ADD_PCT_MODIFIER, AURA_EFFECT_HANDLE_REAL);
             }
         };
+        
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_berserk_SpellScript();
+        }
 
         AuraScript* GetAuraScript() const
         {
@@ -2056,9 +2082,9 @@ class spell_dru_lacerate : public SpellScriptLoader
             void OnPeriodic(AuraEffect const* aurEff)
             {
                 if (Player* caster = GetCaster()->ToPlayer())
-                    if (caster->HasAura(50334))
-                        if(roll_chance_i(50))
-                            caster->RemoveSpellCooldown(33878, true);
+                    // Berserk
+                    if(roll_chance_i(50))
+                        caster->RemoveSpellCooldown(33878, true);
             }
 
             void Register()
@@ -2070,34 +2096,6 @@ class spell_dru_lacerate : public SpellScriptLoader
         AuraScript* GetAuraScript() const
         {
             return new spell_dru_lacerate_AuraScript();
-        }
-};
-
-class spell_dru_mangle_bear : public SpellScriptLoader
-{
-    public:
-        spell_dru_mangle_bear() : SpellScriptLoader("spell_dru_mangle_bear") { }
-
-        class spell_dru_mangle_bear_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_dru_mangle_bear_SpellScript);
-
-            void OnHit()
-            {
-                if (Player* caster = GetCaster()->ToPlayer())
-                    if (caster->HasAura(50334))
-                        caster->AddSpellCooldown(33878, 0, time(NULL) + 6);          
-            }
-
-            void Register()
-            {
-                AfterHit += SpellHitFn(spell_dru_mangle_bear_SpellScript::OnHit);
-            }
-        };
-
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_dru_mangle_bear_SpellScript();
         }
 };
 
@@ -2267,7 +2265,6 @@ void AddSC_druid_spell_scripts()
     new spell_dru_pulverize();
     new spell_dru_berserk();
     new spell_dru_lacerate();
-    new spell_dru_mangle_bear();
     new spell_dru_lunar_shower();
     new spell_dru_survival_instincts();
 }
