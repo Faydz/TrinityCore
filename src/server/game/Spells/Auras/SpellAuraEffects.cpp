@@ -6491,6 +6491,15 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
                         break;
                 }
                 break;
+            case SPELLFAMILY_DEATHKNIGHT:
+                switch (GetId())
+                {
+                    // Frost Fever
+                    case 55095:
+                        damage += uint32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.075f);
+                        break;
+                }
+                break;
             case SPELLFAMILY_MAGE:
                 switch (GetId())
                 {
