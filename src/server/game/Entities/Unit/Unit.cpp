@@ -7785,7 +7785,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                             break;
                         }
 				        else
-					        if (pPet && pPet->getVictim() && damage && !procSpell)
+					        if (!pPet && pPet->getVictim() && damage && !procSpell)
 					         {
 						        CalcDamageInfo damageInfo;
 						        CalculateMeleeDamage(pPet->getVictim(), 0, &damageInfo, BASE_ATTACK);

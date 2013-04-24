@@ -3311,6 +3311,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Dancing Rune Weapon
+                    case 49028:
+                        spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
+                        break;
                     // Necrotic Strike
                     case 73975:
                         spellInfo->StackAmount = 20;
