@@ -5907,6 +5907,7 @@ float Player::OCTRegenMPPerSpirit()
 void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
 {
     m_baseRatingValue[cr] +=(apply ? value : -value);
+    UpdateRating(cr);
 
     // explicit affected values
     switch (cr)
@@ -5933,8 +5934,6 @@ void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
         default:
             break;
     }
-
-    UpdateRating(cr);
 }
 
 void Player::UpdateRating(CombatRating cr)
