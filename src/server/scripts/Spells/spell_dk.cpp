@@ -972,7 +972,7 @@ class spell_dk_scourge_strike : public SpellScriptLoader
                 if (caster && unitTarget)
                 {
                     int32 bp = GetHitDamage();
-                    uint32 disease = unitTarget->GetDoTsByCaster(caster->GetGUID());
+                    uint32 disease = unitTarget->GetDiseasesByCaster(caster->GetGUID());
                     uint32 scourgeMul = GetSpellInfo()->Effects[EFFECT_2].BasePoints;
 
                     bp = CalculatePct(bp, disease * scourgeMul);

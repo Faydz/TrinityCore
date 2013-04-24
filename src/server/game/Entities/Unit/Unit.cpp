@@ -4439,6 +4439,10 @@ uint32 Unit::GetDiseasesByCaster(uint64 casterGUID, bool remove)
             ++i;
         }
     }
+
+    if(this->HasAura(65142, casterGUID))
+        diseases++;
+
     return diseases;
 }
 
