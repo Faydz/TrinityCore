@@ -721,6 +721,10 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                 if (AuraEffect* modHealing = caster->GetAuraEffect(55673, 0))
                     AddPct(amount, modHealing->GetAmount());
             }
+            // Gift of the Naaru
+            if (m_spellInfo->SpellFamilyFlags[2] & 0x80000000)
+                if (caster->GetTypeId() == TYPEID_PLAYER)
+                    amount = CalculatePct(caster->GetMaxHealth(), amount);
             break;
         case SPELL_AURA_MOD_THREAT:
         {
