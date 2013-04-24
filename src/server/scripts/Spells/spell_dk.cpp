@@ -488,7 +488,7 @@ class spell_dk_corpse_explosion : public SpellScriptLoader
         }
 };
 
-// -47541, 52375, 59134, -62900 - Death Coil
+// 47541 - Death Coil
 class spell_dk_death_coil : public SpellScriptLoader
 {
     public:
@@ -507,20 +507,19 @@ class spell_dk_death_coil : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
-                int32 damage = GetEffectValue();
                 Unit* caster = GetCaster();
-                if (Unit* target = GetHitUnit())
+                Unit* target = GetHitUnit();
+                int32 bp = GetEffectValue();
+
+                if (caster && target)
                 {
                     if (caster->IsFriendlyTo(target))
                     {
-                        int32 bp = int32(damage * 1.5f);
-                        caster->CastCustomSpell(target, SPELL_DK_DEATH_COIL_HEAL, &bp, NULL, NULL, true);
+                        caster->CastSpell(target, SPELL_DK_DEATH_COIL_HEAL);
                     }
                     else
                     {
-                        if (AuraEffect const* auraEffect = caster->GetAuraEffect(SPELL_DK_ITEM_SIGIL_VENGEFUL_HEART, EFFECT_1))
-                            damage += auraEffect->GetBaseAmount();
-                        caster->CastCustomSpell(target, SPELL_DK_DEATH_COIL_DAMAGE, &damage, NULL, NULL, true);
+                        caster->CastSpell(target, SPELL_DK_DEATH_COIL_DAMAGE);
                     }
                 }
             }
@@ -528,7 +527,9 @@ class spell_dk_death_coil : public SpellScriptLoader
             SpellCastResult CheckCast()
             {
                 Unit* caster = GetCaster();
-                if (Unit* target = GetExplTargetUnit())
+                Unit* target = GetExplTargetUnit();
+
+                if (caster && target)
                 {
                     if (!caster->IsFriendlyTo(target) && !caster->isInFront(target))
                         return SPELL_FAILED_UNIT_NOT_INFRONT;

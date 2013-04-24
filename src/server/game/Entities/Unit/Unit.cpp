@@ -10831,6 +10831,10 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
         case SPELLFAMILY_DEATHKNIGHT:
             switch(spellProto->Id)
             {
+                // Damaging Death Coil
+                case 47632:
+                    DoneTotal += CalculatePct(this->GetTotalAttackPowerValue(BASE_ATTACK), 30);
+                    break;
                 // Blood Plague
                 case 55078:
                     // Checks the custom effect2, if > 0 that buff has been casted by a Death Knight with the talent "Contagion" learned, througth Pestilence.
@@ -11566,6 +11570,16 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                         healamount = uint32(0.45f * victim->GetCreateHealth());
                         return healamount;
                     }
+                    break;
+            }
+            break;
+        case SPELLFAMILY_DEATHKNIGHT:
+            switch(spellProto->Id)
+            {
+                // Healing Death Coil
+                case 47633:
+                    healamount += CalculatePct(this->GetTotalAttackPowerValue(BASE_ATTACK), 30);
+                    AddPct(DoneTotalMod, 300);
                     break;
             }
             break;
