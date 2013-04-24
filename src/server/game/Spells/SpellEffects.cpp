@@ -396,6 +396,11 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         damage = (m_caster->getLevel() - 60) * 4 + 60;
                         break;
                     }
+                    // Rocket Barrage (Racial)
+                    case 69041:
+                    {
+                        damage =uint32(1+ (0.25f* m_caster->GetTotalAttackPowerValue(BASE_ATTACK))+ (0.429f* m_caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FIRE))+ (m_caster->getLevel() * 2)+ (m_caster->GetStat(STAT_INTELLECT)* 0.50193f));
+                    }
                 }
                 break;
             }
