@@ -1106,8 +1106,9 @@ class spell_dru_moonkin_form : public SpellScriptLoader
 
             void Register()
             {
-                AfterEffectApply += AuraEffectApplyFn(spell_dru_moonkin_form_AuraScript::HandleEffectApply, EFFECT_1, SPELL_AURA_MECHANIC_IMMUNITY, AURA_EFFECT_HANDLE_REAL);
-                AfterEffectRemove += AuraEffectRemoveFn(spell_dru_moonkin_form_AuraScript::HandleEffectRemove, EFFECT_1, SPELL_AURA_MECHANIC_IMMUNITY, AURA_EFFECT_HANDLE_REAL);
+                // Uncomment me for working again!
+                //AfterEffectApply += AuraEffectApplyFn(spell_dru_moonkin_form_AuraScript::HandleEffectApply, EFFECT_1, SPELL_AURA_MECHANIC_IMMUNITY, AURA_EFFECT_HANDLE_REAL);
+                //AfterEffectRemove += AuraEffectRemoveFn(spell_dru_moonkin_form_AuraScript::HandleEffectRemove, EFFECT_1, SPELL_AURA_MECHANIC_IMMUNITY, AURA_EFFECT_HANDLE_REAL);
             }
         };
 
