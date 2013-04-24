@@ -2080,9 +2080,14 @@ class spell_dru_lacerate : public SpellScriptLoader
             void OnPeriodic(AuraEffect const* aurEff)
             {
                 if (Player* caster = GetCaster()->ToPlayer())
+                {
                     // Berserk
                     if(roll_chance_i(50))
+                    {
                         caster->RemoveSpellCooldown(33878, true);
+                        caster->CastSpell(caster, 93622, true);
+                    }
+                }
             }
 
             void Register()
