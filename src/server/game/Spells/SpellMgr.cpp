@@ -3311,6 +3311,15 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Hungering Cold
+                    case 49203:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_TRIGGER_SPELL;
+                        spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_SRC_CASTER);
+                        spellInfo->Effects[EFFECT_1].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_SRC_AREA_ENEMY);
+                        spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_10_YARDS);
+                        spellInfo->Effects[EFFECT_1].TriggerSpell = 55095;
+                        break;
                     // Dancing Rune Weapon
                     case 49028:
                         spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
