@@ -3311,6 +3311,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Runic Corruption
+                    case 51460:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_POWER_REGEN_PERCENT;
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_DUMMY;
+                        break;
                     // Hungering Cold
                     case 49203:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_TRIGGER_SPELL;
