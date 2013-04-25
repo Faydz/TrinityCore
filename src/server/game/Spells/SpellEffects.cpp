@@ -698,6 +698,15 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             {
                 switch (m_spellInfo->Id)
                 {
+                    // Icy Touch
+                    case 45477:
+                    {
+                        if (Unit* caster = GetCaster())
+                        {
+                            damage += caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.2f;
+                        }
+                    }
+                    break;
                     // Death and Decay
                     case 52212:
                     {
