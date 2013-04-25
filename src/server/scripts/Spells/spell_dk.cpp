@@ -58,6 +58,7 @@ enum DeathKnightSpellIcons
     DK_ICON_ID_IMPROVED_DEATH_STRIKE            = 2751
 };
 
+// 73975 - Necrotic Strike
 class spell_dk_necrotic_strike : public SpellScriptLoader
 {
     public:

@@ -7764,6 +7764,37 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
             switch(dummySpell->Id)
             {
+                // Dark Simulacrum
+                case 77606:
+                    if(procSpell)
+                    {
+                        SpellSchoolMask schoolMask = SpellSchoolMask(procSpell->SchoolMask);
+                        int32 cost = procSpell->CalcPowerCost(this, schoolMask);
+
+                        Unit* deathKnight = triggeredByAura->GetCaster();
+                        int32 spellToReplicate = procSpell->Id;
+
+                        if(cost && deathKnight)
+                        {
+                            // Casts Dark Simulacrum buff to the DK with the casted spell as bp.
+                            // Aura Effect will replace the DS action button with the passed one.
+                            deathKnight->CastCustomSpell(deathKnight, 77616, &spellToReplicate, NULL, NULL, true);
+                        }
+                    }
+                    break;
+                // Dark Simulacrum copied spell
+                case 94984:
+                    {
+                        AuraEffect* aurEff = this->GetAuraEffect(77616, EFFECT_0);
+
+                        if(procSpell && aurEff && procSpell->Id == aurEff->GetAmount())
+                        {
+                            this->RemoveAura(77616);
+                        }
+
+                        return false;
+                    }
+                    break;
                 // Runic Empowerment
                 case 81229:
                     {
