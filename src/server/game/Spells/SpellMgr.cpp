@@ -3389,6 +3389,7 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Heroic Leap
                     case 6544:
                         spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_40_YARDS);
+                        break;
                     // Rallying Cry
                     case 97463:
                         spellInfo->Effects[EFFECT_0].BasePoints = 20;
