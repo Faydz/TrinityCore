@@ -3391,6 +3391,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Piercing Howl
+                    case 12323:
+                        spellInfo->AttributesEx8 |= SPELL_ATTR8_CANT_MISS;
+                        break;
                     // Heroic Leap
                     case 6544:
                         spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_40_YARDS);
