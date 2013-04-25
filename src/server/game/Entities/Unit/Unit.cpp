@@ -11219,6 +11219,12 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
             // We need more spells to find a general way (if there is any)
             switch (spellProto->Id)
             {
+                case 34026:
+                    if(AuraEffect* auraEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2221, EFFECT_0))
+                    {
+                        crit_chance += (float)auraEff->GetAmount();
+                    }
+                    break;
                 case 379:   // Earth Shield
                 case 33778: // Lifebloom Final Bloom
                 case 64844: // Divine Hymn
