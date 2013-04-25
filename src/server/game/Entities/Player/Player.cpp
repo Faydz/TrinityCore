@@ -2519,10 +2519,10 @@ void Player::RegenerateAll()
         }
     }
 
-    if (m_focusRegenTimerCount >= 1000 && getClass() == CLASS_HUNTER)
+    if (m_focusRegenTimerCount >= 500 && getClass() == CLASS_HUNTER)
     {
         Regenerate(POWER_FOCUS);
-        m_focusRegenTimerCount -= 1000;
+        m_focusRegenTimerCount -= 500;
     }
 
     if (m_regenTimerCount >= 2000)
@@ -2598,8 +2598,12 @@ void Player::Regenerate(Powers power)
         break;
         case POWER_FOCUS:
         {
-            float focusPerSecond = GetFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER);
-            addvalue += focusPerSecond * sWorld->getRate(RATE_POWER_FOCUS);
+            float focusPerSecond = GetFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER) - 1.0f;
+            focusPerSecond = floor(focusPerSecond * 100.0f + 0.5f) / 100.0f;
+            focusPerSecond += 6.0f;
+            focusPerSecond *= sWorld->getRate(RATE_POWER_FOCUS);
+            focusPerSecond /= 2.0f;
+            addvalue += focusPerSecond;
             break;
         }
         case POWER_ENERGY:                                              // Regenerate energy (rogue)
@@ -5903,6 +5907,7 @@ float Player::OCTRegenMPPerSpirit()
 void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
 {
     m_baseRatingValue[cr] +=(apply ? value : -value);
+    UpdateRating(cr);
 
     // explicit affected values
     switch (cr)
@@ -5929,8 +5934,6 @@ void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
         default:
             break;
     }
-
-    UpdateRating(cr);
 }
 
 void Player::UpdateRating(CombatRating cr)
@@ -13668,6 +13671,13 @@ bool Player::IsUseEquipedWeapon(bool mainhand) const
 {
     // disarm applied only to mainhand weapon
     return !IsInFeralForm() && (!mainhand || !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED));
+}
+
+bool Player::IsOneHandUsed(bool mainhand) const
+{
+    Item* mainItem = GetItemByPos(INVENTORY_SLOT_BAG_0, mainhand ? EQUIPMENT_SLOT_MAINHAND : EQUIPMENT_SLOT_OFFHAND);
+    return mainItem && (mainItem->GetTemplate()->InventoryType == INVTYPE_WEAPON 
+        || mainItem->GetTemplate()->InventoryType == INVTYPE_WEAPONMAINHAND);
 }
 
 bool Player::IsTwoHandUsed() const

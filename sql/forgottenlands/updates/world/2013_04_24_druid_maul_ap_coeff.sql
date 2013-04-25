@@ -1,0 +1,1 @@
+INSERT INTO `spell_bonus_data` (`entry`, `ap_bonus`, `comments`) VALUES (6807, 0.194, 'Maul')

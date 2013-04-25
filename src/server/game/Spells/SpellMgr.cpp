@@ -3069,6 +3069,30 @@ void SpellMgr::LoadSpellCustomAttr()
             case 47765:
                 spellInfo->Effects[0].RadiusEntry = sSpellRadiusStore.LookupEntry(13);
                 break;
+            // Steady Shot
+            case 56641:
+                spellInfo->Effects[2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                break;
+            // Cobra Shot
+            case 77767:
+                spellInfo->Effects[1].Effect = SPELL_EFFECT_DUMMY;
+                spellInfo->Effects[1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                break;
+            // Master Marksman
+            case 82926:
+                spellInfo->Effects[0].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+                spellInfo->Effects[0].BasePoints = -100;
+                break;
+            // Aimed Shot!
+            case 82928:
+                spellInfo->CastTimeEntry = sSpellCastTimesStore.LookupEntry(1);
+                spellInfo->CastTimeMax = 0;
+                spellInfo->CastTimeMin = 0;
+                break;
+            // Quicksand
+            case 75547:
+                spellInfo->Effects[1].TriggerSpell = 0;
+                break;
             default:
                 break;
         }
@@ -3151,6 +3175,14 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    // Ancient Healer
+                    case 86674: 
+                        spellInfo->ProcCharges = 5;
+                        break;
+                    // Guardian of Ancient Kings
+                    case 86150:
+                        spellInfo->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        break;
                     // Consecration
                     case 26573:
                         spellInfo->Effects[EFFECT_2].TriggerSpell = 36946;
@@ -3279,6 +3311,58 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Runic Corruption
+                    case 51460:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_POWER_REGEN_PERCENT;
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_DUMMY;
+                        break;
+                    // Hungering Cold
+                    case 49203:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_TRIGGER_SPELL;
+                        spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_SRC_CASTER);
+                        spellInfo->Effects[EFFECT_1].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_SRC_AREA_ENEMY);
+                        spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_10_YARDS);
+                        spellInfo->Effects[EFFECT_1].TriggerSpell = 55095;
+                        break;
+                    // Dancing Rune Weapon
+                    case 49028:
+                        spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
+                        break;
+                    // Necrotic Strike
+                    case 73975:
+                        spellInfo->StackAmount = 20;
+                        break;
+                    // Ebon Plaguebringer
+                    case 51099:
+                    case 51160:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE;
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 65142;
+                        break;
+                    // Ebon Plague
+                    case 65142:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN;
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELL_SCHOOL_MASK_MAGIC;
+                        break;
+                    // Blood Plague
+                    case 55078:
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_2].BasePoints = 0;
+                        spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_DUMMY;
+                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ENEMY);
+                        break;
+                    // Frost Fever
+                    case 55095:
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_2].BasePoints = 0;
+                        spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_DUMMY;
+                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        break;
+                    // Death's Advance
+                    case 96268:
+                        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(21); // Infinite
+                        break;
                     // Howling Blast
                     case 49184:
                         spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_SCHOOL_DAMAGE;
@@ -3307,6 +3391,25 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Piercing Howl
+                    case 12323:
+                        spellInfo->AttributesEx8 |= SPELL_ATTR8_CANT_MISS;
+                        break;
+                    // Heroic Leap
+                    case 6544:
+                        spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_40_YARDS);
+                        break;
+                    // Rallying Cry
+                    case 97463:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 20;
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_INCREASE_HEALTH_PERCENT;
+                        spellInfo->Effects[EFFECT_0].TargetA = TARGET_UNIT_CASTER_AREA_RAID;
+                        spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_30_YARDS);
+                        break;
+                    // Offhand Slam
+                    case 50783:
+                        spellInfo->AttributesEx3 |= SPELL_ATTR3_REQ_OFFHAND;
+                        break;
                     // Charge/Intercept stun
                     case 7922:
                     case 20253:
@@ -3374,6 +3477,16 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Fungal Growth Rank 1
+                    case 78788:
+                        spellInfo->Effects[EFFECT_0].MiscValue = 81291;
+                        spellInfo->Effects[EFFECT_0].MiscValueB = 81289;
+                        break;
+                    // Fungal Growth Rank 2
+                    case 78789:
+                        spellInfo->Effects[EFFECT_0].MiscValue = 81283;
+                        spellInfo->Effects[EFFECT_0].MiscValueB = 81282;
+                        break;
                     // Nature's Bounty Rank 1
                     case 17074:
                         spellInfo->Effects[EFFECT_1].BasePoints = 0;
@@ -3422,10 +3535,6 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 81275:
                         spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
                         break;
-                    // Berserk: Mangle cooldown
-                    case 50334:
-                        spellInfo->Effects[EFFECT_1].BasePoints = 0;
-                        break;
                     // Sunfire
                     case 94338:
                         spellInfo->Effects[EFFECT_0].BasePoints =93402;
@@ -3469,6 +3578,12 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Snake Trap
                     case 34600:
                         spellInfo->Effects[0].Effect = SPELL_EFFECT_SUMMON_OBJECT_SLOT4;
+                        break;
+                    // Camouflage
+                    case 51755:
+                        spellInfo->Effects[0].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
+                        spellInfo->Effects[1].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
+                        spellInfo->Effects[2].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
                         break;
                 }
                 break;

@@ -1217,6 +1217,7 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
             case SPELLFAMILY_WARRIOR:
                 if (!caster)
                     break;
+				
                 switch (GetId())
                 {
                     case 60970: // Heroic Fury (remove Intercept cooldown)
@@ -1268,13 +1269,21 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
             case SPELLFAMILY_HUNTER:
                 switch(GetId())
                 {
-                case 1978:
-                    if (AuraEffect* auraEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 536, 0))
+                    case 1978:
+                        if (AuraEffect* auraEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 536, 0))
+                            {
+                                int32 bp0 = (GetEffect(EFFECT_0)->CalculateAmount(caster) * GetEffect(EFFECT_0)->GetTotalTicks()) / 100 * auraEff->GetAmount();
+                                caster->CastCustomSpell(target, 83077, &bp0, NULL, NULL, true, NULL, GetEffect(0));
+                            }
+                        break;
+                    // Master Marksman
+                    case 82925:
+                        if (target->GetTypeId() == TYPEID_PLAYER && GetStackAmount() == 5)
                         {
-                            int32 bp0 = (GetEffect(EFFECT_0)->CalculateAmount(caster) * GetEffect(EFFECT_0)->GetTotalTicks()) / 100 * auraEff->GetAmount();
-                            caster->CastCustomSpell(target, 83077, &bp0, NULL, NULL, true, NULL, GetEffect(0));
+                            target->CastSpell(target, 82926, true);
+                            target->RemoveAura(82925);
                         }
-                    break;
+                        break;
                 }
                 break;
             case SPELLFAMILY_PRIEST:
@@ -1473,6 +1482,21 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
     // mods at aura apply or remove
     switch (GetSpellInfo()->SpellFamilyName)
     {
+
+	case SPELLFAMILY_GENERIC:
+		switch(GetId())
+		{
+		case 50720: //Vigilance
+
+			if(apply)
+				target->CastSpell(caster,59665,true,0,0,caster->GetGUID());
+			else
+				target->SetRedirectThreat(0,0);
+			break;
+		}
+
+		break;
+
         case SPELLFAMILY_DRUID:
             // Enrage
             if ((GetSpellInfo()->SpellFamilyFlags[0] & 0x80000) && GetSpellInfo()->SpellIconID == 961)

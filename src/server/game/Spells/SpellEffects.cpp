@@ -358,6 +358,17 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
 
                 switch (m_spellInfo->Id)                     // better way to check unknown
                 {
+                    // Ancient Fury
+                    case 86704:
+                        if(m_caster)
+                        {
+                            if(Aura* aura = m_caster->GetAura(86700))
+                            {
+                                damage = m_caster->SpellDamageBonusDone(unitTarget, GetSpellInfo(), damage, SPELL_DIRECT_DAMAGE);
+                                damage += (damage * aura->GetStackAmount());
+                            }
+                        }
+                        break;
                     // Consumption
                     case 28865:
                         damage = (((InstanceMap*)m_caster->GetMap())->GetDifficulty() == REGULAR_DIFFICULTY ? 2750 : 4250);
@@ -384,6 +395,11 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         // about +4 base spell dmg per level
                         damage = (m_caster->getLevel() - 60) * 4 + 60;
                         break;
+                    }
+                    // Rocket Barrage (Racial)
+                    case 69041:
+                    {
+                        damage =uint32(1+ (0.25f* m_caster->GetTotalAttackPowerValue(BASE_ATTACK))+ (0.429f* m_caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FIRE))+ (m_caster->getLevel() * 2)+ (m_caster->GetStat(STAT_INTELLECT)* 0.50193f));
                     }
                 }
                 break;
@@ -461,6 +477,21 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             {
                 switch(m_spellInfo->Id)
                 {
+                    // Thunder clap                
+                    case 6343:
+                    {
+                        if (m_caster->HasAura(84615) || (m_caster->HasAura(84614) && roll_chance_i(50)))
+                        {
+                            bool found = false;                    
+                            for (std::list <TargetInfo>::iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit) 
+                                if (Unit* itr = ObjectAccessor::GetUnit(*m_caster, ihit->targetGUID))
+                                    if (!found)
+                                        if (itr->HasAura(94009 , m_caster->GetGUID()))
+                                            found = true;
+                            if (found)
+                                m_caster->AddAura(94009, unitTarget);
+                        }
+                    }
                     // Heroic Leap
                     case 52174:
                         damage = m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.5f;
@@ -561,16 +592,16 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     int32 energy = -(m_caster->ModifyPower(POWER_ENERGY, -25));
                     // 25 energy = 100% more damage
                     AddPct(damage, energy * 4);
-                    // Maul - Rend And Tear
-                    if (m_spellInfo->Id == 6807 && unitTarget->HasAuraState(AURA_STATE_BLEEDING))
+                }
+                // Maul - Rend And Tear
+                if (m_spellInfo->Id == 6807 && unitTarget->HasAuraState(AURA_STATE_BLEEDING))
+                {
+                    if (AuraEffect const* rendAndTear = m_caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2859, 0))
                     {
-                        if (AuraEffect const* rendAndTear = m_caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2859, 0))
-                        {
-                            uint32 dmg;
-                            dmg = m_originalCaster->SpellDamageBonusDone(unitTarget, m_spellInfo, (uint32)damage, SPELL_DIRECT_DAMAGE);
-                            dmg = unitTarget->SpellDamageBonusTaken(m_originalCaster, m_spellInfo, (uint32)dmg, SPELL_DIRECT_DAMAGE);
-                            damage += CalculatePct(dmg, rendAndTear->GetAmount());
-                        }
+                        uint32 dmg;
+                        dmg = m_originalCaster->SpellDamageBonusDone(unitTarget, m_spellInfo, (uint32)damage, SPELL_DIRECT_DAMAGE);
+                        dmg = unitTarget->SpellDamageBonusTaken(m_originalCaster, m_spellInfo, (uint32)dmg, SPELL_DIRECT_DAMAGE);
+                        damage += CalculatePct(dmg, rendAndTear->GetAmount());
                     }
                 }
                 break;
@@ -667,6 +698,24 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             {
                 switch (m_spellInfo->Id)
                 {
+                    // Icy Touch
+                    case 45477:
+                    {
+                        if (Unit* caster = GetCaster())
+                        {
+                            damage += caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.2f;
+                        }
+                    }
+                    break;
+                    // Death and Decay
+                    case 52212:
+                    {
+                        if (Unit* caster = GetCaster())
+                        {
+                            damage+= caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.064f;
+                        }
+                    }
+                    break;
                     // Howling Blast
                     case 49184:
                         float mod = 1.0f;
@@ -684,10 +733,12 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 // Blood Boil - bonus for diseased targets
                 if (m_spellInfo->SpellFamilyFlags[0] & 0x00040000)
                 {
+                    damage += CalculatePct(m_caster->GetTotalAttackPowerValue(BASE_ATTACK), 6);
+
                     if (unitTarget->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DEATHKNIGHT, 0, 0, 0x00000002, m_caster->GetGUID()))
                     {
-                        damage += m_damage / 2;
-                        damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.035f);
+                        // +50% if dots still on target
+                        AddPct(damage, 50);
                     }
                 }
                 break;
@@ -904,6 +955,31 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                     break;
             }
             break;
+        case SPELLFAMILY_HUNTER:
+            switch (m_spellInfo->Id)
+            {
+                // Steady Shot focus regen
+                case 56641:
+                {
+                    int32 bp0 = 9;
+                    if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, 0))
+                        bp0 += aurEff->GetAmount();
+
+                    m_caster->CastCustomSpell(m_caster, 77443, &bp0, NULL, NULL, true);
+                    break;
+                }
+                // Cobra Shot Focus Regen
+                case 77767:
+                {                
+                    int32 bp0 = 9;
+                    if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, 0))
+                        bp0 += aurEff->GetAmount();
+
+                    m_caster->CastCustomSpell(m_caster, 91954, &bp0, NULL, NULL, true);                
+                    break;
+                }
+            }
+            break;
     }
 
     //spells triggered by dummy effect should not miss
@@ -985,8 +1061,6 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
                 // Reset cooldown on stealth if needed
                 if (unitTarget->ToPlayer()->HasSpellCooldown(1784))
                     unitTarget->ToPlayer()->RemoveSpellCooldown(1784);
-
-                unitTarget->CastSpell(unitTarget, 1784, true);
                 return;
             }
             // Demonic Empowerment -- succubus
@@ -1631,28 +1705,11 @@ void Spell::EffectHeal(SpellEffIndex /*effIndex*/)
                 return;
             }
 
-            int32 tickheal = targetAura->GetAmount();
-            if (Unit* auraCaster = targetAura->GetCaster())
-                tickheal = auraCaster->SpellHealingBonusDone(unitTarget, targetAura->GetSpellInfo(), tickheal, DOT);
-            //int32 tickheal = targetAura->GetSpellInfo()->EffectBasePoints[idx] + 1;
-            //It is said that talent bonus should not be included
-
-            int32 tickcount = 0;
-            // Rejuvenation
-            if (targetAura->GetSpellInfo()->SpellFamilyFlags[0] & 0x10)
-                tickcount = 4;
-            // Regrowth
-            else // if (targetAura->GetSpellInfo()->SpellFamilyFlags[0] & 0x40)
-                tickcount = 6;
-
-            addhealth += tickheal * tickcount;
+            addhealth = caster->SpellHealingBonusDone(unitTarget, m_spellInfo, addhealth, HEAL);
 
             // Glyph of Swiftmend
             if (!caster->HasAura(54824))
                 unitTarget->RemoveAura(targetAura->GetId(), targetAura->GetCasterGUID());
-
-            //addhealth += tickheal * tickcount;
-            //addhealth = caster->SpellHealingBonus(m_spellInfo, addhealth, HEAL, unitTarget);
         }
         // Death Pact - return pct of max health to caster
         else if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT && m_spellInfo->SpellFamilyFlags[0] & 0x00080000)
@@ -3507,7 +3564,7 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             // Blood Strike
             if (m_spellInfo->SpellFamilyFlags[0] & 0x400000)
             {
-                float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue(m_caster) * unitTarget->GetDiseasesByCaster(m_caster->GetGUID()) / 2.0f;
+                float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue(m_caster) * unitTarget->GetDiseasesByCaster(m_caster->GetGUID()) / 10.0f;
                 // Death Knight T8 Melee 4P Bonus
                 if (AuraEffect const* aurEff = m_caster->GetAuraEffect(64736, EFFECT_0))
                     AddPct(bonusPct, aurEff->GetAmount());
@@ -4475,13 +4532,22 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                         if (m_targets.GetUnitTarget() &&  // Glyph of Disease - cast on unit target too to refresh aura
                             (m_targets.GetUnitTarget() != unitTarget || m_caster->GetAura(63334)))
                         {
+                            AuraEffect* aurEff = m_caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, 97, EFFECT_0);
+                            int32 bp2 = aurEff ? aurEff->GetAmount() : 0;
+
                             // And spread them on target
                             // Blood Plague
                             if (m_targets.GetUnitTarget()->GetAura(55078))
-                                m_caster->CastSpell(unitTarget, 55078, true);
+                            {
+                                m_caster->CastCustomSpell(unitTarget, 55078, NULL, NULL, &bp2, true);
+                            }
+
                             // Frost Fever
                             if (m_targets.GetUnitTarget()->GetAura(55095))
-                                m_caster->CastSpell(unitTarget, 55095, true);
+                            {
+                                int32 bp2 = 1;
+                                m_caster->CastCustomSpell(unitTarget, 55095, NULL, NULL, &bp2, true);
+                            }
                         }
                     }
                     break;

@@ -29,7 +29,6 @@
 enum DeathKnightSpells
 {
     SPELL_DK_ANTI_MAGIC_SHELL_TALENT            = 51052,
-    SPELL_DK_BLACK_ICE_R1                       = 49140,
     SPELL_DK_BLOOD_BOIL_TRIGGERED               = 65658,
     SPELL_DK_BLOOD_GORGED_HEAL                  = 50454,
     SPELL_DK_CORPSE_EXPLOSION_TRIGGERED         = 43999,
@@ -48,12 +47,115 @@ enum DeathKnightSpells
     SPELL_DK_UNHOLY_PRESENCE                    = 48265,
     SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED = 63622,
     SPELL_DK_ITEM_SIGIL_VENGEFUL_HEART          = 64962,
-    SPELL_DK_ITEM_T8_MELEE_4P_BONUS             = 64736
+    SPELL_DK_ITEM_T8_MELEE_4P_BONUS             = 64736,
+    SPELL_DK_SHADOW_INFUSION                    = 91342,
+    SPELL_DK_DARK_TRANSFORMATION_ACTIVATION     = 93426,
+    SPELL_DK_NECROTIC_STRIKE                    = 73975,
 };
 
 enum DeathKnightSpellIcons
 {
     DK_ICON_ID_IMPROVED_DEATH_STRIKE            = 2751
+};
+
+class spell_dk_necrotic_strike : public SpellScriptLoader
+{
+    public:
+        spell_dk_necrotic_strike() : SpellScriptLoader("spell_dk_necrotic_strike") { }
+
+        class spell_dk_necrotic_strike_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dk_necrotic_strike_AuraScript);
+
+            void HandleEffectCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                Unit* caster = GetCaster();
+
+                if (caster)
+                {
+                    canBeRecalculated = false;
+
+                    amount = caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.70f;
+                }
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dk_necrotic_strike_AuraScript::HandleEffectCalcAmount, EFFECT_0, SPELL_AURA_SCHOOL_HEAL_ABSORB);
+            }
+        };
+
+        AuraScript *GetAuraScript() const
+        {
+            return new spell_dk_necrotic_strike_AuraScript();
+        }
+};
+
+// 91342 - Shadow Infusion (PET BUFF)
+class spell_dk_shadow_infusion : public SpellScriptLoader
+{
+    public:
+        spell_dk_shadow_infusion() : SpellScriptLoader("spell_dk_shadow_infusion") { }
+
+        class spell_dk_shadow_infusion_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dk_shadow_infusion_SpellScript)
+
+            void HandleAfterHit()
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetHitUnit();
+
+                if(caster && target && target->GetAura(SPELL_DK_SHADOW_INFUSION)->GetStackAmount() >= 5)
+                {
+                    caster->AddAura(SPELL_DK_DARK_TRANSFORMATION_ACTIVATION, GetCaster());
+                }
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_dk_shadow_infusion_SpellScript::HandleAfterHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dk_shadow_infusion_SpellScript();
+        }
+};
+
+// 63560 - Dark Transformation
+class spell_dk_dark_transformation : public SpellScriptLoader
+{
+    public:
+        spell_dk_dark_transformation() : SpellScriptLoader("spell_dk_dark_transformation") { }
+
+        class spell_dk_dark_transformation_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dk_dark_transformation_SpellScript)
+
+            void HandleAfterHit()
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetHitUnit();
+
+                if(target && target->GetAura(SPELL_DK_SHADOW_INFUSION) && target->GetAura(SPELL_DK_SHADOW_INFUSION)->GetStackAmount() == 5)
+                    target->RemoveAura(SPELL_DK_SHADOW_INFUSION);
+
+                if(caster)
+                    caster->RemoveAura(SPELL_DK_DARK_TRANSFORMATION_ACTIVATION);
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_dk_dark_transformation_SpellScript::HandleAfterHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dk_dark_transformation_SpellScript();
+        }
 };
 
 // 49184 - Howling Blast
@@ -386,7 +488,7 @@ class spell_dk_corpse_explosion : public SpellScriptLoader
         }
 };
 
-// -47541, 52375, 59134, -62900 - Death Coil
+// 47541 - Death Coil
 class spell_dk_death_coil : public SpellScriptLoader
 {
     public:
@@ -405,20 +507,19 @@ class spell_dk_death_coil : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
-                int32 damage = GetEffectValue();
                 Unit* caster = GetCaster();
-                if (Unit* target = GetHitUnit())
+                Unit* target = GetHitUnit();
+                int32 bp = GetEffectValue();
+
+                if (caster && target)
                 {
                     if (caster->IsFriendlyTo(target))
                     {
-                        int32 bp = int32(damage * 1.5f);
-                        caster->CastCustomSpell(target, SPELL_DK_DEATH_COIL_HEAL, &bp, NULL, NULL, true);
+                        caster->CastSpell(target, SPELL_DK_DEATH_COIL_HEAL);
                     }
                     else
                     {
-                        if (AuraEffect const* auraEffect = caster->GetAuraEffect(SPELL_DK_ITEM_SIGIL_VENGEFUL_HEART, EFFECT_1))
-                            damage += auraEffect->GetBaseAmount();
-                        caster->CastCustomSpell(target, SPELL_DK_DEATH_COIL_DAMAGE, &damage, NULL, NULL, true);
+                        caster->CastSpell(target, SPELL_DK_DEATH_COIL_DAMAGE);
                     }
                 }
             }
@@ -426,7 +527,9 @@ class spell_dk_death_coil : public SpellScriptLoader
             SpellCastResult CheckCast()
             {
                 Unit* caster = GetCaster();
-                if (Unit* target = GetExplTargetUnit())
+                Unit* target = GetExplTargetUnit();
+
+                if (caster && target)
                 {
                     if (!caster->IsFriendlyTo(target) && !caster->isInFront(target))
                         return SPELL_FAILED_UNIT_NOT_INFRONT;
@@ -671,7 +774,7 @@ class spell_dk_icebound_fortitude : public SpellScriptLoader
         }
 };
 
-// 50365, 50371 - Improved Blood Presence
+// 48263 - Blood Presence
 class spell_dk_improved_blood_presence : public SpellScriptLoader
 {
     public:
@@ -688,27 +791,33 @@ class spell_dk_improved_blood_presence : public SpellScriptLoader
                 return true;
             }
 
-            void HandleEffectApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+            void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
-                Unit* target = GetTarget();
-                if (!target->HasAura(SPELL_DK_BLOOD_PRESENCE) && !target->HasAura(SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED))
+                if(Unit* caster = GetCaster())
                 {
-                    int32 basePoints1 = aurEff->GetAmount();
-                    target->CastCustomSpell(target, SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED, NULL, &basePoints1, NULL, true, 0, aurEff);
+                    // Improved Blood Presence
+                    if(AuraEffect* aura = caster->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2636, EFFECT_2))
+                    {
+                        int32 basePoints1 = aura->GetAmount();
+                        caster->CastCustomSpell(caster, SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED, NULL, &basePoints1, NULL, true, 0, aura);
+                        caster->ToPlayer()->UpdateAllRunesRegen();
+                    }
                 }
             }
 
             void HandleEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
-                Unit* target = GetTarget();
-                if (!target->HasAura(SPELL_DK_BLOOD_PRESENCE))
-                    target->RemoveAura(SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED);
+                if(Unit* caster = GetCaster())
+                {
+                    caster->RemoveAura(SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED);
+                    caster->ToPlayer()->UpdateAllRunesRegen();
+                }
             }
 
             void Register()
             {
-                AfterEffectApply += AuraEffectApplyFn(spell_dk_improved_blood_presence_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
-                AfterEffectRemove += AuraEffectRemoveFn(spell_dk_improved_blood_presence_AuraScript::HandleEffectRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+                AfterEffectApply += AuraEffectApplyFn(spell_dk_improved_blood_presence_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_MOD_BASE_RESISTANCE_PCT, AURA_EFFECT_HANDLE_REAL);
+                AfterEffectRemove += AuraEffectRemoveFn(spell_dk_improved_blood_presence_AuraScript::HandleEffectRemove, EFFECT_0, SPELL_AURA_MOD_BASE_RESISTANCE_PCT, AURA_EFFECT_HANDLE_REAL);
             }
         };
 
@@ -718,12 +827,12 @@ class spell_dk_improved_blood_presence : public SpellScriptLoader
         }
 };
 
-// 50391, 50392 - Improved Unholy Presence
+// 48263, 48266, 48265 - Improved Unholy Presence
 class spell_dk_improved_unholy_presence : public SpellScriptLoader
 {
     public:
         spell_dk_improved_unholy_presence() : SpellScriptLoader("spell_dk_improved_unholy_presence") { }
-
+        
         class spell_dk_improved_unholy_presence_AuraScript : public AuraScript
         {
             PrepareAuraScript(spell_dk_improved_unholy_presence_AuraScript);
@@ -735,28 +844,37 @@ class spell_dk_improved_unholy_presence : public SpellScriptLoader
                 return true;
             }
 
-            void HandleEffectApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+            void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
-                Unit* target = GetTarget();
-                if (target->HasAura(SPELL_DK_UNHOLY_PRESENCE) && !target->HasAura(SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED))
+                if(Unit* caster = GetCaster())
                 {
-                    // Not listed as any effect, only base points set in dbc
-                    int32 basePoints0 = aurEff->GetSpellInfo()->Effects[EFFECT_1].CalcValue();
-                    target->CastCustomSpell(target, SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED, &basePoints0, &basePoints0, &basePoints0, true, 0, aurEff);
+                    caster->ToPlayer()->UpdateAllRunesRegen();
+                    caster->RemoveAurasDueToSpell(SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED);
                 }
             }
 
             void HandleEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
-                GetTarget()->RemoveAura(SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED);
+                if(Unit* caster = GetCaster())
+                {
+                    caster->ToPlayer()->UpdateAllRunesRegen();
+                    // Improved Unholy Presence
+                    if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2633, EFFECT_0))
+                    {
+                        int32 bp0 = aurEff->GetAmount();
+
+                        caster->CastCustomSpell(caster, SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED, &bp0, NULL, NULL, true);
+                    }
+                }
             }
 
             void Register()
             {
-                AfterEffectApply += AuraEffectApplyFn(spell_dk_improved_unholy_presence_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
-                AfterEffectRemove += AuraEffectRemoveFn(spell_dk_improved_unholy_presence_AuraScript::HandleEffectRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+                AfterEffectApply += AuraEffectApplyFn(spell_dk_improved_unholy_presence_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_MOD_MELEE_HASTE, AURA_EFFECT_HANDLE_REAL);
+                AfterEffectRemove += AuraEffectRemoveFn(spell_dk_improved_unholy_presence_AuraScript::HandleEffectRemove, EFFECT_0, SPELL_AURA_MOD_MELEE_HASTE, AURA_EFFECT_HANDLE_REAL);
             }
         };
+
 
         AuraScript* GetAuraScript() const
         {
@@ -850,12 +968,14 @@ class spell_dk_scourge_strike : public SpellScriptLoader
             void HandleAfterHit()
             {
                 Unit* caster = GetCaster();
-                if (Unit* unitTarget = GetHitUnit())
+                Unit* unitTarget = GetHitUnit();
+                if (caster && unitTarget)
                 {
-                    int32 bp = GetHitDamage() * multiplier;
+                    int32 bp = GetHitDamage();
+                    uint32 disease = unitTarget->GetDiseasesByCaster(caster->GetGUID());
+                    uint32 scourgeMul = GetSpellInfo()->Effects[EFFECT_2].BasePoints;
 
-                    if (AuraEffect* aurEff = caster->GetAuraEffectOfRankedSpell(SPELL_DK_BLACK_ICE_R1, EFFECT_0))
-                        AddPct(bp, aurEff->GetAmount());
+                    bp = CalculatePct(bp, disease * scourgeMul);
 
                     caster->CastCustomSpell(unitTarget, SPELL_DK_SCOURGE_STRIKE_TRIGGERED, &bp, NULL, NULL, true);
                 }
@@ -1046,6 +1166,9 @@ class spell_dk_dreadblade : public SpellScriptLoader
 
 void AddSC_deathknight_spell_scripts()
 {
+    new spell_dk_necrotic_strike();
+    new spell_dk_shadow_infusion();
+    new spell_dk_dark_transformation();
     new spell_dk_howling_blast();
     new spell_dk_anti_magic_shell_raid();
     new spell_dk_anti_magic_shell_self();

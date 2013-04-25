@@ -269,6 +269,211 @@ public:
 };
 
 /*######
+## npc_dancing_rune_weapon
+######*/
+
+class npc_dancing_rune_weapon : public CreatureScript
+{
+public:
+    npc_dancing_rune_weapon() : CreatureScript("npc_dancing_rune_weapon") { }
+
+    struct npc_dancing_rune_weaponAI : PetAI
+    {
+        npc_dancing_rune_weaponAI(Creature* creature) : PetAI(creature) {}
+        
+        void InitializeAI()
+        {
+            me->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE);
+            me->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NOT_SELECTABLE);
+            me->SetReactState(REACT_AGGRESSIVE);
+
+            if(Unit* owner = me->GetOwner())
+            {
+                float minDamage = CalculatePct(owner->GetFloatValue(UNIT_FIELD_MINDAMAGE), 50);
+                float maxDamage = CalculatePct(owner->GetFloatValue(UNIT_FIELD_MAXDAMAGE), 50);
+                
+                me->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, minDamage);
+                me->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, maxDamage);
+            }
+        }
+
+        void UpdateAI(uint32 /*diff*/)
+        {   
+            if(Unit* owner = me->GetOwner())
+            {
+                Unit* ownerVictim = owner->getVictim();
+                Unit* meVictim = me->getVictim();
+
+                // Rune Weapon's target switching only when paladin switch
+                if(ownerVictim != meVictim)
+                {
+                    meVictim = ownerVictim;
+                        
+                    me->Attack(meVictim, true);
+                    me->GetMotionMaster()->MoveChase(meVictim);
+                }
+            }
+
+            DoMeleeAttackIfReady();
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_dancing_rune_weaponAI(creature);
+    }
+};
+
+/*######
+## npc_blood_parasite
+######*/
+
+enum BloodWorm
+{
+    BLOODWORM_BLOOD_GORGED_PASSIVE   = 50453,
+    BLOODWORM_BLOOD_GORGED_BUFF      = 81277,
+    BLOODWORM_BLOOD_GORGED_HEAL      = 50454,
+};
+
+class npc_blood_parasite : public CreatureScript
+{
+public:
+    npc_blood_parasite() : CreatureScript("npc_blood_parasite") { }
+
+    struct npc_blood_parasiteAI : PetAI
+    {
+        npc_blood_parasiteAI(Creature* creature) : PetAI(creature) {}
+        
+        void UpdateAI(uint32 /*diff*/)
+        {   
+            Unit* owner = me->GetOwner();
+            bloodGorged = me->GetAura(BLOODWORM_BLOOD_GORGED_BUFF, me->GetGUID());
+
+            if(owner)
+            {
+                Unit* ownerVictim = owner->getVictim();
+                Unit* meVictim = me->getVictim();
+
+                // Worm's target switching only when paladin switch
+                if(ownerVictim != meVictim)
+                {
+                    meVictim = ownerVictim;
+                        
+                    me->Attack(meVictim, true);
+                    me->GetMotionMaster()->MoveChase(meVictim);
+                }
+            }
+
+            DoMeleeAttackIfReady();
+        }
+
+        void JustDied(Unit* /*killer*/)
+        {
+            Unit* owner = me->GetOwner();
+
+            if (!owner || !bloodGorged)
+            {
+                return;
+            }
+
+            int32 bp0 = CalculatePct(me->GetMaxHealth(), bloodGorged->GetStackAmount() * 10);
+
+            me->CastCustomSpell(owner, BLOODWORM_BLOOD_GORGED_HEAL, &bp0, NULL, NULL, true);
+        }
+
+    private:
+        Aura* bloodGorged;
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_blood_parasiteAI(creature);
+    }
+};
+
+/*######
+## npc_force_of_nature
+######*/
+
+class npc_force_of_nature : public CreatureScript
+{
+public:
+    npc_force_of_nature() : CreatureScript("npc_force_of_nature") { }
+
+    struct npc_force_of_natureAI : PetAI
+    {
+        npc_force_of_natureAI(Creature* creature) : PetAI(creature) {}
+
+        void InitializeAI() {}
+
+        void JustDied(Unit* /*killer*/)
+        {
+            Unit* owner = me->GetOwner();
+            int32 fungalGrowthSummonSpell;
+            int32 fungalGrowthSlowSpell;
+
+            if (!owner)
+                return;
+
+            // Fungal Growth
+            if (AuraEffect* aurEff = owner->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2681, EFFECT_0))
+            {
+                Position pos;
+                me->GetPosition(&pos);
+
+                fungalGrowthSummonSpell = aurEff->GetMiscValue();
+                fungalGrowthSlowSpell = aurEff->GetMiscValueB();
+                           
+                if (!fungalGrowthSummonSpell || !fungalGrowthSlowSpell)
+                    return;
+
+                SpellInfo const* summonSpellInfo = sSpellMgr->GetSpellInfo(fungalGrowthSummonSpell);
+                int32 fungalGrowthCreID = summonSpellInfo->Effects[EFFECT_0].MiscValue;
+
+                // Fungal summon
+                owner->CastSpell(
+                    pos.GetPositionX(), 
+                    pos.GetPositionY(), 
+                    pos.GetPositionZ(), 
+                    fungalGrowthSummonSpell, true);
+
+                if(summonSpellInfo)
+                {     
+                    std::list<Creature*> list;
+
+                    owner->GetCreatureListWithEntryInGrid(list, fungalGrowthCreID, 100.0f);
+                    for (std::list<Creature*>::const_iterator i = list.begin(); i != list.end(); i)
+                    {
+                        if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == owner)
+                        {
+                            if(TempSummon* tempMushroom = (*i)->ToTempSummon())
+                            {
+                                // Stops moving
+                                tempMushroom->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+                                tempMushroom->StopMoving();
+                                tempMushroom->SetControlled(true, UNIT_STATE_STUNNED);
+
+                                // Graphical effect
+                                tempMushroom->CastSpell(tempMushroom, 94339, true);
+
+                                // Slow effect
+                                tempMushroom->CastSpell(tempMushroom, fungalGrowthSlowSpell, true);
+                            }
+                        }
+                        i++;
+                    }
+                }
+            }
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_force_of_natureAI(creature);
+    }
+};
+
+/*######
 ## npc_lunaclaw_spirit
 ######*/
 
@@ -2028,6 +2233,22 @@ public:
                 return;
             }
             CasterAI::UpdateAI(diff);
+            
+            Unit* owner = me->GetOwner();
+
+            if(owner)
+            {
+                Unit* ownerVictim = owner->getVictim();
+                Unit* meVictim = me->getVictim();
+
+                // Gargoyle's target switching only when paladin switch
+                if(ownerVictim != meVictim)
+                {
+                    meVictim = ownerVictim;
+                        
+                    me->Attack(meVictim, true);
+                }
+            }
         }
     };
 
@@ -3433,6 +3654,9 @@ public:
 void AddSC_npcs_special()
 {
     new npc_air_force_bots();
+    new npc_dancing_rune_weapon();
+    new npc_blood_parasite();
+    new npc_force_of_nature();
     new npc_lunaclaw_spirit();
     new npc_chicken_cluck();
     new npc_dancing_flames();

@@ -41,9 +41,306 @@ enum DruidSpells
     SPELL_DRUID_REJUVENATION_ISTANT_SPELL       = 64801,
     SPELL_DRUID_SAVAGE_ROAR                     = 62071,
     SPELL_DRUID_SURVIVAL_INSTINCTS              = 50322,
+    SPELL_DRUID_NPC_WILD_MUSHROOM               = 47649,
+    SPELL_DRUID_SPELL_WILD_MUSHROOM_SUICIDE     = 92853,
+    SPELL_DRUID_SPELL_WILD_MUSHROOM_DAMAGE      = 78777,
+    SPELL_DRUID_FUNGAL_GROWTH_GRAPHIC           = 94339 ,
     SPELL_ENRAGE_MOD_DAMAGE                     = 51185,
     SPELL_KING_OF_THE_JUNGLE                    = 48492,
     SPELL_TIGER_S_FURY_ENERGIZE                 = 51178,
+    SPELL_DRUID_MOONKIN_AURA                    = 24907,
+};
+
+// 88747 - Wild mushroom
+class spell_dru_wild_mushroom : public SpellScriptLoader
+{
+    public:
+        spell_dru_wild_mushroom() : SpellScriptLoader("spell_dru_wild_mushroom") { }
+
+        class spell_dru_wild_mushroom_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_wild_mushroom_SpellScript)
+
+            void HandleSummon(SpellEffIndex effIndex)
+            {
+                PreventHitDefaultEffect(effIndex);
+
+                Unit* caster = GetCaster();
+                WorldLocation const* targetDest = GetExplTargetDest();
+                SpellInfo const* spellInfo = GetSpellInfo();
+
+                if(caster && targetDest)
+                {
+                    if (Player* player = caster->ToPlayer())
+                    {
+                        Position pos;
+                        std::list<Creature*> list;
+
+                        player->GetCreatureListWithEntryInGrid(list, SPELL_DRUID_NPC_WILD_MUSHROOM, 100.0f);
+                        for (std::list<Creature*>::iterator i = list.begin(); i != list.end(); i)
+                        {
+                            if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
+                            {
+                                if (!player)
+                                {
+                                    return;
+                                }
+                            }
+                            else
+                                list.remove((*i));
+
+                            i++;
+                        }
+
+                        // Max 3 Wild Mushroom
+                        if ((int32)list.size() >= GetEffectValue())
+                        {
+                            if(TempSummon* temp = list.back()->ToTempSummon())
+                            {
+                                temp->UnSummon();
+                            }
+                        }
+                        
+                        // Summon position
+                        targetDest->GetPosition(&pos);
+
+                        // Summon properties
+                        const SummonPropertiesEntry* properties = sSummonPropertiesStore.LookupEntry(spellInfo->Effects[effIndex].MiscValueB);
+                                                      
+                        TempSummon* summon = player->SummonCreature(spellInfo->Effects[0].MiscValue, pos, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, spellInfo->GetDuration());
+
+                        if (!summon)
+                            return;
+                    
+                        summon->SetUInt64Value(UNIT_FIELD_SUMMONEDBY, player->GetGUID());
+                        summon->setFaction(player->getFaction());
+                        summon->SetUInt32Value(UNIT_CREATED_BY_SPELL, GetSpellInfo()->Id);
+                        summon->SetMaxHealth(5);
+                        summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+                        summon->StopMoving();
+                        summon->SetControlled(true, UNIT_STATE_STUNNED);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHit += SpellEffectFn(spell_dru_wild_mushroom_SpellScript::HandleSummon, EFFECT_0, SPELL_EFFECT_SUMMON);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_wild_mushroom_SpellScript();
+        }
+};
+
+// 88751 - Wild mushroom : Detonate
+class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
+{
+    public:
+        spell_dru_wild_mushroom_detonate() : SpellScriptLoader("spell_dru_wild_mushroom_detonate") { }
+
+        class spell_dru_wild_mushroom_detonate_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_wild_mushroom_detonate_SpellScript)
+
+            bool Load()
+            {
+                spellRange = GetSpellInfo()->GetMaxRange();
+
+                if (!spellRange)
+                    return false;
+
+                if(Unit* caster = GetCaster())
+                {
+                    if(Player* player = caster->ToPlayer())
+                    {
+                        std::list<Creature*> list;
+
+                        player->GetCreatureListWithEntryInGrid(list, SPELL_DRUID_NPC_WILD_MUSHROOM, 100.0f);
+                        for (std::list<Creature*>::const_iterator i = list.begin(); i != list.end(); i)
+                        {
+                            if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
+                            {
+                                if(TempSummon* tempMushroom = (*i)->ToTempSummon())
+                                {
+                                    mushroomList.push_back(tempMushroom);
+                                }
+                            }
+                            i++;
+                        }
+
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            SpellCastResult CheckCast()
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    if(Player* player = caster->ToPlayer())
+                    {
+                        if (mushroomList.empty())
+                            return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
+
+                        bool inRange = false;
+
+                        for (std::list<TempSummon*>::const_iterator i = mushroomList.begin(); i != mushroomList.end(); i)
+                        {
+                            Position pos;
+                            (*i)->GetPosition(&pos);
+
+                            // Must have at least one mushroom within 40 yards
+                            if (player->IsWithinDist3d(&pos, spellRange))
+                            {
+                                return SPELL_CAST_OK;
+                            }
+                        }
+
+                        SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_TARGET_TOO_FAR);
+                        return SPELL_FAILED_CUSTOM_ERROR;
+                    }
+                }
+                return SPELL_FAILED_CASTER_DEAD;
+            }
+
+            void HandleDummy(SpellEffIndex /*effIndex*/)
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    if(Player* player = caster->ToPlayer())
+                    {
+                        int32 fungalGrowthSummonSpell;
+                        int32 fungalGrowthSlowSpell;
+
+                        for (std::list<TempSummon*>::const_iterator i = mushroomList.begin(); i != mushroomList.end(); i)
+                        {
+                            Position pos;
+                            TempSummon* tempMushroom = (*i);
+                            tempMushroom->GetPosition(&pos);
+                            
+                            if(tempMushroom)
+                            {
+                                // Explosion visual and suicide
+                                tempMushroom->CastSpell(tempMushroom, SPELL_DRUID_SPELL_WILD_MUSHROOM_SUICIDE, true);
+
+                                // Explosion damage
+                                player->CastSpell(
+                                    pos.GetPositionX(), 
+                                    pos.GetPositionY(), 
+                                    pos.GetPositionZ(), 
+                                    SPELL_DRUID_SPELL_WILD_MUSHROOM_DAMAGE, true);
+
+                                // Fungal Growth
+                                if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2681, EFFECT_0))
+                                {
+                                    fungalGrowthSummonSpell = aurEff->GetMiscValue();
+                                    fungalGrowthSlowSpell = aurEff->GetMiscValueB();
+                                    
+                                    // Fungal summon
+                                    player->CastSpell(
+                                        pos.GetPositionX(), 
+                                        pos.GetPositionY(), 
+                                        pos.GetPositionZ(), 
+                                        fungalGrowthSummonSpell, true);
+                                }
+                            }
+                            i++;
+                        }
+                        
+                        // Fungal Growth summon properties and casts
+                        if (caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2681, EFFECT_0) && fungalGrowthSummonSpell && fungalGrowthSlowSpell)
+                        {
+                            SpellInfo const* summonSpellInfo = sSpellMgr->GetSpellInfo(fungalGrowthSummonSpell);
+                            std::list<Creature*> list;
+                            int32 fungalGrowthCreID;
+
+                            if(summonSpellInfo)
+                            {
+                                fungalGrowthCreID = summonSpellInfo->Effects[EFFECT_0].MiscValue;
+                                
+                                player->GetCreatureListWithEntryInGrid(list, fungalGrowthCreID, 100.0f);
+                                for (std::list<Creature*>::const_iterator i = list.begin(); i != list.end(); i)
+                                {
+                                    if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
+                                    {
+                                        if(TempSummon* tempMushroom = (*i)->ToTempSummon())
+                                        {
+                                            // Stops moving
+                                            tempMushroom->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+                                            tempMushroom->StopMoving();
+                                            tempMushroom->SetControlled(true, UNIT_STATE_STUNNED);
+
+                                            // Graphical effect
+                                            tempMushroom->CastSpell(tempMushroom, SPELL_DRUID_FUNGAL_GROWTH_GRAPHIC, true);
+
+                                            // Slow effect
+                                            tempMushroom->CastSpell(tempMushroom, fungalGrowthSlowSpell, true);
+                                        }
+                                    }
+                                    i++;
+                                }
+                            }
+                        }
+
+                        // Frees the memory
+                        mushroomList.clear();
+                    }
+                }
+            }
+            
+        private:
+            float spellRange;
+            std::list<TempSummon*> mushroomList;
+
+            void Register() 
+            {
+                OnCheckCast += SpellCheckCastFn(spell_dru_wild_mushroom_detonate_SpellScript::CheckCast);
+                OnEffectHitTarget += SpellEffectFn(spell_dru_wild_mushroom_detonate_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_wild_mushroom_detonate_SpellScript();
+        }
+};
+
+// 52610 - Form aura state check
+class spell_dru_form_aura_state_check : public SpellScriptLoader
+{
+    public:
+        spell_dru_form_aura_state_check() : SpellScriptLoader("spell_dru_form_aura_state_check") { }
+
+        class spell_dru_form_aura_state_check_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_form_aura_state_check_SpellScript);
+
+            SpellCastResult CheckCast()
+            {
+                Unit* caster = GetCaster();
+                {
+                    if (caster->HasAuraType(SPELL_AURA_MOD_SILENCE) 
+                        || caster->HasAuraType(SPELL_AURA_MOD_PACIFY) 
+                        || caster->HasAuraType(SPELL_AURA_MOD_PACIFY_SILENCE))
+                        return SPELL_FAILED_SILENCED;
+                }
+                return SPELL_CAST_OK;
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_dru_form_aura_state_check_SpellScript::CheckCast);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_form_aura_state_check_SpellScript();
+        }
 };
 
 class spell_dru_istant_rejuvenation : public SpellScriptLoader
@@ -781,47 +1078,44 @@ class spell_dru_living_seed_proc : public SpellScriptLoader
         }
 };
 
-// 69366 - Moonkin Form passive
-class spell_dru_moonkin_form_passive : public SpellScriptLoader
+// 24858 - Moonkin Form
+class spell_dru_moonkin_form : public SpellScriptLoader
 {
     public:
-        spell_dru_moonkin_form_passive() : SpellScriptLoader("spell_dru_moonkin_form_passive") { }
-
-        class spell_dru_moonkin_form_passive_AuraScript : public AuraScript
+        spell_dru_moonkin_form() : SpellScriptLoader("spell_dru_moonkin_form") { }
+        
+        class spell_dru_moonkin_form_AuraScript : public AuraScript
         {
-            PrepareAuraScript(spell_dru_moonkin_form_passive_AuraScript);
+            PrepareAuraScript(spell_dru_moonkin_form_AuraScript);
 
-            uint32 absorbPct;
-
-            bool Load()
+            void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
-                absorbPct = GetSpellInfo()->Effects[EFFECT_0].CalcValue(GetCaster());
-                return true;
+                if(Unit* caster = GetCaster())
+                {
+                    caster->CastSpell(caster, SPELL_DRUID_MOONKIN_AURA);
+                }
             }
 
-            void CalculateAmount(AuraEffect const* /*aurEff*/, int32 & amount, bool & /*canBeRecalculated*/)
+            void HandleEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
-                // Set absorbtion amount to unlimited
-                amount = -1;
-            }
-
-            void Absorb(AuraEffect* /*aurEff*/, DamageInfo & dmgInfo, uint32 & absorbAmount)
-            {
-                // reduces all damage taken while Stunned in Moonkin Form
-                if (GetTarget()->GetUInt32Value(UNIT_FIELD_FLAGS) & (UNIT_FLAG_STUNNED) && GetTarget()->HasAuraWithMechanic(1<<MECHANIC_STUN))
-                    absorbAmount = CalculatePct(dmgInfo.GetDamage(), absorbPct);
+                if(Unit* caster = GetCaster())
+                {
+                    caster->RemoveAurasDueToSpell(SPELL_DRUID_MOONKIN_AURA);
+                }
             }
 
             void Register()
             {
-                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dru_moonkin_form_passive_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
-                 OnEffectAbsorb += AuraEffectAbsorbFn(spell_dru_moonkin_form_passive_AuraScript::Absorb, EFFECT_0);
+                // Uncomment me for working again!
+                //AfterEffectApply += AuraEffectApplyFn(spell_dru_moonkin_form_AuraScript::HandleEffectApply, EFFECT_1, SPELL_AURA_MECHANIC_IMMUNITY, AURA_EFFECT_HANDLE_REAL);
+                //AfterEffectRemove += AuraEffectRemoveFn(spell_dru_moonkin_form_AuraScript::HandleEffectRemove, EFFECT_1, SPELL_AURA_MECHANIC_IMMUNITY, AURA_EFFECT_HANDLE_REAL);
             }
         };
 
+
         AuraScript* GetAuraScript() const
         {
-            return new spell_dru_moonkin_form_passive_AuraScript();
+            return new spell_dru_moonkin_form_AuraScript();
         }
 };
 
@@ -1686,6 +1980,27 @@ class spell_dru_berserk : public SpellScriptLoader
 {
     public:
         spell_dru_berserk() : SpellScriptLoader("spell_dru_berserk") { }
+        
+        class spell_dru_berserk_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_berserk_SpellScript);
+
+            SpellCastResult CheckCast()
+            {
+                if (!GetCaster()->IsInFeralForm())
+                {
+                    SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_MUST_BE_IN_FERAL_FORM);
+                    return SPELL_FAILED_CUSTOM_ERROR;
+                }
+
+                return SPELL_CAST_OK;
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_dru_berserk_SpellScript::CheckCast);
+            }
+        };
 
         class spell_dru_berserk_AuraScript : public AuraScript
         {
@@ -1734,6 +2049,11 @@ class spell_dru_berserk : public SpellScriptLoader
                 AfterEffectRemove += AuraEffectRemoveFn(spell_dru_berserk_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_ADD_PCT_MODIFIER, AURA_EFFECT_HANDLE_REAL);
             }
         };
+        
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_berserk_SpellScript();
+        }
 
         AuraScript* GetAuraScript() const
         {
@@ -1760,9 +2080,14 @@ class spell_dru_lacerate : public SpellScriptLoader
             void OnPeriodic(AuraEffect const* aurEff)
             {
                 if (Player* caster = GetCaster()->ToPlayer())
-                    if (caster->HasAura(50334))
-                        if(roll_chance_i(50))
-                            caster->RemoveSpellCooldown(33878, true);
+                {
+                    // Berserk
+                    if(roll_chance_i(50))
+                    {
+                        caster->RemoveSpellCooldown(33878, true);
+                        caster->CastSpell(caster, 93622, true);
+                    }
+                }
             }
 
             void Register()
@@ -1774,34 +2099,6 @@ class spell_dru_lacerate : public SpellScriptLoader
         AuraScript* GetAuraScript() const
         {
             return new spell_dru_lacerate_AuraScript();
-        }
-};
-
-class spell_dru_mangle_bear : public SpellScriptLoader
-{
-    public:
-        spell_dru_mangle_bear() : SpellScriptLoader("spell_dru_mangle_bear") { }
-
-        class spell_dru_mangle_bear_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_dru_mangle_bear_SpellScript);
-
-            void OnHit()
-            {
-                if (Player* caster = GetCaster()->ToPlayer())
-                    if (caster->HasAura(50334))
-                        caster->AddSpellCooldown(33878, 0, time(NULL) + 6);          
-            }
-
-            void Register()
-            {
-                AfterHit += SpellHitFn(spell_dru_mangle_bear_SpellScript::OnHit);
-            }
-        };
-
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_dru_mangle_bear_SpellScript();
         }
 };
 
@@ -1896,8 +2193,46 @@ class spell_dru_lunar_shower : public SpellScriptLoader
         }
 };
 
+class spell_dru_survival_instincts : public SpellScriptLoader
+{
+    public:
+        spell_dru_survival_instincts() : SpellScriptLoader("spell_dru_survival_instincts") { }
+
+        class spell_dru_survival_instincts_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_survival_instincts_SpellScript);
+
+            SpellCastResult CheckCast()
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if (!caster->IsInFeralForm())
+                    {
+                        SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_MUST_BE_IN_FERAL_FORM);
+                        return SPELL_FAILED_CUSTOM_ERROR;
+                    }
+                }
+
+                return SPELL_CAST_OK;
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_dru_survival_instincts_SpellScript::CheckCast);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_survival_instincts_SpellScript;
+        }
+};
+
 void AddSC_druid_spell_scripts()
 {
+    new spell_dru_wild_mushroom();
+    new spell_dru_wild_mushroom_detonate();
+    new spell_dru_form_aura_state_check();
     new spell_dru_istant_rejuvenation();
     new spell_dru_rejuvenation();
     new spell_dru_efflorescence();
@@ -1912,7 +2247,7 @@ void AddSC_druid_spell_scripts()
     new spell_dru_lifebloom();
     new spell_dru_living_seed();
     new spell_dru_living_seed_proc();
-    new spell_dru_moonkin_form_passive();
+    new spell_dru_moonkin_form();
     new spell_dru_owlkin_frenzy();
     new spell_dru_predatory_strikes();
     new spell_dru_primal_tenacity();
@@ -1936,6 +2271,6 @@ void AddSC_druid_spell_scripts()
     new spell_dru_pulverize();
     new spell_dru_berserk();
     new spell_dru_lacerate();
-    new spell_dru_mangle_bear();
     new spell_dru_lunar_shower();
+    new spell_dru_survival_instincts();
 }

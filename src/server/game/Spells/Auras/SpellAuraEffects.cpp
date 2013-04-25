@@ -411,7 +411,7 @@ pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS]=
     &AuraEffect::HandleNULL,                                      //350 SPELL_AURA_MOD_GATHERING_ITEMS_GAINED_PERCENT
     &AuraEffect::HandleNULL,                                      //351 SPELL_AURA_351
     &AuraEffect::HandleNULL,                                      //352 SPELL_AURA_352
-    &AuraEffect::HandleNULL,                                      //353 SPELL_AURA_MOD_CAMOUFLAGE
+    &AuraEffect::HandleModCamouflage,                             //353 SPELL_AURA_MOD_CAMOUFLAGE
     &AuraEffect::HandleNULL,                                      //354 SPELL_AURA_354
     &AuraEffect::HandleUnused,                                    //355 unused (4.3.4)
     &AuraEffect::HandleNULL,                                      //356 SPELL_AURA_356
@@ -721,6 +721,10 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                 if (AuraEffect* modHealing = caster->GetAuraEffect(55673, 0))
                     AddPct(amount, modHealing->GetAmount());
             }
+            // Gift of the Naaru
+            if (m_spellInfo->SpellFamilyFlags[2] & 0x80000000)
+                if (caster->GetTypeId() == TYPEID_PLAYER)
+                    amount = CalculatePct(caster->GetMaxHealth(), amount);
             break;
         case SPELL_AURA_MOD_THREAT:
         {
@@ -1393,7 +1397,6 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
             break;
         case FORM_MOONKIN:
             spellId = 24905;
-            spellId2 = 69366;
             break;
         case FORM_FLIGHT:
             spellId = 33948;
@@ -1764,6 +1767,37 @@ void AuraEffect::HandleModStealthDetect(AuraApplication const* aurApp, uint8 mod
 
     // call functions which may have additional effects after chainging state of unit
     target->UpdateObjectVisibility();
+}
+
+void AuraEffect::HandleModCamouflage(AuraApplication const *aurApp, uint8 mode, bool apply) const 
+{
+    if (!(mode & AURA_EFFECT_HANDLE_SEND_FOR_CLIENT_MASK))
+        return;
+
+    Unit *target = aurApp->GetTarget();
+
+    if (apply)
+    {
+        target->CastSpell(target, 80326, true);
+    } else if (!(target->HasAuraType(SPELL_AURA_MOD_CAMOUFLAGE)))
+    {
+        target->RemoveAura(80326);
+        target->RemoveAura(80325);
+    }
+
+    if(Player* player = target->ToPlayer())
+    {
+        if(GetId() == 51755 && player->getClass() == CLASS_HUNTER)
+        {
+            if(Pet* pet = player->GetPet())
+            {
+                if(pet->HasAura(GetId()))
+                {
+                    pet->RemoveAurasDueToSpell(GetId());
+                }
+            }
+        }
+    }
 }
 
 void AuraEffect::HandleModStealth(AuraApplication const* aurApp, uint8 mode, bool apply) const
@@ -5995,6 +6029,26 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
         case SPELLFAMILY_DEATHKNIGHT:
             switch (GetId())
             {
+                case 96268: // Death's Advance
+                {
+                    if(caster)
+                    {
+                        if(Player* player = caster->ToPlayer())
+                        {
+                            if(player->getClass() == CLASS_DEATH_KNIGHT)
+                            {
+                                for (uint32 i = 0; i < MAX_RUNES; ++i)
+                                {
+                                    RuneType rune = player->GetCurrentRune(i);
+                                    if (rune == RUNE_UNHOLY && !player->GetRuneCooldown(i))
+                                    {
+                                        player->RemoveAura(GetId());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 case 49016: // Hysteria
                     uint32 damage = uint32(target->CountPctFromMaxHealth(1));
                     target->DealDamage(target, damage, NULL, NODAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
@@ -6004,7 +6058,9 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
             if (GetSpellInfo()->SpellFamilyFlags[0] & 0x20)
             {
                 if (caster)
-                    caster->CastCustomSpell(target, 52212, &m_amount, NULL, NULL, true, 0, this);
+                {
+                    caster->CastSpell(target, 52212, true);
+                }
                 break;
             }
             // Blood of the North
@@ -6432,6 +6488,15 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
                         else if (m_tickNumber > totalTick * 2 / 3)
                             damage += (damage + 1) / 2;           // +1 prevent 0.5 damage possible lost at 1..4 ticks
                         // 5..8 ticks have normal tick damage
+                        break;
+                }
+                break;
+            case SPELLFAMILY_DEATHKNIGHT:
+                switch (GetId())
+                {
+                    // Frost Fever
+                    case 55095:
+                        damage += uint32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.075f);
                         break;
                 }
                 break;

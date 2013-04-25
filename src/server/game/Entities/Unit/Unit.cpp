@@ -4439,6 +4439,10 @@ uint32 Unit::GetDiseasesByCaster(uint64 casterGUID, bool remove)
             ++i;
         }
     }
+
+    if(this->HasAura(65142, casterGUID))
+        diseases++;
+
     return diseases;
 }
 
@@ -5829,8 +5833,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
                     if (Player* caster = ToPlayer())
                     { 
-                        int32 chance = int32(2.2f * caster->GetMasteryPoints());
-                        if (roll_chance_i(chance))
+                        float chance = float(2.2f * caster->GetMasteryPoints());
+                        if (roll_chance_f(chance))
                         {
                            caster->CastSpell(target, 76858, true);
                         }
@@ -6794,8 +6798,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
                     if (Player* caster = ToPlayer())
                     { 
-                        int32 chance = int32(2.0f * caster->GetMasteryPoints());
-                        if (roll_chance_i(chance))
+                        float chance = float(2.0f * caster->GetMasteryPoints());
+                        if (roll_chance_f(chance))
                         {
                            int32 bp0 = damage;
                            caster->CastCustomSpell(target, 86392, &bp0, NULL, NULL, true);
@@ -6848,24 +6852,57 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     triggered_spell_id = 88466;
                     break;
                 //Sic 'em Rank 1
-                case 53340:
+                case 83340:
                 {
                     triggered_spell_id = 83359;
                     target = this;
                     break;
                 }
-            // Sic 'Em Rank 2
+                // Sic 'Em Rank 2
                 case 83356:
                 {
                     triggered_spell_id = 89388;
                     target = this;
                     break;
                 }
+                // Wild Quiver Hunter Marksmanship Mastery 
+                case 76659:
+                    if (effIndex != EFFECT_0)
+                        return false;
+
+                    if (Player* caster = ToPlayer())
+                    {
+                       float chance = 2.1f * caster->GetMasteryPoints();
+                       if (roll_chance_f(chance))
+                           caster->CastSpell(target, 53254, true);
+                    }
+                    return true;
+                    break;
+                // Improved Steady Shot
+                case 53221:
+                case 53222:
+                case 53224:
+                    if (!procSpell)
+                        return false;
+
+                    if (GetLastSpell() == 56641 && procSpell->Id == 56641)
+                    {
+                        int32 bp0 = triggerAmount;
+                        CastCustomSpell(this, 53220, &bp0, NULL, NULL, true);
+                        SetLastSpell(0);
+                        return true;
+                    } else
+                    {
+                        SetLastSpell(procSpell->Id);
+                    }
+
+                    return false;
+                    break;
             }
             switch (dummySpell->SpellIconID)
             {
                 // Lock and Load
-            case 3579:
+                case 3579:
                 {
                     // Proc only from periodic (from trap activation proc another aura of this spell)
                     if (!(procFlag & PROC_FLAG_DONE_PERIODIC)
@@ -6874,16 +6911,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     target = this;
                     break;
                 }
-                // Wild Quiver Hunter Marksmanship Mastery 
-                case 76659:
-                    if (Player* caster = ToPlayer())
-                    {
-                       int32 chance = int32(2.1f * caster->GetMasteryPoints());
-                       if (roll_chance_i(chance))
-                           caster->CastSpell(target, 53254, true);
-                    }
-                    return true;
-                    break;
                 case 267: // Improved Mend Pet
                 {
                     if (!roll_chance_i(triggerAmount))
@@ -6924,6 +6951,23 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Ancient Crusader
+                case 86701:
+                    triggered_spell_id = 86700;
+                    break;
+                // Ancient Healer
+                case 86674:
+                {
+                    int32 bp0 = damage;
+                    int32 bp1 = CalculatePct(bp0, 10);
+
+                    if (!bp0 || !bp1 || !victim) 
+                        return false;
+
+                    this->CastCustomSpell(victim, 86678, &bp0, &bp1, NULL, true, NULL, triggeredByAura);
+
+                    return true;
+                }
                 // Divine Purpose
                 case 85117:
                 case 86172:
@@ -7281,12 +7325,12 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     {
                        if (procSpell->Id == 403 || procSpell->Id == 51505 || procSpell->Id == 421)
                        {
-                           int32 chance = 0;
-                           chance += int32(caster->GetMasteryPoints() * 2);
+                           float chance = 0;
+                           chance += float(caster->GetMasteryPoints() * 2);
                            if (procSpell->Id == 421)
                                chance = chance / 3;
                            triggered_spell_id = 0;
-                           if (roll_chance_i(chance))
+                           if (roll_chance_f(chance))
                            {
                                switch (procSpell->Id)
                                {
@@ -7680,117 +7724,152 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         }
         case SPELLFAMILY_DEATHKNIGHT:
         {
-            // Blood-Caked Blade
-            if (dummySpell->SpellIconID == 138)
+            switch(dummySpell->SpellIconID)
             {
-                if (!target || !target->isAlive())
-                    return false;
-
-                triggered_spell_id = dummySpell->Effects[effIndex].TriggerSpell;
-                break;
-            }
-            // Butchery
-            if (dummySpell->SpellIconID == 2664)
-            {
-                basepoints0 = triggerAmount;
-                triggered_spell_id = 50163;
-                target = this;
-                break;
-            }
-            // Dancing Rune Weapon
-            if (dummySpell->Id == 49028)
-            {
-                // 1 dummy aura for dismiss rune blade
-                if (effIndex != 1)
-                    return false;
-
-                Unit* pPet = NULL;
-                for (ControlList::const_iterator itr = m_Controlled.begin(); itr != m_Controlled.end(); ++itr) // Find Rune Weapon
-                    if ((*itr)->GetEntry() == 27893)
-                    {
-                        pPet = *itr;
-                        break;
-                    }
-
-                if (pPet && pPet->getVictim() && damage && procSpell)
-                {
-                    pPet->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE);
-                    pPet->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NOT_SELECTABLE);
-                    uint32 procDmg = damage / 2;
-                    pPet->SendSpellNonMeleeDamageLog(pPet->getVictim(), procSpell->Id, procDmg, procSpell->GetSchoolMask(), 0, 0, false, 0, false);
-                    pPet->DealDamage(pPet->getVictim(), procDmg, NULL, SPELL_DIRECT_DAMAGE, procSpell->GetSchoolMask(), procSpell, true);
-                    break;
-                }
-				else
-					if (pPet && pPet->getVictim() && damage && !procSpell)
-					 {
-						CalcDamageInfo damageInfo;
-						CalculateMeleeDamage(pPet->getVictim(), 0, &damageInfo, BASE_ATTACK);
-						damageInfo.attacker = pPet;
-						damageInfo.damage = damageInfo.damage / 2;
-						// Send log damage message to client
-						pPet->DealDamageMods(pPet->getVictim(),damageInfo.damage,&damageInfo.absorb);
-						pPet->SendAttackStateUpdate(&damageInfo);
-						pPet->ProcDamageAndSpell(damageInfo.target, damageInfo.procAttacker, damageInfo.procVictim, damageInfo.procEx, damageInfo.damage, damageInfo.attackType);
-						pPet->DealMeleeDamage(&damageInfo,true);
-					}
-
-                else
-                    return false;
-            }
-            // Unholy Blight
-            if (dummySpell->Id == 49194)
-            {
-                triggered_spell_id = 50536;
-                SpellInfo const* unholyBlight = sSpellMgr->GetSpellInfo(triggered_spell_id);
-                if (!unholyBlight)
-                    return false;
-
-                basepoints0 = CalculatePct(int32(damage), triggerAmount);
-
-                //Glyph of Unholy Blight
-                if (AuraEffect* glyph=GetAuraEffect(63332, 0))
-                    AddPct(basepoints0, glyph->GetAmount());
-
-                basepoints0 = basepoints0 / (unholyBlight->GetMaxDuration() / unholyBlight->Effects[0].Amplitude);
-                basepoints0 += victim->GetRemainingPeriodicAmount(GetGUID(), triggered_spell_id, SPELL_AURA_PERIODIC_DAMAGE);
-                break;
-            }
-            // Threat of Thassarian
-            if (dummySpell->SpellIconID == 2023)
-            {
-                // Must Dual Wield
-                if (!procSpell || !haveOffhandWeapon())
-                    return false;
-                // Chance as basepoints for dummy aura
-                if (!roll_chance_i(triggerAmount))
-                    return false;
-
-                switch (procSpell->Id)
-                {
-                    case 49020: triggered_spell_id = 66198; break; // Obliterate
-                    case 49143: triggered_spell_id = 66196; break; // Frost Strike
-                    case 45462: triggered_spell_id = 66216; break; // Plague Strike
-                    case 49998: triggered_spell_id = 66188; break; // Death Strike
-                    case 56815: triggered_spell_id = 66217; break; // Rune Strike
-                    case 45902: triggered_spell_id = 66215; break; // Blood Strike
-                    default:
+                // Blood-Caked Blade
+                case 138:
+                    if (!target || !target->isAlive())
                         return false;
-                }
-                break;
+
+                    triggered_spell_id = dummySpell->Effects[effIndex].TriggerSpell;
+                    break;
+                // Butchery
+                case 2664:
+                    basepoints0 = triggerAmount;
+                    triggered_spell_id = 50163;
+                    target = this;
+                    break;
+                // Threat of Thassarian
+                case 2023:
+                    // Must Dual Wield
+                    if (!procSpell || !haveOffhandWeapon())
+                        return false;
+                    // Chance as basepoints for dummy aura
+                    if (!roll_chance_i(triggerAmount))
+                        return false;
+
+                    switch (procSpell->Id)
+                    {
+                        case 49020: triggered_spell_id = 66198; break; // Obliterate
+                        case 49143: triggered_spell_id = 66196; break; // Frost Strike
+                        case 45462: triggered_spell_id = 66216; break; // Plague Strike
+                        case 49998: triggered_spell_id = 66188; break; // Death Strike
+                        case 56815: triggered_spell_id = 66217; break; // Rune Strike
+                        case 45902: triggered_spell_id = 66215; break; // Blood Strike
+                        default:
+                            return false;
+                    }
+                    break;
             }
-            // Runic Power Back on Snare/Root
-            if (dummySpell->Id == 61257)
+
+            switch(dummySpell->Id)
             {
-                // only for spells and hit/crit (trigger start always) and not start from self casted spells
-                if (procSpell == 0 || !(procEx & (PROC_EX_NORMAL_HIT|PROC_EX_CRITICAL_HIT)) || this == victim)
-                    return false;
-                // Need snare or root mechanic
-                if (!(procSpell->GetAllEffectsMechanicMask() & ((1<<MECHANIC_ROOT)|(1<<MECHANIC_SNARE))))
-                    return false;
-                triggered_spell_id = 61258;
-                target = this;
-                break;
+                // Runic Empowerment
+                case 81229:
+                    {
+                        if(Player* player = this->ToPlayer())
+                        {
+                            // Modified by Runic Corruption talent
+                            if(AuraEffect* runicCorr = this->GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 4068, EFFECT_0))
+                            {
+                                triggered_spell_id = 51460;
+                                basepoints0 = runicCorr->GetAmount();
+                            }
+                            // Normal behaviour
+                            else
+                            {
+                                uint32 cooldownrunes[MAX_RUNES];
+                                uint8 runescount = 0;
+
+                                for (uint32 j = 0; j < MAX_RUNES; ++j) 
+                                {
+                                    if (player->GetRuneCooldown(j)) 
+                                    {
+                                        cooldownrunes[runescount] = j;
+                                        runescount++;
+                                    }
+                                }
+
+                                if (runescount > 0)
+                                {
+                                    uint8 rndrune = urand(0, runescount - 1);
+                                    player->SetRuneCooldown(cooldownrunes[rndrune], 0);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                // Dancing Rune Weapon
+                case 49028:
+                    {
+                        // 1 dummy aura for dismiss rune blade
+                        if (effIndex != 1)
+                            return false;
+
+                        Unit* pPet = NULL;
+                        for (ControlList::const_iterator itr = m_Controlled.begin(); itr != m_Controlled.end(); ++itr) // Find Rune Weapon
+                            if ((*itr)->GetEntry() == 27893)
+                            {
+                                pPet = *itr;
+                                break;
+                            }
+
+                        if (pPet && pPet->getVictim() && damage && procSpell)
+                        {
+                            pPet->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE);
+                            pPet->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NOT_SELECTABLE);
+                            uint32 procDmg = damage / 2;
+                            pPet->SendSpellNonMeleeDamageLog(pPet->getVictim(), procSpell->Id, procDmg, procSpell->GetSchoolMask(), 0, 0, false, 0, false);
+                            pPet->DealDamage(pPet->getVictim(), procDmg, NULL, SPELL_DIRECT_DAMAGE, procSpell->GetSchoolMask(), procSpell, true);
+                            break;
+                        }
+				        else
+					        if (!pPet && pPet->getVictim() && damage && !procSpell)
+					         {
+						        CalcDamageInfo damageInfo;
+						        CalculateMeleeDamage(pPet->getVictim(), 0, &damageInfo, BASE_ATTACK);
+						        damageInfo.attacker = pPet;
+						        damageInfo.damage = damageInfo.damage / 2;
+						        // Send log damage message to client
+						        pPet->DealDamageMods(pPet->getVictim(),damageInfo.damage,&damageInfo.absorb);
+						        pPet->SendAttackStateUpdate(&damageInfo);
+						        pPet->ProcDamageAndSpell(damageInfo.target, damageInfo.procAttacker, damageInfo.procVictim, damageInfo.procEx, damageInfo.damage, damageInfo.attackType);
+						        pPet->DealMeleeDamage(&damageInfo,true);
+					        }
+
+                        else
+                            return false;
+                    }
+                    break;
+                    // Unholy Blight
+                case 49194:
+                    {
+                        triggered_spell_id = 50536;
+                        SpellInfo const* unholyBlight = sSpellMgr->GetSpellInfo(triggered_spell_id);
+                        if (!unholyBlight)
+                            return false;
+
+                        basepoints0 = CalculatePct(int32(damage), triggerAmount);
+
+                        //Glyph of Unholy Blight
+                        if (AuraEffect* glyph=GetAuraEffect(63332, 0))
+                            AddPct(basepoints0, glyph->GetAmount());
+
+                        basepoints0 = basepoints0 / (unholyBlight->GetMaxDuration() / unholyBlight->Effects[0].Amplitude);
+                        basepoints0 += victim->GetRemainingPeriodicAmount(GetGUID(), triggered_spell_id, SPELL_AURA_PERIODIC_DAMAGE);
+                    }
+                    break;
+                // Runic Power Back on Snare/Root
+                case 61257:
+                    // only for spells and hit/crit (trigger start always) and not start from self casted spells
+                    if (procSpell == 0 || !(procEx & (PROC_EX_NORMAL_HIT|PROC_EX_CRITICAL_HIT)) || this == victim)
+                        return false;
+                    // Need snare or root mechanic
+                    if (!(procSpell->GetAllEffectsMechanicMask() & ((1<<MECHANIC_ROOT)|(1<<MECHANIC_SNARE))))
+                        return false;
+                    triggered_spell_id = 61258;
+                    target = this;
+                    break;
             }
             break;
         }
@@ -8915,9 +8994,45 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // dummy basepoints or other customs
     switch (trigger_spell_id)
     {
+        // Death's Advance
+        case 96268:
+            {
+                if(Player* player = this->ToPlayer())
+                {
+                    if(player->getClass() == CLASS_DEATH_KNIGHT)
+                    {
+                        for (uint32 i = 0; i < MAX_RUNES; ++i)
+                        {
+                            RuneType rune = player->GetCurrentRune(i);
+                            if (rune == RUNE_UNHOLY && !player->GetRuneCooldown(i))
+                            {
+                                player->RemoveAura(trigger_spell_id);
+                                return false;
+                            }
+                        }
+
+                        if(player->HasAura(trigger_spell_id))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+            break;
+        // Crimson Scourge
         case 81141:
             if (!victim->HasAura(55078))
                 return false;
+            break;
+        // Rapid Killing 
+        case 35098:
+        case 35099:
+            // Rapid Recuperation
+            if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 3560, 1))
+            {
+                int32 bp0 = aurEff->GetAmount();
+                CastCustomSpell(this, 58883, &bp0, NULL, NULL, true);
+            }
             break;
         // Will of the Necropolis
         case 81162:
@@ -9136,6 +9251,11 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
         }
         case 77487: // Shadow Orbs
             if (ToPlayer() && ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) != BS_PRIEST_SHADOW)
+                return false;
+            break;
+        // Incite
+        case 86627:
+            if (HasAura(86627)) 
                 return false;
             break;
     }
@@ -10748,6 +10868,26 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             }
             break;
         case SPELLFAMILY_DEATHKNIGHT:
+            switch(spellProto->Id)
+            {
+                // Damaging Death Coil
+                case 47632:
+                    DoneTotal += CalculatePct(this->GetTotalAttackPowerValue(BASE_ATTACK), 30);
+                    break;
+                // Blood Plague
+                case 55078:
+                    // Checks the custom effect2, if > 0 that buff has been casted by a Death Knight with the talent "Contagion" learned, througth Pestilence.
+                    // The EFFECT_2 basepoint brings the increasing percent mod from Contagion talent.
+                    if(AuraEffect* aurEff = victim->GetAuraEffect(spellProto->Id, EFFECT_2))
+                    {
+                        if(int32 bp = aurEff->GetAmount())
+                        {
+                            AddPct(DoneTotalMod, bp);
+                        }
+                    }
+                    break;
+            }
+
             // Sigil of the Vengeful Heart
             if (spellProto->SpellFamilyFlags[0] & 0x2000)
                 if (AuraEffect* aurEff = GetAuraEffect(64962, EFFECT_1))
@@ -10827,6 +10967,19 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                         DoneTotalMod *= 1.0f + 0.031f *  owner->ToPlayer()->GetMasteryPoints();
             break;
         case SPELLFAMILY_WARRIOR:
+            if(Player const* player = this->ToPlayer())
+            {        
+                // Single-Minded Fury check
+                if(AuraEffect* aurEff = this->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_WARRIOR, 4975, EFFECT_0))
+                {
+                    if(!player->IsOneHandUsed(true)
+                        || !player->IsOneHandUsed(false))
+                    {
+                        AddPct(DoneTotalMod, -aurEff->GetAmount());
+                    }
+                }
+            }
+
             // Raging Blow (damage increased by mastery)
             if (owner->ToPlayer() && owner->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && spellProto->Id == 8680)
                     if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARRIOR_FURY)
@@ -11268,9 +11421,9 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
 					case 19434:
 					case 56641:
 					case 77767:
-						if(AuraEffect* auraEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2222, 0))
-							if(victim->GetHealthPct() > 80.0f)
-								crit_chance += auraEff->GetAmount();
+                        if(AuraEffect* auraEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2222, 0))
+                            if(victim->GetHealthPct() > 90.0f)
+                                crit_chance += auraEff->GetAmount();
 						break;
                     //Serpent Sting - Black Arrow (Toxicology - 82833)
                     case 3674:
@@ -11456,6 +11609,16 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                         healamount = uint32(0.45f * victim->GetCreateHealth());
                         return healamount;
                     }
+                    break;
+            }
+            break;
+        case SPELLFAMILY_DEATHKNIGHT:
+            switch(spellProto->Id)
+            {
+                // Healing Death Coil
+                case 47633:
+                    healamount += CalculatePct(this->GetTotalAttackPowerValue(BASE_ATTACK), 30);
+                    AddPct(DoneTotalMod, 300);
                     break;
             }
             break;
@@ -11919,10 +12082,11 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
 
     // Done total percent damage auras
     float DoneTotalMod = 1.0f;
-
-    // SPELL_AURA_MOD_AUTOATTACK_DAMAGE
+    
+    // Autoattack pct done mods
     if (!spellProto)
     {
+        // SPELL_AURA_MOD_AUTOATTACK_DAMAGE
         AuraEffectList const & autoattackDamage = GetAuraEffectsByType(SPELL_AURA_MOD_AUTOATTACK_DAMAGE);
         for (AuraEffectList::const_iterator i = autoattackDamage.begin(); i != autoattackDamage.end(); ++i)
         {
@@ -11964,6 +12128,20 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                     if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2656, EFFECT_0))
                         if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
                             DoneTotalMod += float(aurEff->GetAmount() / 100.0f);
+                break;
+            case SPELLFAMILY_WARRIOR:
+                // Single-Minded Fury check
+                if(Player* player = this->ToPlayer())
+                {        
+                    if(AuraEffect* aurEff = this->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_WARRIOR, 4975, EFFECT_0))
+                    {
+                        if(!player->IsOneHandUsed(true)
+                            || !player->IsOneHandUsed(false))
+                        {
+                            AddPct(DoneTotalMod, -aurEff->GetAmount());
+                        }
+                    }
+                }
                 break;
         }
     }
@@ -16104,9 +16282,18 @@ bool Unit::IsTriggeredAtSpellProcEvent(Unit* victim, Aura* aura, SpellInfo const
         if (victim)
             allow = ToPlayer()->isHonorOrXPTarget(victim);
 
+		// Don't proc victory rush on totems
+		if (victim->isTotem())
+                allow = false;
+
+		// Don't proc vistory rush on shadowflend and mirror images
+		if (victim->GetEntry() == 19668 || victim->GetEntry() == 46956)
+                allow = false;
+
         // Shadow Word: Death - can trigger from every kill
-        if (aura->GetId() == 32409)
+		if (aura->GetId() == 32409 || aura->GetId() == 32215)
             allow = true;
+
         if (!allow)
             return false;
     }
@@ -17414,8 +17601,6 @@ void Unit::ApplyResilience(Unit const* victim, int32* damage, bool isCrit) const
     if (!target)
         return;
 
-    if (isCrit)
-        *damage -= target->GetCritDamageReduction(*damage);
     *damage -= target->GetDamageReduction(*damage);
 }
 
@@ -17431,6 +17616,16 @@ float Unit::MeleeSpellMissChance(const Unit* victim, WeaponAttackType attType, u
 
     // Calculate hit chance
     float hitChance = 100.0f;
+
+    // Cloak of Shadow
+    if (victim->HasAura(31224))
+    {
+        if (const SpellEntry* spell = sSpellStore.LookupEntry(spellId))
+        {
+            if (spell->SchoolMask != SPELL_SCHOOL_MASK_NORMAL)
+                hitChance += victim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_HIT_CHANCE);
+        }
+    }
 
     // Spellmod from SPELLMOD_RESIST_MISS_CHANCE
     if (spellId)
@@ -17903,15 +18098,40 @@ uint32 Unit::GetModelForForm(ShapeshiftForm form) const
                 else
                     return 2289;
             case FORM_FLIGHT:
-                if (Player::TeamForRace(getRace()) == ALLIANCE)
-                    return 20857;
-                return 20872;
+                switch (getRace())
+                {
+                    case RACE_NIGHTELF:
+                        return 20857;
+                    case RACE_WORGEN:
+                        return 37727;
+                    case RACE_TROLL:
+                        return 37728;
+                    default: // RACE_TAUREN
+                        return 20872;
+                }
+            case FORM_MOONKIN:
+                switch (getRace()) 
+                {
+                    case RACE_TROLL:
+                        return 12238;
+                    case RACE_TAUREN:
+                        return 15375;
+                    case RACE_NIGHTELF:
+                    case RACE_WORGEN:
+                        return 15374;
+                }
             case FORM_FLIGHT_EPIC:
-                if (Player::TeamForRace(getRace()) == ALLIANCE)
-                    return 21243;
-                return 21244;
-            default:
-                break;
+                switch (getRace())
+                {
+                    case RACE_NIGHTELF:
+                        return 21243;
+                    case RACE_WORGEN:
+                        return 37729;
+                    case RACE_TROLL:
+                        return 37730;
+                    default: // RACE_TAUREN
+                        return 21244;
+                }
         }
     }
 
@@ -19193,6 +19413,54 @@ uint32 Unit::GetResistance(SpellSchoolMask mask) const
 
     // resist value will never be negative here
     return uint32(resist);
+}
+
+bool Unit::IsVisionObscured(Unit* pVictim)
+{
+    Aura* victimAura = NULL;
+    Aura* myAura = NULL;
+    Unit* victimCaster = NULL;
+    Unit* myCaster = NULL;
+
+    AuraEffectList const& vAuras = pVictim->GetAuraEffectsByType(SPELL_AURA_INTERFERE_TARGETTING);
+    for (AuraEffectList::const_iterator i = vAuras.begin(); i != vAuras.end(); ++i)
+    {
+        victimAura = (*i)->GetBase();
+        victimCaster = victimAura->GetCaster();
+        break;
+    }
+
+    AuraEffectList const& myAuras = GetAuraEffectsByType(SPELL_AURA_INTERFERE_TARGETTING);
+    for (AuraEffectList::const_iterator i = myAuras.begin(); i != myAuras.end(); ++i)
+    {
+        myAura = (*i)->GetBase();
+        myCaster = myAura->GetCaster();
+        break;
+    }
+
+    if ((myAura != NULL && myCaster == NULL) || (victimAura != NULL && victimCaster == NULL)) 
+        return false; // Failed auras, will result in crash
+
+    // E.G. Victim is in smoke bomb, and I'm not
+    // Spells fail unless I'm friendly to the caster of victim's smoke bomb
+    if (victimAura != NULL && myAura == NULL)
+    {
+        if (IsFriendlyTo(victimCaster)) 
+            return false;
+        else 
+            return true;
+    }
+    // Victim is not in smoke bomb, while I am
+    // Spells fail if my smoke bomb aura's caster is my enemy
+    else if (myAura != NULL && victimAura == NULL)
+    {
+        if (IsFriendlyTo(myCaster)) 
+            return false;
+        else
+            return true;
+    }
+
+    return false;
 }
 
 void CharmInfo::SetIsCommandAttack(bool val)

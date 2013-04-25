@@ -2504,6 +2504,11 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
     {
         bool crit = caster->isSpellCrit(unitTarget, m_spellInfo, m_spellSchoolMask);
         uint32 addhealth = m_healing;
+
+		// Victory rush heal can't crit
+		if(m_spellInfo->Id == 34428)
+			crit = false;
+
         if (crit)
         {
             procEx |= PROC_EX_CRITICAL_HIT;
@@ -2812,6 +2817,10 @@ void Spell::DoTriggersOnSpellHit(Unit* unit, uint8 effMask)
             // Cast Avenging Wrath Marker
             unit->CastSpell(unit, 61987, true);
         }
+
+        // WTF ? Need more research...
+        if (m_preCastSpell == 51690)
+            return;
 
         // Avenging Wrath
         if (m_preCastSpell == 61987)
@@ -3386,9 +3395,6 @@ void Spell::cast(bool skipCheck)
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
     {
-        // Set Last spell casted;
-        m_caster->SetLastSpell(m_spellInfo->Id);
-
         if(m_caster->getClass() == CLASS_HUNTER)
             if(m_spellInfo->Id == 3044 || m_spellInfo->Id == 53209)
                 if(AuraEffect* auraEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 3524, EFFECT_0))
@@ -4667,7 +4673,8 @@ void Spell::TakeRunePower(bool didHit)
                 runeCost[rune]--;
 
                 // keep Death Rune type if missed
-                if (didHit)
+                // also check for blood of the north
+                if (didHit && !player->HasAura(54637))
                     player->RestoreBaseRune(i);
 
                 if (runeCost[RUNE_DEATH] == 0)
@@ -5020,8 +5027,13 @@ SpellCastResult Spell::CheckCast(bool strict)
                 return SPELL_FAILED_NOT_INFRONT;
 
             if (m_caster->GetEntry() != WORLD_TRIGGER) // Ignore LOS for gameobjects casts (wrongly casted by a trigger)
+            {
                 if (!(m_spellInfo->AttributesEx2 & SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS) && !DisableMgr::IsDisabledFor(DISABLE_TYPE_SPELL, m_spellInfo->Id, NULL, SPELL_DISABLE_LOS) && !m_caster->IsWithinLOSInMap(target))
                     return SPELL_FAILED_LINE_OF_SIGHT;
+
+                if (m_caster->IsVisionObscured(target))
+                    return SPELL_FAILED_VISION_OBSCURED; // smoke bomb, camouflage...
+            }
         }
     }
 
