@@ -1099,6 +1099,41 @@ class spell_warr_death_wish : public SpellScriptLoader
         }
 };*/
 
+class spell_warr_heroic_leap : public SpellScriptLoader
+{
+    public:
+        spell_warr_heroic_leap() : SpellScriptLoader("spell_warr_heroic_leap") { }
+
+        class spell_warr_heroic_leap_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warr_heroic_leap_SpellScript);
+
+            SpellCastResult CheckCast()
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if (caster->HasUnitState(UNIT_STATE_ROOT))
+                    {
+                        SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_CANT_DO_WHILE_ROOTED);
+                        return SPELL_FAILED_CUSTOM_ERROR;
+                    }
+                }
+
+                return SPELL_CAST_OK;
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_warr_heroic_leap_SpellScript::CheckCast);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warr_heroic_leap_SpellScript();
+        }
+};
+
 void AddSC_warrior_spell_scripts()
 {
     //new spell_warr_death_wish();
@@ -1124,4 +1159,5 @@ void AddSC_warrior_spell_scripts()
     new spell_warr_sweeping_strikes();
     new spell_warr_vigilance();
     new spell_warr_vigilance_trigger();
+    new spell_warr_heroic_leap();
 }

@@ -2204,10 +2204,13 @@ class spell_dru_survival_instincts : public SpellScriptLoader
 
             SpellCastResult CheckCast()
             {
-                if (!GetCaster()->IsInFeralForm())
+                if (Unit* caster = GetCaster())
                 {
-                    SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_MUST_BE_IN_FERAL_FORM);
-                    return SPELL_FAILED_CUSTOM_ERROR;
+                    if (!caster->IsInFeralForm())
+                    {
+                        SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_MUST_BE_IN_FERAL_FORM);
+                        return SPELL_FAILED_CUSTOM_ERROR;
+                    }
                 }
 
                 return SPELL_CAST_OK;
