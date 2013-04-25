@@ -13,12 +13,59 @@ class LuaUnit
 {
 public:
 
+    // Mount(displayId)
+    static int Mount(lua_State*L, Unit* unit)
+    {
+        TO_UNIT();
+
+        uint32 displayId = luaL_checkunsigned(L, 1);
+
+        unit->Mount(displayId);
+        return 0;
+    }
+
+    // Dismount()
+    static int Dismount(lua_State*L, Unit* unit)
+    {
+        TO_UNIT();
+
+        if (unit->IsMounted())
+        {
+            unit->Dismount();
+            unit->RemoveAurasByType(SPELL_AURA_MOUNTED);
+        }
+
+        return 0;
+    }
+
+    // IsMounted()
+    static int IsMounted(lua_State*L, Unit* unit)
+    {
+        TO_UNIT_BOOL();
+
+        sEluna->PushBoolean(L, unit->IsMounted());
+        return 1;
+    }
+
+    // IsWithinLoS(x, y, z)
+    static int IsWithinLoS(lua_State*L, Unit* unit)
+    {
+        TO_UNIT_BOOL();
+
+        float x = luaL_checknumber(L, 1);
+        float y = luaL_checknumber(L, 2);
+        float z = luaL_checknumber(L, 3);
+
+        sEluna->PushBoolean(L, unit->IsWithinLOS(x, y, z));
+        return 1;
+    }
+
     // GetScale()
     static int GetScale(lua_State* L, Unit* unit)
     {
         TO_UNIT();
 
-        sEluna->PushFloat(L, unit->GetObjectSize());
+        sEluna->PushFloat(L, unit->GetFloatValue(OBJECT_FIELD_SCALE_X));
         return 1;
     }
 
@@ -234,10 +281,7 @@ public:
         Unit* target = sEluna->CHECK_UNIT(L, 1);
 
         if (!target)
-        {
-            luaL_error(L, "1st argument is not an unit");
             sEluna->PushBoolean(L, false);
-        }
         else
             sEluna->PushBoolean(L, creature->_IsTargetAcceptable(unit));
         return 1;
@@ -253,15 +297,9 @@ public:
         bool checkfaction = luaL_optbool(L, 3, true);
 
         if (!u)
-        {
-            luaL_error(L, "1st argument is not an unit");
             sEluna->PushBoolean(L, false);
-        }
         if (!enemy)
-        {
-            luaL_error(L, "2nd argument is not an unit");
             sEluna->PushBoolean(L, false);
-        }
         else
             sEluna->PushBoolean(L, creature->CanAssistTo(u, enemy, checkfaction));
         return 1;
@@ -335,10 +373,8 @@ public:
         Unit* target = sEluna->CHECK_UNIT(L, 1);
 
         if (!target)
-        {
-            luaL_error(L, "unit is nil");
             return 0;
-        }
+
         sEluna->PushFloat(L, creature->GetAggroRange(target));
         return 1;
     }
@@ -351,10 +387,8 @@ public:
         Unit* target = sEluna->CHECK_UNIT(L, 1);
 
         if (!target)
-        {
-            luaL_error(L, "unit is nil");
             return 0;
-        }
+
         sEluna->PushFloat(L, creature->GetAttackDistance(target));
         return 1;
     }
@@ -368,10 +402,8 @@ public:
         bool force = luaL_checkbool(L, 2);
 
         if (!target)
-        {
-            luaL_error(L, "unit is nil");
             return 0;
-        }
+
         sEluna->PushBoolean(L, creature->canStartAttack(target, force));
         return 1;
     }
@@ -795,15 +827,21 @@ public:
         return 1;
     }
 
-    // GetDistance(x, y, z)
+    // GetDistance(WorldObject or x, y, z)
     static int GetDistance(lua_State* L, Unit* unit)
     {
         TO_UNIT();
 
-        float X = luaL_checknumber(L, 1);
-        float Y = luaL_checknumber(L, 2);
-        float Z = luaL_checknumber(L, 3);
-        sEluna->PushFloat(L, unit->GetDistance(X, Y, Z));
+        WorldObject* obj = sEluna->CHECK_WORLDOBJECT(L, 1);
+        if (obj && obj->IsInWorld())
+            sEluna->PushFloat(L, unit->GetDistance(obj));
+        else
+        {
+            float X = luaL_checknumber(L, 1);
+            float Y = luaL_checknumber(L, 2);
+            float Z = luaL_checknumber(L, 3);
+            sEluna->PushFloat(L, unit->GetDistance(X, Y, Z));
+        }
         return 1;
     }
 
@@ -2722,16 +2760,6 @@ public:
         return 1;
     }
 
-    // GetNearestPlayer([radius])
-    static int GetNearestPlayer(lua_State* L, Unit* unit)
-    {
-        TO_CREATURE();
-
-        float dist = luaL_optnumber(L, 1, 0.0f);
-        sEluna->PushUnit(L, creature->SelectNearestPlayer(dist));
-        return 1;
-    }
-
     // GetNearestHostileTargetInAggroRange([checkLOS])
     static int GetNearestHostileUnitInAggroRange(lua_State* L, Unit* unit)
     {
@@ -2813,7 +2841,7 @@ public:
         uint32 type = luaL_checkunsigned(L, 1);
         if (type >= CURRENT_MAX_SPELL)
         {
-            sLog->outError(LOG_FILTER_GENERAL, "Eluna::Invalid spell type (%u) for GetCurrentSpell", type);
+            luaL_error(L, "Invalid spell type (%d)", type);
             return 0;
         }
         sEluna->PushSpell(L, unit->GetCurrentSpell(type));
@@ -3116,7 +3144,7 @@ public:
             gender = GENDER_FEMALE;
             break;
         default:
-            luaL_error(L, "1st argument not a valid gender");
+            luaL_error(L, "Invalid gender (%d)", _gender);
             return 0;
         }
 
@@ -3205,7 +3233,7 @@ public:
         float rate = luaL_checknumber(L, 2);
         bool forced = luaL_optbool(L, 3, false);
         if (type >= MAX_MOVE_TYPE)
-            sLog->outError(LOG_FILTER_GENERAL, "Eluna::Invalid movement type (%u)  for SetSpeed", type);
+            luaL_error(L, "Invalid movement type (%d)", type);
         else
             unit->SetSpeed((UnitMoveType)type, rate, forced);
         return 0;
@@ -3447,7 +3475,7 @@ public:
         }
         else if (type >= POWER_ALL)
         {
-            luaL_error(L, "Bad argument #1 to :GetPower(index) - specified out of range index (%i)", type);
+            luaL_error(L, "Invalid power type (%d)", type);
             return 0;
         }
 
@@ -3490,7 +3518,7 @@ public:
         }
         else if (type >= POWER_ALL)
         {
-            luaL_error(L, "Bad argument #1 to :GetMaxPower(index) - specified out of range index.");
+            luaL_error(L, "Invalid index (%d)", type);
             return 0;
         }
 
@@ -3829,7 +3857,7 @@ public:
             unit->SetPower(POWER_RUNIC_POWER, amt);
             break;
         default:
-            luaL_error(L, "Bad argument #1 for SetPower - Unknown power type (%i)", type);
+            luaL_error(L, "Invalid power type (%d)", type);
             break;
         }
         return 0;
@@ -3858,7 +3886,7 @@ public:
             unit->SetMaxPower(POWER_RUNIC_POWER, amt);
             break;
         default:
-            luaL_error(L, "Bad argument #1 for SetPower - Unknown power type (%i)", type);
+            luaL_error(L, "Invalid power type (%d)", type);
             break;
         }
         return 0;
@@ -4291,11 +4319,8 @@ public:
 
         uint32 val = luaL_checkunsigned(L, 1);
         uint32 currentKills = player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS);
-        if (currentKills == 0 || val > currentKills)
-        {
-            luaL_error(L, "Bad value. Player's Lifetime Kills must be greater than 0 and the value cannot be greater than the actual kills.");
-            return 0;
-        }
+        if (val > currentKills)
+            val = currentKills;
         player->SetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS, currentKills - val);
         return 0;
     }
@@ -4998,49 +5023,35 @@ public:
     // RegisterEvent(function, delay, calls)
     static int RegisterEvent(lua_State* L, Unit* unit)
     {
-        TO_CREATURE();
+        TO_UNIT();
 
+        luaL_checktype(L, 1, LUA_TFUNCTION);
         uint32 delay = luaL_checkunsigned(L, 2);
         uint32 repeats = luaL_checkunsigned(L, 3);
-        Eluna::LuaEventMap* eventMap = Eluna::LuaEventMap::GetEvents(creature);
-        if (!eventMap)
-        {
-            luaL_error(L, "Creature has no registered creature events, please register one before using RegisterEvent");
-            return 0;
-        }
-        if (!strcmp(luaL_typename(L, 1), "function") || delay > 0)
-        {
-            lua_settop(L, 1);
-            int functionRef = lua_ref(L, true);
-            eventMap->ScriptEventCreate(functionRef, delay, repeats);
-            sEluna->PushInteger(L, functionRef);
-        }
-        else
-            return 0;
-        return 1;
 
+        lua_settop(L, 1);
+        int functionRef = lua_ref(L, true);
+        unit->m_Events.AddEvent(new Eluna::LuaEventData(functionRef, delay, repeats, unit), unit->m_Events.CalculateTime(delay));
+        sEluna->PushInteger(L, functionRef);
+        return 1;
     }
 
     // RemoveEventById(eventID)
     static int RemoveEventById(lua_State* L, Unit* unit)
     {
-        TO_CREATURE();
+        TO_UNIT();
 
         int eventID = luaL_checkinteger(L, 1);
-        Eluna::LuaEventMap* eventMap = Eluna::LuaEventMap::GetEvents(creature);
-        if (eventMap)
-            eventMap->ScriptEventCancel(eventID);
+        Eluna::LuaEventData::Remove(eventID);
         return 0;
     }
 
     // RemoveEvents()
     static int RemoveEvents(lua_State* L, Unit* unit)
     {
-        TO_CREATURE();
+        TO_UNIT();
 
-        Eluna::LuaEventMap* eventMap = Eluna::LuaEventMap::GetEvents(creature);
-        if (eventMap)
-            eventMap->ScriptEventsReset();
+        Eluna::LuaEventData::RemoveAll(unit);
         return 0;
     }
 
@@ -5313,6 +5324,132 @@ public:
 
         sEluna->PushBoolean(L, _unit->GetVehicle()->HasEmptySeat(seatId));
         return 1;
+    }
+
+    // StartTaxi(pathId)
+    static int StartTaxi(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        uint32 pathId = luaL_checkunsigned(L, 1);
+
+        LuaTaxiMgr::StartTaxi(player, pathId);
+        return 0;
+    }
+
+    // SetPlayerLock(on/off)
+    static int SetPlayerLock(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        bool apply = luaL_optbool(L, 1, true);
+
+        if (apply)
+        {
+            player->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PACIFIED | UNIT_FLAG_SILENCED);
+            player->SetClientControl(player, 0);
+        }
+        else
+        {
+            player->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PACIFIED | UNIT_FLAG_SILENCED);
+            player->SetClientControl(player, 1);
+        }
+        return 0;
+    }
+
+    // GetNearestPlayer([radius])
+    static int GetNearestPlayer(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        float distance = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
+
+        Player* target = NULL;
+        Eluna::NearestTypeWithEntryInRangeCheck checker(unit, distance, TYPEID_PLAYER);
+        Trinity::PlayerLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(unit, target, checker);
+        unit->VisitNearbyObject(distance, searcher);
+
+        sEluna->PushUnit(L, target);
+        return 1;
+    }
+
+    // GetNearestGameObject([entry, radius])
+    static int GetNearestGameObject(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        uint32 entry = luaL_optunsigned(L, 1, 0);
+        float range = luaL_optnumber(L, 2, SIZE_OF_GRIDS);
+
+        GameObject* target = NULL;
+        Eluna::NearestTypeWithEntryInRangeCheck checker(unit, range, TYPEID_GAMEOBJECT, entry);
+        Trinity::GameObjectLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(unit, target, checker);
+        unit->VisitNearbyGridObject(range, searcher);
+
+        sEluna->PushGO(L, target);
+        return 1;
+    }
+
+    // GetNearestCreatureEntry([entry, radius])
+    static int GetNearestCreature(lua_State* L, Unit* unit)
+    {
+        TO_UNIT();
+
+        uint32 entry = luaL_optunsigned(L, 1, 0);
+        float range = luaL_optnumber(L, 2, SIZE_OF_GRIDS);
+
+        Creature* target = NULL;
+        Eluna::NearestTypeWithEntryInRangeCheck checker(unit, range, TYPEID_UNIT, entry);
+        Trinity::CreatureLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(unit, target, checker);
+        unit->VisitNearbyGridObject(range, searcher);
+
+        sEluna->PushUnit(L, target);
+        return 1;
+    }
+
+    // GossipSendPOI(X, Y, Icon, Flags, Data, Name)
+    static int GossipSendPOI(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        float x = luaL_checknumber(L, 1);
+        float y = luaL_checknumber(L, 2);
+        uint32 icon = luaL_checkunsigned(L, 3);
+        uint32 flags = luaL_checkunsigned(L, 4);
+        uint32 data = luaL_checkunsigned(L, 5);
+        std::string iconText = luaL_checkstring(L, 6);
+
+        WorldPacket packet(SMSG_GOSSIP_POI, 4 + 4 + 4 + 4 + 4 + 10);  // guess size
+        packet << flags;
+        packet << x;
+        packet << y;
+        packet << icon;
+        packet << data;
+        packet << iconText;
+        player->GetSession()->SendPacket(&packet);
+        return 0;
+    }
+
+    // GossipAddQuests(unit)
+    static int GossipAddQuests(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        WorldObject* source = sEluna->CHECK_WORLDOBJECT(L, 1);
+        if(!source)
+            return 0;
+
+        if (source->GetTypeId() == TYPEID_UNIT)
+        {
+            if (source->GetUInt32Value(UNIT_NPC_FLAGS) & UNIT_NPC_FLAG_QUESTGIVER)
+                player->PrepareQuestMenu(source->GetGUID());
+        }
+        else if (source->GetTypeId() == TYPEID_GAMEOBJECT)
+        {
+            if (source->ToGameObject()->GetGoType() == GAMEOBJECT_TYPE_QUESTGIVER)
+                player->PrepareQuestMenu(source->GetGUID());
+        }
+        return 0;
     }
 };
 #endif

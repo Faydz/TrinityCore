@@ -39,8 +39,11 @@ void Eluna::StartEluna(bool restart)
 
         if (LuaState)
         {
-            LuaEventMap::ScriptEventsResetAll(); // Unregisters and stops all timed events
+            // Unregisters and stops all timed events
+            LuaEventMap::ScriptEventsResetAll();
+            LuaEventData::RemoveAll();
 
+            // Remove bindings
             for (std::map<int, std::vector<int> >::iterator itr = ServerEventBindings.begin(); itr != ServerEventBindings.end(); ++itr)
             {
                 for (std::vector<int>::iterator it = itr->second.begin(); it != itr->second.end(); ++it)
@@ -144,6 +147,7 @@ void Eluna::RegisterGlobals(lua_State* L)
     lua_register(L, "bit_lshift", &LuaGlobalFunctions::bit_lshift);                         // bit_lshift(a, b) - Returns a << b UNDOCUMENTED
     lua_register(L, "bit_or", &LuaGlobalFunctions::bit_or);                                 // bit_or(a, b) - Returns a | b UNDOCUMENTED
     lua_register(L, "bit_and", &LuaGlobalFunctions::bit_and);                               // bit_and(a, b) - Returns a & b UNDOCUMENTED
+    lua_register(L, "GetItemLink", &LuaGlobalFunctions::GetItemLink);                       // GetItemLink(entry[, localeIndex]) - Returns the shift clickable link of the item. Item name translated if translate available for provided locale index UNDOCUMENTED
 
     // Other
     lua_register(L, "ReloadEluna", &LuaGlobalFunctions::ReloadEluna);                       // ReloadEluna() - Reload's Eluna engine
@@ -167,6 +171,7 @@ void Eluna::RegisterGlobals(lua_State* L)
     lua_register(L, "Ban", &LuaGlobalFunctions::Ban);                                       // Ban(banMode(integer), nameOrIP(string), duration(string), reason(string), player(whoBanned)) - Banmode: 0 account, 1 character, 2 IP
     lua_register(L, "SaveAllPlayers", &LuaGlobalFunctions::SaveAllPlayers);                 // SaveAllPlayers() - Saves all players
     lua_register(L, "SendMail", &LuaGlobalFunctions::SendMail);                             // SendMail(subject, text, receiverLowGUID[, sender, stationary, delay, itemEntry, itemAmount, itemEntry2, itemAmount2...]) - Sends a mail to player with lowguid. use nil to use default values on optional arguments. Sender is an optional player object. UNDOCUMENTED
+    lua_register(L, "AddTaxiPath", &LuaGlobalFunctions::AddTaxiPath);                       // AddTaxiPath(pathTable, mountA, mountH[, price, pathId]) - Adds a new taxi path. Returns the path's ID. Will replace an existing path if pathId provided and already used. path table structure: T = {{map, x, y, z[, actionFlag, delay, arrivalEvId, departEvId]}, {...}, ...} UDOCUMENTED
 }
 
 // Loads lua scripts from given directory
@@ -283,7 +288,16 @@ bool Eluna::ExecuteCall(uint8 params, uint8 res)
 {
     bool ret = true;
     int top = lua_gettop(LuaState);
-    if (strcmp(luaL_typename(LuaState,top-params), "function") )
+
+    if (lua_type(LuaState, top-params) == LUA_TFUNCTION) // is function
+    {
+        if (lua_pcall(LuaState,params,res,0) )
+        {
+            report(LuaState);
+            ret = false;
+        }
+    }
+    else
     {
         ret = false;
         if (params > 0)
@@ -293,14 +307,6 @@ bool Eluna::ExecuteCall(uint8 params, uint8 res)
                 if (!lua_isnone(LuaState, i) )
                     lua_remove(LuaState, i);
             }
-        }
-    }
-    else
-    {
-        if (lua_pcall(LuaState,params,res,0) )
-        {
-            report(LuaState);
-            ret = false;
         }
     }
     return ret;
@@ -567,7 +573,7 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         {
             if (!sObjectMgr->GetCreatureTemplate(id))
             {
-                sLog->outError(LOG_FILTER_GENERAL, "Eluna Nova::Couldn't find a creature with (ID: %d)!", id);
+                luaL_error(LuaState, "Couldn't find a creature with (ID: %d)!", id);
                 return;
             }
 
@@ -581,7 +587,7 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         {
             if (!sObjectMgr->GetCreatureTemplate(id))
             {
-                sLog->outError(LOG_FILTER_GENERAL, "Eluna Nova::Couldn't find a creature with (ID: %d)!", id);
+                luaL_error(LuaState, "Couldn't find a creature with (ID: %d)!", id);
                 return;
             }
 
@@ -595,7 +601,7 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         {
             if (!sObjectMgr->GetGameObjectTemplate(id))
             {
-                sLog->outError(LOG_FILTER_GENERAL, "Eluna Nova::Couldn't find a gameobject with (ID: %u)!", id);
+                luaL_error(LuaState, "Couldn't find a gameobject with (ID: %d)!", id);
                 return;
             }
 
@@ -609,7 +615,7 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         {
             if (!sObjectMgr->GetGameObjectTemplate(id))
             {
-                sLog->outError(LOG_FILTER_GENERAL, "Eluna Nova::Couldn't find a gameobject with (ID: %u)!", id);
+                luaL_error(LuaState, "Couldn't find a gameobject with (ID: %d)!", id);
                 return;
             }
 
@@ -623,7 +629,7 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         {
             if (!sObjectMgr->GetItemTemplate(id))
             {
-                sLog->outError(LOG_FILTER_GENERAL, "Eluna Nova::Couldn't find a item with (ID: %d)!", id);
+                luaL_error(LuaState, "Couldn't find a item with (ID: %d)!", id);
                 return;
             }
 
@@ -637,7 +643,7 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         {
             if (!sObjectMgr->GetItemTemplate(id))
             {
-                sLog->outError(LOG_FILTER_GENERAL, "Eluna Nova::Couldn't find a item with (ID: %d)!", id);
+                luaL_error(LuaState, "Couldn't find a item with (ID: %d)!", id);
                 return;
             }
 
@@ -655,10 +661,10 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         break;
 
     default:
-        sLog->outError(LOG_FILTER_GENERAL, "Unknown register type (regtype %u, id %u, event %u)", regtype, id, evt);
+        luaL_error(LuaState, "Unknown register type (regtype %d, id %d, event %d)", regtype, id, evt);
         return;
     }
-    sLog->outError(LOG_FILTER_GENERAL, "Unknown event type (regtype %u, id %u, event %u)", regtype, id, evt);
+    luaL_error(LuaState, "Unknown event type (regtype %d, id %d, event %d)", regtype, id, evt);
 }
 void Eluna::ElunaBind::Clear()
 {
@@ -674,13 +680,17 @@ void Eluna::ElunaBind::Insert(uint32 entryId, uint32 eventId, int funcRef)
 {
     if (Bindings[entryId][eventId])
     {
-        sLog->outError(LOG_FILTER_GENERAL, "Eluna Nova::A function is already registered for entry %u event %u", entryId, eventId);
+        luaL_error(sEluna->LuaState, "A function is already registered for entry (%d) event (%d)", entryId, eventId);
         luaL_unref(sEluna->LuaState, LUA_REGISTRYINDEX, funcRef); // free the unused ref
     }
     else
         Bindings[entryId][eventId] = funcRef;
 }
+
 UNORDERED_MAP<uint64, Eluna::LuaEventMap*> Eluna::LuaEventMap::LuaEventMaps;
+UNORDERED_MAP<int, Eluna::LuaEventData*> Eluna::LuaEventData::LuaEvents;
+UNORDERED_MAP<uint64, std::list<int> > Eluna::LuaEventData::EventIDs;
+
 void Eluna::LuaEventMap::ScriptEventsResetAll()
 {
     // GameObject && Creature events reset
@@ -744,4 +754,59 @@ void Eluna::LuaEventMap::ScriptEventsExecute()
             luaL_unref(sEluna->LuaState, LUA_REGISTRYINDEX, itr->second.funcRef);
         _eventMap.erase(itr++);
     }
+}
+
+// Lua taxi helper functions
+uint32 LuaTaxiMgr::nodeId = 500;
+void LuaTaxiMgr::StartTaxi(Player* player, uint32 pathid)
+{
+    if (pathid >= sTaxiPathNodesByPath.size())
+        return;
+
+    TaxiPathNodeList const& path = sTaxiPathNodesByPath[pathid];
+    if (path.size() < 2)
+        return;
+
+    std::vector<uint32> nodes;
+    nodes.resize(2);
+    nodes[0] = path[0].index;
+    nodes[1] = path[path.size()-1].index;
+
+    player->ActivateTaxiPathTo(nodes);
+}
+uint32 LuaTaxiMgr::AddPath(std::list<TaxiPathNodeEntry> nodes, uint32 mountA, uint32 mountH, uint32 price, uint32 pathId)
+{
+    if (nodes.size() < 2)
+        return 0;
+    if (!pathId)
+        pathId = sTaxiPathNodesByPath.size();
+    if (sTaxiPathNodesByPath.size() >= pathId)
+        sTaxiPathNodesByPath.resize(pathId+1);
+    sTaxiPathNodesByPath[pathId].clear();
+    sTaxiPathNodesByPath[pathId].resize(nodes.size());
+    uint32 startNode = nodeId;
+    uint32 index = 0;
+    for (std::list<TaxiPathNodeEntry>::iterator it = nodes.begin(); it != nodes.end(); ++it)
+    {
+        TaxiPathNodeEntry entry = *it;
+        entry.path = pathId;
+        TaxiNodesEntry* nodeEntry = new TaxiNodesEntry();
+        nodeEntry->ID = index;
+        nodeEntry->map_id = entry.mapid;
+        nodeEntry->MountCreatureID[0] = mountH;
+        nodeEntry->MountCreatureID[1] = mountA;
+        nodeEntry->x = entry.x;
+        nodeEntry->y = entry.y;
+        nodeEntry->z = entry.z;
+        sTaxiPathNodeEntriesByPath.nodeEntries[nodeId] = nodeEntry;
+        entry.index = nodeId++;
+        sTaxiPathNodesByPath[pathId].set(index++, TaxiPathNodePtr(new TaxiPathNodeEntry(entry)));
+    }
+    if (startNode >= nodeId)
+    {
+        nodeId = startNode;
+        return 0;
+    }
+    sTaxiPathSetBySource[startNode][nodeId-1] = TaxiPathBySourceAndDestination(pathId, price);
+    return pathId;
 }

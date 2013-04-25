@@ -2,6 +2,11 @@
 #include "LuaEngine.h"
 
 // misc
+void HookMgr::OnLootItem(Player* player, Item* item, uint32 count, uint64 guid)
+{
+    for (HookPointerSet::iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnLootItem(player, item, count, guid);
+}
 void HookMgr::OnFirstLogin(Player* player)
 {
     for (HookPointerSet::iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
@@ -19,7 +24,7 @@ InventoryResult HookMgr::OnCanUseItem(const Player* player, uint32 itemEntry)
     for (HookPointerSet::iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
     {
         InventoryResult value = (*it)->OnCanUseItem(player2, itemEntry);
-        if(value != EQUIP_ERR_OK)
+        if (value != EQUIP_ERR_OK)
             return value;
     }
     return EQUIP_ERR_OK;

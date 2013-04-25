@@ -73,7 +73,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetSelectedPlayer", &LuaUnit::GetSelectedPlayer},             // :GetSelectedPlayer() -- Returns player's selected player. UNDOCUMENTED
     {"GetSelectedUnit", &LuaUnit::GetSelectedUnit},                 // :GetSelectedUnit() -- Returns player's selected unit. UNDOCUMENTED
 
-
     // Setters
     {"AdvanceSkillsToMax", &LuaUnit::AdvanceSkillsToMax},           // :AdvanceSkillsToMax() -- Advances all currently known skills to the currently known max level
     {"AdvanceSkill", &LuaUnit::AdvanceSkill},                       // :AdvanceSkill(skill_id, step) -- Advances skill by ID and the amount(step)
@@ -106,8 +105,10 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetDrunkValue", &LuaUnit::SetDrunkValue},                     // :SetDrunkValue(newDrunkValue) -- Sets drunkness value.
     {"SetRestTime", &LuaUnit::SetRestTime},                         // :SetRestTime(value) -- Sets the rested time.
     {"SetAtLoginFlag", &LuaUnit::SetAtLoginFlag},                   // :SetAtLoginFlag(flag) -- Adds an at login flag.
+    {"SetPlayerLock", &LuaUnit::SetPlayerLock},                     // :SetPlayerLock(on/off) - UNDOCUMENTED
 
     // Boolean
+    {"IsWithinLoS", &LuaUnit::IsWithinLoS},							// :IsWithinLoS(x, y, z) - UNDOCUMENTED
     {"IsInGroup", &LuaUnit::IsInGroup},                             // :IsInGroup()
     {"IsInGuild", &LuaUnit::IsInGuild},                             // :IsInGuild()
     {"IsGM", &LuaUnit::IsGM},                                       // :IsGM()
@@ -246,6 +247,10 @@ ElunaRegister<Unit> UnitMethods[] =
     {"RewardQuest", &LuaUnit::RewardQuest},                         // :RewardQuest(entry) --  Gives quest rewards for the player.
     {"SendAuctionMenu", &LuaUnit::SendAuctionHello},                // :SendAuctionMenu([creature, faction]) --  Sends auction window to player. Auction house is sent by creature if provided. AH entry is searched with faction or creature's faction if provided.
     {"SendMailMenu", &LuaUnit::HandleGetMailList},                  // :SendMailMenu(object) --  Sends mail window to player from gameobject.
+    {"StartTaxi", &LuaUnit::StartTaxi},                             // :StartTaxi(pathId) -- player starts the given flight path UNDOCUMENTED
+    {"GossipSendPOI", &LuaUnit::GossipSendPOI},                     // :GossipSendPOI(X, Y, Icon, Flags, Data, Name) -- Sends a point of interest to the player UNDOCUMENTED
+    {"GossipAddQuests", &LuaUnit::GossipAddQuests},                 // :GossipAddQuests(unit) -- Adds unit's quests to player's gossip menu UNDOCUMENTED
+
 
     // Creature methods
 
@@ -256,7 +261,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetVictim", &LuaUnit::GetVictim},                             // :GetVictim() - Returns creature's current target.
     {"GetNearestTargetInAttackDistance", &LuaUnit::GetNearestTargetInAttackDistance}, // :GetNearestTargetInAttackDistance([radius]) - Returns nearest target in attack distance and within given radius, if set.
     {"GetNearestTarget", &LuaUnit::GetNearestTarget},               // :GetNearestTarget([radius]) - Returns nearest target in sight or given radius.
-    {"GetNearestPlayer", &LuaUnit::GetNearestPlayer},               // :GetNearestPlayer([radius]) - Returns nearest player in sight or given radius.
     {"GetNearestHostileTargetInAggroRange", &LuaUnit::GetNearestHostileUnitInAggroRange}, // :GetNearestHostileTargetInAggroRange([checkLOS]) - Returns closest hostile target in aggro range of the creature.
     {"GetHomePosition", &LuaUnit::GetHomePosition},                 // :GetHomePosition() - Returns x,y,z,o of spawn position.
     {"GetTransportHomePosition", &LuaUnit::GetTransportHomePosition},   // :GetTransportHomePosition() - Returns x,y,z,o of transport spawn position.
@@ -310,9 +314,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"IsDamageEnoughForLootingAndReward", &LuaUnit::IsDamageEnoughForLootingAndReward}, // :IsDamageEnoughForLootingAndReward() --
 
     // Other
-    {"RegisterEvent", &LuaUnit::RegisterEvent},                     // :RegisterEvent(function, delay, calls)
-    {"RemoveEventById", &LuaUnit::RemoveEventById},                 // :RemoveEventById(eventID)
-    {"RemoveEvents", &LuaUnit::RemoveEvents},                       // :RemoveEvents()
     {"Despawn", &LuaUnit::Despawn},                                 // :Despawn([despawnDelay]) - Creature despawns after given time
     {"FleeToGetAssistance", &LuaUnit::DoFleeToGetAssistance},       // :FleeToGetAssistance() - Creature flees for assistance
     {"CallForHelp", &LuaUnit::CallForHelp},                         // :CallForHelp(radius) - Creature calls for help from units in radius
@@ -367,8 +368,11 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetShieldBlockValue", &LuaUnit::GetShieldBlockValue},         // :GetShieldBlockValue() - Returns block value.
     {"GetMountId", &LuaUnit::GetMountId},                           // :GetMountId() -- UNDOCUMENTED
     {"GetScale", &LuaUnit::GetScale},                               // :GetScale() - UNDOCUMENTED
-    {"GetDistance", &LuaUnit::GetDistance},                         // :GetDistance(x, y, z) -- UNDOCUMENTED
+    {"GetDistance", &LuaUnit::GetDistance},                         // :GetDistance(WorldObject or x, y, z) -- UNDOCUMENTED
     {"GetGUIDLow", &LuaUnit::GetGUIDLow},                           // :GetGUIDLow() -- Returns uint32 guid (low guid) that is used in database. UNDOCUMENTED
+    {"GetNearestPlayer", &LuaUnit::GetNearestPlayer},               // :GetNearestPlayer([radius]) - Returns nearest player in sight or given radius. UNDOCUMENTED
+    {"GetNearestGameObject", &LuaUnit::GetNearestGameObject},       // :GetNearestGameObject([entry, radius]) - Returns nearest gameobject with given entry in sight or given radius. UNDOCUMENTED
+    {"GetNearestCreature", &LuaUnit::GetNearestCreature},           // :GetNearestCreatureEntry([entry, radius]) - Returns nearest creature with given entry in sight or given radius. UNDOCUMENTED
 
     // Setters
     {"SetFaction", &LuaUnit::SetFaction},                           // :SetFaction(factionId) -- Sets the unit's faction
@@ -423,8 +427,12 @@ ElunaRegister<Unit> UnitMethods[] =
     {"IsAuctioneer", &LuaUnit::IsAuctioneer},                       // :IsAuctioneer() -- UNDOCUMENTED
     {"HealthBelowPct", &LuaUnit::HealthBelowPct},                   // :HealthBelowPct(int32 pct) -- UNDOCUMENTED
     {"HealthAbovePct", &LuaUnit::HealthAbovePct},                   // :HealthAbovePct(int32 pct) -- UNDOCUMENTED
+    {"IsMounted", &LuaUnit::IsMounted},                             // :IsMounted() -- UNDOCUMENTED
 
     // Other
+    {"RegisterEvent", &LuaUnit::RegisterEvent},                     // :RegisterEvent(function, delay, calls)
+    {"RemoveEventById", &LuaUnit::RemoveEventById},                 // :RemoveEventById(eventID)
+    {"RemoveEvents", &LuaUnit::RemoveEvents},                       // :RemoveEvents()
     {"AddAura", &LuaUnit::AddAura},                                 // :AddAura(spellId, target) -- Adds an aura to the specified target
     {"RemoveAura", &LuaUnit::RemoveAura},                           // :RemoveAura(spellId[, casterGUID]) -- Removes an aura from the unit by the spellId, casterGUID(Original caster) is optional.
     {"RemoveAllAuras", &LuaUnit::RemoveAllAuras},                   // :RemoveAllAuras() -- Removes all the unit's auras
@@ -463,6 +471,8 @@ ElunaRegister<Unit> UnitMethods[] =
     {"Emote", &LuaUnit::Emote},                                     // :Emote(emote) -- UNDOCUMENTED
     {"CountPctFromCurHealth", &LuaUnit::CountPctFromCurHealth},     // :CountPctFromCurHealth(int32 pct) -- UNDOCUMENTED
     {"CountPctFromMaxHealth", &LuaUnit::CountPctFromMaxHealth},     // :CountPctFromMaxHealth() -- UNDOCUMENTED
+    {"Dismount", &LuaUnit::Dismount},								// :Dismount() - Dismounts the unit. UNDOCUMENTED
+    {"Mount", &LuaUnit::Mount},								        // :Mount(displayId) - Mounts the unit on the specified displayId. UNDOCUMENTED
 
     /* Vehicle */
     {"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger},         // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
@@ -502,6 +512,9 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     {"GetByteValue", &LuaGameObject::GetByteValue},                 // :GetByteValue(index, offset) - returns a byte value from object fields
     {"GetUInt16Value", &LuaGameObject::GetUInt16Value},             // :GetUInt16Value(index, offset) - returns a uint16 value from object fields
     {"GetGUIDLow", &LuaGameObject::GetGUIDLow},                     // :GetGUIDLow() -- Returns uint32 guid (low guid) that is used in database. UNDOCUMENTED
+    {"GetNearestPlayer", &LuaGameObject::GetNearestPlayer},               // :GetNearestPlayer([radius]) - Returns nearest player in sight or given radius. UNDOCUMENTED
+    {"GetNearestGameObject", &LuaGameObject::GetNearestGameObject},       // :GetNearestGameObject([entry, radius]) - Returns nearest gameobject with given entry in sight or given radius. UNDOCUMENTED
+    {"GetNearestCreature", &LuaGameObject::GetNearestCreature},           // :GetNearestCreatureEntry([entry, radius]) - Returns nearest creature with given entry in sight or given radius. UNDOCUMENTED
 
     // Setters
     {"SetScale", &LuaGameObject::SetScale},                         // :SetScale(scale) -
@@ -552,6 +565,17 @@ ElunaRegister<Item> ItemMethods[] =
     {"GetByteValue", &LuaItem::GetByteValue},                               // :GetByteValue(index, offset) - returns a byte value from item fields
     {"GetUInt16Value", &LuaItem::GetUInt16Value},                           // :GetUInt16Value(index, offset) - returns a uint16 value from item fields
     {"GetGUIDLow", &LuaItem::GetGUIDLow},                                   // :GetGUIDLow() -- Returns uint32 guid (low guid) that is used in database. UNDOCUMENTED
+    {"GetEnchantmentId", &LuaItem::GetEnchantmentId},                       // :GetEnchantmentId(enchant_slot) -- Returns the enchantment in given slot. (permanent = 0) UNDOCUMENTED
+    {"GetName", &LuaItem::GetName},                                         // :GetName() -- Returns item name UNDOCUMENTED
+    {"GetClass", &LuaItem::GetClass},                                       // :GetClass() -- Returns item class UNDOCUMENTED
+    {"GetSubClass", &LuaItem::GetSubClass},                                 // :GetSubClass() -- Returns item subclass UNDOCUMENTED
+    {"GetInventoryType", &LuaItem::GetInventoryType},                       // :GetInventoryType() -- Returns item inventorytype UNDOCUMENTED
+    {"GetSpellId", &LuaItem::GetSpellId},                                   // :GetSpellId(index) -- Returns spellID at given index (0-4) UNDOCUMENTED
+    {"GetSpellTrigger", &LuaItem::GetSpellTrigger},                         // :GetSpellTrigger(index) -- Returns spell trigger at given index (0-4) UNDOCUMENTED
+    {"GetItemLevel", &LuaItem::GetItemLevel},                               // :GetItemLevel() -- Returns the itemlevel UNDOCUMENTED
+    {"GetRequiredLevel", &LuaItem::GetRequiredLevel},                       // :GetRequiredLevel() -- Returns the required level UNDOCUMENTED
+    {"GetBuyPrice", &LuaItem::GetBuyPrice},                                 // :GetBuyPrice() -- Returns the buy price UNDOCUMENTED
+    {"GetSellPrice", &LuaItem::GetSellPrice},                               // :GetSellPrice() -- Returns the sell price UNDOCUMENTED
 
     // Setters
     {"SetOwner", &LuaItem::SetOwner},                                       // :SetOwner(player) - Sets the owner of the item
@@ -579,7 +603,7 @@ ElunaRegister<Item> ItemMethods[] =
     {"IsInTrade", &LuaItem::IsInTrade},                                     // :IsInTrade() - Returns true if the item is in trade
     {"IsInBag", &LuaItem::IsInBag},                                         // :IsInBag() - Returns true if the item is in a bag
     {"IsEquipped", &LuaItem::IsEquipped},                                   // :IsEquipped() - Returns true if the item is equipped
-    {"hasQuest", &LuaItem::hasQuest},                                       // :hasQuest(questId) - Returns true if the item starts the quest
+    {"HasQuest", &LuaItem::hasQuest},                                       // :HasQuest(questId) - Returns true if the item starts the quest
     {"IsPotion", &LuaItem::IsPotion},                                       // :IsPotion() - Returns true if the item is a potion
     {"IsWeaponVellum", &LuaItem::IsWeaponVellum},                           // :IsWeaponVellum() - Returns true if the item is a weapon vellum
     {"IsArmorVellum", &LuaItem::IsArmorVellum},                             // :IsArmorVellum() - Returns true if the item is an armor vellum
