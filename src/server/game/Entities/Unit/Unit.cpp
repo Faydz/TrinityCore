@@ -11010,11 +11010,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                     }
                 }
             }
-
-            // Raging Blow (damage increased by mastery)
-            if (owner->ToPlayer() && owner->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && spellProto->Id == 8680)
-                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARRIOR_FURY)
-                        DoneTotalMod *= 1.0f + (0.056f *  (owner->ToPlayer()->GetMasteryPoints() - 6));// fury base mastery is 2
             break;
     }
 
@@ -12176,6 +12171,15 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                             || !player->IsOneHandUsed(false))
                         {
                             AddPct(DoneTotalMod, -aurEff->GetAmount());
+                        }
+                    }
+                
+                    // Raging Blow (damage increased by mastery)
+                    if (player->HasAuraType(SPELL_AURA_MASTERY) && player->GetPrimaryTalentTree(player->GetActiveSpec()) == BS_WARRIOR_FURY)
+                    {
+                        if(spellProto->Id == 96103 || spellProto->Id == 85384)
+                        {
+                            AddPct(DoneTotalMod, 5.60 * player->GetMasteryPoints());
                         }
                     }
                 }
@@ -19336,6 +19340,15 @@ void Unit::RewardRage(uint32 baseRage, bool attacker)
         // Berserker Rage effect
         if (HasAura(18499))
             addRage *= 2.0f;
+
+        // Fury mastery check
+        if(Player* player = this->ToPlayer())
+        {
+            if (player->HasAuraType(SPELL_AURA_MASTERY) && player->GetPrimaryTalentTree(player->GetActiveSpec()) == BS_WARRIOR_FURY)
+            {
+                AddPct(addRage, 5.60f * player->GetMasteryPoints());
+            }
+        }
     }
 
     addRage *= sWorld->getRate(RATE_POWER_RAGE_INCOME);
