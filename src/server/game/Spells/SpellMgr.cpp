@@ -3391,6 +3391,16 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Heroic Leap
+                    case 6544:
+                        spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_40_YARDS);
+                    // Rallying Cry
+                    case 97463:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 20;
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_INCREASE_HEALTH_PERCENT;
+                        spellInfo->Effects[EFFECT_0].TargetA = TARGET_UNIT_CASTER_AREA_RAID;
+                        spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_30_YARDS);
+                        break;
                     // Offhand Slam
                     case 50783:
                         spellInfo->AttributesEx3 |= SPELL_ATTR3_REQ_OFFHAND;
