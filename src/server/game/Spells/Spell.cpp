@@ -4673,7 +4673,8 @@ void Spell::TakeRunePower(bool didHit)
                 runeCost[rune]--;
 
                 // keep Death Rune type if missed
-                if (didHit)
+                // also check for blood of the north
+                if (didHit && !player->HasAura(54637))
                     player->RestoreBaseRune(i);
 
                 if (runeCost[RUNE_DEATH] == 0)
