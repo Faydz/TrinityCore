@@ -8517,11 +8517,19 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 }
                 break;
             case SPELLFAMILY_WARRIOR:
-                if (auraSpellInfo->Id == 50421)             // Scent of Blood
+                switch (auraSpellInfo->Id)
                 {
-                    CastSpell(this, 50422, true);
-                    RemoveAuraFromStack(auraSpellInfo->Id);
-                    return false;
+                    // Scent of Blood
+                    case 50421:
+                        CastSpell(this, 50422, true);
+                        RemoveAuraFromStack(auraSpellInfo->Id);
+                        return false;
+                    // Impending Victory
+                    case 80128: 
+                    case 80129:
+                        if(victim->GetHealthPct() > 20.0f) 
+                            return false;
+                        break;
                 }
                 break;
             case SPELLFAMILY_PRIEST:
@@ -11732,6 +11740,11 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
         case SPELLFAMILY_WARRIOR:
             switch(spellProto->Id)
             {
+                // Victory rush
+                case 34428:
+                    if (victim->HasAura(82368)) 
+                        DoneTotalMod = 0.25f;
+                    break;
                 // Second Wind
                 case 29842:
                 case 29841:
