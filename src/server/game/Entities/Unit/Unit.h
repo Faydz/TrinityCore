@@ -2190,6 +2190,7 @@ class Unit : public WorldObject
         time_t GetLastDamagedTime() const { return _lastDamagedTime; }
         void SetLastDamagedTime(time_t val) { _lastDamagedTime = val; }
 
+        uint8 corruptionDone;
         uint32 m_heal_done[120];
         uint32 m_damage_done[120];
         uint32 m_damage_taken[120];
@@ -2199,6 +2200,7 @@ class Unit : public WorldObject
         uint32 GetDamageTakenInPastSecs(uint32 secs);
         void ResetDamageDoneInPastSecs(uint32 secs);
         void ResetHealingDoneInPastSecs(uint32 secs);
+        void CheckCorruption();
 
     protected:
         explicit Unit (bool isWorldObject);

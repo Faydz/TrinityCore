@@ -278,6 +278,7 @@ Unit::Unit(bool isWorldObject) : WorldObject(isWorldObject),
     for (uint32 i = 0; i < 120; ++i)
         m_damage_taken [i] = 0;
 
+    corruptionDone = 0;
     _focusSpell = NULL;
     _lastLiquid = NULL;
     _isWalkingBeforeCharm = false;
@@ -10730,6 +10731,23 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
     // Custom scripted damage
     switch (spellProto->SpellFamilyName)
     {
+        case SPELLFAMILY_GENERIC:
+            switch (spellProto->Id)
+            {
+                case 82363: // Corruption of the old god
+                case 93169:
+                case 93170:
+                case 93171:
+                    if (uint32 cLevel = victim->GetPower(POWER_ALTERNATE_POWER))
+                    {
+                        if (cLevel > 0)
+                        {
+                            pdamage += pdamage / 100 * (3 * cLevel);
+                        }
+                    }
+                    break;
+            }
+            break;
         case SPELLFAMILY_MAGE:
             // Ice Lance
             if (spellProto->SpellIconID == 186)
@@ -19983,4 +20001,36 @@ void Unit::DarkIntentHandler()
 void Unit::SetLastSpell(uint32 spellId)
 {
     m_lastSpell = spellId;
+}
+
+void Unit::CheckCorruption()
+{
+    int32 val = GetPower(POWER_ALTERNATE_POWER);
+
+    // Check for CA
+    if (val >= 25 && val < 50 && corruptionDone == 0)
+    {
+        corruptionDone++;
+        AddAura(81836, this);
+    }
+
+    // Check for CS
+    if (val >= 50 && val < 75 && !HasAura(81829))
+    {
+        AddAura(81829, this);
+    }
+ 
+    // Check for CS
+    if (val >= 75 && val < 100 && corruptionDone == 1)
+    {
+        corruptionDone++;
+        CastSpell(this, 93318, true);
+    }
+
+    // Check for CA
+    if (val >= 100 && !HasAura(82170))
+    {
+        AddAura(82170, this);
+        AddAura(82193, this);
+    }
 }
