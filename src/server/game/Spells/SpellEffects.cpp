@@ -4545,7 +4545,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                             // Frost Fever
                             if (m_targets.GetUnitTarget()->GetAura(55095))
                             {
-                                int32 bp2 = 1;
                                 m_caster->CastCustomSpell(unitTarget, 55095, NULL, NULL, &bp2, true);
                             }
                         }

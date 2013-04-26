@@ -10940,6 +10940,20 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                         }
                     }
                     break;
+                // Frost Fever
+                case 55095:
+                    // Checks the custom effect2, if > 0 that buff has been casted by a Death Knight with the talent "Contagion" learned, througth Pestilence.
+                    // The EFFECT_2 basepoint brings the increasing percent mod from Contagion talent.
+                    if(AuraEffect* aurEff = victim->GetAuraEffect(spellProto->Id, EFFECT_2))
+                    {
+                        if(int32 bp = aurEff->GetAmount())
+                        {
+                            AddPct(DoneTotalMod, bp);
+                        }
+                    }
+                    
+                    DoneTotal += int32(this->GetTotalAttackPowerValue(BASE_ATTACK) * 0.075f);
+                    break;
             }
             
             // Dreadblade (DK Unholy Mastery)

@@ -3385,7 +3385,7 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
                         spellInfo->Effects[EFFECT_2].BasePoints = 0;
                         spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_DUMMY;
-                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ENEMY);
                         break;
                     // Death's Advance
                     case 96268:
