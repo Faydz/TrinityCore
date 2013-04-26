@@ -67,7 +67,7 @@ enum WarriorSpellIcons
     WARRIOR_ICON_ID_IMPROVED_HAMSTRING              = 23,
 };
 
-// 
+// Unshackled Fury calculation with no-damaging abilities
 class spell_warr_fury_mastery_calculation : public SpellScriptLoader
 {
     public:

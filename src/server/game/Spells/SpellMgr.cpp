@@ -3093,6 +3093,30 @@ void SpellMgr::LoadSpellCustomAttr()
             case 75547:
                 spellInfo->Effects[1].TriggerSpell = 0;
                 break;
+            // Shield Specialization Rank 1
+            case 12298:
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
+                spellInfo->Effects[EFFECT_1].BasePoints = 23602;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
+                spellInfo->Effects[EFFECT_1].MiscValue = 50;
+                spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
+                break;
+            // Shield Specialization Rank 2
+            case 12724:
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
+                spellInfo->Effects[EFFECT_1].BasePoints = 84994;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
+                spellInfo->Effects[EFFECT_1].MiscValue = 100;
+                spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
+                break;
+            // Shield Specialization Rank 3
+            case 12725:
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
+                spellInfo->Effects[EFFECT_1].BasePoints = 84993;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
+                spellInfo->Effects[EFFECT_1].MiscValue = 150;
+                spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
+                break;
             default:
                 break;
         }

@@ -5819,6 +5819,21 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Shield Specialization
+                case 12298:
+                case 12724:
+                case 12725:
+                    if(procEx & PROC_EX_REFLECT)
+                    {
+                        triggered_spell_id = triggeredByAura->GetAmount();
+                        basepoints0 = triggeredByAura->GetMiscValue() * 4;
+                    }
+                    else if(procEx | PROC_EX_BLOCK)
+                    {
+                        triggered_spell_id = triggeredByAura->GetAmount();
+                        basepoints0 = triggeredByAura->GetMiscValue();
+                    }
+                    break;
                 // Strikes of Opportunity Arms Warrior Mastery
                 case 76838:
                     if (triggerAmount == 0 || effIndex != EFFECT_1)
