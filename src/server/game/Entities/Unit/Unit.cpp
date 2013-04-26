@@ -12208,6 +12208,18 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
 
         switch (spellProto->SpellFamilyName)
         {
+            case SPELLFAMILY_HUNTER:
+                switch(spellProto->Id)
+                {
+                    case 19434:
+                        // 160%WeapDMG + 0.72*RAP + 744
+                        int32 weaponDmg = CalculatePct(this->CalculateDamage(RANGED_ATTACK, false, true), 160);
+                        float calcRAP = CalculatePct(this->GetTotalAttackPowerValue(RANGED_ATTACK), 72);
+
+                        pdamage = uint32(weaponDmg + calcRAP + 744);
+                        break;
+                }
+                break;
             case SPELLFAMILY_DEATHKNIGHT:
                 // Merciless Combat (Obliterate, Frost Strike)
                 if (victim && this->getClass() == CLASS_DEATH_KNIGHT && spellProto->SpellFamilyFlags & flag96(0x0, 0x20004, 0x0))
