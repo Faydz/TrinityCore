@@ -10941,6 +10941,18 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                     }
                     break;
             }
+            
+            // Dreadblade (DK Unholy Mastery)
+            if (Player const* caster = this->ToPlayer())
+            {
+                if (caster->HasAuraType(SPELL_AURA_MASTERY))
+                {
+                    if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_DEATH_KNIGHT_UNHOLY)
+                    {
+                        AddPct(DoneTotalMod, float(2.5f * caster->GetMasteryPoints()));
+                    }
+                }
+            }
 
             // Sigil of the Vengeful Heart
             if (spellProto->SpellFamilyFlags[0] & 0x2000)

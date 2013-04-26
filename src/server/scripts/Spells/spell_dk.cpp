@@ -1130,41 +1130,6 @@ class spell_dk_frozen_heart : public SpellScriptLoader
         }
 };
 
-class spell_dk_dreadblade : public SpellScriptLoader
-{
-    public:
-        spell_dk_dreadblade() : SpellScriptLoader("spell_dk_dreadblade") { }
-
-        class spell_dk_dreadblade_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_dk_dreadblade_AuraScript);
-
-            void CalculateBonus(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
-            {
-                canBeRecalculated = true;
-
-                if (!GetCaster())
-                    return;
-
-                // Dreadblade (DK Unholy Mastery)
-                if (Player* caster = GetCaster()->ToPlayer())
-                    if (caster->HasAuraType(SPELL_AURA_MASTERY))
-                        if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_DEATH_KNIGHT_UNHOLY)
-                            amount += int32(2.5f * caster->GetMasteryPoints());
-            }
-
-            void Register()
-            {
-                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dk_dreadblade_AuraScript::CalculateBonus, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
-            }
-        };
-
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_dk_dreadblade_AuraScript();
-        }
-};
-
 void AddSC_deathknight_spell_scripts()
 {
     new spell_dk_necrotic_strike();
@@ -1191,5 +1156,4 @@ void AddSC_deathknight_spell_scripts()
     new spell_dk_vampiric_blood();
     new spell_dk_will_of_the_necropolis();
     new spell_dk_frozen_heart();
-    new spell_dk_dreadblade();
 }
