@@ -592,6 +592,8 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     int32 energy = -(m_caster->ModifyPower(POWER_ENERGY, -25));
                     // 25 energy = 100% more damage
                     AddPct(damage, energy * 4);
+                    // AP coefficient
+                    damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.196f * m_caster->ToPlayer()->GetComboPoints());
                 }
                 // Maul - Rend And Tear
                 if (m_spellInfo->Id == 6807 && unitTarget->HasAuraState(AURA_STATE_BLEEDING))
