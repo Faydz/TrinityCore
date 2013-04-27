@@ -3580,6 +3580,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_HUNTER:
                 switch(spellInfo->Id)
                 {
+                    // Focus Fire
+                    case 82692:
+                        spellInfo->StackAmount = 5;
+                        break;
                     // Serpent Spread Rank 1
                     case 87934:
                         spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
