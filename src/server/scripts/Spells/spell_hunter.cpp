@@ -914,6 +914,70 @@ class spell_hun_camouflage: public SpellScriptLoader
     }
 };
 
+class spell_hun_basic_attack : public SpellScriptLoader
+{
+    public:
+        spell_hun_basic_attack() : SpellScriptLoader("spell_hun_basic_attack") { }
+
+        class spell_hun_basic_attack_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_basic_attack_SpellScript);
+
+            void HandleDummy()
+            {
+                if(!GetCaster())
+                    return;
+
+                if(Unit* pl = GetCaster()->GetOwner())
+                {
+                    if(Aura* cs = pl->GetAura(53257))
+                    {
+                        if(cs->GetStackAmount() == 2)
+                            cs->SetStackAmount(1);
+                        else
+                            cs->Remove();
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnCast  += SpellCastFn(spell_hun_basic_attack_SpellScript::HandleDummy);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_basic_attack_SpellScript();
+        }
+};
+
+class spell_hun_cobra_strikes: public SpellScriptLoader 
+{
+    public:
+    spell_hun_cobra_strikes() : SpellScriptLoader("spell_hun_cobra_strikes"){ }
+
+    class spell_hun_cobra_strikes_AuraScript: public AuraScript 
+    {
+        PrepareAuraScript(spell_hun_cobra_strikes_AuraScript)
+
+		void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            SetStackAmount(2);
+		}
+
+		void Register() 
+        {
+			OnEffectApply += AuraEffectApplyFn(spell_hun_cobra_strikes_AuraScript::OnApply, EFFECT_0, SPELL_AURA_ADD_FLAT_MODIFIER, AURA_EFFECT_HANDLE_REAL);
+		}
+    };
+
+    AuraScript* GetAuraScript() const 
+    {
+        return new spell_hun_cobra_strikes_AuraScript();
+    }
+};
+
 void AddSC_hunter_spell_scripts()
 {
     new spell_hun_aspect_of_the_beast();
@@ -934,4 +998,6 @@ void AddSC_hunter_spell_scripts()
     new spell_hun_target_only_pet_and_owner();
     new spell_hun_kill_command();
     new spell_hun_camouflage();
+    new spell_hun_basic_attack();
+    new spell_hun_cobra_strikes();
 }
