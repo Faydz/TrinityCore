@@ -1040,6 +1040,46 @@ class spell_hun_focus_fire : public SpellScriptLoader
         }
 };
 
+class spell_hun_chimera_shot : public SpellScriptLoader
+{
+    public:
+        spell_hun_chimera_shot() : SpellScriptLoader("spell_hun_chimera_shot") { }
+
+        class spell_hun_chimera_shot_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_chimera_shot_SpellScript);
+                
+            void HandleDummy()
+            {
+                if(!GetCaster())
+                    return;
+
+                if(!GetHitUnit())
+                    return;
+
+                Unit* pl = GetCaster();
+                Unit* target = GetHitUnit();
+                pl->CastSpell(pl, 53353, true);
+                if(Aura* ss = target->GetAura(1978, pl->GetGUID()))
+                {
+                    ss->RefreshDuration();
+                }
+
+            }
+
+            void Register()
+            {
+                OnHit += SpellHitFn(spell_hun_chimera_shot_SpellScript::HandleDummy);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_chimera_shot_SpellScript();
+        }
+};
+
+
 void AddSC_hunter_spell_scripts()
 {
     new spell_hun_aspect_of_the_beast();
@@ -1063,4 +1103,5 @@ void AddSC_hunter_spell_scripts()
     new spell_hun_basic_attack();
     new spell_hun_cobra_strikes();
     new spell_hun_focus_fire();
+    new spell_hun_chimera_shot();
 }
