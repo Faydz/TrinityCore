@@ -3580,6 +3580,12 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_HUNTER:
                 switch(spellInfo->Id)
                 {
+                    // bestial discipline all ranks
+                    case 19590:
+                    case 19592:
+                    case 82687:
+                        spellInfo->Effects[0].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
+                        break;
                     // Focus Fire
                     case 82692:
                         spellInfo->StackAmount = 5;
