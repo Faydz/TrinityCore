@@ -1311,6 +1311,9 @@ int32 Player::getMaxTimer(MirrorTimerType timer)
     switch (timer)
     {
         case FATIGUE_TIMER:
+            if (!isAlive() || GetZoneId() == 4815 || GetZoneId() == 5145 || GetZoneId() == 5144)
+                 return DISABLED_MIRROR_TIMER;
+
             return MINUTE * IN_MILLISECONDS;
         case BREATH_TIMER:
         {
@@ -1396,6 +1399,10 @@ void Player::HandleDrowning(uint32 time_diff)
     // In dark water
     if (m_MirrorTimerFlags & UNDERWARER_INDARKWATER)
     {
+        // Vash Jir fatigue
+        if (GetZoneId() == 4815 || GetZoneId() == 5145 || GetZoneId() == 5144)
+            return;
+
         // Fatigue timer not activated - activate it
         if (m_MirrorTimer[FATIGUE_TIMER] == DISABLED_MIRROR_TIMER)
         {
