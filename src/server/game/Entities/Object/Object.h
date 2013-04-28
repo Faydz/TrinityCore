@@ -310,8 +310,6 @@ class Object
 
         UpdateMask _changesMask;
 
-        bool* _changedFields;
-
         uint16 m_valuesCount;
 
         uint16 _fieldNotifyFlags;
