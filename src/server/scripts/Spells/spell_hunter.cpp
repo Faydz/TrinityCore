@@ -1084,7 +1084,6 @@ void AddSC_hunter_spell_scripts()
 {
     new spell_hun_aspect_of_the_beast();
     new spell_hun_ascpect_of_the_viper();
-    new spell_hun_chimera_shot();
     new spell_hun_disengage();
     new spell_hun_invigoration();
     new spell_hun_last_stand_pet();
