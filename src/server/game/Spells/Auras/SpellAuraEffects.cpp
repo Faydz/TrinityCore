@@ -5859,6 +5859,13 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
         case SPELLFAMILY_WARLOCK:
             switch(GetId())
             {
+                // Soul Harvest
+                case 79268:
+                    if(caster)
+                    {
+                        caster->CastSpell(caster, 101977, true);
+                    }
+                    break;
                 // Hand of Gul'dan
                 case 86000:
                     // It handles only the sixth periodic tick for the stun
