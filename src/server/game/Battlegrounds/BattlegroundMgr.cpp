@@ -385,6 +385,9 @@ void BattlegroundMgr::BuildPvpLogDataPacket(WorldPacket* data, Battleground* bg)
             continue;
         }
         Player* player = ObjectAccessor::FindPlayer(itr->first);
+        if (!player)
+            continue;
+
         ObjectGuid playerGUID = itr->first;
 
         data->WriteBit(0);              // Unk 1
