@@ -986,6 +986,37 @@ class spell_hun_chimera_shot : public SpellScriptLoader
         }
 };
 
+class spell_hun_trap_launcher_trap : public SpellScriptLoader
+{
+    public:
+        spell_hun_trap_launcher_trap() : SpellScriptLoader("spell_hun_trap_launcher_trap") { }
+
+        class spell_hun_trap_launcher_trap_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_trap_launcher_trap_SpellScript);
+                
+            void HandleDummy()
+            {
+               if(!GetCaster())
+                   return;
+               if(GetCaster()->HasAura(77769))
+               {
+                   GetCaster()->RemoveAura(77769);
+                   GetCaster()->RemoveAura(82946);
+               }
+            }
+
+            void Register()
+            {
+                OnCast += SpellCastFn(spell_hun_trap_launcher_trap_SpellScript::HandleDummy);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_trap_launcher_trap_SpellScript();
+        }
+};
 
 void AddSC_hunter_spell_scripts()
 {
@@ -1010,4 +1041,5 @@ void AddSC_hunter_spell_scripts()
     new spell_hun_cobra_strikes();
     new spell_hun_focus_fire();
     new spell_hun_chimera_shot();
+    new spell_hun_trap_launcher_trap();
 }
