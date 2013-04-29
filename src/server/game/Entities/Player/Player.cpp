@@ -22799,12 +22799,6 @@ bool Player::CanJoinToBattleground(Battleground const* bg) const
     if (HasAura(26013))
         return false;
 
-    if (bg->isArena())
-        return false;
-
-    if (bg->IsRandom())
-        return false;
-
     return true;
 }
 
