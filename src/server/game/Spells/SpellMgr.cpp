@@ -3126,6 +3126,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Soul Harvest
+                    case 79268:
+                        spellInfo->Effects[EFFECT_0].Amplitude = 3000;
+                        spellInfo->Effects[EFFECT_1].Amplitude = 3000;
+                        break;
                     // Enslave Demon
                     case 1098:
                         spellInfo->Effects[EFFECT_1].BasePoints = 30;
