@@ -12239,6 +12239,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                         }
                         break;
                     // Aimed Shot
+                    case 82928:
                     case 19434:
                         // 160%WeapDMG + 0.72*RAP + 744
                         {
