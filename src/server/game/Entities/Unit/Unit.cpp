@@ -11052,6 +11052,18 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             }
             break;
         case SPELLFAMILY_HUNTER:
+            switch (spellProto->Id)
+            {
+                // Explosive Shot
+                case 53301:
+                    // 27.3% RAP + 448 (per tick)
+                    {
+                        float calcRAP = this->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.273f;
+
+                        DoneTotal += uint32(calcRAP + 448);
+                    }
+                    break;
+            }
             // Essence of the Viper (Survival Mastery)
             if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_SURVIVAL)
@@ -12233,7 +12245,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                         // (2.10*WeapDMG + 0.732*RAP)*0.78
                         {
                             int32 weaponDmg = CalculatePct(this->CalculateDamage(RANGED_ATTACK, false, true), 210);
-                            float calcRAP = CalculatePct(this->GetTotalAttackPowerValue(RANGED_ATTACK), 73);
+                            float calcRAP = this->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.732f;
 
                             pdamage = uint32((weaponDmg + int32(calcRAP)) * 0.78f);
                         }
