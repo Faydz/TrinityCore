@@ -635,11 +635,13 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
             if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_DRUID && m_spellInfo->SpellFamilyFlags[0] & 0x00800000)
             {
                 m_canBeRecalculated = false;
-                // 0.01*$AP*cp
                 if (caster->GetTypeId() != TYPEID_PLAYER)
                     break;
 
                 uint8 cp = caster->ToPlayer()->GetComboPoints();
+                
+                // Formula
+                amount = 57 + 161*cp + 0.0207*cp*caster->GetTotalAttackPowerValue(BASE_ATTACK);
 
                 // Idol of Feral Shadows. Cant be handled as SpellMod in SpellAura:Dummy due its dependency from CPs
                 if (AuraEffect const* aurEff = caster->GetAuraEffect(34241, EFFECT_0))
@@ -647,8 +649,6 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                 // Idol of Worship. Cant be handled as SpellMod in SpellAura:Dummy due its dependency from CPs
                 else if (AuraEffect const* aurEff = caster->GetAuraEffect(60774, EFFECT_0))
                     amount += cp * aurEff->GetAmount();
-
-                amount += uint32(CalculatePct(caster->GetTotalAttackPowerValue(BASE_ATTACK), cp));
             }
             // Razor Claws (Mastery Druid Feral)
             if (caster->ToPlayer())
