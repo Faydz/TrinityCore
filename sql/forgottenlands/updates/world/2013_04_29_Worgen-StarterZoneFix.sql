@@ -53,8 +53,8 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 -- INSERT INTO `spell_linked_spell` VALUES (66639, 62464, 0, 'spell trigger');
 -- DELETE FROM smart_scripts WHERE entryorguid IN (351772) AND source_type = 0;
 -- INSERT INTO `smart_scripts` VALUES 
---(351772, 0, 0, 0, 8, 0, 100, 0, 62464, 0, 0, 0, 12, 44086, 5, 30000, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'summon citizen'),
---(351772, 0, 1, 0, 8, 0, 100, 0, 62464, 0, 0, 0, 33, 35830, 0, 0, 0, 0, 0, 21, 30, 0, 0, 0, 0, 0, 0, 'credit');
+-- (351772, 0, 0, 0, 8, 0, 100, 0, 62464, 0, 0, 0, 12, 44086, 5, 30000, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'summon citizen'),
+-- (351772, 0, 1, 0, 8, 0, 100, 0, 62464, 0, 0, 0, 33, 35830, 0, 0, 0, 0, 0, 21, 30, 0, 0, 0, 0, 0, 0, 'credit');
 
 -- Correzione chain quest All Hell Breaks Loose (14093), Evacuate the Merchant Square (14098 RIMOSSA) e Salvage the Supplies (14094)
 
