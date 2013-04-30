@@ -12240,6 +12240,26 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
             case SPELLFAMILY_ROGUE:
                 switch(spellProto->Id)
                 {
+                    // Ambush
+                    case 8676:
+                        // (1.90)*WeapDMG + 367
+                        // with daggers (1.90 * 1.447)*WeapDMG + (367 * 1.447)
+                        if(Player * player = this->ToPlayer())
+                        {
+                            float mod = 1.0f;
+
+                            Item* mainItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
+                            Item* offItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
+
+                            if((mainItem && mainItem->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER) 
+                                || (offItem && offItem->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER))
+                                mod = 1.447f;
+
+                            int32 weaponDmg = this->CalculateDamage(BASE_ATTACK, false, true) * (1.9f * mod);
+
+                            pdamage = uint32(weaponDmg + (367 * mod));
+                        }
+                        break;
                     // Backstab
                     case 53:
                         // 2.0*WeapDMG + (310 * 2)
