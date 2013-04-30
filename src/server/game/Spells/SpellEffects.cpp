@@ -499,6 +499,7 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     // Victory Rush
                     case 34428:
                         ApplyPct(damage, m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
+						m_caster->RemoveAurasDueToSpell(32216);
                         break;
                     // Heroic Strike
                     case 78:

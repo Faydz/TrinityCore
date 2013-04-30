@@ -7275,18 +7275,24 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 case 77795:
                 case 77796:
                 {
-                    if (procSpell->Id != 8050 && procSpell->Id != 8056)
-                        return false;
+
+                    if(procSpell){
+                        if(triggeredByAura){
+                            if (procSpell->Id != 8050 && procSpell->Id != 8056)
+                                return false;
     
-                    if (triggeredByAura->GetEffIndex() != 0)
-                        return false;
+                            if (triggeredByAura->GetEffIndex() != 0)
+                                return false;
+                    
+                            // Calculate mana cost
+                            int32 manaCost = (procSpell->ManaCostPercentage * GetCreateMana() / 100.0f) * (triggeredByAura->GetAmount() / 100.0f) * -1;
+                    
+                            int32 bp1 = triggeredByAura->GetBase()->GetEffect(1)->GetAmount();
 
-                    // Calculate mana cost
-                    int32 manaCost = (procSpell->ManaCostPercentage * GetCreateMana() / 100.0f) * (triggeredByAura->GetAmount() / 100.0f) * -1;
-                    int32 bp1 = triggeredByAura->GetBase()->GetEffect(1)->GetAmount();
-
-                    // Cast buff
-                    CastCustomSpell(this, 77800, &manaCost, &bp1, &bp1, true, 0, 0, 0);
+                            // Cast buff
+                            CastCustomSpell(this, 77800, &manaCost, &bp1, &bp1, true, 0, 0, 0);
+                        }
+                    }
                     break;
                 }
                 // Resurgence
@@ -11052,6 +11058,18 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             }
             break;
         case SPELLFAMILY_HUNTER:
+            switch (spellProto->Id)
+            {
+                // Explosive Shot
+                case 53301:
+                    // 27.3% RAP + 448 (per tick)
+                    {
+                        float calcRAP = this->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.273f;
+
+                        DoneTotal += uint32(calcRAP + 448);
+                    }
+                    break;
+            }
             // Essence of the Viper (Survival Mastery)
             if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_SURVIVAL)
@@ -12225,15 +12243,63 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
 
         switch (spellProto->SpellFamilyName)
         {
+            case SPELLFAMILY_ROGUE:
+                switch(spellProto->Id)
+                {
+                    // Ambush
+                    case 8676:
+                        // (1.90)*WeapDMG + 367
+                        // with daggers (1.90 * 1.447)*WeapDMG + (367 * 1.447)
+                        if(Player * player = this->ToPlayer())
+                        {
+                            float mod = 1.0f;
+
+                            Item* mainItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
+                            Item* offItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
+
+                            if((mainItem && mainItem->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER) 
+                                || (offItem && offItem->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER))
+                                mod = 1.447f;
+
+                            int32 weaponDmg = this->CalculateDamage(BASE_ATTACK, false, true) * (1.9f * mod);
+
+                            pdamage = uint32(weaponDmg + (367 * mod));
+                        }
+                        break;
+                    // Backstab
+                    case 53:
+                        // 2.0*WeapDMG + (310 * 2)
+                        {
+                            int32 weaponDmg = CalculatePct(this->CalculateDamage(BASE_ATTACK, false, true), 200);
+
+                            pdamage = uint32(weaponDmg + 620);
+                        }
+                        break;
+                }
+                break;
             case SPELLFAMILY_HUNTER:
                 switch(spellProto->Id)
                 {
+                    // Chimera Shot
+                    case 53209:
+                        // (2.10*WeapDMG + 0.732*RAP)*0.78
+                        {
+                            int32 weaponDmg = CalculatePct(this->CalculateDamage(RANGED_ATTACK, false, true), 210);
+                            float calcRAP = this->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.732f;
+
+                            pdamage = uint32((weaponDmg + int32(calcRAP)) * 0.78f);
+                        }
+                        break;
+                    // Aimed Shot
+                    case 82928:
                     case 19434:
                         // 160%WeapDMG + 0.72*RAP + 744
-                        int32 weaponDmg = CalculatePct(this->CalculateDamage(RANGED_ATTACK, false, true), 160);
-                        float calcRAP = CalculatePct(this->GetTotalAttackPowerValue(RANGED_ATTACK), 72);
+                        {
+                            int32 weaponDmg = CalculatePct(this->CalculateDamage(RANGED_ATTACK, false, true), 160);
+                            float calcRAP = CalculatePct(this->GetTotalAttackPowerValue(RANGED_ATTACK), 72);
 
-                        pdamage = uint32(weaponDmg + calcRAP + 744);
+                            pdamage = uint32(weaponDmg + calcRAP + 744);
+                        }
                         break;
                 }
                 break;
