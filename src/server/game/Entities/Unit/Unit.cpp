@@ -12237,6 +12237,20 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
 
         switch (spellProto->SpellFamilyName)
         {
+            case SPELLFAMILY_ROGUE:
+                switch(spellProto->Id)
+                {
+                    // Backstab
+                    case 53:
+                        // 2.0*WeapDMG + (310 * 2)
+                        {
+                            int32 weaponDmg = CalculatePct(this->CalculateDamage(BASE_ATTACK, false, true), 200);
+
+                            pdamage = uint32(weaponDmg + 620);
+                        }
+                        break;
+                }
+                break;
             case SPELLFAMILY_HUNTER:
                 switch(spellProto->Id)
                 {
