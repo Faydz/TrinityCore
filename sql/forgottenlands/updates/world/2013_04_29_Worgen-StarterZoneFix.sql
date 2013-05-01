@@ -125,7 +125,6 @@ UPDATE `quest_template` SET `PrevQuestId`=14154 WHERE (`Id`=26129);
 
 -- By the skin of his teeth AUTOCOMPLETE
 UPDATE `quest_template` SET `Method`=0, `Objectives`='Talk again with Lord Darius Crowley.' WHERE (`Id`=14154); -- Hold back the worgen atop the Gilneas City Prison for 2 minutes
-Hold back the worgen atop the Gilneas City Prison for 2 minutes
 
 -- The rebel lord Arsenal
 UPDATE `quest_template` SET `RewardSpellCast`=72872, `RewardHonor`=72872 WHERE (`Id`=14159);
@@ -159,6 +158,7 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 
 -- Cannoni
 UPDATE `creature_template` SET `unit_class`=1, `Health_mod`=1020, `Mana_mod`=15 WHERE (`entry`=35317);
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` = 35317;
 INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`) VALUES (35317, 46598, 1);
 
 -- Never surrender, Sometimes Retreat

@@ -477,17 +477,20 @@ DELETE FROM `creature_loot_template` WHERE `entry`= 35234;
 INSERT INTO `creature_loot_template` (`entry`, `item`, `ChanceOrQuestChance`) VALUES (35234, 4753, -99);
 
 -- Waltz right in
+DELETE FROM `gameobject` WHERE `id` IN (195515, 195516, 195518) AND `phaseMask` = 4;
 INSERT INTO `gameobject` (`id`, `map`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`) VALUES
 (195518, 648, 1, 4, -8007.97, 1860.43, 53.1966, 1.738, 0, 0, 0.763684, 0.64559, 300, 0, 1), 
 (195515, 648, 1, 4, -8141.25, 1899.17, 69.4056, 2.89018, 0, 0, 0.992109, 0.125377, 300, 0, 1), 
 (195516, 648, 1, 4, -8044.86, 1953.15, 54.0352, 3.15486, 0, 0, 0.999978, -0.00663125, 300, 0, 1);
 
 -- 447
+DELETE FROM`gameobject` WHERE `id` IN (201735, 201733, 201734) AND `phaseMask` = 4;
 INSERT INTO `gameobject` (`id`, `map`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`) VALUES
 ('201735','648','1','4','-8401.92','1365.01','104.706','3.62138','0','0','0.971363','-0.237599','300','0','1'),
 ('201733','648','1','4','-8401.95','1371.51','104.685','3.07746','0','0','0.999486','0.0320618','300','0','1'),
 ('201734','648','1','4','-8404.56','1363.87','117.269','3.2259','0','0','0.999112','-0.0421391','300','0','1');
 
+DELETE FROM `creature` WHERE `id` = 37598 AND `phaseMask` = 4;
 INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
 ('37598','648','1','4','0','0','-8413.94','1359.76','117.256','1.63232','300','0','0','42','0','0','0','0','0');
 
@@ -510,16 +513,18 @@ INSERT INTO smart_scripts (entryorguid, source_type, id, link, event_type, event
 
 UPDATE creature_template_addon SET auras = "" WHERE entry = 37602;
 
+DELETE FROM `creature` WHERE `id` = 37602 AND `phaseMask` = 4;
 INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
 ('37602','648','1','4','0','37602','-8391.5','1321.86','102.52','2.57794','300','0','0','102','0','0','0','0','0');
 
 -- Life savings
+DELETE FROM `creature` WHERE `id` = 35222 AND `phaseMask` = 4;
 INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
 ('35222','648','1','4','0','35222','-7881.89','1836.87','4.18856','3.31935','300','0','0','774900','44120','0','0','134250496','0');
 
 UPDATE quest_template SET flags = 128, RewardSpellcast = 0 WHERE id = 14126;
 UPDATE `creature_template` SET `AIName`='SmartAI' WHERE (`entry`=35222);
-DELETE FROM smart_scripts WHERE entryorguid = 3522;
+DELETE FROM smart_scripts WHERE entryorguid = 35222;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, target_type, target_param1, target_param2, target_param3, target_x, target_y, target_z, target_o, COMMENT) VALUES
 (35222,0,1,0,20,0,100,0,14126,0,0,0,68,22,0,0,0,0,0,21,10,0,0,0,0,0,0,"Filmato"),
 (35222,0,3,2,20,0,100,0,14126,0,0,0,62,1,0,0,0,0,0,21,10,0,0,1497,-4418,26.60,0.17,"Teleport alle Lost Isle"),
