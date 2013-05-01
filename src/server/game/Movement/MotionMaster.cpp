@@ -437,10 +437,15 @@ void MotionMaster::MoveCharge(PathGenerator const& path)
     MoveCharge(dest.x, dest.y, dest.z, SPEED_CHARGE, EVENT_CHARGE_PREPATH);
 
     // Charge movement is not started when using EVENT_CHARGE_PREPATH
+    int32 timerToDestination = 0;
+
     Movement::MoveSplineInit init(_owner);
     init.MovebyPath(path.GetPath());
     init.SetVelocity(SPEED_CHARGE);
-    init.Launch();
+    timerToDestination = init.Launch();
+
+    if (_owner->ToPlayer())
+        _owner->ToPlayer()->SetJumpTimerDestination(timerToDestination + 100);
 }
 
 void MotionMaster::MoveSeekAssistance(float x, float y, float z)
