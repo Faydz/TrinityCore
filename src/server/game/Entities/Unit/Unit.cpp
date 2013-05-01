@@ -7012,8 +7012,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                            {
                                int32 bp0 = int32(damage	* 1.5f * ToPlayer()->GetMasteryPoints() / 100);
 
-                               if (target->HasAura(86273))
-                                   bp0 += target->GetAura(86273, GetGUID())->GetEffect(0)->GetAmount();
+                               if (AuraEffect* aurEff = target->GetAuraEffect(86273, EFFECT_0, GetGUID()))
+                                   bp0 += aurEff->GetAmount();
 
                                if (bp0 > int32(GetMaxHealth() / 3))
                                    bp0 = int32(GetMaxHealth() / 3);
