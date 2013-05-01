@@ -6801,9 +6801,13 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     {
                         if (!caster->ToPlayer())
                             return false;
-
-                        caster->CastSpell(caster->ToPlayer()->GetSelectedUnit(), 51699, true);
-                        return true;
+                        
+                        if (Unit* target = caster->ToPlayer()->GetSelectedUnit()){
+                            caster->CastSpell(target, 51699, true);
+                            return true;
+                        }
+                        else
+                            return false;
                     }
                     break;
                 // Main gauche Combat Rogue Mastery 
@@ -15218,8 +15222,11 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
                     case SPELL_AURA_DUMMY:
                     {
                         sLog->outDebug(LOG_FILTER_SPELLS_AURAS, "ProcDamageAndSpell: casting spell id %u (triggered by %s dummy aura of spell %u)", spellInfo->Id, (isVictim?"a victim's":"an attacker's"), triggeredByAura->GetId());
-                        if (HandleDummyAuraProc(target, damage, triggeredByAura, procSpell, procFlag, procExtra, cooldown))
-                            takeCharges = true;
+                        if(target)
+                            if(procSpell)
+                                if(triggeredByAura)
+                                    if (HandleDummyAuraProc(target, damage, triggeredByAura, procSpell, procFlag, procExtra, cooldown))
+                                        takeCharges = true;
                         break;
                     }
                     case SPELL_AURA_PROC_ON_POWER_AMOUNT:
