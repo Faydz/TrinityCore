@@ -3093,6 +3093,30 @@ void SpellMgr::LoadSpellCustomAttr()
             case 75547:
                 spellInfo->Effects[1].TriggerSpell = 0;
                 break;
+            // Shield Specialization Rank 1
+            case 12298:
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
+                spellInfo->Effects[EFFECT_1].BasePoints = 23602;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
+                spellInfo->Effects[EFFECT_1].MiscValue = 50;
+                spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
+                break;
+            // Shield Specialization Rank 2
+            case 12724:
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
+                spellInfo->Effects[EFFECT_1].BasePoints = 84994;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
+                spellInfo->Effects[EFFECT_1].MiscValue = 100;
+                spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
+                break;
+            // Shield Specialization Rank 3
+            case 12725:
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
+                spellInfo->Effects[EFFECT_1].BasePoints = 84993;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
+                spellInfo->Effects[EFFECT_1].MiscValue = 150;
+                spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
+                break;
             default:
                 break;
         }
@@ -3102,6 +3126,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Soul Harvest
+                    case 79268:
+                        spellInfo->Effects[EFFECT_0].Amplitude = 3000;
+                        spellInfo->Effects[EFFECT_1].Amplitude = 3000;
+                        break;
                     // Enslave Demon
                     case 1098:
                         spellInfo->Effects[EFFECT_1].BasePoints = 30;
@@ -3311,6 +3340,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Dark Simulacrum dummy aura
+                    case 94984:
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
+                        break;
                     // Runic Corruption
                     case 51460:
                         spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_POWER_REGEN_PERCENT;
@@ -3357,7 +3390,7 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
                         spellInfo->Effects[EFFECT_2].BasePoints = 0;
                         spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_DUMMY;
-                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ENEMY);
                         break;
                     // Death's Advance
                     case 96268:
@@ -3477,6 +3510,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Rake
+                    case 1822:
+                        spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_ARMOR;
+                        break;
                     // Fungal Growth Rank 1
                     case 78788:
                         spellInfo->Effects[EFFECT_0].MiscValue = 81291;
@@ -3552,6 +3589,16 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_HUNTER:
                 switch(spellInfo->Id)
                 {
+                    // bestial discipline all ranks
+                    case 19590:
+                    case 19592:
+                    case 82687:
+                        spellInfo->Effects[0].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
+                        break;
+                    // Focus Fire
+                    case 82692:
+                        spellInfo->StackAmount = 5;
+                        break;
                     // Serpent Spread Rank 1
                     case 87934:
                         spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;

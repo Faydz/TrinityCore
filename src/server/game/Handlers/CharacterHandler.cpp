@@ -1054,7 +1054,8 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
             pCurrChar->CastSpell(pCurrChar, 20584, true, 0);// auras SPELL_AURA_INCREASE_SPEED(+speed in wisp form), SPELL_AURA_INCREASE_SWIM_SPEED(+swim speed in wisp form), SPELL_AURA_TRANSFORM (to wisp form)
         pCurrChar->CastSpell(pCurrChar, 8326, true, 0);     // auras SPELL_AURA_GHOST, SPELL_AURA_INCREASE_SPEED(why?), SPELL_AURA_INCREASE_SWIM_SPEED(why?)
 
-        pCurrChar->SendMovementSetWaterWalking(true);
+        pCurrChar->AddUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
+        pCurrChar->SendMovementWaterWalking();
     }
 
     pCurrChar->ContinueTaxiFlight();
@@ -1099,6 +1100,39 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     if (pCurrChar->isGameMaster())
         SendNotification(LANG_GM_ON);
+
+    // Learn worgen spells
+    if (pCurrChar->getRace() == RACE_WORGEN)
+    {
+        if (pCurrChar->getLevel() >= 10)
+        {
+            // Two forms
+            if (!pCurrChar->HasSpell(68996))
+                pCurrChar->learnSpell(68996, false);
+
+            // Darkflight
+            if (!pCurrChar->HasSpell(68992))
+                pCurrChar->learnSpell(68992, false);
+
+            // Aberration
+            if (!pCurrChar->HasSpell(68976))
+                pCurrChar->learnSpell(68976, false);
+
+            // Viciousness
+            if (!pCurrChar->HasSpell(68975))
+                pCurrChar->learnSpell(68975, false);
+        }
+        if (pCurrChar->getLevel() >= 20)
+        {
+            // Running wild
+            if (!pCurrChar->HasSpell(87840))
+                pCurrChar->learnSpell(87840, false);
+
+            // App Riding
+            if (!pCurrChar->HasSpell(33388))
+                pCurrChar->learnSpell(33388, false);
+        }
+    }
 
     std::string IP_str = GetRemoteAddress();
     sLog->outInfo(LOG_FILTER_CHARACTER, "Account: %d (IP: %s) Login Character:[%s] (GUID: %u) Level: %d",

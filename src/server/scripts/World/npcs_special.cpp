@@ -2048,7 +2048,7 @@ public:
             checkTimer = 250;
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (checkTimer <= diff)
             {
@@ -3315,7 +3315,7 @@ public:
             }
         }
 
-        void UpdateAI(const uint32 diff) 
+        void UpdateAI(uint32 diff) 
         {
             if (cron <= diff) 
             {
@@ -3401,7 +3401,7 @@ public:
            }
        }
 
-       void UpdateAI(const uint32 diff)
+       void UpdateAI(uint32 diff)
        {
            if (!UpdateVictim())
            {
@@ -3494,7 +3494,7 @@ public:
             }
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (checkTimer <= diff)
             {
@@ -3625,7 +3625,7 @@ public:
 				me->CastSpell(who, 82691, true);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (timer <= diff) {
 				if (!Isready) {
 					Isready = true;

@@ -79,6 +79,7 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#include "MovementStructures.h"
 
 #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
 
@@ -693,6 +694,7 @@ Player::Player(WorldSession* session): Unit(true), phaseMgr(this)
     m_holyPowerRegenTimerCount = 0;
     m_focusRegenTimerCount = 0;
     m_weaponChangeTimer = 0;
+    m_timerJumpDestination = 0;
 
     m_zoneUpdateId = 0;
     m_zoneUpdateTimer = 0;
@@ -1311,6 +1313,9 @@ int32 Player::getMaxTimer(MirrorTimerType timer)
     switch (timer)
     {
         case FATIGUE_TIMER:
+            if (!isAlive() || GetZoneId() == 4815 || GetZoneId() == 5145 || GetZoneId() == 5144)
+                 return DISABLED_MIRROR_TIMER;
+
             return MINUTE * IN_MILLISECONDS;
         case BREATH_TIMER:
         {
@@ -1396,6 +1401,10 @@ void Player::HandleDrowning(uint32 time_diff)
     // In dark water
     if (m_MirrorTimerFlags & UNDERWARER_INDARKWATER)
     {
+        // Vash Jir fatigue
+        if (GetZoneId() == 4815 || GetZoneId() == 5145 || GetZoneId() == 5144)
+            return;
+
         // Fatigue timer not activated - activate it
         if (m_MirrorTimer[FATIGUE_TIMER] == DISABLED_MIRROR_TIMER)
         {
@@ -1832,6 +1841,17 @@ void Player::Update(uint32 p_time)
     //because we don't want player's ghost teleported from graveyard
     if (IsHasDelayedTeleport() && isAlive())
         TeleportTo(m_teleport_dest, m_teleport_options);
+
+    /* Teleport player to itself (HACK!!!!!!! D: )
+    if (m_timerJumpDestination > 0)
+    {
+        if (p_time >= m_timerJumpDestination)
+        {
+           // TeleportTo(GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation());
+            m_timerJumpDestination = 0;
+        } else
+            m_timerJumpDestination -= p_time;
+    }*/
 
     if (getLevel() >= 80)
         RemoveOrAddMasterySpells();
@@ -3179,6 +3199,13 @@ void Player::GiveLevel(uint8 level)
     }
 
     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_REACH_LEVEL);
+
+    // Learn running wild and riding to worgens that reach level 20
+    if (level == 20 && getRace() == RACE_WORGEN)
+    {
+        learnSpell(87840, false); // Running wild
+        learnSpell(33388, false); // Riding
+    }
 
     PhaseUpdateData phaseUdateData;
     phaseUdateData.AddConditionType(CONDITION_LEVEL);
@@ -5118,7 +5145,8 @@ void Player::BuildPlayerRepop()
     // convert player body to ghost
     SetHealth(1);
 
-    SendMovementSetWaterWalking(true);
+    AddUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
+    SendMovementWaterWalking();
     if (!GetSession()->isLogingOut())
         SetRooted(false);
 
@@ -5160,7 +5188,8 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
 
     setDeathState(ALIVE);
 
-    SendMovementSetWaterWalking(false);
+    RemoveUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
+    SendMovementWaterWalking();
     SetRooted(false);
 
     m_deathTimer = 0;
@@ -5574,7 +5603,7 @@ bool Player::CanJoinConstantChannelInZone(ChatChannelsEntry const* channel, Area
     if (channel->flags & CHANNEL_DBC_FLAG_ZONE_DEP && zone->flags & AREA_FLAG_ARENA_INSTANCE)
         return false;
 
-    if ((channel->flags & CHANNEL_DBC_FLAG_CITY_ONLY) && (!(zone->flags & AREA_FLAG_SLAVE_CAPITAL)))
+    if ((channel->flags & CHANNEL_DBC_FLAG_CITY_ONLY) && (!(zone->flags & AREA_FLAG_SLAVE_CAPITAL)) && !(channel->flags & CHANNEL_DBC_FLAG_LFG))
         return false;
 
     if ((channel->flags & CHANNEL_DBC_FLAG_GUILD_REQ) && GetGuildId())
@@ -5625,6 +5654,9 @@ void Player::UpdateLocalChannels(uint32 newZone)
     {
         if (ChatChannelsEntry const* channel = sChatChannelsStore.LookupEntry(i))
         {
+            if (channel->flags & CHANNEL_DBC_FLAG_LFG)
+                continue;
+
             Channel* usedChannel = NULL;
 
             for (JoinedChannelsList::iterator itr = m_channels.begin(); itr != m_channels.end(); ++itr)
@@ -15546,7 +15578,11 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
     
     for (uint8 i = 0; i < QUEST_REWARD_CURRENCY_COUNT; ++i)
         if (quest->RewardCurrencyId[i])
-            ModifyCurrency(quest->RewardCurrencyId[i], quest->RewardCurrencyCount[i]);
+        {
+            CurrencyTypesEntry const* currencyType = sCurrencyTypesStore.LookupEntry(quest->RewardCurrencyId[i]);
+            uint32 precision = (currencyType && currencyType->Flags & CURRENCY_FLAG_HIGH_PRECISION) ? CURRENCY_PRECISION : 1;
+            ModifyCurrency(quest->RewardCurrencyId[i], quest->RewardCurrencyCount[i] * precision);
+        }
     
     if (uint32 skill = quest->GetRewardSkillId())
         UpdateSkillPro(skill, 1000, quest->GetRewardSkillPoints());
@@ -22788,15 +22824,6 @@ bool Player::CanJoinToBattleground(Battleground const* bg) const
     if (HasAura(26013))
         return false;
 
-    if (bg->isArena() && !GetSession()->HasPermission(RBAC_PERM_JOIN_ARENAS))
-        return false;
-
-    if (bg->IsRandom() && !GetSession()->HasPermission(RBAC_PERM_JOIN_RANDOM_BG))
-        return false;
-
-    if (!GetSession()->HasPermission(RBAC_PERM_JOIN_NORMAL_BG))
-        return false;
-
     return true;
 }
 
@@ -27149,256 +27176,19 @@ VoidStorageItem* Player::GetVoidStorageItem(uint64 id, uint8& slot) const
     return NULL;
 }
 
-void Player::SendMovementSetCanFly(bool apply)
-{
-    ObjectGuid guid = GetGUID();
-    WorldPacket data;
-    if (apply)
-    {
-        data.Initialize(SMSG_MOVE_SET_CAN_FLY, 1 + 8 + 4);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[7]);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[2]);
-        data.WriteBit(guid[3]);
-
-        data.WriteByteSeq(guid[6]);
-        data.WriteByteSeq(guid[3]);
-
-        data << uint32(0);          //! movement counter
-
-        data.WriteByteSeq(guid[2]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[5]);
-    }
-    else
-    {
-        data.Initialize(SMSG_MOVE_UNSET_CAN_FLY, 1 + 8 + 4);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[2]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[7]);
-
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[6]);
-
-        data << uint32(0);          //! movement counter
-
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[2]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[7]);
-    }
-    SendDirectMessage(&data);
-}
-
 void Player::SendMovementSetCanTransitionBetweenSwimAndFly(bool apply)
 {
-    WorldPacket data(apply ?
+    Movement::PacketSender(this, NULL_OPCODE, apply ?
         SMSG_MOVE_SET_CAN_TRANSITION_BETWEEN_SWIM_AND_FLY :
-        SMSG_MOVE_UNSET_CAN_TRANSITION_BETWEEN_SWIM_AND_FLY, 12);
-    data.append(GetPackGUID());
-    data << uint32(0);          //! movement counter
-    SendDirectMessage(&data);
-}
-
-void Player::SendMovementSetHover(bool apply)
-{
-    ObjectGuid guid = GetGUID();
-    WorldPacket data;
-    if (apply)
-    {
-        data.Initialize(SMSG_MOVE_SET_HOVER, 12);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[2]);
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[7]);
-
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[2]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[6]);
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[7]);
-        data << uint32(0);          // movement counter
-    }
-    else
-    {
-        data.Initialize(SMSG_MOVE_UNSET_HOVER, 12);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[2]);
-        data.WriteBit(guid[7]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[0]);
-
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[6]);
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[2]);
-        data.WriteByteSeq(guid[0]);
-        data << uint32(0);          // movement counter
-    }
-
-    SendDirectMessage(&data);
-}
-
-void Player::SendMovementSetWaterWalking(bool apply)
-{
-    ObjectGuid guid = GetGUID();
-    WorldPacket data;
-    if (apply)
-    {
-        data.Initialize(SMSG_MOVE_WATER_WALK, 1 + 4 + 8);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[7]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[2]);
-
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[2]);
-        data << uint32(0);          //! movement counter
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[6]);
-    }
-    else
-    {
-        data.Initialize(SMSG_MOVE_LAND_WALK, 1 + 4 + 8);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[2]);
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[7]);
-
-        data.WriteByteSeq(guid[6]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[2]);
-        data << uint32(0);          //! movement counter
-    }
-    SendDirectMessage(&data);
-}
-
-void Player::SendMovementSetFeatherFall(bool apply)
-{
-    ObjectGuid guid = GetGUID();
-    WorldPacket data;
-
-    if (apply)
-    {
-        data.Initialize(SMSG_MOVE_FEATHER_FALL, 1 + 4 + 8);
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[7]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[2]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[6]);
-
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[2]);
-        data << uint32(0);          //! movement counter
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[6]);
-    }
-    else
-    {
-        data.Initialize(SMSG_MOVE_NORMAL_FALL, 1 + 4 + 8);
-
-        data << uint32(0);          //! movement counter
-
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[7]);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[2]);
-
-        data.WriteByteSeq(guid[2]);
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[6]);
-    }
-
-    SendDirectMessage(&data);
+        SMSG_MOVE_UNSET_CAN_TRANSITION_BETWEEN_SWIM_AND_FLY).Send();
 }
 
 void Player::SendMovementSetCollisionHeight(float height)
 {
-    ObjectGuid guid = GetGUID();
-    WorldPacket data(SMSG_MOVE_SET_COLLISION_HEIGHT, 2 + 8 + 4 + 4);
-    data.WriteBits(0, 2);
-    data.WriteBit(guid[6]);
-    data.WriteBit(guid[1]);
-    data.WriteBit(guid[4]);
-    data.WriteBit(guid[7]);
-    data.WriteBit(guid[5]);
-    data.WriteBit(guid[2]);
-    data.WriteBit(guid[0]);
-    data.WriteBit(guid[3]);
-    data.FlushBits();
-
-    data.WriteByteSeq(guid[6]);
-    data.WriteByteSeq(guid[0]);
-    data.WriteByteSeq(guid[4]);
-    data.WriteByteSeq(guid[3]);
-    data.WriteByteSeq(guid[5]);
-    data << uint32(m_movementCounter++);
-    data.WriteByteSeq(guid[1]);
-    data.WriteByteSeq(guid[2]);
-    data.WriteByteSeq(guid[7]);
-    data << float(height);
-
-    SendDirectMessage(&data);
+    static MovementStatusElements const heightElement = MSEExtraFloat;
+    Movement::ExtraMovementStatusElement extra(&heightElement);
+    extra.Data.floatData = height;
+    Movement::PacketSender(this, NULL_OPCODE, SMSG_MOVE_SET_COLLISION_HEIGHT, SMSG_MOVE_UPDATE_COLLISION_HEIGHT, &extra).Send();
 }
 
 float Player::GetCollisionHeight(bool mounted) const

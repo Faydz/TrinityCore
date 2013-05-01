@@ -51,10 +51,7 @@ void WorldSession::HandleClientCastFlags(WorldPacket& recvPacket, uint8 castFlag
         uint8 hasMovementData;
         recvPacket >> hasMovementData;
         if (hasMovementData)
-        {
-            recvPacket.SetOpcode(Opcodes(recvPacket.read<uint32>()));
             HandleMovementOpcodes(recvPacket);
-        }
     }
     else if (castFlags & 0x8)   // Archaeology
     {
@@ -356,18 +353,28 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    if (spellInfo->IsPassive())
+    // Archeology craft artifacts
+    if (mover->ToPlayer()->HasSkill(SKILL_ARCHAEOLOGY))
     {
-            // Archeology craft artifacts
-            if (mover->ToPlayer()->HasSkill(SKILL_ARCHAEOLOGY))
-               for (uint32 i = 9; i < sResearchProjectStore.GetNumRows(); i++)
-                   if (ResearchProjectEntry* rp = sResearchProjectStore.LookupRow(i))
-                       if (rp->spellId == spellId)
-                       {
-                           mover->ToPlayer()->CompleteArtifact(rp->id, rp->spellId, recvPacket);
-                           recvPacket.rfinish();
-                           return;
-                       }
+        if (spellInfo->IsAbilityOfSkillType(SKILL_ARCHAEOLOGY))
+        {
+            for (uint32 i = 9; i < sResearchProjectStore.GetNumRows(); i++)
+            {
+                if (ResearchProjectEntry* rp = sResearchProjectStore.LookupRow(i))
+                {
+                   if (rp->spellId == spellId)
+                   {
+                       mover->ToPlayer()->CompleteArtifact(rp->id, rp->spellId, recvPacket);
+                       recvPacket.rfinish();
+                       return;
+                   }
+                }
+            }
+        }
+    }
+    
+    if (spellInfo->IsPassive())
+    {          
         recvPacket.rfinish(); // prevent spam at ignore packet
         return;
     }

@@ -499,6 +499,7 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     // Victory Rush
                     case 34428:
                         ApplyPct(damage, m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
+						m_caster->RemoveAurasDueToSpell(32216);
                         break;
                     // Heroic Strike
                     case 78:
@@ -588,6 +589,8 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 // Ferocious Bite
                 if (m_caster->GetTypeId() == TYPEID_PLAYER && (m_spellInfo->SpellFamilyFlags[0] & 0x000800000) && m_spellInfo->SpellVisual[0] == 6587)
                 {
+                    // AP coefficient
+                    damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.196f * m_caster->ToPlayer()->GetComboPoints());
                     // converts each extra point of energy ( up to 25 energy ) into additional damage
                     int32 energy = -(m_caster->ModifyPower(POWER_ENERGY, -25));
                     // 25 energy = 100% more damage
@@ -4545,7 +4548,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                             // Frost Fever
                             if (m_targets.GetUnitTarget()->GetAura(55095))
                             {
-                                int32 bp2 = 1;
                                 m_caster->CastCustomSpell(unitTarget, 55095, NULL, NULL, &bp2, true);
                             }
                         }

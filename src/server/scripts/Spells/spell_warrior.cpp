@@ -67,6 +67,47 @@ enum WarriorSpellIcons
     WARRIOR_ICON_ID_IMPROVED_HAMSTRING              = 23,
 };
 
+// Unshackled Fury calculation with no-damaging abilities
+class spell_warr_fury_mastery_calculation : public SpellScriptLoader
+{
+    public:
+        spell_warr_fury_mastery_calculation() : SpellScriptLoader("spell_warr_fury_mastery_calculation") { }
+
+        class spell_warr_fury_mastery_calculation_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warr_fury_mastery_calculation_AuraScript);
+
+            void CalculateAmount(AuraEffect const* /*aurEff*/, int32 &amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = false;
+                
+                Unit* caster = GetCaster();
+
+                if(!caster)
+                    return;
+
+                if(Player* player = caster->ToPlayer())
+                {
+                    if (player->HasAuraType(SPELL_AURA_MASTERY) && player->GetPrimaryTalentTree(player->GetActiveSpec()) == BS_WARRIOR_FURY)
+                    {
+                        AddPct(amount, 5.60f * player->GetMasteryPoints());
+                    }
+                }
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_fury_mastery_calculation_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_fury_mastery_calculation_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_OBS_MOD_HEALTH);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_warr_fury_mastery_calculation_AuraScript();
+        }
+};
+
 // 76858 Opportunity Strike
 class spell_warr_opportunity_strike : public SpellScriptLoader
 {
@@ -1067,37 +1108,6 @@ class spell_warr_vigilance_trigger : public SpellScriptLoader
             return new spell_warr_vigilance_trigger_SpellScript();
         }
 };
-/*
-class spell_warr_death_wish : public SpellScriptLoader
-{
-    public:
-        spell_warr_death_wish() : SpellScriptLoader("spell_warr_death_wish") { }
-
-        class spell_warr_death_wish_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_warr_death_wish);
-            // where function is: void function (AuraEffect* aurEff, int32& amount, bool& canBeRecalculated);
-            void CalculateAmount(AuraEffect const* /*aurEff*//*, int32 &amount, bool& canBeRecalculated)
-            {
-                canBeRecalculated = false;
-                            
-                if(Unit* owner = GetCaster())
-                    if (owner->ToPlayer() && owner->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY))
-                        if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARRIOR_FURY)
-                            amount *= int32(1.0f + (0.056f *  (owner->ToPlayer()->GetMasteryPoints() - 6))); // fury base mastery is 2
-            }
-            void Register()
-            {
-                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_death_wish_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
-              //  DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_death_wish_AuraScript::OnEffectCalcAmount, EFFECT_1, SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN);
-            }
-        };
-
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_warr_death_wish_AuraScript();
-        }
-};*/
 
 class spell_warr_heroic_leap : public SpellScriptLoader
 {
@@ -1136,7 +1146,7 @@ class spell_warr_heroic_leap : public SpellScriptLoader
 
 void AddSC_warrior_spell_scripts()
 {
-    //new spell_warr_death_wish();
+    new spell_warr_fury_mastery_calculation();
     new spell_warr_opportunity_strike();
     new spell_warr_stance_handler();
     new spell_warr_colussus_smash();

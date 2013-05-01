@@ -222,7 +222,13 @@ set(scripts_STAT_SRCS
   EasternKingdoms/ThroneOfTheTides/boss_lady_nazjar.cpp
   EasternKingdoms/ThroneOfTheTides/boss_mindbender_ghursha.cpp
   EasternKingdoms/ThroneOfTheTides/boss_ozumat.cpp
-
+  EasternKingdoms/BastionOfTwilight/bastion_of_twilight.h
+  EasternKingdoms/BastionOfTwilight/boss_chogall.cpp
+  EasternKingdoms/BastionOfTwilight/boss_council_of_ascendents.cpp
+  EasternKingdoms/BastionOfTwilight/boss_halfus_wyrmbreaker.cpp
+  EasternKingdoms/BastionOfTwilight/boss_sinestra.cpp
+  EasternKingdoms/BastionOfTwilight/boss_theralion_and_valiona.cpp
+  EasternKingdoms/BastionOfTwilight/instance_bastion_of_twilight.cpp
 )
 
 message("  -> Prepared: Eastern Kingdoms")

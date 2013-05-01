@@ -635,11 +635,13 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
             if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_DRUID && m_spellInfo->SpellFamilyFlags[0] & 0x00800000)
             {
                 m_canBeRecalculated = false;
-                // 0.01*$AP*cp
                 if (caster->GetTypeId() != TYPEID_PLAYER)
                     break;
 
                 uint8 cp = caster->ToPlayer()->GetComboPoints();
+                
+                // Formula
+                amount = 57 + 161*cp + 0.0207*cp*caster->GetTotalAttackPowerValue(BASE_ATTACK);
 
                 // Idol of Feral Shadows. Cant be handled as SpellMod in SpellAura:Dummy due its dependency from CPs
                 if (AuraEffect const* aurEff = caster->GetAuraEffect(34241, EFFECT_0))
@@ -647,8 +649,6 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                 // Idol of Worship. Cant be handled as SpellMod in SpellAura:Dummy due its dependency from CPs
                 else if (AuraEffect const* aurEff = caster->GetAuraEffect(60774, EFFECT_0))
                     amount += cp * aurEff->GetAmount();
-
-                amount += uint32(CalculatePct(caster->GetTotalAttackPowerValue(BASE_ATTACK), cp));
             }
             // Razor Claws (Mastery Druid Feral)
             if (caster->ToPlayer())
@@ -5859,6 +5859,13 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
         case SPELLFAMILY_WARLOCK:
             switch(GetId())
             {
+                // Soul Harvest
+                case 79268:
+                    if(caster)
+                    {
+                        caster->CastSpell(caster, 101977, true);
+                    }
+                    break;
                 // Hand of Gul'dan
                 case 86000:
                     // It handles only the sixth periodic tick for the stun
@@ -6494,10 +6501,6 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
             case SPELLFAMILY_DEATHKNIGHT:
                 switch (GetId())
                 {
-                    // Frost Fever
-                    case 55095:
-                        damage += uint32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.075f);
-                        break;
                 }
                 break;
             case SPELLFAMILY_MAGE:
