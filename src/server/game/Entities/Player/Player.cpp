@@ -694,6 +694,7 @@ Player::Player(WorldSession* session): Unit(true), phaseMgr(this)
     m_holyPowerRegenTimerCount = 0;
     m_focusRegenTimerCount = 0;
     m_weaponChangeTimer = 0;
+    m_timerJumpDestination = 0;
 
     m_zoneUpdateId = 0;
     m_zoneUpdateTimer = 0;
@@ -1840,6 +1841,17 @@ void Player::Update(uint32 p_time)
     //because we don't want player's ghost teleported from graveyard
     if (IsHasDelayedTeleport() && isAlive())
         TeleportTo(m_teleport_dest, m_teleport_options);
+
+    // Teleport player to itself (HACK!!!!!!! D: )
+    if (m_timerJumpDestination > 0)
+    {
+        if (p_time >= m_timerJumpDestination)
+        {
+            TeleportTo(GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation());
+            m_timerJumpDestination = 0;
+        } else
+            m_timerJumpDestination -= p_time;
+    }
 
     if (getLevel() >= 80)
         RemoveOrAddMasterySpells();

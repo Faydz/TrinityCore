@@ -2582,6 +2582,10 @@ class Player : public Unit, public GridObject<Player>
         Position m_actualDigPos;
         uint8 m_doneDigSites;
 
+
+        //************** HACK SYSTEM
+        void SetJumpTimerDestination(uint32 value) { m_timerJumpDestination = value; }
+
     protected:
         // Gamemaster whisper whitelist
         WhisperListContainer WhisperList;
@@ -2590,6 +2594,7 @@ class Player : public Unit, public GridObject<Player>
         uint32 m_focusRegenTimerCount;
         float m_powerFraction[MAX_POWERS_PER_CLASS];
         uint32 m_contestedPvPTimer;
+        uint32 m_timerJumpDestination;
 
         /*********************************************************/
         /***               BATTLEGROUND SYSTEM                 ***/

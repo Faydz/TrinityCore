@@ -370,11 +370,17 @@ void MotionMaster::MoveJump(float x, float y, float z, float speedXY, float spee
     float moveTimeHalf = speedZ / Movement::gravity;
     float max_height = -Movement::computeFallElevation(moveTimeHalf, false, -speedZ);
 
+    int32 timerToDestination = 0;
+
     Movement::MoveSplineInit init(_owner);
     init.MoveTo(x, y, z, false);
     init.SetParabolic(max_height, 0);
     init.SetVelocity(speedXY);
-    init.Launch();
+    timerToDestination = init.Launch();
+
+    if (_owner->ToPlayer())
+        _owner->ToPlayer()->SetJumpTimerDestination(timerToDestination + 100);
+
     Mutate(new EffectMovementGenerator(id), MOTION_SLOT_CONTROLLED);
 }
 
