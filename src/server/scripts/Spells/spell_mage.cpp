@@ -1271,7 +1271,6 @@ void AddSC_mage_spell_scripts()
     new spell_mage_mage_ward();
     new spell_mage_polymorph_cast_visual();
     new spell_mage_replenish_mana();
-    new spell_mage_ring_of_frost();
     new spell_mage_ring_of_frost_freeze();
     new spell_mage_summon_water_elemental();
     new spell_mage_water_elemental_freeze();
