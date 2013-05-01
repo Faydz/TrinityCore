@@ -7275,18 +7275,24 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 case 77795:
                 case 77796:
                 {
-                    if (procSpell->Id != 8050 && procSpell->Id != 8056)
-                        return false;
+
+                    if(procSpell){
+                        if(triggeredByAura){
+                            if (procSpell->Id != 8050 && procSpell->Id != 8056)
+                                return false;
     
-                    if (triggeredByAura->GetEffIndex() != 0)
-                        return false;
+                            if (triggeredByAura->GetEffIndex() != 0)
+                                return false;
+                    
+                            // Calculate mana cost
+                            int32 manaCost = (procSpell->ManaCostPercentage * GetCreateMana() / 100.0f) * (triggeredByAura->GetAmount() / 100.0f) * -1;
+                    
+                            int32 bp1 = triggeredByAura->GetBase()->GetEffect(1)->GetAmount();
 
-                    // Calculate mana cost
-                    int32 manaCost = (procSpell->ManaCostPercentage * GetCreateMana() / 100.0f) * (triggeredByAura->GetAmount() / 100.0f) * -1;
-                    int32 bp1 = triggeredByAura->GetBase()->GetEffect(1)->GetAmount();
-
-                    // Cast buff
-                    CastCustomSpell(this, 77800, &manaCost, &bp1, &bp1, true, 0, 0, 0);
+                            // Cast buff
+                            CastCustomSpell(this, 77800, &manaCost, &bp1, &bp1, true, 0, 0, 0);
+                        }
+                    }
                     break;
                 }
                 // Resurgence

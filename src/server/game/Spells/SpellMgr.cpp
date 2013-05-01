@@ -3510,6 +3510,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Rake
+                    case 1822:
+                        spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_ARMOR;
+                        break;
                     // Fungal Growth Rank 1
                     case 78788:
                         spellInfo->Effects[EFFECT_0].MiscValue = 81291;
