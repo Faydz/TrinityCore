@@ -18628,7 +18628,8 @@ void Unit::WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusEle
     bool hasOrientation = !G3D::fuzzyEq(mover->GetOrientation(), 0.0f);
     bool hasTransportData = GetTransGUID() != 0;
     bool hasSpline = mover->IsSplineEnabled();
-
+    hasSpline = false;
+    
     bool hasTransportTime2;
     bool hasTransportTime3;
     bool hasPitch;

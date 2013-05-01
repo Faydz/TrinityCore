@@ -1842,16 +1842,16 @@ void Player::Update(uint32 p_time)
     if (IsHasDelayedTeleport() && isAlive())
         TeleportTo(m_teleport_dest, m_teleport_options);
 
-    // Teleport player to itself (HACK!!!!!!! D: )
+    /* Teleport player to itself (HACK!!!!!!! D: )
     if (m_timerJumpDestination > 0)
     {
         if (p_time >= m_timerJumpDestination)
         {
-            TeleportTo(GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation());
+           // TeleportTo(GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation());
             m_timerJumpDestination = 0;
         } else
             m_timerJumpDestination -= p_time;
-    }
+    }*/
 
     if (getLevel() >= 80)
         RemoveOrAddMasterySpells();
