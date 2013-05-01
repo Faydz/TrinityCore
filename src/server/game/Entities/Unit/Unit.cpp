@@ -7293,8 +7293,10 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                             // Calculate mana cost
                             int32 manaCost = (procSpell->ManaCostPercentage * GetCreateMana() / 100.0f) * (triggeredByAura->GetAmount() / 100.0f) * -1;
                     
+                            int32 bp1 = 10;
+
                             if (triggeredByAura->GetBase() && triggeredByAura->GetBase()->GetEffect(1))
-                                int32 bp1 = triggeredByAura->GetBase()->GetEffect(1)->GetAmount();
+                                bp1 = triggeredByAura->GetBase()->GetEffect(1)->GetAmount();
 
                             // Cast buff
                             CastCustomSpell(this, 77800, &manaCost, &bp1, &bp1, true, 0, 0, 0);
