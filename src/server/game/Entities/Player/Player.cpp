@@ -3188,6 +3188,13 @@ void Player::GiveLevel(uint8 level)
 
     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_REACH_LEVEL);
 
+    // Learn running wild and riding to worgens that reach level 20
+    if (level == 20 && getRace() == RACE_WORGEN)
+    {
+        learnSpell(87840, false); // Running wild
+        learnSpell(33388, false); // Riding
+    }
+
     PhaseUpdateData phaseUdateData;
     phaseUdateData.AddConditionType(CONDITION_LEVEL);
 
