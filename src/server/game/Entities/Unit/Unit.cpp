@@ -6801,9 +6801,13 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     {
                         if (!caster->ToPlayer())
                             return false;
-
-                        caster->CastSpell(caster->ToPlayer()->GetSelectedUnit(), 51699, true);
-                        return true;
+                        
+                        if (Unit* target = caster->ToPlayer()->GetSelectedUnit()){
+                            caster->CastSpell(target, 51699, true);
+                            return true;
+                        }
+                        else
+                            return false;
                     }
                     break;
                 // Main gauche Combat Rogue Mastery 
