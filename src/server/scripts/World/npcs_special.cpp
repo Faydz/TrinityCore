@@ -354,7 +354,7 @@ public:
                 Unit* ownerVictim = owner->getVictim();
                 Unit* meVictim = me->getVictim();
 
-                if(meVictim)
+                if(meVictim){
                     if(ownerVictim){
                         // Worm's target switching only when paladin switch
                         if(ownerVictim != meVictim)
@@ -365,6 +365,7 @@ public:
                             me->GetMotionMaster()->MoveChase(meVictim);
                         }
                     }
+                }
             }
 
             DoMeleeAttackIfReady();
