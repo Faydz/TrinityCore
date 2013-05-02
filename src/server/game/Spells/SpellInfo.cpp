@@ -1328,6 +1328,9 @@ bool SpellInfo::IsSingleTarget() const
     if (AttributesEx5 & SPELL_ATTR5_SINGLE_TARGET_SPELL)
         return true;
 
+    if (Id == 33763)
+        return true;
+
     switch (GetSpellSpecific())
     {
         case SPELL_SPECIFIC_JUDGEMENT:

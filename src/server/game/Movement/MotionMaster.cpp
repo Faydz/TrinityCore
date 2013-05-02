@@ -370,11 +370,17 @@ void MotionMaster::MoveJump(float x, float y, float z, float speedXY, float spee
     float moveTimeHalf = speedZ / Movement::gravity;
     float max_height = -Movement::computeFallElevation(moveTimeHalf, false, -speedZ);
 
+    int32 timerToDestination = 0;
+
     Movement::MoveSplineInit init(_owner);
     init.MoveTo(x, y, z, false);
     init.SetParabolic(max_height, 0);
     init.SetVelocity(speedXY);
-    init.Launch();
+    timerToDestination = init.Launch();
+
+    if (_owner->ToPlayer())
+        _owner->ToPlayer()->SetJumpTimerDestination(timerToDestination + 100);
+
     Mutate(new EffectMovementGenerator(id), MOTION_SLOT_CONTROLLED);
 }
 
@@ -431,10 +437,15 @@ void MotionMaster::MoveCharge(PathGenerator const& path)
     MoveCharge(dest.x, dest.y, dest.z, SPEED_CHARGE, EVENT_CHARGE_PREPATH);
 
     // Charge movement is not started when using EVENT_CHARGE_PREPATH
+    int32 timerToDestination = 0;
+
     Movement::MoveSplineInit init(_owner);
     init.MovebyPath(path.GetPath());
     init.SetVelocity(SPEED_CHARGE);
-    init.Launch();
+    timerToDestination = init.Launch();
+
+    if (_owner->ToPlayer())
+        _owner->ToPlayer()->SetJumpTimerDestination(timerToDestination + 100);
 }
 
 void MotionMaster::MoveSeekAssistance(float x, float y, float z)

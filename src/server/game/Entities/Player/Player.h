@@ -2543,11 +2543,7 @@ class Player : public Unit, public GridObject<Player>
         /*! These methods send different packets to the client in apply and unapply case.
             These methods are only sent to the current unit.
         */
-        void SendMovementSetCanFly(bool apply);
         void SendMovementSetCanTransitionBetweenSwimAndFly(bool apply);
-        void SendMovementSetHover(bool apply);
-        void SendMovementSetWaterWalking(bool apply);
-        void SendMovementSetFeatherFall(bool apply);
         void SendMovementSetCollisionHeight(float height);
 
         bool CanFly() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_CAN_FLY); }
@@ -2586,6 +2582,10 @@ class Player : public Unit, public GridObject<Player>
         Position m_actualDigPos;
         uint8 m_doneDigSites;
 
+
+        //************** HACK SYSTEM
+        void SetJumpTimerDestination(uint32 value) { m_timerJumpDestination = value; }
+
     protected:
         // Gamemaster whisper whitelist
         WhisperListContainer WhisperList;
@@ -2594,6 +2594,7 @@ class Player : public Unit, public GridObject<Player>
         uint32 m_focusRegenTimerCount;
         float m_powerFraction[MAX_POWERS_PER_CLASS];
         uint32 m_contestedPvPTimer;
+        uint32 m_timerJumpDestination;
 
         /*********************************************************/
         /***               BATTLEGROUND SYSTEM                 ***/

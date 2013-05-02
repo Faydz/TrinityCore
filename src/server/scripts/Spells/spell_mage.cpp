@@ -65,6 +65,9 @@ enum MageSpells
     SPELL_MAGE_GLYPH_OF_ETERNAL_WATER            = 70937,
     SPELL_MAGE_SUMMON_WATER_ELEMENTAL_PERMANENT  = 70908,
     SPELL_MAGE_SUMMON_WATER_ELEMENTAL_TEMPORARY  = 70907,
+    SPELL_MAGE_RING_OF_FROST_SUMMON              = 82676,
+    SPELL_MAGE_RING_OF_FROST_FREEZE              = 82691,
+    SPELL_MAGE_RING_OF_FROST_DUMMY               = 91264,
 
     SPELL_MAGE_FINGERS_OF_FROST                  = 44544,
     MAGE_SPELL_CAUTERIZE_HEAL                    = 87023,
@@ -1009,6 +1012,78 @@ class spell_mage_replenish_mana : public SpellScriptLoader
        }
 };
 
+// 82691 - Ring of Frost (freeze efect)
+/// Updated 4.3.4
+class spell_mage_ring_of_frost_freeze : public SpellScriptLoader
+{
+    public:
+        spell_mage_ring_of_frost_freeze() : SpellScriptLoader("spell_mage_ring_of_frost_freeze") { }
+
+        class spell_mage_ring_of_frost_freeze_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_mage_ring_of_frost_freeze_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_MAGE_RING_OF_FROST_SUMMON))
+                    return false;
+                if (!sSpellMgr->GetSpellInfo(SPELL_MAGE_RING_OF_FROST_FREEZE))
+                    return false;
+                return true;
+            }
+
+            void FilterTargets(std::list<WorldObject*>& targets)
+            {
+                float outRadius = sSpellMgr->GetSpellInfo(SPELL_MAGE_RING_OF_FROST_SUMMON)->Effects[EFFECT_0].CalcRadius();
+                float inRadius  = 4.7f;
+
+                for (std::list<WorldObject*>::iterator itr = targets.begin(); itr != targets.end(); ++itr)
+                    if (Unit* unit = (*itr)->ToUnit())
+                        if (unit->HasAura(SPELL_MAGE_RING_OF_FROST_DUMMY) || unit->HasAura(SPELL_MAGE_RING_OF_FROST_FREEZE) || unit->GetExactDist(GetExplTargetDest()) > outRadius || unit->GetExactDist(GetExplTargetDest()) < inRadius)
+                            targets.erase(itr--);
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_mage_ring_of_frost_freeze_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENEMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_mage_ring_of_frost_freeze_SpellScript();
+        }
+
+        class spell_mage_ring_of_frost_freeze_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_mage_ring_of_frost_freeze_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_MAGE_RING_OF_FROST_DUMMY))
+                    return false;
+                return true;
+            }
+
+            void OnRemove(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+            {
+                if (GetTargetApplication()->GetRemoveMode() != AURA_REMOVE_BY_EXPIRE)
+                    if (GetCaster())
+                        GetCaster()->CastSpell(GetTarget(), SPELL_MAGE_RING_OF_FROST_DUMMY, true);
+            }
+
+            void Register()
+            {
+                AfterEffectRemove += AuraEffectRemoveFn(spell_mage_ring_of_frost_freeze_AuraScript::OnRemove, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_mage_ring_of_frost_freeze_AuraScript();
+        }
+};
+
 // 31687 - Summon Water Elemental
 class spell_mage_summon_water_elemental : public SpellScriptLoader
 {
@@ -1196,6 +1271,7 @@ void AddSC_mage_spell_scripts()
     new spell_mage_mage_ward();
     new spell_mage_polymorph_cast_visual();
     new spell_mage_replenish_mana();
+    new spell_mage_ring_of_frost_freeze();
     new spell_mage_summon_water_elemental();
     new spell_mage_water_elemental_freeze();
     new spell_mage_cauterize();
