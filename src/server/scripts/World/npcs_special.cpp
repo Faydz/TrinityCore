@@ -269,6 +269,92 @@ public:
 };
 
 /*######
+## npc_doomguard
+######*/
+
+enum DoomGuard
+{
+    DOOMGUARD_DOOM_BOLT              = 85692,
+    WARLOCK_BANE_OF_DOOM             = 603,
+    WARLOCK_BANE_OF_AGONY            = 980,
+};
+
+class npc_doomguard : public CreatureScript
+{
+public:
+    npc_doomguard() : CreatureScript("npc_doomguard") { }
+
+    struct npc_doomguardAI : PetAI
+    {
+        npc_doomguardAI(Creature* creature) : PetAI(creature) {}
+        
+        void InitializeAI()
+        {
+            me->SetPower(POWER_ENERGY, me->GetMaxPower(POWER_ENERGY));
+        }
+
+        void UpdateAI(uint32 /*diff*/)
+        {   
+            if(Unit* owner = me->GetOwner())
+            {
+                Unit* ownerVictim = owner->getVictim();
+                Unit* meVictim = isTargetable(me->getVictim()) ? me->getVictim() : NULL;
+
+                // Even if the target losts the banes
+                if(!meVictim)
+                {
+                    if(isTargetable(ownerVictim))
+                    {
+                        // Doomguard's target switching only when warlock cast bane of agony/doom on him
+                        meVictim = ownerVictim;
+                        
+                        me->Attack(meVictim, true);
+                        me->GetMotionMaster()->MoveChase(meVictim);
+                    }
+                    else
+                    {
+                        // Reset victim so it wont't cast spell to incorrect targets
+                        dummyGuard();
+                    }
+                }
+                
+                if(meVictim && !me->HasSpellCooldown(DOOMGUARD_DOOM_BOLT))
+                {
+                    DoCastVictim(DOOMGUARD_DOOM_BOLT);
+                }
+            }
+        }
+
+        // If the victim exists and has one of the banes
+        bool isTargetable(Unit* victim)
+        {
+            if(Unit* owner = me->GetOwner())
+            {
+                return victim && (victim->HasAura(WARLOCK_BANE_OF_DOOM, owner->GetGUID()) || victim->HasAura(WARLOCK_BANE_OF_AGONY, owner->GetGUID()));
+            }
+
+            return false;
+        }
+
+        // Puts the Doomguard in "dummy mode"
+        void dummyGuard()
+        {
+            if(Unit* owner = me->GetOwner())
+            {
+                me->SetReactState(REACT_PASSIVE);
+                me->GetMotionMaster()->Clear(false);
+                me->GetMotionMaster()->MoveFollow(owner, PET_FOLLOW_DIST *2, me->GetFollowAngle());
+            }
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_doomguardAI(creature);
+    }
+};
+
+/*######
 ## npc_dancing_rune_weapon
 ######*/
 
@@ -304,7 +390,7 @@ public:
                 Unit* ownerVictim = owner->getVictim();
                 Unit* meVictim = me->getVictim();
 
-                // Rune Weapon's target switching only when paladin switch
+                // Rune Weapon's target switching only when DK switches
                 if(ownerVictim != meVictim)
                 {
                     meVictim = ownerVictim;
@@ -356,7 +442,7 @@ public:
 
                 if(meVictim){
                     if(ownerVictim){
-                        // Worm's target switching only when paladin switch
+                        // Worm's target switching only when DK switches
                         if(ownerVictim != meVictim)
                         {
                             meVictim = ownerVictim;
@@ -3661,6 +3747,7 @@ public:
 void AddSC_npcs_special()
 {
     new npc_air_force_bots();
+    new npc_doomguard();
     new npc_dancing_rune_weapon();
     new npc_blood_parasite();
     new npc_force_of_nature();

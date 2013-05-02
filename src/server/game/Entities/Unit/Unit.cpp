@@ -10867,6 +10867,13 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 
             switch(spellProto->Id)
             {
+                // Doom Bolt
+                case 85692:
+                    if(Unit* owner = this->GetCharmerOrOwner())
+                    {
+                        pdamage = CalculatePct(owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC), 90);
+                    }
+                    break;
                 // Fire and Brimstone
                 case 29722:
                 case 50796:
