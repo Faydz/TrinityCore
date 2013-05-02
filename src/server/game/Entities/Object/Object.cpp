@@ -200,12 +200,18 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
             updateType = UPDATETYPE_CREATE_OBJECT2;
             break;
         case HIGHGUID_UNIT:
+<<<<<<< HEAD
         case HIGHGUID_VEHICLE:
         {
             if (TempSummon const* summon = ToUnit()->ToTempSummon())
                 if (IS_PLAYER_GUID(summon->GetSummonerGUID()))
                     updateType = UPDATETYPE_CREATE_OBJECT2;
 
+=======
+            // if (TempSummon const* summon = ToUnit()->ToTempSummon())
+            //     if (IS_PLAYER_GUID(summon->GetSummonerGUID()))
+                    updateType = UPDATETYPE_CREATE_OBJECT2;
+>>>>>>> parent of d72740e... Revert "[Core/Mechanics] Fix players invisibility bug"
             break;
         }
         case HIGHGUID_GAMEOBJECT:
@@ -396,6 +402,8 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
         movementFlags = self->m_movementInfo.GetMovementFlags();
         movementFlagsExtra = self->m_movementInfo.GetExtraMovementFlags();
         hasSpline = self->IsSplineEnabled();
+
+        movementFlags &= ~MOVEMENTFLAG_JUMPING;
         if (GetTypeId() == TYPEID_PLAYER)
         {
             hasTransportTime2 = self->m_movementInfo.bits.hasTransportTime2;
@@ -425,7 +433,7 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
         if (movementFlags)
             data->WriteBits(movementFlags, 30);
 
-        data->WriteBit(0);
+        data->WriteBit(self->IsSplineEnabled());
         data->WriteBit(!hasPitch);                                              // Has pitch
         data->WriteBit(hasSpline);                                              // Has spline data
         data->WriteBit(hasFallData);                                            // Has fall data
@@ -511,6 +519,9 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
 
     if (flags & UPDATEFLAG_LIVING)
     {
+        // correct here ?
+        movementFlags &= ~MOVEMENTFLAG_JUMPING;
+
         data->WriteByteSeq(guid[4]);
         *data << self->GetSpeed(MOVE_RUN_BACK);
 
@@ -682,7 +693,7 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
     //}
 
     if (flags & UPDATEFLAG_TRANSPORT)
-        *data << uint32(getMSTime());                       // Unknown - getMSTime is wrong.
+        *data << uint32(getMSTime());                       // Transport path timer - getMSTime is wrong.
 }
 
 void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* updateMask, Player* target) const
@@ -710,7 +721,9 @@ void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* 
                 if (go->ActivateToQuest(target) || target->isGameMaster())
                     IsActivateToQuest = true;
 
+            updateMask->SetBit(GAMEOBJECT_DYNAMIC);
                 if (go->GetGoArtKit())
+
                     updateMask->SetBit(GAMEOBJECT_BYTES_1);
             }
         }
@@ -721,6 +734,7 @@ void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* 
                 if (go->ActivateToQuest(target) || target->isGameMaster())
                     IsActivateToQuest = true;
 
+            updateMask->SetBit(GAMEOBJECT_DYNAMIC);
                 updateMask->SetBit(GAMEOBJECT_BYTES_1);
 
                 if (go->GetGoType() == GAMEOBJECT_TYPE_CHEST && go->GetGOInfo()->chest.groupLootRules &&
