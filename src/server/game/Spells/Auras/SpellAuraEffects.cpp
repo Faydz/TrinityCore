@@ -4151,13 +4151,15 @@ void AuraEffect::HandleAuraOverrideSpellpowerByAPPercent(AuraApplication const* 
         return;
 
     Unit* target = aurApp->GetTarget();
-
-
+    Player* player = target->ToPlayer();
+    
     if (target->GetTypeId() != TYPEID_PLAYER && target->ToPlayer()->getClass() != CLASS_SHAMAN)
         return;
 
-    // Recalculate bonus
-    target->ToPlayer()->UpdateSpellDamageAndHealingBonus();
+    // Calculates mod
+    int32 auraModifier = player->GetTotalAuraModifier(SPELL_AURA_OVERRIDE_SPELL_POWER_BY_AP_PCT);
+
+    player->SetFloatValue(PLAYER_FIELD_OVERRIDE_SPELL_POWER_BY_AP_PCT, (float)auraModifier);
 }
 
 void AuraEffect::HandleModSpellDamagePercentFromAttackPower(AuraApplication const* aurApp, uint8 mode, bool /*apply*/) const
