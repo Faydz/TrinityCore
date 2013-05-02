@@ -79,6 +79,8 @@ enum WarlockSpells
     SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117,
 };
 
+bool _SeedOfCorruptionFlag = false;
+
 // 71521 spell_warl_Hand_of_Guldan
 class spell_warl_hand_of_guldan: public SpellScriptLoader 
 {
@@ -677,6 +679,7 @@ class spell_warl_seed_of_corruption_dot : public SpellScriptLoader
                     //Checks for soulburn buff and soulburn: Seed of Corruption talent
                     if(caster->HasAura(SPELL_WARLOCK_SOULBURN) && caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 1932, 0))
                     {
+                        _SeedOfCorruptionFlag = true;
                         caster->RemoveAurasDueToSpell(SPELL_WARLOCK_SOULBURN);
                     }
                 }
@@ -1268,6 +1271,30 @@ class spell_warl_seed_of_corruption : public SpellScriptLoader
 
             void FilterTargets(std::list<WorldObject*>& targets)
             {
+                if(Unit* caster = GetCaster())
+                {
+                    if(_SeedOfCorruptionFlag)
+                    {
+                        //Resets the flag for the next SoC without soulburn
+                        _SeedOfCorruptionFlag = false;
+
+                        //The detonation is successful, soul shard is refund
+                        caster->CastSpell(caster, SPELL_WARLOCK_SOUL_SHARD_ENERGIZE, true);
+
+                        //All target of the seed of corruption detonation are affected by corruption
+                        for (std::list<WorldObject*>::iterator iter = targets.begin(); iter != targets.end(); ++iter)
+                        {
+                            if ((*iter))
+                            {
+                                if (Unit* unit = (*iter)->ToUnit())
+                                {
+                                    caster->CastSpell(unit, SPELL_WARLOCK_CORRUPTION, true);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (GetExplTargetUnit())
                     targets.remove(GetExplTargetUnit());
             }
