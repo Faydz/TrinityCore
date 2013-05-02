@@ -10878,22 +10878,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                         }
                     }
                     break;
-                // Conflagrate
-                case 17962:
-                    if(AuraEffect* aurEff = victim->GetAuraEffect(348, EFFECT_2, this->GetGUID()))
-                    {
-                        if(aurEff->GetBase())
-                        {
-                            int32 damage;
-                            int32 singleDotDamage = aurEff->GetAmount();
-                            uint32 baseTotalTicks = aurEff->GetBase()->GetMaxDuration();
-                            
-                            singleDotDamage = SpellDamageBonusDone(victim, aurEff->GetSpellInfo(), singleDotDamage, DOT, aurEff->GetBase()->GetStackAmount());
-                            damage = singleDotDamage * int32(baseTotalTicks / aurEff->GetAmplitude());
-                            DoneTotal = ApplyPct(damage, 60.0f);
-                        }
-                    }
-                    break;
                 // Drain soul
                 case 1120:
                     if(Aura* aura = victim->GetAura(spellProto->Id, GetGUID()))
