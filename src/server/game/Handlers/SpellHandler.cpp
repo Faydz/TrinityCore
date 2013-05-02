@@ -354,7 +354,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     }
 
     // Archeology craft artifacts
-    if (mover->ToPlayer()->HasSkill(SKILL_ARCHAEOLOGY))
+    if (mover && mover->ToPlayer() && mover->ToPlayer()->HasSkill(SKILL_ARCHAEOLOGY))
     {
         if (spellInfo->IsAbilityOfSkillType(SKILL_ARCHAEOLOGY))
         {
