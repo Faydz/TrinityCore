@@ -346,21 +346,25 @@ public:
         
         void UpdateAI(uint32 /*diff*/)
         {   
-            Unit* owner = me->GetOwner();
+           
             bloodGorged = me->GetAura(BLOODWORM_BLOOD_GORGED_BUFF, me->GetGUID());
 
-            if(owner)
+            if(Unit* owner = me->GetOwner())
             {
                 Unit* ownerVictim = owner->getVictim();
                 Unit* meVictim = me->getVictim();
 
-                // Worm's target switching only when paladin switch
-                if(ownerVictim != meVictim)
-                {
-                    meVictim = ownerVictim;
+                if(meVictim){
+                    if(ownerVictim){
+                        // Worm's target switching only when paladin switch
+                        if(ownerVictim != meVictim)
+                        {
+                            meVictim = ownerVictim;
                         
-                    me->Attack(meVictim, true);
-                    me->GetMotionMaster()->MoveChase(meVictim);
+                            me->Attack(meVictim, true);
+                            me->GetMotionMaster()->MoveChase(meVictim);
+                        }
+                    }
                 }
             }
 
@@ -376,9 +380,12 @@ public:
                 return;
             }
 
-            int32 bp0 = CalculatePct(me->GetMaxHealth(), bloodGorged->GetStackAmount() * 10);
-
-            me->CastCustomSpell(owner, BLOODWORM_BLOOD_GORGED_HEAL, &bp0, NULL, NULL, true);
+            if(owner){
+                if(bloodGorged){
+                    int32 bp0 = CalculatePct(me->GetMaxHealth(), bloodGorged->GetStackAmount() * 10);
+                    me->CastCustomSpell(owner, BLOODWORM_BLOOD_GORGED_HEAL, &bp0, NULL, NULL, true);
+                }
+            }
         }
 
     private:
