@@ -8375,6 +8375,7 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
     return false;
 }
 
+
 bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* triggeredByAura, SpellInfo const* procSpell, uint32 procFlags, uint32 procEx, uint32 cooldown)
 {
     // Get triggered aura spell info
@@ -10874,22 +10875,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                         if(victim->HasAuraState(AURA_STATE_CONFLAGRATE))
                         {
                             AddPct(DoneTotalMod, aurEff->GetAmount());
-                        }
-                    }
-                    break;
-                // Conflagrate
-                case 17962:
-                    if(AuraEffect* aurEff = victim->GetAuraEffect(348, EFFECT_2, this->GetGUID()))
-                    {
-                        if(aurEff->GetBase())
-                        {
-                            int32 damage;
-                            int32 singleDotDamage = aurEff->GetAmount();
-                            uint32 baseTotalTicks = aurEff->GetBase()->GetMaxDuration();
-                            
-                            singleDotDamage = SpellDamageBonusDone(victim, aurEff->GetSpellInfo(), singleDotDamage, DOT, aurEff->GetBase()->GetStackAmount());
-                            damage = singleDotDamage * int32(baseTotalTicks / aurEff->GetAmplitude());
-                            DoneTotal = ApplyPct(damage, 60.0f);
                         }
                     }
                     break;

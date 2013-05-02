@@ -2035,6 +2035,18 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
             case FORM_BEAR:
             case FORM_FLIGHT_EPIC:
             case FORM_FLIGHT:
+            {
+                if(target->HasAura(96429))
+                    // remove movement affects
+                    target->RemoveMovementImpairingAuras();
+                else
+                    target->RemoveAurasWithMechanic(1 << MECHANIC_SNARE);
+
+                // and polymorphic affects
+                if (target->IsPolymorphed())
+                    target->RemoveAurasDueToSpell(target->getTransForm());
+                break;
+            }
             case FORM_MOONKIN:
             {
                 // remove movement affects
@@ -2117,8 +2129,11 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
             if (target->getClass() == CLASS_DRUID)
             {
                 target->setPowerType(POWER_MANA);
-                // Remove movement impairing effects also when shifting out
-                target->RemoveMovementImpairingAuras();
+                if(target->HasAura(96429))
+                    // Remove movement impairing effects also when shifting out
+                    target->RemoveMovementImpairingAuras();
+                else
+                    target->RemoveAurasWithMechanic(1 << MECHANIC_SNARE);
             }
         }
 
@@ -4151,13 +4166,15 @@ void AuraEffect::HandleAuraOverrideSpellpowerByAPPercent(AuraApplication const* 
         return;
 
     Unit* target = aurApp->GetTarget();
-
-
+    Player* player = target->ToPlayer();
+    
     if (target->GetTypeId() != TYPEID_PLAYER && target->ToPlayer()->getClass() != CLASS_SHAMAN)
         return;
 
-    // Recalculate bonus
-    target->ToPlayer()->UpdateSpellDamageAndHealingBonus();
+    // Calculates mod
+    int32 auraModifier = player->GetTotalAuraModifier(SPELL_AURA_OVERRIDE_SPELL_POWER_BY_AP_PCT);
+
+    player->SetFloatValue(PLAYER_FIELD_OVERRIDE_SPELL_POWER_BY_AP_PCT, (float)auraModifier);
 }
 
 void AuraEffect::HandleModSpellDamagePercentFromAttackPower(AuraApplication const* aurApp, uint8 mode, bool /*apply*/) const
@@ -6728,12 +6745,26 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
         
         switch (m_spellInfo->SpellFamilyName)
         {
+            case SPELLFAMILY_WARLOCK:
+                switch(m_spellInfo->Id)
+                {
+                    // Soul Harvest
+                    case 79268:
+                        {
+                            float tickPct = 45.0f / (float)GetTotalTicks();
+                        
+                            damage += CalculatePct(caster->GetMaxHealth(), tickPct);
+                        }
+                        break;
+                }
+                break;
             case SPELLFAMILY_WARRIOR:
                 switch (GetId())
                 {
+                    // Blood Craze
                     case 16488: 
                     case 16490: 
-                    case 16491: // Blood Craze
+                    case 16491:
                         damage = (caster->CountPctFromMaxHealth(GetAmount()) / (GetBase()->GetMaxDuration() / IN_MILLISECONDS)) / 2;
                         break;
                 }

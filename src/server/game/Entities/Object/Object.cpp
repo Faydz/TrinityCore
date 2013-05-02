@@ -16,13 +16,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Object.h"
 #include "Common.h"
 #include "SharedDefines.h"
 #include "WorldPacket.h"
 #include "Opcodes.h"
 #include "Log.h"
 #include "World.h"
+#include "Object.h"
 #include "Creature.h"
 #include "Player.h"
 #include "Vehicle.h"
@@ -201,20 +201,12 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
             break;
         case HIGHGUID_UNIT:
         case HIGHGUID_VEHICLE:
-        {
-            if (TempSummon const* summon = ToUnit()->ToTempSummon())
-                if (IS_PLAYER_GUID(summon->GetSummonerGUID()))
-                    updateType = UPDATETYPE_CREATE_OBJECT2;
-
-            break;
-        }
-        case HIGHGUID_GAMEOBJECT:
-        {
-            if (IS_PLAYER_GUID(ToGameObject()->GetOwnerGUID()))
+            // if (ToUnit()->ToTempSummon() && IS_PLAYER_GUID(ToUnit()->ToTempSummon()->GetSummonerGUID()))
                 updateType = UPDATETYPE_CREATE_OBJECT2;
             break;
-        }
-        default:
+        case HIGHGUID_GAMEOBJECT:
+            if (IS_PLAYER_GUID(ToGameObject()->GetOwnerGUID()))
+                updateType = UPDATETYPE_CREATE_OBJECT2;
             break;
     }
 
@@ -223,7 +215,7 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
         // UPDATETYPE_CREATE_OBJECT2 for some gameobject types...
         if (isType(TYPEMASK_GAMEOBJECT))
         {
-            switch (ToGameObject()->GetGoType())
+            switch (((GameObject*)this)->GetGoType())
             {
                 case GAMEOBJECT_TYPE_TRAP:
                 case GAMEOBJECT_TYPE_DUEL_ARBITER:
@@ -240,9 +232,8 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
         }
     }
 
-    if (Unit const* unit = ToUnit())
-        if (unit->getVictim())
-            flags |= UPDATEFLAG_HAS_TARGET;
+    if (ToUnit() && ToUnit()->getVictim())
+        flags |= UPDATEFLAG_HAS_TARGET;
 
     ByteBuffer buf(500);
     buf << uint8(updateType);
@@ -359,19 +350,6 @@ uint16 Object::GetUInt16Value(uint16 index, uint8 offset) const
 
 void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
 {
-    Unit const* self = NULL;
-    ObjectGuid guid = GetGUID();
-    uint32 movementFlags = 0;
-    uint16 movementFlagsExtra = 0;
-
-    bool hasTransportTime2 = false;
-    bool hasTransportTime3 = false;
-    bool hasFallDirection = false;
-    bool hasFallData = false;
-    bool hasPitch = false;
-    bool hasSpline = false;
-    bool hasSplineElevation = false;
-
     uint32 unkLoopCounter = 0;
     // Bit content
     data->WriteBit(0);
@@ -392,30 +370,14 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
 
     if (flags & UPDATEFLAG_LIVING)
     {
-        self = ToUnit();
-        movementFlags = self->m_movementInfo.GetMovementFlags();
-        movementFlagsExtra = self->m_movementInfo.GetExtraMovementFlags();
-        hasSpline = self->IsSplineEnabled();
-        if (GetTypeId() == TYPEID_PLAYER)
-        {
-            hasTransportTime2 = self->m_movementInfo.bits.hasTransportTime2;
-            hasTransportTime3 = self->m_movementInfo.bits.hasTransportTime3;
-            hasPitch = self->m_movementInfo.bits.hasPitch;
-            hasFallData = self->m_movementInfo.bits.hasFallData;
-            hasFallDirection = self->m_movementInfo.bits.hasFallDirection;
-            hasSplineElevation = self->m_movementInfo.bits.hasSplineElevation;
-        }
-        else
-        {
-            hasTransportTime2 = self->HasExtraUnitMovementFlag(MOVEMENTFLAG2_INTERPOLATED_MOVEMENT);
-            hasPitch = ((movementFlags & (MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_FLYING)) ||
-                (movementFlagsExtra & MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING));
-            hasFallDirection = movementFlags & MOVEMENTFLAG_FALLING;
-            hasFallData = hasFallDirection; // FallDirection implies that FallData is set as well
-            hasSplineElevation = movementFlags & MOVEMENTFLAG_SPLINE_ELEVATION;
+        Unit const* self = ToUnit();
+        ObjectGuid guid = GetGUID();
+        uint32 movementFlags = self->m_movementInfo.GetMovementFlags();
+        uint16 movementFlagsExtra = self->m_movementInfo.GetExtraMovementFlags();
 
+        movementFlags &= ~MOVEMENTFLAG_JUMPING;
+        if (GetTypeId() == TYPEID_UNIT)
             movementFlags &= MOVEMENTFLAG_MASK_CREATURE_ALLOWED;
-        }
 
         data->WriteBit(!movementFlags);
         data->WriteBit(G3D::fuzzyEq(self->GetOrientation(), 0.0f));             // Has Orientation
@@ -425,15 +387,15 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
         if (movementFlags)
             data->WriteBits(movementFlags, 30);
 
-        data->WriteBit(0);
-        data->WriteBit(!hasPitch);                                              // Has pitch
-        data->WriteBit(hasSpline);                                              // Has spline data
-        data->WriteBit(hasFallData);                                            // Has fall data
-        data->WriteBit(!hasSplineElevation);                                    // Has spline elevation
+        data->WriteBit(self->IsSplineEnabled());
+        data->WriteBit(!((movementFlags & (MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_FLYING)) ||
+            (movementFlagsExtra & MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING)));                             // Has pitch
+        data->WriteBit(self->IsSplineEnabled());                                                      // Has spline data
+        data->WriteBit(movementFlags & MOVEMENTFLAG_JUMPING || movementFlags & MOVEMENTFLAG_FALLING); // Has fall data
+        data->WriteBit(!(movementFlags & MOVEMENTFLAG_SPLINE_ELEVATION));                             // Has spline elevation
         data->WriteBit(guid[5]);
         data->WriteBit(self->m_movementInfo.t_guid);                                                  // Has transport data
         data->WriteBit(0);                                                                            // Is missing time
-
         if (self->m_movementInfo.t_guid)
         {
             ObjectGuid transGuid = self->m_movementInfo.t_guid;
@@ -451,13 +413,12 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
         }
 
         data->WriteBit(guid[4]);
-
-        if (hasSpline)
+        if (self->IsSplineEnabled())
             Movement::PacketBuilder::WriteCreateBits(*self->movespline, *data);
 
         data->WriteBit(guid[6]);
-        if (hasFallData)
-            data->WriteBit(hasFallDirection);
+        if (movementFlags & MOVEMENTFLAG_JUMPING || movementFlags & MOVEMENTFLAG_FALLING)
+            data->WriteBit(movementFlags & MOVEMENTFLAG_JUMPING);
 
         data->WriteBit(guid[0]);
         data->WriteBit(guid[1]);
@@ -485,7 +446,7 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
 
     if (flags & UPDATEFLAG_HAS_TARGET)
     {
-        ObjectGuid victimGuid = self->getVictim()->GetGUID();   // checked in BuildCreateUpdateBlockForPlayer
+        ObjectGuid victimGuid = ToUnit()->getVictim()->GetGUID();   // checked in BuildCreateUpdateBlockForPlayer
         data->WriteBit(victimGuid[2]);
         data->WriteBit(victimGuid[7]);
         data->WriteBit(victimGuid[0]);
@@ -511,12 +472,21 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
 
     if (flags & UPDATEFLAG_LIVING)
     {
+        Unit const* self = ToUnit();
+        ObjectGuid guid = GetGUID();
+        uint32 movementFlags = self->m_movementInfo.GetMovementFlags();
+        uint16 movementFlagsExtra = self->m_movementInfo.GetExtraMovementFlags();
+        if (GetTypeId() == TYPEID_UNIT)
+            movementFlags &= MOVEMENTFLAG_MASK_CREATURE_ALLOWED;
+
+        // correct here ?
+        movementFlags &= ~MOVEMENTFLAG_JUMPING;
+
         data->WriteByteSeq(guid[4]);
         *data << self->GetSpeed(MOVE_RUN_BACK);
-
-        if (hasFallData)
+        if (movementFlags & MOVEMENTFLAG_JUMPING || movementFlags & MOVEMENTFLAG_FALLING)
         {
-            if (hasFallDirection)
+            if (movementFlags & MOVEMENTFLAG_JUMPING)
             {
                 *data << float(self->m_movementInfo.j_cosAngle);
                 *data << float(self->m_movementInfo.j_xyspeed);
@@ -528,15 +498,14 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
         }
 
         *data << self->GetSpeed(MOVE_SWIM_BACK);
-        if (hasSplineElevation)
+        if (movementFlags & MOVEMENTFLAG_SPLINE_ELEVATION)
             *data << float(self->m_movementInfo.splineElevation);
 
-        if (hasSpline)
+        if (self->IsSplineEnabled())
             Movement::PacketBuilder::WriteCreateData(*self->movespline, *data);
 
         *data << float(self->GetPositionZMinusOffset());
         data->WriteByteSeq(guid[5]);
-
         if (self->m_movementInfo.t_guid)
         {
             ObjectGuid transGuid = self->m_movementInfo.t_guid;
@@ -545,16 +514,16 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
             data->WriteByteSeq(transGuid[7]);
             *data << uint32(self->GetTransTime());
             *data << float(self->GetTransOffsetO());
-            if (hasTransportTime2)
-                *data << uint32(self->m_movementInfo.t_time2);
+            //if (hasTransportTime2)
+            //    *data << uint32(0);
 
             *data << float(self->GetTransOffsetY());
             *data << float(self->GetTransOffsetX());
             data->WriteByteSeq(transGuid[3]);
             *data << float(self->GetTransOffsetZ());
             data->WriteByteSeq(transGuid[0]);
-            if (hasTransportTime3)
-                *data << uint32(self->m_movementInfo.t_time3);
+            //if (hasTransportTime3)
+            //    *data << uint32(0);
 
             *data << int8(self->GetTransSeat());
             data->WriteByteSeq(transGuid[1]);
@@ -584,7 +553,8 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
             *data << float(self->GetOrientation());
 
         *data << self->GetSpeed(MOVE_RUN);
-        if (hasPitch)
+        if ((movementFlags & (MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_FLYING)) ||
+            (movementFlagsExtra & MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING))
             *data << float(self->m_movementInfo.pitch);
 
         *data << self->GetSpeed(MOVE_FLIGHT);
@@ -592,6 +562,7 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
 
     if (flags & UPDATEFLAG_VEHICLE)
     {
+        Unit const* self = ToUnit();
         *data << float(self->GetOrientation());
         *data << uint32(self->GetVehicleKit()->GetVehicleInfo()->m_ID);
     }
@@ -603,8 +574,8 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
 
         data->WriteBit(transGuid[0]);
         data->WriteBit(transGuid[5]);
-        if (hasTransportTime3)
-            *data << uint32(self->m_movementInfo.t_time3);
+        //if (hasTransportTime3)
+        //    *data << uint32(0);
 
         data->WriteBit(transGuid[3]);
         *data << float(self->GetTransOffsetX());
@@ -618,8 +589,8 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
         *data << float(self->GetTransOffsetZ());
         *data << int8(self->GetTransSeat());
         *data << float(self->GetTransOffsetO());
-        if (hasTransportTime2)
-            *data << uint32(self->m_movementInfo.t_time2);
+        //if (hasTransportTime2)
+        //    *data << uint32(0);
     }
 
     if (flags & UPDATEFLAG_ROTATION)
@@ -660,7 +631,7 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
 
     if (flags & UPDATEFLAG_HAS_TARGET)
     {
-        ObjectGuid victimGuid = self->getVictim()->GetGUID();   // checked in BuildCreateUpdateBlockForPlayer
+        ObjectGuid victimGuid = ToUnit()->getVictim()->GetGUID();   // checked in BuildCreateUpdateBlockForPlayer
         data->WriteByteSeq(victimGuid[4]);
         data->WriteByteSeq(victimGuid[0]);
         data->WriteByteSeq(victimGuid[3]);
@@ -682,53 +653,51 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
     //}
 
     if (flags & UPDATEFLAG_TRANSPORT)
-        *data << uint32(getMSTime());                       // Unknown - getMSTime is wrong.
+        *data << uint32(getMSTime());                       // Transport path timer - getMSTime is wrong.
 }
 
-void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* updateMask, Player* target) const
+void Object::_BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* updateMask, Player* target) const
 {
     if (!target)
         return;
 
     bool IsActivateToQuest = false;
-
-    // Before trying to convert to each type there is a check, so safe
-    Unit const* unit = ToUnit();
-    GameObject const* go = ToGameObject();
-
-    if (unit)
+    if (updatetype == UPDATETYPE_CREATE_OBJECT || updatetype == UPDATETYPE_CREATE_OBJECT2)
     {
-        if (unit->HasFlag(UNIT_FIELD_AURASTATE, PER_CASTER_AURA_STATE_MASK))
-            updateMask->SetBit(UNIT_FIELD_AURASTATE);
-    }
-    else if (go)
-    {
-        if (updateType == UPDATETYPE_CREATE_OBJECT || updateType == UPDATETYPE_CREATE_OBJECT2)
+        if (isType(TYPEMASK_GAMEOBJECT) && !((GameObject*)this)->IsDynTransport())
         {
-            if (!go->IsDynTransport())
-            {
-                if (go->ActivateToQuest(target) || target->isGameMaster())
-                    IsActivateToQuest = true;
+            if (((GameObject*)this)->ActivateToQuest(target) || target->isGameMaster())
+                IsActivateToQuest = true;
 
-                if (go->GetGoArtKit())
-                    updateMask->SetBit(GAMEOBJECT_BYTES_1);
-            }
-        }
-        else
-        {
-            if (!go->IsTransport())
-            {
-                if (go->ActivateToQuest(target) || target->isGameMaster())
-                    IsActivateToQuest = true;
+            updateMask->SetBit(GAMEOBJECT_DYNAMIC);
 
+            if (((GameObject*)this)->GetGoArtKit())
                 updateMask->SetBit(GAMEOBJECT_BYTES_1);
+        }
+        else if (isType(TYPEMASK_UNIT))
+        {
+            if (((Unit*)this)->HasFlag(UNIT_FIELD_AURASTATE, PER_CASTER_AURA_STATE_MASK))
+                updateMask->SetBit(UNIT_FIELD_AURASTATE);
+        }
+    }
+    else                                                    // case UPDATETYPE_VALUES
+    {
+        if (isType(TYPEMASK_GAMEOBJECT) && !((GameObject*)this)->IsTransport())
+        {
+            if (((GameObject*)this)->ActivateToQuest(target) || target->isGameMaster())
+                IsActivateToQuest = true;
 
-                if (go->GetGoType() == GAMEOBJECT_TYPE_CHEST && go->GetGOInfo()->chest.groupLootRules &&
-                    go->HasLootRecipient())
-                {
-                    updateMask->SetBit(GAMEOBJECT_FLAGS);
-                }
-            }
+            updateMask->SetBit(GAMEOBJECT_DYNAMIC);
+            updateMask->SetBit(GAMEOBJECT_BYTES_1);
+
+            if (ToGameObject()->GetGoType() == GAMEOBJECT_TYPE_CHEST && ToGameObject()->GetGOInfo()->chest.groupLootRules &&
+                ToGameObject()->HasLootRecipient())
+                updateMask->SetBit(GAMEOBJECT_FLAGS);
+        }
+        else if (isType(TYPEMASK_UNIT))
+        {
+            if (((Unit*)this)->HasFlag(UNIT_FIELD_AURASTATE, PER_CASTER_AURA_STATE_MASK))
+                updateMask->SetBit(UNIT_FIELD_AURASTATE);
         }
     }
 
@@ -736,15 +705,14 @@ void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* 
     if (GetTypeId() == TYPEID_PLAYER && target != this)
         valCount = PLAYER_END_NOT_SELF;
 
-    ASSERT(updateMask && updateMask->GetCount() == valCount);
+    WPAssert(updateMask && updateMask->GetCount() == valCount);
 
-    *data << uint8(updateMask->GetBlockCount());
+    *data << (uint8)updateMask->GetBlockCount();
     updateMask->AppendToPacket(data);
 
     // 2 specialized loops for speed optimization in non-unit case
-    if (unit)                               // unit (creature/player) case
+    if (isType(TYPEMASK_UNIT))                               // unit (creature/player) case
     {
-        Creature const* creature = ToCreature();
         for (uint16 index = 0; index < valCount; ++index)
         {
             if (updateMask->GetBit(index))
@@ -761,7 +729,7 @@ void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* 
 
                         if (appendValue & UNIT_NPC_FLAG_TRAINER)
                         {
-                            if (!creature->isCanTrainingOf(target, false))
+                            if (!this->ToCreature()->isCanTrainingOf(target, false))
                                 appendValue &= ~(UNIT_NPC_FLAG_TRAINER | UNIT_NPC_FLAG_TRAINER_CLASS | UNIT_NPC_FLAG_TRAINER_PROFESSION);
                         }
                     }
@@ -770,8 +738,8 @@ void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* 
                 }
                 else if (index == UNIT_FIELD_AURASTATE)
                 {
-                    // Check per caster aura states to not enable using a spell in client if specified aura is not by target
-                    *data << unit->BuildAuraStateUpdateForTarget(target);
+                    // Check per caster aura states to not enable using a pell in client if specified aura is not by target
+                    *data << ((Unit*)this)->BuildAuraStateUpdateForTarget(target);
                 }
                 // FIXME: Some values at server stored in float format but must be sent to client in uint32 format
                 else if (index >= UNIT_FIELD_BASEATTACKTIME && index <= UNIT_FIELD_RANGEDATTACKTIME)
@@ -800,7 +768,7 @@ void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* 
                 {
                     if (GetTypeId() == TYPEID_UNIT)
                     {
-                        CreatureTemplate const* cinfo = creature->GetCreatureTemplate();
+                        CreatureTemplate const* cinfo = ToCreature()->GetCreatureTemplate();
 
                         // this also applies for transform auras
                         if (SpellInfo const* transform = sSpellMgr->GetSpellInfo(ToUnit()->getTransForm()))
@@ -840,7 +808,7 @@ void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* 
                 {
                     uint32 dynamicFlags = m_uint32Values[index];
 
-                    if (creature)
+                    if (Creature const* creature = ToCreature())
                     {
                         if (creature->hasLootRecipient())
                         {
@@ -865,14 +833,16 @@ void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* 
                     }
 
                     // unit UNIT_DYNFLAG_TRACK_UNIT should only be sent to caster of SPELL_AURA_MOD_STALKED auras
-                    if (dynamicFlags & UNIT_DYNFLAG_TRACK_UNIT)
-                        if (!unit->HasAuraTypeWithCaster(SPELL_AURA_MOD_STALKED, target->GetGUID()))
-                            dynamicFlags &= ~UNIT_DYNFLAG_TRACK_UNIT;
+                    if (Unit const* unit = ToUnit())
+                        if (dynamicFlags & UNIT_DYNFLAG_TRACK_UNIT)
+                            if (!unit->HasAuraTypeWithCaster(SPELL_AURA_MOD_STALKED, target->GetGUID()))
+                                dynamicFlags &= ~UNIT_DYNFLAG_TRACK_UNIT;
                     *data << dynamicFlags;
                 }
                 // FG: pretend that OTHER players in own group are friendly ("blue")
                 else if (index == UNIT_FIELD_BYTES_2 || index == UNIT_FIELD_FACTIONTEMPLATE)
                 {
+                    Unit const* unit = ToUnit();
                     if (unit->IsControlledByPlayer() && target != this && sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_GROUP) && unit->IsInRaidWith(target))
                     {
                         FactionTemplateEntry const* ft1 = unit->getFactionTemplateEntry();
@@ -905,7 +875,7 @@ void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* 
             }
         }
     }
-    else if (go)                    // gameobject case
+    else if (isType(TYPEMASK_GAMEOBJECT))                    // gameobject case
     {
         for (uint16 index = 0; index < valCount; ++index)
         {
@@ -916,7 +886,7 @@ void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* 
                 {
                     if (IsActivateToQuest)
                     {
-                        switch (go->GetGoType())
+                        switch (ToGameObject()->GetGoType())
                         {
                             case GAMEOBJECT_TYPE_CHEST:
                                 if (target->isGameMaster())
@@ -949,8 +919,8 @@ void Object::_BuildValuesUpdate(uint8 updateType, ByteBuffer* data, UpdateMask* 
                 else if (index == GAMEOBJECT_FLAGS)
                 {
                     uint32 flags = m_uint32Values[index];
-                    if (go->GetGoType() == GAMEOBJECT_TYPE_CHEST)
-                        if (go->GetGOInfo()->chest.groupLootRules && !go->IsLootAllowedFor(target))
+                    if (ToGameObject()->GetGoType() == GAMEOBJECT_TYPE_CHEST)
+                        if (ToGameObject()->GetGOInfo()->chest.groupLootRules && !ToGameObject()->IsLootAllowedFor(target))
                             flags |= GO_FLAG_LOCKED | GO_FLAG_NOT_SELECTABLE;
 
                     *data << flags;
@@ -1483,14 +1453,6 @@ bool Object::PrintIndexError(uint32 index, bool set) const
     return false;
 }
 
-bool Position::operator==(Position const &a)
-{
-    return (G3D::fuzzyEq(a.m_positionX, m_positionX) &&
-            G3D::fuzzyEq(a.m_positionY, m_positionY) &&
-            G3D::fuzzyEq(a.m_positionZ, m_positionZ) &&
-            G3D::fuzzyEq(a.m_orientation, m_orientation));
-}
-
 bool Position::HasInLine(WorldObject const* target, float width) const
 {
     if (!HasInArc(M_PI, target))
@@ -1542,9 +1504,9 @@ void MovementInfo::OutDebug()
 {
     sLog->outInfo(LOG_FILTER_GENERAL, "MOVEMENT INFO");
     sLog->outInfo(LOG_FILTER_GENERAL, "guid " UI64FMTD, guid);
-    sLog->outInfo(LOG_FILTER_GENERAL, "flags %s (%u)", Movement::MovementFlags_ToString(flags).c_str(), flags);
-    sLog->outInfo(LOG_FILTER_GENERAL, "flags2 %s (%u)", Movement::MovementFlagsExtra_ToString(flags2).c_str(), flags2);
-    sLog->outInfo(LOG_FILTER_GENERAL, "time %u current time %u", time, getMSTime());
+    sLog->outInfo(LOG_FILTER_GENERAL, "flags %u", flags);
+    sLog->outInfo(LOG_FILTER_GENERAL, "flags2 %u", flags2);
+    sLog->outInfo(LOG_FILTER_GENERAL, "time %u current time " UI64FMTD "", flags2, uint64(::time(NULL)));
     sLog->outInfo(LOG_FILTER_GENERAL, "position: `%s`", pos.ToString().c_str());
     if (t_guid)
     {
@@ -1555,19 +1517,14 @@ void MovementInfo::OutDebug()
         sLog->outInfo(LOG_FILTER_GENERAL, "time: %u", t_time);
         if (flags2 & MOVEMENTFLAG2_INTERPOLATED_MOVEMENT)
             sLog->outInfo(LOG_FILTER_GENERAL, "time2: %u", t_time2);
-        if (bits.hasTransportTime3)
-            sLog->outInfo(LOG_FILTER_GENERAL, "time3: %u", t_time3);
     }
 
     if ((flags & (MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_FLYING)) || (flags2 & MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING))
         sLog->outInfo(LOG_FILTER_GENERAL, "pitch: %f", pitch);
 
-    if (flags & MOVEMENTFLAG_FALLING || bits.hasFallData)
-    {
-        sLog->outInfo(LOG_FILTER_GENERAL, "fallTime: %u j_zspeed: %f", fallTime, j_zspeed);
-        if (flags & MOVEMENTFLAG_FALLING)
-            sLog->outInfo(LOG_FILTER_GENERAL, "j_sinAngle: %f j_cosAngle: %f j_xyspeed: %f", j_sinAngle, j_cosAngle, j_xyspeed);
-    }
+    sLog->outInfo(LOG_FILTER_GENERAL, "fallTime: %u", fallTime);
+    if (flags & MOVEMENTFLAG_FALLING)
+        sLog->outInfo(LOG_FILTER_GENERAL, "j_zspeed: %f j_sinAngle: %f j_cosAngle: %f j_xyspeed: %f", j_zspeed, j_sinAngle, j_cosAngle, j_xyspeed);
 
     if (flags & MOVEMENTFLAG_SPLINE_ELEVATION)
         sLog->outInfo(LOG_FILTER_GENERAL, "splineElevation: %f", splineElevation);
@@ -2239,7 +2196,7 @@ bool WorldObject::CanDetect(WorldObject const* obj, bool ignoreStealth) const
     const WorldObject* seer = this;
 
     // Pets don't have detection, they use the detection of their masters
-    if (Unit const* thisUnit = ToUnit())
+    if (const Unit* thisUnit = ToUnit())
         if (Unit* controller = thisUnit->GetCharmerOrOwner())
             seer = controller;
 
@@ -2291,9 +2248,8 @@ bool WorldObject::CanDetectStealthOf(WorldObject const* obj) const
     float distance = GetExactDist(obj);
     float combatReach = 0.0f;
 
-    Unit const* unit = ToUnit();
-    if (unit)
-        combatReach = unit->GetCombatReach();
+    if (isType(TYPEMASK_UNIT))
+        combatReach = ((Unit*)this)->GetCombatReach();
 
     if (distance < combatReach)
         return true;
@@ -2301,14 +2257,14 @@ bool WorldObject::CanDetectStealthOf(WorldObject const* obj) const
     if (!HasInArc(M_PI, obj))
         return false;
 
-    GameObject const* go = ToGameObject();
     for (uint32 i = 0; i < TOTAL_STEALTH_TYPES; ++i)
     {
         if (!(obj->m_stealth.GetFlags() & (1 << i)))
             continue;
 
-        if (unit && unit->HasAuraTypeWithMiscvalue(SPELL_AURA_DETECT_STEALTH, i))
-            return true;
+        if (isType(TYPEMASK_UNIT))
+            if (((Unit*)this)->HasAuraTypeWithMiscvalue(SPELL_AURA_DETECT_STEALTH, i))
+                return true;
 
         // Starting points
         int32 detectionValue = 30;
@@ -2320,8 +2276,8 @@ bool WorldObject::CanDetectStealthOf(WorldObject const* obj) const
 
         // Apply modifiers
         detectionValue += m_stealthDetect.GetValue(StealthType(i));
-        if (go)
-            if (Unit* owner = go->GetOwner())
+        if (obj->isType(TYPEMASK_GAMEOBJECT))
+            if (Unit* owner = ((GameObject*)obj)->GetOwner())
                 detectionValue -= int32(owner->getLevelForTarget(this) - 1) * 5;
 
         detectionValue -= obj->m_stealth.GetValue(StealthType(i));
@@ -2544,6 +2500,8 @@ void WorldObject::BuildMonsterChat(WorldPacket* data, uint8 msgtype, char const*
         *data << uint8(0);
     }
 }
+
+
 
 void WorldObject::SendMessageToSet(WorldPacket* data, bool self)
 {

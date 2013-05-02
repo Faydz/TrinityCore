@@ -46,6 +46,12 @@ uint32 urand(uint32 min, uint32 max)
 
 float frand(float min, float max)
 {
+    uint32 temp;
+	if(max<min){
+	    temp=min;
+		min=max;
+		max=temp;
+	}
     ASSERT(max >= min);
     return float(sfmtRand->Random() * (max - min) + min);
 }
