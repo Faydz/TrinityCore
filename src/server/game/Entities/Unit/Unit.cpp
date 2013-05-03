@@ -6921,6 +6921,10 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->SpellIconID)
             {
+                // T.N.T.
+                case 355:
+                    triggered_spell_id = 56453;
+                    break;
                 // Lock and Load
                 case 3579:
                 {
