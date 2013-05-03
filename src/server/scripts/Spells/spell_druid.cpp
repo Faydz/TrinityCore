@@ -79,6 +79,12 @@ class spell_dru_wild_mushroom : public SpellScriptLoader
                         player->GetCreatureListWithEntryInGrid(list, SPELL_DRUID_NPC_WILD_MUSHROOM, 100.0f);
                         for (std::list<Creature*>::iterator i = list.begin(); i != list.end(); i)
                         {
+							if (!(*i))
+								continue;
+								
+							if (!(*i)->GetCharmerOrOwner())
+								continue;
+								
                             if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
                             {
                                 if (!player)
