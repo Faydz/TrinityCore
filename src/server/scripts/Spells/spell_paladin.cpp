@@ -456,8 +456,8 @@ class spell_pal_communion : public SpellScriptLoader
 
                 if (Unit* caster = GetCaster())
                 {
-                    if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_PALADIN, 3017, EFFECT_1))
-                        amount = aurEff->GetAmount();
+                    if(caster->HasAura(31876))
+                        amount = 3;
                 }       
             }
 
