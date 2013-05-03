@@ -3700,7 +3700,7 @@ void Unit::RemoveAurasByType(AuraType auraType, uint64 casterGUID, Aura* except,
         AuraApplication * aurApp = aura->GetApplicationOfTarget(GetGUID());
 
         ++iter;
-        if (aura != except && (!casterGUID || aura->GetCasterGUID() == casterGUID)
+        if (aura && aura != except && (!casterGUID || aura->GetCasterGUID() == casterGUID)
             && ((negative && !aurApp->IsPositive()) || (positive && aurApp->IsPositive())))
         {
             uint32 removedAuras = m_removedAurasCount;
