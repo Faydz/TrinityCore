@@ -607,7 +607,9 @@ void KillRewarder::_RewardGroup()
                     if (member->IsAtGroupRewardDistance(_victim))
                     {
                         _RewardPlayer(member, isDungeon);
-                        member->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_SPECIAL_PVP_KILL, 1, 0, 0, _victim);
+						
+						if (_victim)
+							member->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_SPECIAL_PVP_KILL, 1, 0, 0, _victim);
                     }
                 }
             }
