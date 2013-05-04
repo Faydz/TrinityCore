@@ -4175,6 +4175,7 @@ void AuraEffect::HandleAuraOverrideSpellpowerByAPPercent(AuraApplication const* 
     int32 auraModifier = player->GetTotalAuraModifier(SPELL_AURA_OVERRIDE_SPELL_POWER_BY_AP_PCT);
 
     player->SetFloatValue(PLAYER_FIELD_OVERRIDE_SPELL_POWER_BY_AP_PCT, (float)auraModifier);
+    target->ToPlayer()->UpdateSpellDamageAndHealingBonus();
 }
 
 void AuraEffect::HandleModSpellDamagePercentFromAttackPower(AuraApplication const* aurApp, uint8 mode, bool /*apply*/) const

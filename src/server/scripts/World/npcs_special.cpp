@@ -459,17 +459,18 @@ public:
 
         void JustDied(Unit* /*killer*/)
         {
-            Unit* owner = me->GetOwner();
+            if(Unit* owner = me->GetOwner()){
 
-            if (!owner || !bloodGorged)
-            {
-                return;
-            }
+                if (!owner || !bloodGorged)
+                {
+                    return;
+                }
 
-            if(owner){
-                if(bloodGorged){
-                    int32 bp0 = CalculatePct(me->GetMaxHealth(), bloodGorged->GetStackAmount() * 10);
-                    me->CastCustomSpell(owner, BLOODWORM_BLOOD_GORGED_HEAL, &bp0, NULL, NULL, true);
+                if(owner){
+                    if(bloodGorged){
+                        int32 bp0 = CalculatePct(me->GetMaxHealth(), bloodGorged->GetStackAmount() * 10);
+                        me->CastCustomSpell(owner, BLOODWORM_BLOOD_GORGED_HEAL, &bp0, NULL, NULL, true);
+                    }
                 }
             }
         }

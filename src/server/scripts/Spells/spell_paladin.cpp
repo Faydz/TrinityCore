@@ -456,8 +456,8 @@ class spell_pal_communion : public SpellScriptLoader
 
                 if (Unit* caster = GetCaster())
                 {
-                    if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_PALADIN, 3017, EFFECT_1))
-                        amount = aurEff->GetAmount();
+                    if(caster->HasAura(31876))
+                        amount = 3;
                 }       
             }
 
@@ -1916,4 +1916,5 @@ void AddSC_paladin_spell_scripts()
     new spell_pal_templar_s_verdict();
     new spell_pal_seal_of_righteousness_aoe_check();
     new spell_pal_seal_of_righteousness();
+    new spell_pal_grand_crusader();
 }

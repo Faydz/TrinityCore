@@ -3635,6 +3635,52 @@ public:
    }
 };
 
+class spell_gen_searing_bolt : public SpellScriptLoader
+{
+    public:
+        spell_gen_searing_bolt() : SpellScriptLoader("spell_gen_searing_bolt") { }
+
+        class spell_gen_searing_bolt_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_gen_searing_bolt_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(3606))
+                    return false;
+                return true;
+            }
+
+            void HandleEffect(SpellEffIndex effIndex)
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if(Unit* owner = caster->GetOwner())
+                    {
+                        if(AuraEffect* aurEff = owner->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_SHAMAN, 680, EFFECT_0))
+                        {
+                            uint32 chance = aurEff->GetAmount();
+                            if(roll_chance_i(chance))
+                            {
+                                if(Unit* target = GetHitUnit())
+                                    caster->CastSpell(target, 77661, true);
+                            }
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_gen_searing_bolt_SpellScript::HandleEffect, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_gen_searing_bolt_SpellScript();
+        }
+};
 
 void AddSC_generic_spell_scripts()
 {
@@ -3724,4 +3770,5 @@ void AddSC_generic_spell_scripts()
     new spell_gen_two_forms();
     new spell_gen_darkflight();
     new spell_gen_vengeance();
+    new spell_gen_searing_bolt();
 }
