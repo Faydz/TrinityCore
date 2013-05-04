@@ -156,7 +156,7 @@ class spell_sha_unleash_elements : public SpellScriptLoader
                             switch (weapons[i]->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT))
                             {
                                 case 3345:  // Earthliving Weapon
-                                    caster->CastSpell(caster, SPELL_SHAMAN_UNLEASH_LIFE, true);
+                                    caster->CastSpell(target, SPELL_SHAMAN_UNLEASH_LIFE, true);
                                     break;
                                 case 5:     // Flametongue Weapon
                                     caster->CastSpell(target, SPELL_SHAMAN_UNLEASH_FLAME, true);
@@ -178,10 +178,33 @@ class spell_sha_unleash_elements : public SpellScriptLoader
 
             SpellCastResult CheckCast()
             {
-                Unit* target = GetExplTargetUnit();
-                Unit* caster = GetCaster();
-                if (caster->ToPlayer()->IsFriendlyTo(target))
-                    return SPELL_FAILED_TARGET_FRIENDLY;
+                if (Unit* caster = GetCaster())
+                {
+                    if (Unit* target = GetExplTargetUnit())
+                    {
+                        Item* weapons[2]= {0,0};
+                        weapons[0] = caster->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
+                        weapons[1] = caster->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
+
+                        for(int i = 0; i < 2; i++)
+                        {
+                            if(!weapons[i])
+                                continue;
+
+                            if(weapons[i]->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 3345)
+                            {
+                                if(!caster->ToPlayer()->IsFriendlyTo(target))
+                                    return SPELL_FAILED_SUCCESS;
+                                else
+                                    return SPELL_CAST_OK;
+                            }
+
+                            if (caster->ToPlayer()->IsFriendlyTo(target))
+                                return SPELL_FAILED_TARGET_FRIENDLY;
+                        }
+                    }
+                }
+
                 return SPELL_CAST_OK;
             }
 
