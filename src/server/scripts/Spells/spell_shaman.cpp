@@ -54,6 +54,7 @@ enum ShamanSpells
     SHAMAN_SPELL_FULMINATION_INFO               = 95774,
     SHAMAN_SPELL_LIGHTNING_SHIELD_PROC          = 26364,
     SHAMAN_TOTEM_SPELL_EARTHEN_POWER            = 59566,
+    SHAMAN_TOTEM_SPELL_SEARING_FLAMES           = 77661,
     SPELL_SHAMAN_TOTEM_TOTEMIC_WRATH            = 77746,
     SPELL_SHAMAN_TOTEM_TOTEMIC_WRATH_AURA       = 77747,
     SPELL_SHAMAN_TOTEM_HEALING_STREAM_HEAL      = 52042,
@@ -646,8 +647,29 @@ class spell_sha_lava_lash : public SpellScriptLoader
                     return;
 
                 int32 hitDamage = GetHitDamage();
+
+                uint32 stackAmount = 0;
+
                 if(GetCaster()->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND)->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 5)
                     AddPct(hitDamage, 40);
+
+                if(Unit* target = GetHitUnit())
+                {
+                    if(Unit * caster = GetCaster())
+                    {
+                        if(AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_SHAMAN, 4780, EFFECT_1))
+                        {
+                            uint32 bonusPct = aurEff->GetAmount();
+                            if (Aura* aur = target->GetAura(SHAMAN_TOTEM_SPELL_SEARING_FLAMES))
+                            {
+                                stackAmount = aur->GetStackAmount();
+                                AddPct(hitDamage, (stackAmount * bonusPct));
+                                target->RemoveAura(SHAMAN_TOTEM_SPELL_SEARING_FLAMES);
+                            }
+                        }
+                    }
+                }
+
                 SetHitDamage(hitDamage);
             }
 
