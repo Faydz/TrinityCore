@@ -1916,4 +1916,5 @@ void AddSC_paladin_spell_scripts()
     new spell_pal_templar_s_verdict();
     new spell_pal_seal_of_righteousness_aoe_check();
     new spell_pal_seal_of_righteousness();
+    new spell_pal_grand_crusader();
 }
