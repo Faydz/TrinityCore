@@ -11976,7 +11976,7 @@ int32 Unit::SpellBaseHealingBonusDone(SpellSchoolMask schoolMask) const
             if ((*i)->GetMiscValue() & schoolMask)
                 advertisedBenefit += (*i)->GetAmount();
 
-        return int32(GetTotalAttackPowerValue(BASE_ATTACK) * (advertisedBenefit / 100.0f);
+        return int32(GetTotalAttackPowerValue(BASE_ATTACK) * (advertisedBenefit / 100.0f));
     }
 
     AuraEffectList const& mHealingDone = GetAuraEffectsByType(SPELL_AURA_MOD_HEALING_DONE);
