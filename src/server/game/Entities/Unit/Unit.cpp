@@ -15407,6 +15407,33 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
             } // for (uint8 effIndex = 0; effIndex < MAX_SPELL_EFFECTS; ++effIndex)
         } // if (!handled)
 
+        // Glyph of Lightining Shield && 4P Bonus Set
+        if (i->aura->GetId() == 324)
+        {
+            // Glyph of Lightining Shield
+            if (AuraEffect* aurEff = GetAuraEffect(55448, 0, 0))
+            {
+                takeCharges = false;
+                useCharges = false;
+            }
+            
+            // 4P Bonus Set (Improved Lightning Shield)
+            if (AuraEffect* aurEff = GetAuraEffect(100956, 0, 0))
+            {
+                takeCharges = false;
+                useCharges = false;
+
+                if (Aura* shield = GetAura(324, GetGUID()))
+                {
+                    uint8 stacks = shield->GetCharges();
+                    stacks++;
+
+                    if (stacks <= 6)
+                        shield->SetCharges(stacks);
+                }
+            }
+        }
+
         // Remove charge (aura can be removed by triggers)
         if (prepare && useCharges && takeCharges)
             i->aura->DropCharge();
