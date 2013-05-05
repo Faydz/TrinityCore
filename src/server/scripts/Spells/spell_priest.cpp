@@ -811,7 +811,7 @@ class spell_pri_power_word_shield : public SpellScriptLoader
                         }
 
                         // Holy Walk
-                        if (target->GetGUID() != caster->GetGUID())
+                        if (target->GetGUID() == caster->GetGUID())
                         {
                             if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 5338, 0))
                                 caster->CastSpell(caster, 96219, true);
