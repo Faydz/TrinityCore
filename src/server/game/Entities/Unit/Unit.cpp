@@ -6514,6 +6514,34 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Sudden Eclipse
+                case 46832:
+                {
+                    if (getClass() != CLASS_DRUID)
+                        return false;
+
+                    if (HasAura(48518) || HasAura(48517))
+                        return false;
+
+                    if (GetPower(POWER_ECLIPSE) == 100 || GetPower(POWER_ECLIPSE) == -100)
+                        return false;
+
+                    if (!ToPlayer())
+                        return false;
+
+                    if (ToPlayer()->HasSpellCooldown(46832))
+                        return false;
+
+                    int32 bp0 = 0;
+                    if (GetPower(POWER_ECLIPSE) >= 0)
+                        bp0 = 20;
+                    else
+                        bp0 = -13;
+
+                    CastCustomSpell(this, 89265, &bp0, NULL, NULL, true);
+                    ToPlayer()->AddSpellCooldown(46832, 0, time(NULL) + 6);
+                    break;
+                }
                 // Harmony
                 case 77495:
                     if (procSpell->Id != 5185 && procSpell->Id != 8936 && procSpell->Id != 18562 && procSpell->Id != 50464)
