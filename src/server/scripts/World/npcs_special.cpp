@@ -3514,6 +3514,20 @@ public:
                    targetGuid = target->GetGUID();
                }
            }
+
+           if (Unit * owner = me->GetOwner())
+           {
+               if (Unit* target = owner->getAttackerForHelper())
+               {
+                   if (me->IsWithinDistInMap(target, 2.0f))
+                   {
+                       me->CastSpell(target, 87532, false ,0, 0, owner->GetGUID());
+                       me->CastSpell(me, 87427, false);
+                       me->DespawnOrUnsummon();
+                   }
+               }
+           }
+       }
        }
 
     };
