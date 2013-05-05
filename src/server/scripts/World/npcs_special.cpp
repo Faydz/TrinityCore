@@ -459,15 +459,17 @@ public:
 
         void JustDied(Unit* /*killer*/)
         {
-            if(Unit* owner = me->GetOwner()){
-
+            if(Unit* owner = me->GetOwner())
+            {
                 if (!owner || !bloodGorged)
                 {
                     return;
                 }
 
-                if(owner){
-                    if(bloodGorged){
+                if(bloodGorged->GetStackAmount())
+                {
+                    if(me->GetMaxHealth())
+                    {
                         int32 bp0 = CalculatePct(me->GetMaxHealth(), bloodGorged->GetStackAmount() * 10);
                         me->CastCustomSpell(owner, BLOODWORM_BLOOD_GORGED_HEAL, &bp0, NULL, NULL, true);
                     }
@@ -3510,6 +3512,19 @@ public:
                    me->AddThreat(target, 100.0f);
                    me->GetMotionMaster()->MoveChase(target, 0.0f, 0.0f);
                    targetGuid = target->GetGUID();
+               }
+           }
+
+           if (Unit * owner = me->GetOwner())
+           {
+               if (Unit* target = owner->getAttackerForHelper())
+               {
+                   if (me->IsWithinDistInMap(target, 2.0f))
+                   {
+                       me->CastSpell(target, 87532, false ,0, 0, owner->GetGUID());
+                       me->CastSpell(me, 87427, false);
+                       me->DespawnOrUnsummon();
+                   }
                }
            }
        }
