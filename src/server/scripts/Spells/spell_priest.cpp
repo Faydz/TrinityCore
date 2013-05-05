@@ -809,11 +809,16 @@ class spell_pri_power_word_shield : public SpellScriptLoader
                             int32 bp0 = aurEff->GetAmount();
                             GetCaster()->CastCustomSpell(GetHitUnit(), 64128, &bp0, NULL, NULL, true);
                         }
+
+                        // Holy Walk
+                        if (target->GetGUID() != caster->GetGUID())
+                        {
+                            if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 5338, 0))
+                                caster->CastSpell(caster, 96219, true);
+                        }
                     }
 
-                    // Holy Walk
-                    if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 5338, 0))
-                        caster->CastSpell(caster, 96219, true);
+
                 }
             }
 
