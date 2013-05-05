@@ -817,8 +817,6 @@ class spell_pri_power_word_shield : public SpellScriptLoader
                                 caster->CastSpell(caster, 96219, true);
                         }
                     }
-
-
                 }
             }
 
