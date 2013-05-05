@@ -17471,6 +17471,10 @@ float Unit::MeleeSpellMissChance(const Unit* victim, WeaponAttackType attType, u
     else
         missChance -= m_modMeleeHitChance;
     return missChance;
+    
+    // Check for negative chance
+    if (missChance < 0.0f)
+        return 0.0f;
 }
 
 void Unit::SetPhaseMask(uint32 newPhaseMask, bool update)
