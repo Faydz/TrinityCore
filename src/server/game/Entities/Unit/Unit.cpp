@@ -8544,12 +8544,6 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                         CastSpell(this, 50422, true);
                         RemoveAuraFromStack(auraSpellInfo->Id);
                         return false;
-                    // Impending Victory
-                    case 80128: 
-                    case 80129:
-                        if(victim->GetHealthPct() > 20.0f) 
-                            return false;
-                        break;
                 }
                 break;
             case SPELLFAMILY_PRIEST:
@@ -8819,6 +8813,12 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Impending Victory
+        case 80128:
+        case 80129:
+            if(victim->GetHealthPct() > 20.0f) 
+                return false;
+            break;
         // Shadow orb Power
         case 77486:
             // Don't need to proc shadow orbs
