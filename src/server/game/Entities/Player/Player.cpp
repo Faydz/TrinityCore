@@ -2625,6 +2625,18 @@ void Player::Regenerate(Powers power)
             focusPerSecond += 6.0f;
             focusPerSecond *= sWorld->getRate(RATE_POWER_FOCUS);
             focusPerSecond /= 2.0f;
+
+            AuraEffectList const& ModPowerRegenPCTAuras = GetAuraEffectsByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
+                for (AuraEffectList::const_iterator i = ModPowerRegenPCTAuras.begin(); i != ModPowerRegenPCTAuras.end(); ++i)
+                {
+                    // what the fuck is this aura? cazzo
+                    if ((*i)->GetId() == 77442)
+                        continue;
+
+                    if (Powers((*i)->GetMiscValue()) == power)
+                        AddPct(focusPerSecond, (*i)->GetAmount());
+                }
+
             addvalue += focusPerSecond;
             break;
         }
