@@ -17467,12 +17467,6 @@ float Unit::MeleeSpellMissChance(const Unit* victim, WeaponAttackType attType, u
         missChance -= m_modRangedHitChance;
     else
         missChance -= m_modMeleeHitChance;
-
-    // Limit miss chance from 0 to 60%
-    if (missChance < 0.0f)
-        return 0.0f;
-    if (missChance > 60.0f)
-        return 60.0f;
     return missChance;
 }
 
