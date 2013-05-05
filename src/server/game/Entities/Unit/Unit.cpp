@@ -9760,6 +9760,9 @@ bool Unit::AttackStop()
     if (!m_attacking)
         return false;
 
+    if (!this)
+        return false;
+
     Unit* victim = m_attacking;
 
     m_attacking->_removeAttacker(this);
