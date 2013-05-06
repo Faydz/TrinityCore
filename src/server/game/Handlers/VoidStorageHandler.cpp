@@ -354,6 +354,7 @@ void WorldSession::HandleVoidStorageTransfer(WorldPacket& recvData)
     for (std::vector<ObjectGuid>::iterator itr = itemIds.begin(); itr != itemIds.end(); ++itr)
     {
         uint8 slot;
+        sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - On Slot: %u, player: %s) is trying to withdraw item guid: " UI64FMTD ").", player->GetGUIDLow(), player->GetName().c_str(), uint64(*itr));
         VoidStorageItem* itemVS = player->GetVoidStorageItem(*itr, slot);
         if (!itemVS)
         {
