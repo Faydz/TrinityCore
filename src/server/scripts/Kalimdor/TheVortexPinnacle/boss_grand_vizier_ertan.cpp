@@ -134,9 +134,11 @@ public:
                             if (ertanVortex[i])
                             {   
                                 ertanVortex[i]->RemoveUnitMovementFlag(MOVEMENTFLAG_WALKING);
-                                ertanVortex[i]->AttackStop();
-                                if (ertanVortex[i]->GetMotionMaster())
-		                            ertanVortex[i]->GetMotionMaster()->MovePoint(1, middelPositions[i]);
+                                if(ertanVortex[i]->AttackStop()){
+                                    if (ertanVortex[i]->GetMotionMaster()){
+		                                ertanVortex[i]->GetMotionMaster()->MovePoint(1, middelPositions[i]);
+                                    }
+                                }
                             }
 	                    }
                         events.ScheduleEvent(EVENT_VORTEX_HOME, 8000, 0, 0);
