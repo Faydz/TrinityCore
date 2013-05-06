@@ -27182,9 +27182,12 @@ VoidStorageItem* Player::GetVoidStorageItem(uint64 id, uint8& slot) const
     {
         if (_voidStorageItems[i] && _voidStorageItems[i]->ItemId == id)
         {
+            sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) withdrawing item (id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
             slot = i;
             return _voidStorageItems[i];
         }
+        else
+            sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) failed withdraw of item (id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
     }
 
     return NULL;
