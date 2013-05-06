@@ -2693,7 +2693,6 @@ bool AchievementMgr<T>::AdditionalRequirementsSatisfied(AchievementCriteriaEntry
         uint32 const reqValue = criteria->additionalConditionValue[i];
 
         if (criteria->type == ACHIEVEMENT_CRITERIA_TYPE_SPECIAL_PVP_KILL)
-            sLog->outError(LOG_FILTER_GENERAL, "CAZZO %d %d %d", reqValue, reqType, criteria->ID);
         switch (AchievementCriteriaAdditionalCondition(reqType))
         {
             case ACHIEVEMENT_CRITERIA_ADDITIONAL_CONDITION_TARGET_CREATURE_ENTRY: // 4
