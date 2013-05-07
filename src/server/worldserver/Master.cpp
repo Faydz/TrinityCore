@@ -352,12 +352,6 @@ int Master::Run()
 // Pre-Start Custom Function to verify issues
 bool Master::PreLoadCheck(){
     sLog->outInfo(LOG_FILTER_WORLDSERVER,"Executing Pre-Load Custom Check...");
-    //salvataggio del backup degli item_instance collegati alla AH
-    CharacterDatabase.PExecute("TRUNCATE TABLE item_instance_ah_backup");
-    CharacterDatabase.PExecute("INSERT INTO item_instance_ah_backup SELECT * FROM item_instance where guid in (SELECT itemguid FROM auctionhouse)");
-    //salvataggio del backup della tabella auctionhouse
-    CharacterDatabase.PExecute("TRUNCATE TABLE auctionhouse_backup");
-    CharacterDatabase.PExecute("INSERT INTO auctionhouse_backup SELECT * FROM auctionhouse");
     sLog->outInfo(LOG_FILTER_WORLDSERVER,"Pre-Load Checks are done!"); 
     return true;
 }
