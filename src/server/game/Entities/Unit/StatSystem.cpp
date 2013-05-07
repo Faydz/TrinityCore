@@ -279,6 +279,12 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
     {
         index = UNIT_FIELD_RANGED_ATTACK_POWER;
         val2 = (level + std::max(GetStat(STAT_AGILITY) - 10.0f, 0.0f)) * entry->RAPPerAgility;
+
+        if (unitMod == UNIT_MOD_ATTACK_POWER_RANGED)
+        {
+            index_mod_pos = UNIT_FIELD_RANGED_ATTACK_POWER_MOD_POS;
+            index_mod_neg = UNIT_FIELD_RANGED_ATTACK_POWER_MOD_NEG;
+        }
     }
     else
     {
