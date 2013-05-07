@@ -3622,6 +3622,11 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->Effects[1].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
                         spellInfo->Effects[2].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
                         break;
+                    // Cobra Shot
+                    case 77767:
+                        spellInfo->Effects[1].TargetA = TARGET_UNIT_TARGET_ENEMY;
+                        spellInfo->Effects[1].Effect = SPELL_EFFECT_SCRIPT_EFFECT;
+                        break;
                 }
                 break;
             default:
