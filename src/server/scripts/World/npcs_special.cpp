@@ -466,7 +466,7 @@ public:
                     return;
                 }
 
-                if(bloodGorged->GetStackAmount())
+                if(bloodGorged && bloodGorged->GetStackAmount())
                 {
                     if(me->GetMaxHealth())
                     {
