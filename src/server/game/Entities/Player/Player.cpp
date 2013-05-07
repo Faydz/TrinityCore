@@ -27180,15 +27180,15 @@ VoidStorageItem* Player::GetVoidStorageItem(uint64 id, uint8& slot) const
 {
     for (uint8 i = 0; i < VOID_STORAGE_MAX_SLOT; ++i)
     {
-        //sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - VSSlot nr %u - Player %s item ID is: " UI64FMTD ")", i, this->GetName().c_str(), uint64(_voidStorageItems[i]->ItemId));
-        //sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - VSSlot nr %u - Player %s i'm looking for ID : " UI64FMTD ")", i, this->GetName().c_str(), uint64(id));
-
-        if (_voidStorageItems[i] && _voidStorageItems[i]->ItemId == id)
-        {
-            sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) withdrawing item (id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
-            slot = i;
-            return _voidStorageItems[i];
-        }         
+        if (_voidStorageItems[i]){
+            sLog->outError(LOG_FILTER_NETWORKIO, "VOIDSTORAGE: - Player (GUID: %u, name: %s) - GetVoidStorage passing through id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
+            if(_voidStorageItems[i]->ItemId == id)
+            {
+                sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) withdrawing item (id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
+                slot = i;
+                return _voidStorageItems[i];
+            }    
+        }
     }
 
     return NULL;
