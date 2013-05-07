@@ -39,6 +39,7 @@ enum HunterSpells
     SPELL_HUNTER_CHIMERA_SHOT_VIPER                 = 53358,
     SPELL_HUNTER_CHIMERA_SHOT_SCORPID               = 53359,
 	SPELL_HUNTER_CHIMERA_SHOT_SERPENT               = 53353,
+    SPELL_HUNTER_COBRA_SHOT                         = 77767,
     SPELL_HUNTER_GLYPH_OF_ASPECT_OF_THE_VIPER       = 56851,
     SPELL_HUNTER_INVIGORATION_TRIGGERED             = 53398,
     SPELL_HUNTER_MASTERS_CALL_TRIGGERED             = 62305,
@@ -49,6 +50,7 @@ enum HunterSpells
     SPELL_HUNTER_PET_HEART_OF_THE_PHOENIX_DEBUFF    = 55711,
     SPELL_HUNTER_PET_CARRION_FEEDER_TRIGGERED       = 54045,
     SPELL_HUNTER_READINESS                          = 23989,
+    SPELL_HUNTER_SERPENT_STING_DEBUFF               = 1978,
     SPELL_HUNTER_SNIPER_TRAINING_R1                 = 53302,
     SPELL_HUNTER_SNIPER_TRAINING_BUFF_R1            = 64418,
     SPELL_DRAENEI_GIFT_OF_THE_NAARU                 = 59543,
@@ -1018,6 +1020,51 @@ class spell_hun_trap_launcher_trap : public SpellScriptLoader
         }
 };
 
+//77767 - Cobra Shot
+/// 4.3.4 updated
+class spell_hun_cobra_shot : public SpellScriptLoader
+{
+    public:
+        spell_hun_cobra_shot() : SpellScriptLoader("spell_hun_cobra_shot") { }
+
+        class spell_hun_cobra_shot_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_cobra_shot_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellEntry*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_HUNTER_COBRA_SHOT))
+                    return false;
+                return true;
+            }
+
+            void HandleScript(SpellEffIndex effIndex)
+            {
+                if(Unit * target = GetHitUnit())
+                {
+                    if(target->GetAura(SPELL_HUNTER_SERPENT_STING_DEBUFF))
+                    {
+                        uint32 actualDuration = target->GetAura(SPELL_HUNTER_SERPENT_STING_DEBUFF)->GetDuration();
+                        if ((actualDuration + 6000) > 16999)
+                            target->GetAura(SPELL_HUNTER_SERPENT_STING_DEBUFF)->SetDuration(17000);
+                        else
+                            target->GetAura(SPELL_HUNTER_SERPENT_STING_DEBUFF)->SetDuration(actualDuration + 6000);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_hun_cobra_shot_SpellScript::HandleScript, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_cobra_shot_SpellScript();
+        }
+};
+
 void AddSC_hunter_spell_scripts()
 {
     new spell_hun_aspect_of_the_beast();
@@ -1042,4 +1089,5 @@ void AddSC_hunter_spell_scripts()
     new spell_hun_focus_fire();
     new spell_hun_chimera_shot();
     new spell_hun_trap_launcher_trap();
+    new spell_hun_cobra_shot();
 }
