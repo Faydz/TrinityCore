@@ -102,7 +102,10 @@ class spell_sha_frost_shock : public SpellScriptLoader
                         if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, SHAMAN_ICON_ID_FROZEN_POWER, EFFECT_1))
                         {
                             if (roll_chance_i(aurEff->GetAmount()))
-                                caster->CastSpell(target, 63685, true);
+                            {
+                                if (caster->IsWithinDistInMap(target, 15.0f))
+                                    caster->CastSpell(target, 63685, true);
+                            }
                         }
                     }
                 }
