@@ -430,26 +430,32 @@ public:
     {
         npc_blood_parasiteAI(Creature* creature) : PetAI(creature) {}
         
+        void InitializeAI()
+        {
+            maxHealth = me->GetMaxHealth();
+        }
+
         void UpdateAI(uint32 /*diff*/)
         {   
-           
-            bloodGorged = me->GetAura(BLOODWORM_BLOOD_GORGED_BUFF, me->GetGUID());
+            if(Aura* aura = me->GetAura(BLOODWORM_BLOOD_GORGED_BUFF, me->GetGUID()))
+            {
+                bloodGorgedStacks = aura->GetStackAmount();
+            }
 
             if(Unit* owner = me->GetOwner())
             {
                 Unit* ownerVictim = owner->getVictim();
                 Unit* meVictim = me->getVictim();
 
-                if(meVictim){
-                    if(ownerVictim){
-                        // Worm's target switching only when DK switches
-                        if(ownerVictim != meVictim)
-                        {
-                            meVictim = ownerVictim;
+                if(ownerVictim)
+                {
+                    // Worm's target switching only when DK switches
+                    if(ownerVictim != meVictim)
+                    {
+                        meVictim = ownerVictim;
                         
-                            me->Attack(meVictim, true);
-                            me->GetMotionMaster()->MoveChase(meVictim);
-                        }
+                        me->Attack(meVictim, true);
+                        me->GetMotionMaster()->MoveChase(meVictim);
                     }
                 }
             }
@@ -461,24 +467,19 @@ public:
         {
             if(Unit* owner = me->GetOwner())
             {
-                if (!owner || !bloodGorged)
+                if (!owner || !bloodGorgedStacks || !maxHealth)
                 {
                     return;
                 }
 
-                if(bloodGorged && bloodGorged->GetStackAmount())
-                {
-                    if(me->GetMaxHealth())
-                    {
-                        int32 bp0 = CalculatePct(me->GetMaxHealth(), bloodGorged->GetStackAmount() * 10);
-                        me->CastCustomSpell(owner, BLOODWORM_BLOOD_GORGED_HEAL, &bp0, NULL, NULL, true);
-                    }
-                }
+				int32 bp0 = CalculatePct(maxHealth, bloodGorgedStacks * 10);
+				me->CastCustomSpell(owner, BLOODWORM_BLOOD_GORGED_HEAL, &bp0, NULL, NULL, true);
             }
         }
 
     private:
-        Aura* bloodGorged;
+        uint32 maxHealth;
+        uint8 bloodGorgedStacks;
     };
 
     CreatureAI* GetAI(Creature* creature) const
