@@ -8864,6 +8864,15 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+		// Victory Rush activator
+		case 32215:
+		{
+			Player* player = this->ToPlayer();
+
+			if(!player || !victim || !player->isHonorOrXPTarget(victim))
+				return false;
+			break;
+		}
         // Impending Victory
         case 80128:
         case 80129:
