@@ -7260,6 +7260,20 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+				// Earth Shield
+				case 974:
+					if (Player* player = this->ToPlayer())
+					{
+						if (player->HasSpellCooldown(dummySpell->Id))
+						{
+							return false;
+						}
+				
+						triggered_spell_id = 379;
+						
+						player->AddSpellCooldown(dummySpell->Id, 0, time(NULL) + 3);
+					}
+					break;
                 // Tidal Waves
                 case 51562:
                 case 51564:
