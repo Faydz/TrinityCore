@@ -328,23 +328,28 @@ public:
 
         void IsSummonedBy(Unit* summoner)
         {
-            if (instance->GetBossState(DATA_EREGOS_EVENT) == IN_PROGRESS)
-                if (Creature* eregos = me->FindNearestCreature(NPC_EREGOS, 450.0f, true))
-                {
-                    eregos->DespawnOrUnsummon(); // On retail this kills abusive call of drake during engaged Eregos
+            if(summoner){
+                if(instance){
+                    //if (instance->GetBossState(DATA_EREGOS_EVENT) == IN_PROGRESS)
+                    //    if (Creature* eregos = me->FindNearestCreature(NPC_EREGOS, 450.0f, true))
+                    //    {
+                    //        eregos->DespawnOrUnsummon(); // On retail this kills abusive call of drake during engaged Eregos
+                    //    }
+                    // summonerGUID = summoner->GetGUID();
+                
+                    me->SetFacingToObject(summoner);
+                    // TO DO: Drake Ques should be casted from vehicle to player, however the way core handle triggered spells from auras break it no matter the conditions. So this change the caster and give the same result until someone fix triggered spells from auras that involve implicit targets or make exception for this case.
+                    if (me->GetEntry() == NPC_RUBY_DRAKE_VEHICLE)
+                        summoner->CastSpell(summoner, SPELL_RIDE_RUBY_DRAKE_QUE);
+                    if (me->GetEntry() == NPC_EMERALD_DRAKE_VEHICLE)
+                        summoner->CastSpell(summoner, SPELL_RIDE_EMERALD_DRAKE_QUE);
+                    if (me->GetEntry() == NPC_AMBER_DRAKE_VEHICLE)
+                        summoner->CastSpell(summoner, SPELL_RIDE_AMBER_DRAKE_QUE);
+                    Position pos;
+                    summoner->GetPosition(&pos);
+                    me->GetMotionMaster()->MovePoint(0, pos);  
                 }
-            summonerGUID = summoner->GetGUID();
-            me->SetFacingToObject(summoner);
-            // TO DO: Drake Ques should be casted from vehicle to player, however the way core handle triggered spells from auras break it no matter the conditions. So this change the caster and give the same result until someone fix triggered spells from auras that involve implicit targets or make exception for this case.
-            if (me->GetEntry() == NPC_RUBY_DRAKE_VEHICLE)
-                summoner->CastSpell(summoner, SPELL_RIDE_RUBY_DRAKE_QUE);
-            if (me->GetEntry() == NPC_EMERALD_DRAKE_VEHICLE)
-                summoner->CastSpell(summoner, SPELL_RIDE_EMERALD_DRAKE_QUE);
-            if (me->GetEntry() == NPC_AMBER_DRAKE_VEHICLE)
-                summoner->CastSpell(summoner, SPELL_RIDE_AMBER_DRAKE_QUE);
-            Position pos;
-            summoner->GetPosition(&pos);
-            me->GetMotionMaster()->MovePoint(0, pos);
+            }
         }
 
         void MovementInform(uint32 type, uint32 id)

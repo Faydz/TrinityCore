@@ -2104,10 +2104,17 @@ SpellSpecificType SpellInfo::GetSpellSpecific() const
             // only hunter stings have this
             if (Dispel == DISPEL_POISON)
                 return SPELL_SPECIFIC_STING;
-
-            // only hunter aspects have this (but not all aspects in hunter family)
-            if (SpellFamilyFlags.HasFlag(0x00380000, 0x00440000, 0x00001010))
-                return SPELL_SPECIFIC_ASPECT;
+            
+            // Fix aspects with deterrence up
+            switch(Id)
+            {
+                case 13165: //Aspect of the Hawk
+                case 82661: //Aspect of the Fox
+                case 5118:  //Aspect of the Cheetah
+                case 13159: //Aspect of the Pack
+                case 20043: //Aspect of the Wild
+                    return SPELL_SPECIFIC_ASPECT;
+            }
 
             break;
         }

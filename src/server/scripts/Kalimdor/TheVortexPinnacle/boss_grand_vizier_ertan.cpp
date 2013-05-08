@@ -112,7 +112,7 @@ public:
             instance->SetData(DATA_GRAND_VIZIER_ERTAN_EVENT, DONE);
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -134,8 +134,11 @@ public:
                             if (ertanVortex[i])
                             {   
                                 ertanVortex[i]->RemoveUnitMovementFlag(MOVEMENTFLAG_WALKING);
-                                ertanVortex[i]->AttackStop();
-		                        ertanVortex[i]->GetMotionMaster()->MovePoint(1, middelPositions[i]);
+                                if(ertanVortex[i]->AttackStop()){
+                                    if (ertanVortex[i]->GetMotionMaster()){
+		                                ertanVortex[i]->GetMotionMaster()->MovePoint(1, middelPositions[i]);
+                                    }
+                                }
                             }
 	                    }
                         events.ScheduleEvent(EVENT_VORTEX_HOME, 8000, 0, 0);
@@ -148,7 +151,8 @@ public:
                             {
                                 ertanVortex[i]->RemoveUnitMovementFlag(MOVEMENTFLAG_WALKING);
                                 ertanVortex[i]->AttackStop();
-		                        ertanVortex[i]->GetMotionMaster()->MovePoint(1, summonPositions[i]);
+		                        if (ertanVortex[i]->GetMotionMaster())
+		                            ertanVortex[i]->GetMotionMaster()->MovePoint(1, summonPositions[i]);
                             }
 	                    }
                         events.ScheduleEvent(EVENT_VORTEX_MIDDLE, urand(16000, 20000), 0, 0);

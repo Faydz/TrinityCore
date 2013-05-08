@@ -77,25 +77,27 @@ class spell_dru_wild_mushroom : public SpellScriptLoader
                         std::list<Creature*> list;
 
                         player->GetCreatureListWithEntryInGrid(list, SPELL_DRUID_NPC_WILD_MUSHROOM, 100.0f);
-                        for (std::list<Creature*>::iterator i = list.begin(); i != list.end(); i)
-                        {
-                            if (!(*i))
-                                continue;
-
-                            if (!(*i)->GetCharmerOrOwner())
-                                continue;
-
-                            if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
+                        if(!list.empty()){
+                            for (std::list<Creature*>::iterator i = list.begin(); i != list.end(); i)
                             {
-                                if (!player)
-                                {
-                                    return;
-                                }
-                            }
-                            else
-                                list.remove((*i));
+                                if (!(*i))
+                                    continue;
 
-                            i++;
+                                if (!(*i)->GetCharmerOrOwner())
+                                    continue;
+
+                                if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
+                                {
+                                    if (!player)
+                                    {
+                                        return;
+                                    }
+                                }
+                                else
+                                    list.remove((*i));
+
+                                i++;
+                            }
                         }
 
                         // Max 3 Wild Mushroom

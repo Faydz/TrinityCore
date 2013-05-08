@@ -2625,6 +2625,18 @@ void Player::Regenerate(Powers power)
             focusPerSecond += 6.0f;
             focusPerSecond *= sWorld->getRate(RATE_POWER_FOCUS);
             focusPerSecond /= 2.0f;
+
+            AuraEffectList const& ModPowerRegenPCTAuras = GetAuraEffectsByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
+                for (AuraEffectList::const_iterator i = ModPowerRegenPCTAuras.begin(); i != ModPowerRegenPCTAuras.end(); ++i)
+                {
+                    // what the fuck is this aura? cazzo
+                    if ((*i)->GetId() == 77442)
+                        continue;
+
+                    if (Powers((*i)->GetMiscValue()) == power)
+                        AddPct(focusPerSecond, (*i)->GetAmount());
+                }
+
             addvalue += focusPerSecond;
             break;
         }
@@ -27168,10 +27180,15 @@ VoidStorageItem* Player::GetVoidStorageItem(uint64 id, uint8& slot) const
 {
     for (uint8 i = 0; i < VOID_STORAGE_MAX_SLOT; ++i)
     {
-        if (_voidStorageItems[i] && _voidStorageItems[i]->ItemId == id)
-        {
-            slot = i;
-            return _voidStorageItems[i];
+        if (_voidStorageItems[i]){
+            sLog->outError(LOG_FILTER_NETWORKIO, "VOIDSTORAGE: - Player (GUID: %u, name: %s) - GetVoidStorage looking for id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
+            sLog->outError(LOG_FILTER_NETWORKIO, "VOIDSTORAGE: - Player (GUID: %u, name: %s) - GetVoidStorage passing through id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(_voidStorageItems[i]->ItemId));
+            if(_voidStorageItems[i]->ItemId == id)
+            {
+                sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) withdrawing item (id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
+                slot = i;
+                return _voidStorageItems[i];
+            }    
         }
     }
 

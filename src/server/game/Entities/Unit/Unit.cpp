@@ -6514,6 +6514,34 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Sudden Eclipse
+                case 46832:
+                {
+                    if (getClass() != CLASS_DRUID)
+                        return false;
+
+                    if (HasAura(48518) || HasAura(48517))
+                        return false;
+
+                    if (GetPower(POWER_ECLIPSE) == 100 || GetPower(POWER_ECLIPSE) == -100)
+                        return false;
+
+                    if (!ToPlayer())
+                        return false;
+
+                    if (ToPlayer()->HasSpellCooldown(46832))
+                        return false;
+
+                    int32 bp0 = 0;
+                    if (GetPower(POWER_ECLIPSE) >= 0)
+                        bp0 = 20;
+                    else
+                        bp0 = -13;
+
+                    CastCustomSpell(this, 89265, &bp0, NULL, NULL, true);
+                    ToPlayer()->AddSpellCooldown(46832, 0, time(NULL) + 6);
+                    break;
+                }
                 // Harmony
                 case 77495:
                     if (procSpell->Id != 5185 && procSpell->Id != 8936 && procSpell->Id != 18562 && procSpell->Id != 50464)
@@ -7232,6 +7260,20 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+				// Earth Shield
+				case 974:
+					if (Player* player = this->ToPlayer())
+					{
+						if (player->HasSpellCooldown(dummySpell->Id))
+						{
+							return false;
+						}
+				
+						triggered_spell_id = 379;
+						
+						player->AddSpellCooldown(dummySpell->Id, 0, time(NULL) + 3);
+					}
+					break;
                 // Tidal Waves
                 case 51562:
                 case 51564:
@@ -7889,20 +7931,18 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                             pPet->DealDamage(pPet->getVictim(), procDmg, NULL, SPELL_DIRECT_DAMAGE, procSpell->GetSchoolMask(), procSpell, true);
                             break;
                         }
-				        else
-					        if (!pPet && pPet->getVictim() && damage && !procSpell)
-					         {
-						        CalcDamageInfo damageInfo;
-						        CalculateMeleeDamage(pPet->getVictim(), 0, &damageInfo, BASE_ATTACK);
-						        damageInfo.attacker = pPet;
-						        damageInfo.damage = damageInfo.damage / 2;
-						        // Send log damage message to client
-						        pPet->DealDamageMods(pPet->getVictim(),damageInfo.damage,&damageInfo.absorb);
-						        pPet->SendAttackStateUpdate(&damageInfo);
-						        pPet->ProcDamageAndSpell(damageInfo.target, damageInfo.procAttacker, damageInfo.procVictim, damageInfo.procEx, damageInfo.damage, damageInfo.attackType);
-						        pPet->DealMeleeDamage(&damageInfo,true);
-					        }
-
+				        else if (pPet && pPet->getVictim() && damage && !procSpell)
+					    {
+						    CalcDamageInfo damageInfo;
+						    CalculateMeleeDamage(pPet->getVictim(), 0, &damageInfo, BASE_ATTACK);
+						    damageInfo.attacker = pPet;
+						    damageInfo.damage = damageInfo.damage / 2;
+						    // Send log damage message to client
+						    pPet->DealDamageMods(pPet->getVictim(),damageInfo.damage,&damageInfo.absorb);
+						    pPet->SendAttackStateUpdate(&damageInfo);
+						    pPet->ProcDamageAndSpell(damageInfo.target, damageInfo.procAttacker, damageInfo.procVictim, damageInfo.procEx, damageInfo.damage, damageInfo.attackType);
+						    pPet->DealMeleeDamage(&damageInfo,true);
+					    }
                         else
                             return false;
                     }
@@ -8005,6 +8045,17 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         case 93099:
             // For druid don't proc if we aren't in bear form
             if (dummySpell->Id == 84840 && GetShapeshiftForm() != FORM_BEAR)
+                return false;
+
+            if (!ToPlayer())
+                return false;
+
+            // Disale vengeance in BG/Arena
+            if (ToPlayer()->InArena() || ToPlayer()->InBattleground())
+                return false;
+
+            // Disable vengeance in duels
+            if (ToPlayer()->duel)
                 return false;
 
             int32 bp = int32(damage * 0.05f);
@@ -8544,12 +8595,6 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                         CastSpell(this, 50422, true);
                         RemoveAuraFromStack(auraSpellInfo->Id);
                         return false;
-                    // Impending Victory
-                    case 80128: 
-                    case 80129:
-                        if(victim->GetHealthPct() > 20.0f) 
-                            return false;
-                        break;
                 }
                 break;
             case SPELLFAMILY_PRIEST:
@@ -8819,6 +8864,21 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+		// Victory Rush activator
+		case 32215:
+		{
+			Player* player = this->ToPlayer();
+
+			if(!player || !victim || !player->isHonorOrXPTarget(victim))
+				return false;
+			break;
+		}
+        // Impending Victory
+        case 80128:
+        case 80129:
+            if(victim->GetHealthPct() > 20.0f) 
+                return false;
+            break;
         // Shadow orb Power
         case 77486:
             // Don't need to proc shadow orbs
@@ -9758,6 +9818,9 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
 bool Unit::AttackStop()
 {
     if (!m_attacking)
+        return false;
+
+    if (!this)
         return false;
 
     Unit* victim = m_attacking;
@@ -15376,6 +15439,33 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
             } // for (uint8 effIndex = 0; effIndex < MAX_SPELL_EFFECTS; ++effIndex)
         } // if (!handled)
 
+        // Glyph of Lightining Shield && 4P Bonus Set
+        if (i->aura->GetId() == 324)
+        {
+            // Glyph of Lightining Shield
+            if (AuraEffect* aurEff = GetAuraEffect(55448, 0, 0))
+            {
+                takeCharges = false;
+                useCharges = false;
+            }
+            
+            // 4P Bonus Set (Improved Lightning Shield)
+            if (AuraEffect* aurEff = GetAuraEffect(100956, 0, 0))
+            {
+                takeCharges = false;
+                useCharges = false;
+
+                if (Aura* shield = GetAura(324, GetGUID()))
+                {
+                    uint8 stacks = shield->GetCharges();
+                    stacks++;
+
+                    if (stacks <= 6)
+                        shield->SetCharges(stacks);
+                }
+            }
+        }
+
         // Remove charge (aura can be removed by triggers)
         if (prepare && useCharges && takeCharges)
             i->aura->DropCharge();
@@ -17468,11 +17558,12 @@ float Unit::MeleeSpellMissChance(const Unit* victim, WeaponAttackType attType, u
     else
         missChance -= m_modMeleeHitChance;
 
-    // Limit miss chance from 0 to 60%
+    // Check for negative chance
     if (missChance < 0.0f)
         return 0.0f;
     if (missChance > 60.0f)
         return 60.0f;
+
     return missChance;
 }
 
