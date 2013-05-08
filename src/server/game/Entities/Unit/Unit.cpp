@@ -8036,7 +8036,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             if (!ToPlayer())
                 return false;
 
-            procAttacker
             // Disale vengeance in BG/Arena
             if (ToPlayer()->InArena() || ToPlayer()->InBattleground())
                 return false;
