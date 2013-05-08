@@ -1155,39 +1155,39 @@ class Theme_NPC : public CreatureScript
 		}
 };
 
-class icc_buff_npc : public CreatureScript
-{
-public:
-	icc_buff_npc() : CreatureScript("icc_buff_npc") {}
-
-	bool OnGossipHello(Player * player, Creature * creature)
-	{
-		player->ADD_GOSSIP_ITEM(0, "Wir brauchen eure St\303\244rke nicht, mein Kriegsherr!", GOSSIP_SENDER_MAIN, 1);
-		player->ADD_GOSSIP_ITEM(1, "Aufwiedersehen...", GOSSIP_SENDER_MAIN, 10);
-		player->PlayerTalkClass->SendGossipMenu(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
-		return true;
-	}
-
-	bool OnGossipSelect(Player * player, Creature * creature, uint32 sender, uint32 action)
-	{
-		if (action == 10)
-		{
-			player->CLOSE_GOSSIP_MENU();
-		}
-
-		if (action == 1)
-		{
-			player->RemoveAura(73822);
-			player->RemoveAura(73828);
-
-			if (player->GetTeam() == ALLIANCE)
-				creature->CastSpell(player, 73762, true);
-			else
-				creature->CastSpell(player, 73816, true);
-		}
-		return true;
-	}
-};
+//class icc_buff_npc : public CreatureScript
+//{
+//public:
+//	icc_buff_npc() : CreatureScript("icc_buff_npc") {}
+//
+//	bool OnGossipHello(Player * player, Creature * creature)
+//	{
+//		player->ADD_GOSSIP_ITEM(0, "Wir brauchen eure St\303\244rke nicht, mein Kriegsherr!", GOSSIP_SENDER_MAIN, 1);
+//		player->ADD_GOSSIP_ITEM(1, "Aufwiedersehen...", GOSSIP_SENDER_MAIN, 10);
+//		player->PlayerTalkClass->SendGossipMenu(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
+//		return true;
+//	}
+//
+//	bool OnGossipSelect(Player * player, Creature * creature, uint32 sender, uint32 action)
+//	{
+//		if (action == 10)
+//		{
+//			player->CLOSE_GOSSIP_MENU();
+//		}
+//
+//		if (action == 1)
+//		{
+//			player->RemoveAura(73822);
+//			player->RemoveAura(73828);
+//
+//			if (player->GetTeam() == ALLIANCE)
+//				creature->CastSpell(player, 73762, true);
+//			else
+//				creature->CastSpell(player, 73816, true);
+//		}
+//		return true;
+//	}
+//};
 
 void AddSC_custom_misc()
 {
@@ -1197,5 +1197,5 @@ void AddSC_custom_misc()
 	new npc_startup();
 	new npc_donation();
 	new Theme_NPC();
-	new icc_buff_npc();
+	/*new icc_buff_npc();*/
 }
