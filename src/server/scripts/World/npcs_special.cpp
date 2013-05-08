@@ -3672,61 +3672,46 @@ public:
         }
 };
 
-class npc_ring_of_frost: public CreatureScript {
+class npc_ring_of_frost: public CreatureScript
+{
 public:
-	npc_ring_of_frost() :
-			CreatureScript("npc_ring_of_frost") {
-	}
+	npc_ring_of_frost() : CreatureScript("npc_ring_of_frost")
+    { }
 
-	struct npc_ring_of_frostAI: public ScriptedAI {
-		npc_ring_of_frostAI(Creature *c) :
-				ScriptedAI(c) {
-		}
+	struct npc_ring_of_frostAI: public ScriptedAI 
+    {
+		npc_ring_of_frostAI(Creature *c) : ScriptedAI(c)
+        { }
+
 		bool Isready;
 		uint32 timer;
 
-		void Reset() {
+		void Reset() 
+        {
 			timer = 3000; // 3sec
 			Isready = false;
 		}
 
-		void InitializeAI() {
+		void InitializeAI()
+        {
 			ScriptedAI::InitializeAI();
 			Unit * owner = me->GetOwner();
+
 			if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
 				return;
 
 			me->SetReactState(REACT_PASSIVE);
 			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-
-			// Remove other ring spawned by the player
-			//Cell pair(Trinity::ComputeCellPair(owner->GetPositionX(),owner->GetPositionY()));
-			//Cell cell(pair);
-			//cell.data.Part.reserved = ALL_DISTRICT;
-			//cell.SetNoCreate();
-            
-            /*std::list<Creature*> templist;
-			Trinity::AllCreaturesOfEntryInRange check(owner, me->GetEntry(), 50.0f);
-			Trinity::CreatureListSearcher<Trinity::AllCreaturesOfEntryInRange> searcher(owner, templist, check);
-
-			TypeContainerVisitor<Trinity::CreatureListSearcher<Trinity::AllCreaturesOfEntryInRange>,
-					GridTypeMapContainer> visitor(searcher);
-			//cell.Visit(pair, visitor, *(owner->GetMap()));
-
-			if (!templist.empty())
-				for (std::list<Creature*>::const_iterator itr =
-						templist.begin(); itr != templist.end(); ++itr)
-					if ((*itr)->GetOwner() == me->GetOwner() && *itr != me)
-						(*itr)->DisappearAndDie();
-			templist.clear();*/
 		}
 
-		void EnterEvadeMode() {
+		void EnterEvadeMode() 
+        {
 			return;
 		}
 
-		void CheckIfMoveInRing(Unit *who) {
+		void CheckIfMoveInRing(Unit *who)
+        {
 			if (who->isAlive() && me->IsInRange(who, 2.0f, 4.7f)
 					&& !who->HasAura(82691)/*<= target already frozen*/
 					&& !who->HasAura(91264)/*<= target is immune*/
@@ -3734,9 +3719,12 @@ public:
 				me->CastSpell(who, 82691, true);
 		}
 
-		void UpdateAI(uint32 diff) {
-			if (timer <= diff) {
-				if (!Isready) {
+		void UpdateAI(uint32 diff)
+        {
+			if (timer <= diff) 
+            {
+				if (!Isready)
+                {
 					Isready = true;
 					timer = 9000; // 9sec
 				} else
@@ -3749,8 +3737,7 @@ public:
 			Trinity::AnyUnfriendlyUnitInObjectRangeCheck u_check(me, me, 5.0f);
 			Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, u_check);
 			me->VisitNearbyObject(5.0f, searcher);
-			for (std::list<Unit*>::const_iterator iter = targets.begin();
-					iter != targets.end(); ++iter)
+			for (std::list<Unit*>::const_iterator iter = targets.begin(); iter != targets.end(); ++iter)
 				CheckIfMoveInRing(*iter);
 		}
 	};
