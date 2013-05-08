@@ -8033,6 +8033,18 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             if (dummySpell->Id == 84840 && GetShapeshiftForm() != FORM_BEAR)
                 return false;
 
+            if (!ToPlayer())
+                return false;
+
+            procAttacker
+            // Disale vengeance in BG/Arena
+            if (ToPlayer()->InArena() || ToPlayer()->InBattleground())
+                return false;
+
+            // Disable vengeance in duels
+            if (ToPlayer()->duel)
+                return false;
+
             int32 bp = int32(damage * 0.05f);
             if (AuraApplication* aurApp = GetAuraApplication(76691, GetGUID(), 0, 0, 0))
             {
