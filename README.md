@@ -1,2 +1,0 @@
-TrinityCore-Gunship
-===================
