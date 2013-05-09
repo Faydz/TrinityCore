@@ -3117,6 +3117,17 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_1].MiscValue = 150;
                 spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
                 break;
+			// Scare Beast
+			case 1513:
+            // Polymorph
+            case 118:
+            case 61305: // Polymorph (other animal)
+            case 28272: // polymorph (other animal)
+            case 61721: // Polymorph (other animal)
+            case 61780: // Polymorph (other animal)
+            case 28271: // Polymorph (other animal)
+                spellInfo->AuraInterruptFlags = AURA_INTERRUPT_FLAG_TAKE_DAMAGE;
+                break;
             default:
                 break;
         }
