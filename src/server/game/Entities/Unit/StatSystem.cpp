@@ -284,6 +284,7 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
         {
             index_mod_pos = UNIT_FIELD_RANGED_ATTACK_POWER_MOD_POS;
             index_mod_neg = UNIT_FIELD_RANGED_ATTACK_POWER_MOD_NEG;
+            val2 += GetTotalAuraModifier(SPELL_AURA_MOD_RANGED_ATTACK_POWER);
         }
     }
     else
@@ -307,6 +308,12 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
     float base_attPower  = GetModifierValue(unitMod, BASE_VALUE) * GetModifierValue(unitMod, BASE_PCT);
     float attPowerMod_pos = GetModifierValue(unitMod, TOTAL_VALUE);
     float attPowerMod_neg = GetModifierValue(unitMod, TOTAL_VALUE);
+
+    if (ranged)
+    {
+        attPowerMod_pos = 0.0f;
+        attPowerMod_neg = 0.0f;
+    }
 
     // Check this
     base_attPower *= GetModifierValue(unitMod, TOTAL_PCT);
