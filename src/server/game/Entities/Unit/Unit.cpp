@@ -8866,13 +8866,26 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     {
 		// Victory Rush activator
 		case 32215:
-		{
-			Player* player = this->ToPlayer();
-
-			if(!player || !victim || !player->isHonorOrXPTarget(victim))
+			if(!victim)
 				return false;
+
+			// Pet check
+			if(Pet* pet = victim->ToPet())
+			{
+				if(pet->getPetType() == HUNTER_PET || pet->getPetType() == SUMMON_PET)
+				{
+					break;
+				}
+			}
+
+			if(Player* player = this->ToPlayer())
+			{
+				if(!player->isHonorOrXPTarget(victim))
+				{
+					return false;
+				}
+			}
 			break;
-		}
         // Impending Victory
         case 80128:
         case 80129:
