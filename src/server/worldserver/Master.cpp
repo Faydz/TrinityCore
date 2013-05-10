@@ -155,9 +155,6 @@ int Master::Run()
     if (!_StartDB())
         return 1;
 
-    // set server offline (not connectable)
-    LoginDatabase.DirectPExecute("UPDATE realmlist SET flag = (flag & ~%u) | %u WHERE id = '%d'", REALM_FLAG_OFFLINE, REALM_FLAG_INVALID, realmID);
-
     ///- Initialize the World
     sWorld->SetInitialWorldSettings();
 
@@ -264,8 +261,9 @@ int Master::Run()
         // go down and shutdown the server
     }
 
-    // set server online (allow connecting now)
-    LoginDatabase.DirectPExecute("UPDATE realmlist SET flag = flag & ~%u, population = 0 WHERE id = '%u'", REALM_FLAG_INVALID, realmID);
+    // set server online (This is the correct query for blizzlike configurations)
+	// on start up, the realm should remain offline, till the server is fully loaded)
+    LoginDatabase.DirectPExecute("UPDATE realmlist SET flag = 0 WHERE id = '%u'", realmID);
 
     sLog->outInfo(LOG_FILTER_WORLDSERVER, "%s (worldserver-daemon) ready...", _FULLVERSION);
 
@@ -282,7 +280,7 @@ int Master::Run()
     }
 
     // set server offline
-    LoginDatabase.DirectPExecute("UPDATE realmlist SET flag = flag | %u WHERE id = '%d'", REALM_FLAG_OFFLINE, realmID);
+    LoginDatabase.DirectPExecute("UPDATE realmlist SET flag = 2 WHERE id = '%d'", REALM_FLAG_OFFLINE, realmID);
 
     ///- Clean database before leaving
     ClearOnlineAccounts();
@@ -340,10 +338,6 @@ int Master::Run()
 
         delete cliThread;
     }
-
-    // for some unknown reason, unloading scripts here and not in worldrunnable
-    // fixes a memory leak related to detaching threads from the module
-    //UnloadScriptingModule();
 
     // Exit the process with specified return value
     return World::GetExitCode();
