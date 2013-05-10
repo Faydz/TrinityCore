@@ -262,7 +262,7 @@ int Master::Run()
     }
 
     // set server online (This is the correct query for blizzlike configurations)
-	// on start up, the realm should remain offline, till the server is fully loaded)
+    // on start up, the realm should remain offline, till the server is fully loaded)
     LoginDatabase.DirectPExecute("UPDATE realmlist SET flag = 0 WHERE id = '%u'", realmID);
 
     sLog->outInfo(LOG_FILTER_WORLDSERVER, "%s (worldserver-daemon) ready...", _FULLVERSION);
