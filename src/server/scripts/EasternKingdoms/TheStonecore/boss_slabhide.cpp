@@ -38,6 +38,7 @@ enum Events
     EVENT_STALACTITE_P1,
     EVENT_STALACTITE_P2,
     EVENT_SANDBLAST,
+    EVENT_STUN
 };
 
 enum MovementPoints
@@ -58,15 +59,17 @@ class boss_slabhide: public CreatureScript
 
         SummonList summons;
         bool isFlyPhase;
+        Position pos;
+
         void Reset()
         {
             summons.DespawnAll();
             events.Reset();
             isFlyPhase = false;
             me->SetReactState(REACT_AGGRESSIVE);
+            me->SetHover(false);
+            me->SetDisableGravity(false);
             me->SetCanFly(false);
-            DoStartMovement(me->getVictim());
-            me->RemoveUnitMovementFlag(MOVEMENTFLAG_DISABLE_GRAVITY);
         }
 
         void EnterCombat(Unit* attacker)
@@ -98,21 +101,26 @@ class boss_slabhide: public CreatureScript
             {
                 case POINT_CENTER:
                     me->SetReactState(REACT_PASSIVE);
+                    me->SetHover(true);
+                    me->SetDisableGravity(true);
                     me->SetCanFly(true);
-                    me->AddUnitMovementFlag(MOVEMENTFLAG_DISABLE_GRAVITY);
-                    Position pos;
                     pos.Relocate(me);
-                    pos.m_positionZ += 9.0f;
-                    me->GetMotionMaster()->MovePoint(POINT_TAKEOFF, pos);
+                    pos.m_positionZ += 12.0f;
+                    me->GetMotionMaster()->MoveTakeoff(POINT_TAKEOFF, pos);
+                    events.ScheduleEvent(EVENT_STUN, 1500, 0, 0);
                     break;
                 case POINT_TAKEOFF:
                     if (Creature* summoner = me->FindNearestCreature(200000, 30.0f, true))
                         summoner->AI()->DoAction(ACTION_CAST);
+                    
                     events.ScheduleEvent(EVENT_STALACTITE_P2, urand(8000, 10000), 0, 0);
                     break;
                 case POINT_LAND:
                     DoStartMovement(me->getVictim());
                     isFlyPhase = false;
+                    me->SetHover(false);
+                    me->SetDisableGravity(false);
+                    me->SetCanFly(false);
                     events.ScheduleEvent(EVENT_LAVA_FISSURE, urand(7000, 10000), 0, 0);
                     events.ScheduleEvent(EVENT_SANDBLAST, urand(7000, 8000), 0, 0);
                     events.ScheduleEvent(EVENT_STALACTITE_P1, urand(20000, 30000), 0, 0);
@@ -139,7 +147,7 @@ class boss_slabhide: public CreatureScript
             }
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -176,10 +184,12 @@ class boss_slabhide: public CreatureScript
                         break;
                     case EVENT_STALACTITE_P2:
                         isFlyPhase = false;
-                        me->SetCanFly(false);
                         me->SetReactState(REACT_AGGRESSIVE);
                         me->RemoveUnitMovementFlag(MOVEMENTFLAG_DISABLE_GRAVITY);
                         me->GetMotionMaster()->MovePoint(POINT_LAND, 1283.2111f, 1214.3529f, 247.118f);
+                        break;
+                    case EVENT_STUN:
+                        me->GetMotionMaster()->MovePoint(POINT_TAKEOFF, pos);
                         break;
                 }
             }
@@ -224,7 +234,7 @@ public:
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
         }
 
-        void DoAction(const int32 actionId)
+        void DoAction(int32 actionId)
         {
             switch (actionId)
             {
@@ -234,7 +244,7 @@ public:
             }
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             events.Update(diff);
 
@@ -292,7 +302,7 @@ public:
             }
         }
 
-        void DoAction(const int32 actionId)
+        void DoAction(int32 actionId)
         {
             switch (actionId)
             {
@@ -302,7 +312,7 @@ public:
             }
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             DoMeleeAttackIfReady();
         }
@@ -338,7 +348,7 @@ public:
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
         }
 
-        void DoAction(const int32 actionId)
+        void DoAction(int32 actionId)
         {
             switch (actionId)
             {
@@ -348,7 +358,7 @@ public:
             }
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             events.Update(diff);
 
