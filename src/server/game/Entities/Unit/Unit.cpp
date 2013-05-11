@@ -11086,6 +11086,82 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                         DoneTotalMod += float(aurEff->GetAmount() / 100.0f);
             break;
         case SPELLFAMILY_ROGUE:
+			switch(spellProto->Id)
+			{
+				// Eviscerate
+				// 1 point : 177+((536 * 1) + AP * 0.091)*1-529+((536 * 1) + AP * 0.091)*1 damage
+				// 2 points: 177+((536 * 2) + AP * 0.182)*1-529+((536 * 2) + AP * 0.182)*1 damage
+				// 3 points: 177+((536 * 3) + AP * 0.273)*1-529+((536 * 3) + AP * 0.273)*1 damage
+				// 4 points: 177+((536 * 4) + AP * 0.364)*1-529+((536 * 4) + AP * 0.364)*1 damage
+				// 5 points: 177+((536 * 5) + AP * 0.455)*1-529+((536 * 5) + AP * 0.455)*1 damage
+				case 2098:
+				{
+					if(Player const* player = this->ToPlayer())
+					{
+						uint8 comboPoints = player->GetComboPoints();
+						float calcAP= player->GetTotalAttackPowerValue(BASE_ATTACK);
+
+						switch(comboPoints)
+						{
+							case 1:
+								calcAP *= 0.091f;
+								break;
+							case 2:
+								calcAP *= 0.182f;
+								break;
+							case 3:
+								calcAP *= 0.273f;
+								break;
+							case 4:
+								calcAP *= 0.364f;
+								break;
+							case 5:
+								calcAP *= 0.455f;
+								break;
+						}
+
+						int32 member = ((536 * comboPoints) + calcAP);
+
+						DoneTotal += uint32(177 + member - 529 + member);
+						
+                        // Eviscerate and Envenom Bonus Damage (item set effect)
+                        if (this->HasAura(37169))
+                            DoneTotal += comboPoints * 40;
+						
+						// Serrated Blades
+						if (victim)
+						{
+							if(Aura* aura = victim->GetAura(1943))
+							{
+								if (AuraEffect* aurEff = this->GetDummyAuraEffect(SPELLFAMILY_ROGUE, 2004, 0))
+								{
+									if (roll_chance_i(aurEff->GetAmount()))
+										aura->RefreshDuration();
+								}
+							}
+						}
+					}
+				}
+				break;
+				// Rogue assasination mastery (instant poison)
+				case 8680:
+					if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && owner->getClass() == CLASS_ROGUE)
+					{
+						if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
+						{
+							DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints();
+						}
+					}
+				break;
+				// Venomous Wounds
+				case 79136:
+					// Mastery Assassination (Potent Poisons)
+					if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
+						if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
+							DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints() / 100;
+				break;
+			}
+
             if (spellProto->Id == 2098 || spellProto->Id == 32645)
             {
                 // Revealing Strike
@@ -11107,25 +11183,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_ROGUE_SUBTLETY)
                        DoneTotalMod *= 1.0f + 0.025f * owner->ToPlayer()->GetMasteryPoints() / 100;
-            }
-            // Venomous wounds
-            if (spellProto->Id == 79136)
-            {
-                // Mastery Assassination (Potent Poisons)
-                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
-                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
-                        DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints() / 100;
-            }
-            // Rogue assasination mastery (instant poison)
-            if (spellProto->Id == 8680)
-            {
-                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && owner->getClass() == CLASS_ROGUE)
-                {
-                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
-                    {
-                        DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints();
-                    }
-                }  
             }
             break;
         case SPELLFAMILY_SHAMAN:

@@ -659,32 +659,6 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         }
                     }
                 }
-                // Eviscerate
-                else if (m_spellInfo->SpellFamilyFlags[0] & 0x00020000)
-                {
-                    if (m_caster->GetTypeId() == TYPEID_PLAYER)
-                    {
-                        if (uint32 combo = ((Player*)m_caster)->GetComboPoints())
-                        {
-                            float ap = m_caster->GetTotalAttackPowerValue(BASE_ATTACK);
-                            damage += irand(int32(ap * combo * 0.03f), int32(ap * combo * 0.07f));
-
-                            // Eviscerate and Envenom Bonus Damage (item set effect)
-                            if (m_caster->HasAura(37169))
-                                damage += combo*40;
-                        }
-                    }
-
-                    // Serrated Blades
-                    if (unitTarget->HasAura(1943))
-                    {
-                        if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_ROGUE, 2004, 0))
-                        {
-                            if (roll_chance_i(aurEff->GetAmount()))
-                                unitTarget->GetAura(1943)->RefreshDuration();
-                        }
-                    }
-                }
                 break;
             }
             case SPELLFAMILY_HUNTER:
