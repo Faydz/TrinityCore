@@ -6543,11 +6543,6 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
                         break;
                 }
                 break;
-            case SPELLFAMILY_DEATHKNIGHT:
-                switch (GetId())
-                {
-                }
-                break;
             case SPELLFAMILY_MAGE:
                 switch (GetId())
                 {
