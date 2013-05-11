@@ -3600,12 +3600,14 @@ public:
                 //this will choose if the flame orb will explode because of the talent fire power
                 if(AuraEffect* firepower =summoner->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_MAGE, 31, EFFECT_0))
                 {
-                    if (firepower->GetId() == 18460 && roll_chance_i(33))
-                        explo = false;
-                    else if (firepower->GetId() == 18459 && roll_chance_i(66))
-                        explo = false;
-                    else
+                    if (firepower->GetId() == 18459 && roll_chance_i(33))
                         explo = true;
+                    else if (firepower->GetId() == 18460 && roll_chance_i(66))
+                        explo = true;
+                    else if (firepower->GetId() == 54734)
+                        explo = true;
+                    else
+                        explo = false;
                 }
             }
         }
