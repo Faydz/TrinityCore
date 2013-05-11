@@ -156,9 +156,6 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
             // Blind
             else if (spellproto->SpellFamilyFlags[0] & 0x1000000)
                 return DIMINISHING_FEAR;
-            // Cheap Shot
-            else if (spellproto->SpellFamilyFlags[0] & 0x400)
-                return DIMINISHING_OPENING_STUN;
             // Crippling poison - Limit to 10 seconds in PvP (No SpellFamilyFlags)
             else if (spellproto->SpellIconID == 163)
                 return DIMINISHING_LIMITONLY;
@@ -3117,6 +3114,21 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_1].MiscValue = 150;
                 spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
                 break;
+			// Scare Beast
+			case 1513:
+            // Polymorph
+            case 118:
+            case 61305: // Polymorph (other animal)
+            case 28272: // polymorph (other animal)
+            case 61721: // Polymorph (other animal)
+            case 61780: // Polymorph (other animal)
+            case 28271: // Polymorph (other animal)
+                spellInfo->AuraInterruptFlags = AURA_INTERRUPT_FLAG_TAKE_DAMAGE;
+                break;
+            // Soulburn: Healthstone
+            case 79437:
+                spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_INCREASE_HEALTH_PERCENT;
+                break;
             default:
                 break;
         }
@@ -3129,7 +3141,6 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Soul Harvest
                     case 79268:
                         spellInfo->Effects[EFFECT_0].Amplitude = 3000;
-                        spellInfo->Effects[EFFECT_1].Amplitude = 3000;
                         break;
                     // Enslave Demon
                     case 1098:

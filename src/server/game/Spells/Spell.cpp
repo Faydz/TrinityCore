@@ -3400,6 +3400,12 @@ void Spell::cast(bool skipCheck)
                 if(AuraEffect* auraEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 3524, EFFECT_0))
                     if(roll_chance_i(auraEff->GetAmount()))
                         m_caster->CastSpell(m_caster->getVictim(), 88691, NULL);
+		
+		// Updates rune regen on casting spell like Unholy Frenzy
+		if(m_caster->getClass() == CLASS_DEATH_KNIGHT)
+		{
+			m_caster->ToPlayer()->UpdateAllRunesRegen();
+		}
 
         m_caster->ToPlayer()->SetSpellModTakingSpell(this, false);
 

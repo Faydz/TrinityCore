@@ -5747,7 +5747,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     return true;
                 }
                 // Ignite
-                case 11119:
+                /*case 11119:
                 case 11120:
                 case 12846:
                 {
@@ -5757,7 +5757,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     triggered_spell_id = 12654;
                     basepoints0 += victim->GetRemainingPeriodicAmount(GetGUID(), triggered_spell_id, SPELL_AURA_PERIODIC_DAMAGE);
                     break;
-                }
+                }*/
                 // Glyph of Ice Block
                 case 56372:
                 {
@@ -8866,13 +8866,26 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     {
 		// Victory Rush activator
 		case 32215:
-		{
-			Player* player = this->ToPlayer();
-
-			if(!player || !victim || !player->isHonorOrXPTarget(victim))
+			if(!victim)
 				return false;
+
+			// Pet check
+			if(Pet* pet = victim->ToPet())
+			{
+				if(pet->getPetType() == HUNTER_PET || pet->getPetType() == SUMMON_PET)
+				{
+					break;
+				}
+			}
+
+			if(Player* player = this->ToPlayer())
+			{
+				if(!player->isHonorOrXPTarget(victim))
+				{
+					return false;
+				}
+			}
 			break;
-		}
         // Impending Victory
         case 80128:
         case 80129:
@@ -10859,23 +10872,21 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 }
             }
 
-            // Flashburn - Fire Mastery
-            if (owner->getClass() == CLASS_MAGE && spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_FIRE && damagetype == DOT && spellProto->SpellIconID == 33)
-            {//will not affect combustion
-               if (owner->HasAuraType(SPELL_AURA_MASTERY))
-               {
-                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FIRE)
-                   {
-                       DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -0.14f) * 0.028f); // fire base mastery is 7.852
-                   }
-               }
+            // Flashburn - Fire Mastery (will not affect combustion)
+            if (owner->getClass() == CLASS_MAGE && spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_FIRE && damagetype == DOT && spellProto->SpellIconID != 33)
+            {
+                if (owner->HasAuraType(SPELL_AURA_MASTERY))
+                {
+                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FIRE)
+                        DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -0.14f) * 0.028f); // fire base mastery is 7.852
+                }
             }
 
             //Molten Fury
             if (victim->GetHealthPct() <= 35.0f && owner->ToPlayer() && owner->getClass() == CLASS_MAGE && 
                 GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0))
             {
-                if (spellProto->SpellIconID == 33 || spellProto->SpellIconID == 937)
+                if (spellProto->SpellIconID != 33 || spellProto->SpellIconID != 937)
                 { //should not affect ignite nor combustion
                     if (Aura* aura = GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0)->GetBase()){
                         uint32 BP = 12;
@@ -10883,6 +10894,8 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                             BP = 8;
                         else if (aura->GetId() == 31679) //rank 1
                             BP = 4;
+                        else if (aura->GetId() == 86880) //rank 3
+                            BP = 12;
 
                         DoneTotalMod *= 1 + (BP / 100.0f);
                     }
@@ -11073,6 +11086,82 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                         DoneTotalMod += float(aurEff->GetAmount() / 100.0f);
             break;
         case SPELLFAMILY_ROGUE:
+			switch(spellProto->Id)
+			{
+				// Eviscerate
+				// 1 point : 177+((536 * 1) + AP * 0.091)*1-529+((536 * 1) + AP * 0.091)*1 damage
+				// 2 points: 177+((536 * 2) + AP * 0.182)*1-529+((536 * 2) + AP * 0.182)*1 damage
+				// 3 points: 177+((536 * 3) + AP * 0.273)*1-529+((536 * 3) + AP * 0.273)*1 damage
+				// 4 points: 177+((536 * 4) + AP * 0.364)*1-529+((536 * 4) + AP * 0.364)*1 damage
+				// 5 points: 177+((536 * 5) + AP * 0.455)*1-529+((536 * 5) + AP * 0.455)*1 damage
+				case 2098:
+				{
+					if(Player const* player = this->ToPlayer())
+					{
+						uint8 comboPoints = player->GetComboPoints();
+						float calcAP= player->GetTotalAttackPowerValue(BASE_ATTACK);
+
+						switch(comboPoints)
+						{
+							case 1:
+								calcAP *= 0.091f;
+								break;
+							case 2:
+								calcAP *= 0.182f;
+								break;
+							case 3:
+								calcAP *= 0.273f;
+								break;
+							case 4:
+								calcAP *= 0.364f;
+								break;
+							case 5:
+								calcAP *= 0.455f;
+								break;
+						}
+
+						int32 member = ((536 * comboPoints) + calcAP);
+
+						DoneTotal += uint32(177 + member - 529 + member);
+						
+                        // Eviscerate and Envenom Bonus Damage (item set effect)
+                        if (this->HasAura(37169))
+                            DoneTotal += comboPoints * 40;
+						
+						// Serrated Blades
+						if (victim)
+						{
+							if(Aura* aura = victim->GetAura(1943))
+							{
+								if (AuraEffect* aurEff = this->GetDummyAuraEffect(SPELLFAMILY_ROGUE, 2004, 0))
+								{
+									if (roll_chance_i(aurEff->GetAmount()))
+										aura->RefreshDuration();
+								}
+							}
+						}
+					}
+				}
+				break;
+				// Rogue assasination mastery (instant poison)
+				case 8680:
+					if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && owner->getClass() == CLASS_ROGUE)
+					{
+						if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
+						{
+							DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints();
+						}
+					}
+				break;
+				// Venomous Wounds
+				case 79136:
+					// Mastery Assassination (Potent Poisons)
+					if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
+						if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
+							DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints() / 100;
+				break;
+			}
+
             if (spellProto->Id == 2098 || spellProto->Id == 32645)
             {
                 // Revealing Strike
@@ -11094,25 +11183,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_ROGUE_SUBTLETY)
                        DoneTotalMod *= 1.0f + 0.025f * owner->ToPlayer()->GetMasteryPoints() / 100;
-            }
-            // Venomous wounds
-            if (spellProto->Id == 79136)
-            {
-                // Mastery Assassination (Potent Poisons)
-                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
-                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
-                        DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints() / 100;
-            }
-            // Rogue assasination mastery (instant poison)
-            if (spellProto->Id == 8680)
-            {
-                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && owner->getClass() == CLASS_ROGUE)
-                {
-                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
-                    {
-                        DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints();
-                    }
-                }  
             }
             break;
         case SPELLFAMILY_SHAMAN:
@@ -11802,6 +11872,12 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                 case 6262: // Healthstone
                     if(victim)
                     {
+						// Soulburn: Healthstone check
+						if(victim->HasAura(74434))
+						{
+							victim->CastSpell(victim, 79437, true);
+						}
+
                         healamount = uint32(0.45f * victim->GetCreateHealth());
                         return healamount;
                     }

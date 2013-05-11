@@ -845,17 +845,26 @@ class spell_mage_mana_shield : public SpellScriptLoader
 
            void HandleAbsorb(AuraEffect* /*aurEff*/, DamageInfo & /*dmgInfo*/, uint32 & absorbAmount)
            {
-               if (AuraEffect* aurEff = GetTarget()->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_GENERIC, ICON_MAGE_INCANTER_S_ABSORPTION, EFFECT_0))
-               {
-                   int32 bp = CalculatePct(absorbAmount, aurEff->GetAmount());
-                   GetTarget()->CastCustomSpell(GetTarget(), SPELL_MAGE_INCANTER_S_ABSORPTION_TRIGGERED, &bp, NULL, NULL, true);
-               }
+				if(Unit* target = GetTarget())
+				{
+				   if (AuraEffect* aurEff = target->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_GENERIC, ICON_MAGE_INCANTER_S_ABSORPTION, EFFECT_0))
+				   {
+					   int32 bp = CalculatePct(absorbAmount, aurEff->GetAmount());
+					   target->CastCustomSpell(target, SPELL_MAGE_INCANTER_S_ABSORPTION_TRIGGERED, &bp, NULL, NULL, true);
+				   }
+				}
            }
 
            void AfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
            {
-               if (GetTargetApplication()->GetRemoveMode() == AURA_REMOVE_BY_ENEMY_SPELL)
-                   GetTarget()->CastSpell(GetTarget(), SPELL_MAGE_INCANTER_S_ABSORPTION_KNOCKBACK, true);
+				if(Unit* target = GetTarget())
+				{
+					if (target->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_GENERIC, ICON_MAGE_INCANTER_S_ABSORPTION, EFFECT_0)
+					   && GetTargetApplication()->GetRemoveMode() == AURA_REMOVE_BY_ENEMY_SPELL)
+					{
+						target->CastSpell(target, SPELL_MAGE_INCANTER_S_ABSORPTION_KNOCKBACK, true);
+					}
+				}
            }
 
            void Register()
@@ -884,11 +893,14 @@ class spell_mage_mage_ward : public SpellScriptLoader
 
             void HandleAbsorb(AuraEffect* /*aurEff*/, DamageInfo & /*dmgInfo*/, uint32 & absorbAmount)
             {
-                if (AuraEffect* aurEff = GetTarget()->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_GENERIC, ICON_MAGE_INCANTER_S_ABSORPTION, EFFECT_0))
-                {
-                    int32 bp = CalculatePct(absorbAmount, aurEff->GetAmount());
-                    GetTarget()->CastCustomSpell(GetTarget(), SPELL_MAGE_INCANTER_S_ABSORPTION_TRIGGERED, &bp, NULL, NULL, true);
-                }
+				if(Unit* target = GetTarget())
+				{
+					if (AuraEffect* aurEff = GetTarget()->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_GENERIC, ICON_MAGE_INCANTER_S_ABSORPTION, EFFECT_0))
+					{
+						int32 bp = CalculatePct(absorbAmount, aurEff->GetAmount());
+						target->CastCustomSpell(target, SPELL_MAGE_INCANTER_S_ABSORPTION_TRIGGERED, &bp, NULL, NULL, true);
+					}
+				}
             }
              
             void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
@@ -902,11 +914,24 @@ class spell_mage_mage_ward : public SpellScriptLoader
                     amount += int32(bonus);
                 }
             }
+			
+           void AfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+           {
+				if(Unit* target = GetTarget())
+				{
+					if (target->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_GENERIC, ICON_MAGE_INCANTER_S_ABSORPTION, EFFECT_0)
+					   && GetTargetApplication()->GetRemoveMode() == AURA_REMOVE_BY_ENEMY_SPELL)
+					{
+						target->CastSpell(target, SPELL_MAGE_INCANTER_S_ABSORPTION_KNOCKBACK, true);
+					}
+				}
+           }
 
             void Register()
             {
                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mage_mage_ward_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB); 
                 AfterEffectAbsorb += AuraEffectAbsorbFn(spell_mage_mage_ward_AuraScript::HandleAbsorb, EFFECT_0);
+                AfterEffectRemove += AuraEffectRemoveFn(spell_mage_mage_ward_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB, AURA_EFFECT_HANDLE_REAL);
             }
        };
 
@@ -1250,6 +1275,111 @@ public:
     }
 };
 
+class spell_mage_master_of_elements : public SpellScriptLoader
+{
+    public:
+        spell_mage_master_of_elements() : SpellScriptLoader("spell_mage_master_of_elements") { }
+
+        class spell_mage_master_of_elements_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_mage_master_of_elements_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(29077))
+                    return false;
+                return true;
+            }
+
+            bool CheckProc(ProcEventInfo& eventInfo)
+            {
+                return eventInfo.GetDamageInfo()->GetSpellInfo(); // eventInfo.GetSpellInfo()
+            }
+
+            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+            {
+                PreventDefaultAction();
+
+                int32 mana = int32(eventInfo.GetDamageInfo()->GetSpellInfo()->CalcPowerCost(GetTarget(), eventInfo.GetDamageInfo()->GetSchoolMask()));
+                mana = CalculatePct(mana, aurEff->GetAmount());
+
+                if (mana > 0)
+                {
+                    if (GetTarget()->HasAura(29074))
+                        GetTarget()->CastCustomSpell(29077, SPELLVALUE_BASE_POINT0, mana / 2, GetTarget(), true, NULL, aurEff);
+                    if (GetTarget()->HasAura(29075))
+                        GetTarget()->CastCustomSpell(29077, SPELLVALUE_BASE_POINT0, mana, GetTarget(), true, NULL, aurEff);
+                }
+            }
+
+            void Register()
+            {
+                DoCheckProc += AuraCheckProcFn(spell_mage_master_of_elements_AuraScript::CheckProc);
+                OnEffectProc += AuraEffectProcFn(spell_mage_master_of_elements_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_mage_master_of_elements_AuraScript();
+        }
+};
+
+// 11119, 11120, 12846 - Ignite rank 1,2,3
+class spell_mage_ignite : public SpellScriptLoader
+{
+    public:
+        spell_mage_ignite() : SpellScriptLoader("spell_mage_ignite") { }
+
+        class spell_mage_ignite_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_mage_ignite_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(12654))
+                    return false;
+                return true;
+            }
+
+            bool CheckProc(ProcEventInfo& eventInfo)
+            {
+                return eventInfo.GetProcTarget();
+            }
+
+            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+            {
+                PreventDefaultAction();
+                int32 pct = 13;
+
+                if(Unit* caster = GetCaster())
+                {
+                    if(AuraEffect* talent = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_MAGE, 937, EFFECT_0))
+                        pct = talent->GetAmount();
+                }
+
+                SpellInfo const* igniteDot = sSpellMgr->GetSpellInfo(12654);
+
+                int32 amount = int32(CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), pct) / igniteDot->GetMaxTicks());
+                //amount += eventInfo.GetProcTarget()->GetRemainingPeriodicAmount(eventInfo.GetActor()->GetGUID(), 12654, SPELL_AURA_PERIODIC_DAMAGE);
+
+                if(Unit* target = GetTarget())
+                    GetTarget()->CastCustomSpell(12654, SPELLVALUE_BASE_POINT0, amount, eventInfo.GetProcTarget(), true, NULL, aurEff);
+            }
+
+            void Register()
+            {
+                DoCheckProc += AuraCheckProcFn(spell_mage_ignite_AuraScript::CheckProc);
+                OnEffectProc += AuraEffectProcFn(spell_mage_ignite_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_mage_ignite_AuraScript();
+        }
+};
+
 void AddSC_mage_spell_scripts()
 {
     new spell_fingers_of_frost();
@@ -1275,4 +1405,6 @@ void AddSC_mage_spell_scripts()
     new spell_mage_summon_water_elemental();
     new spell_mage_water_elemental_freeze();
     new spell_mage_cauterize();
+    new spell_mage_master_of_elements();
+    new spell_mage_ignite();
 }
