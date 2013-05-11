@@ -1275,6 +1275,56 @@ public:
     }
 };
 
+class spell_mage_master_of_elements : public SpellScriptLoader
+{
+    public:
+        spell_mage_master_of_elements() : SpellScriptLoader("spell_mage_master_of_elements") { }
+
+        class spell_mage_master_of_elements_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_mage_master_of_elements_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(29077))
+                    return false;
+                return true;
+            }
+
+            bool CheckProc(ProcEventInfo& eventInfo)
+            {
+                return eventInfo.GetDamageInfo()->GetSpellInfo(); // eventInfo.GetSpellInfo()
+            }
+
+            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+            {
+                PreventDefaultAction();
+
+                int32 mana = int32(eventInfo.GetDamageInfo()->GetSpellInfo()->CalcPowerCost(GetTarget(), eventInfo.GetDamageInfo()->GetSchoolMask()));
+                mana = CalculatePct(mana, aurEff->GetAmount());
+
+                if (mana > 0)
+                {
+                    if (GetTarget()->HasAura(29074))
+                        GetTarget()->CastCustomSpell(29077, SPELLVALUE_BASE_POINT0, mana / 2, GetTarget(), true, NULL, aurEff);
+                    if (GetTarget()->HasAura(29075))
+                        GetTarget()->CastCustomSpell(29077, SPELLVALUE_BASE_POINT0, mana, GetTarget(), true, NULL, aurEff);
+                }
+            }
+
+            void Register()
+            {
+                DoCheckProc += AuraCheckProcFn(spell_mage_master_of_elements_AuraScript::CheckProc);
+                OnEffectProc += AuraEffectProcFn(spell_mage_master_of_elements_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_mage_master_of_elements_AuraScript();
+        }
+};
+
 void AddSC_mage_spell_scripts()
 {
     new spell_fingers_of_frost();
@@ -1300,4 +1350,5 @@ void AddSC_mage_spell_scripts()
     new spell_mage_summon_water_elemental();
     new spell_mage_water_elemental_freeze();
     new spell_mage_cauterize();
+    new spell_mage_master_of_elements();
 }
