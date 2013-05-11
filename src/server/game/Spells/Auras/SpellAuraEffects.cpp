@@ -481,7 +481,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
     }
 
     // check item enchant aura cast
-    if (!amount && caster)
+    if (!amount && caster && GetBase())
         if (uint64 itemGUID = GetBase()->GetCastItemGUID())
             if (Player* playerCaster = caster->ToPlayer())
                 if (Item* castItem = playerCaster->GetItemByGuid(itemGUID))
