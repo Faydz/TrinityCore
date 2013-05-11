@@ -171,7 +171,7 @@ public:
 
         if (chr->GetTransport())
         {
-           /* uint32 tguid = chr->GetTransport()->AddNPCPassenger(0, id, chr->GetTransOffsetX(), chr->GetTransOffsetY(), chr->GetTransOffsetZ(), chr->GetTransOffsetO());
+            uint32 tguid = chr->GetTransport()->AddNPCPassenger(0, id, chr->GetTransOffsetX(), chr->GetTransOffsetY(), chr->GetTransOffsetZ(), chr->GetTransOffsetO());
             if (tguid > 0)
             {
                 PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_TRANSPORT);
@@ -185,7 +185,7 @@ public:
                 stmt->setFloat(6, chr->GetTransOffsetO());
 
                 WorldDatabase.Execute(stmt);
-            }*/
+            }
 
             return true;
         }

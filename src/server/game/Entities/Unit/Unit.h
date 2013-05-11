@@ -1,20 +1,20 @@
 /*
-* Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
-* Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
-*
-* This program is free software; you can redistribute it and/or modify it
-* under the terms of the GNU General Public License as published by the
-* Free Software Foundation; either version 2 of the License, or (at your
-* option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-*
-* You should have received a copy of the GNU General Public License along
-* with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #ifndef __UNIT_H
 #define __UNIT_H
@@ -29,89 +29,89 @@
 #include "SpellAuraDefines.h"
 #include "ThreatManager.h"
 
-#define WORLD_TRIGGER 12999
+#define WORLD_TRIGGER   12999
 
 enum SpellInterruptFlags
 {
-    SPELL_INTERRUPT_FLAG_MOVEMENT = 0x01, // why need this for instant?
-    SPELL_INTERRUPT_FLAG_PUSH_BACK = 0x02, // push back
-    SPELL_INTERRUPT_FLAG_UNK3 = 0x04, // any info?
-    SPELL_INTERRUPT_FLAG_INTERRUPT = 0x08, // interrupt
-    SPELL_INTERRUPT_FLAG_ABORT_ON_DMG = 0x10 // _complete_ interrupt on direct damage
-    //SPELL_INTERRUPT_UNK = 0x20 // unk, 564 of 727 spells having this spell start with "Glyph"
+    SPELL_INTERRUPT_FLAG_MOVEMENT     = 0x01, // why need this for instant?
+    SPELL_INTERRUPT_FLAG_PUSH_BACK    = 0x02, // push back
+    SPELL_INTERRUPT_FLAG_UNK3         = 0x04, // any info?
+    SPELL_INTERRUPT_FLAG_INTERRUPT    = 0x08, // interrupt
+    SPELL_INTERRUPT_FLAG_ABORT_ON_DMG = 0x10  // _complete_ interrupt on direct damage
+    //SPELL_INTERRUPT_UNK             = 0x20                // unk, 564 of 727 spells having this spell start with "Glyph"
 };
 
 // See SpellAuraInterruptFlags for other values definitions
 enum SpellChannelInterruptFlags
 {
-    CHANNEL_INTERRUPT_FLAG_INTERRUPT = 0x08, // interrupt
-    CHANNEL_FLAG_DELAY = 0x4000
+    CHANNEL_INTERRUPT_FLAG_INTERRUPT    = 0x08,  // interrupt
+    CHANNEL_FLAG_DELAY                  = 0x4000
 };
 
 enum SpellAuraInterruptFlags
 {
-    AURA_INTERRUPT_FLAG_HITBYSPELL = 0x00000001, // 0 removed when getting hit by a negative spell?
-    AURA_INTERRUPT_FLAG_TAKE_DAMAGE = 0x00000002, // 1 removed by any damage
-    AURA_INTERRUPT_FLAG_CAST = 0x00000004, // 2 cast any spells
-    AURA_INTERRUPT_FLAG_MOVE = 0x00000008, // 3 removed by any movement
-    AURA_INTERRUPT_FLAG_TURNING = 0x00000010, // 4 removed by any turning
-    AURA_INTERRUPT_FLAG_JUMP = 0x00000020, // 5 removed by entering combat
-    AURA_INTERRUPT_FLAG_NOT_MOUNTED = 0x00000040, // 6 removed by dismounting
-    AURA_INTERRUPT_FLAG_NOT_ABOVEWATER = 0x00000080, // 7 removed by entering water
-    AURA_INTERRUPT_FLAG_NOT_UNDERWATER = 0x00000100, // 8 removed by leaving water
-    AURA_INTERRUPT_FLAG_NOT_SHEATHED = 0x00000200, // 9 removed by unsheathing
-    AURA_INTERRUPT_FLAG_TALK = 0x00000400, // 10 talk to npc / loot? action on creature
-    AURA_INTERRUPT_FLAG_USE = 0x00000800, // 11 mine/use/open action on gameobject
-    AURA_INTERRUPT_FLAG_MELEE_ATTACK = 0x00001000, // 12 removed by attacking
-    AURA_INTERRUPT_FLAG_SPELL_ATTACK = 0x00002000, // 13 ???
-    AURA_INTERRUPT_FLAG_UNK14 = 0x00004000, // 14
-    AURA_INTERRUPT_FLAG_TRANSFORM = 0x00008000, // 15 removed by transform?
-    AURA_INTERRUPT_FLAG_UNK16 = 0x00010000, // 16
-    AURA_INTERRUPT_FLAG_MOUNT = 0x00020000, // 17 misdirect, aspect, swim speed
-    AURA_INTERRUPT_FLAG_NOT_SEATED = 0x00040000, // 18 removed by standing up (used by food and drink mostly and sleep/Fake Death like)
-    AURA_INTERRUPT_FLAG_CHANGE_MAP = 0x00080000, // 19 leaving map/getting teleported
-    AURA_INTERRUPT_FLAG_IMMUNE_OR_LOST_SELECTION = 0x00100000, // 20 removed by auras that make you invulnerable, or make other to lose selection on you
-    AURA_INTERRUPT_FLAG_UNK21 = 0x00200000, // 21
-    AURA_INTERRUPT_FLAG_TELEPORTED = 0x00400000, // 22
-    AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT = 0x00800000, // 23 removed by entering pvp combat
-    AURA_INTERRUPT_FLAG_DIRECT_DAMAGE = 0x01000000, // 24 removed by any direct damage
-    AURA_INTERRUPT_FLAG_LANDING = 0x02000000, // 25 removed by hitting the ground
+    AURA_INTERRUPT_FLAG_HITBYSPELL          = 0x00000001,   // 0    removed when getting hit by a negative spell?
+    AURA_INTERRUPT_FLAG_TAKE_DAMAGE         = 0x00000002,   // 1    removed by any damage
+    AURA_INTERRUPT_FLAG_CAST                = 0x00000004,   // 2    cast any spells
+    AURA_INTERRUPT_FLAG_MOVE                = 0x00000008,   // 3    removed by any movement
+    AURA_INTERRUPT_FLAG_TURNING             = 0x00000010,   // 4    removed by any turning
+    AURA_INTERRUPT_FLAG_JUMP                = 0x00000020,   // 5    removed by entering combat
+    AURA_INTERRUPT_FLAG_NOT_MOUNTED         = 0x00000040,   // 6    removed by dismounting
+    AURA_INTERRUPT_FLAG_NOT_ABOVEWATER      = 0x00000080,   // 7    removed by entering water
+    AURA_INTERRUPT_FLAG_NOT_UNDERWATER      = 0x00000100,   // 8    removed by leaving water
+    AURA_INTERRUPT_FLAG_NOT_SHEATHED        = 0x00000200,   // 9    removed by unsheathing
+    AURA_INTERRUPT_FLAG_TALK                = 0x00000400,   // 10   talk to npc / loot? action on creature
+    AURA_INTERRUPT_FLAG_USE                 = 0x00000800,   // 11   mine/use/open action on gameobject
+    AURA_INTERRUPT_FLAG_MELEE_ATTACK        = 0x00001000,   // 12   removed by attacking
+    AURA_INTERRUPT_FLAG_SPELL_ATTACK        = 0x00002000,   // 13   ???
+    AURA_INTERRUPT_FLAG_UNK14               = 0x00004000,   // 14
+    AURA_INTERRUPT_FLAG_TRANSFORM           = 0x00008000,   // 15   removed by transform?
+    AURA_INTERRUPT_FLAG_UNK16               = 0x00010000,   // 16
+    AURA_INTERRUPT_FLAG_MOUNT               = 0x00020000,   // 17   misdirect, aspect, swim speed
+    AURA_INTERRUPT_FLAG_NOT_SEATED          = 0x00040000,   // 18   removed by standing up (used by food and drink mostly and sleep/Fake Death like)
+    AURA_INTERRUPT_FLAG_CHANGE_MAP          = 0x00080000,   // 19   leaving map/getting teleported
+    AURA_INTERRUPT_FLAG_IMMUNE_OR_LOST_SELECTION    = 0x00100000,   // 20   removed by auras that make you invulnerable, or make other to lose selection on you
+    AURA_INTERRUPT_FLAG_UNK21               = 0x00200000,   // 21
+    AURA_INTERRUPT_FLAG_TELEPORTED          = 0x00400000,   // 22
+    AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT    = 0x00800000,   // 23   removed by entering pvp combat
+    AURA_INTERRUPT_FLAG_DIRECT_DAMAGE       = 0x01000000,   // 24   removed by any direct damage
+    AURA_INTERRUPT_FLAG_LANDING             = 0x02000000,   // 25   removed by hitting the ground
 
     AURA_INTERRUPT_FLAG_NOT_VICTIM = (AURA_INTERRUPT_FLAG_HITBYSPELL | AURA_INTERRUPT_FLAG_TAKE_DAMAGE | AURA_INTERRUPT_FLAG_DIRECT_DAMAGE)
 };
 
 enum SpellModOp
 {
-    SPELLMOD_DAMAGE = 0,
-    SPELLMOD_DURATION = 1,
-    SPELLMOD_THREAT = 2,
-    SPELLMOD_EFFECT1 = 3,
-    SPELLMOD_CHARGES = 4,
-    SPELLMOD_RANGE = 5,
-    SPELLMOD_RADIUS = 6,
-    SPELLMOD_CRITICAL_CHANCE = 7,
-    SPELLMOD_ALL_EFFECTS = 8,
-    SPELLMOD_NOT_LOSE_CASTING_TIME = 9,
-    SPELLMOD_CASTING_TIME = 10,
-    SPELLMOD_COOLDOWN = 11,
-    SPELLMOD_EFFECT2 = 12,
-    SPELLMOD_IGNORE_ARMOR = 13,
-    SPELLMOD_COST = 14,
-    SPELLMOD_CRIT_DAMAGE_BONUS = 15,
-    SPELLMOD_RESIST_MISS_CHANCE = 16,
-    SPELLMOD_JUMP_TARGETS = 17,
-    SPELLMOD_CHANCE_OF_SUCCESS = 18,
-    SPELLMOD_ACTIVATION_TIME = 19,
-    SPELLMOD_DAMAGE_MULTIPLIER = 20,
-    SPELLMOD_GLOBAL_COOLDOWN = 21,
-    SPELLMOD_DOT = 22,
-    SPELLMOD_EFFECT3 = 23,
-    SPELLMOD_BONUS_MULTIPLIER = 24,
+    SPELLMOD_DAMAGE                 = 0,
+    SPELLMOD_DURATION               = 1,
+    SPELLMOD_THREAT                 = 2,
+    SPELLMOD_EFFECT1                = 3,
+    SPELLMOD_CHARGES                = 4,
+    SPELLMOD_RANGE                  = 5,
+    SPELLMOD_RADIUS                 = 6,
+    SPELLMOD_CRITICAL_CHANCE        = 7,
+    SPELLMOD_ALL_EFFECTS            = 8,
+    SPELLMOD_NOT_LOSE_CASTING_TIME  = 9,
+    SPELLMOD_CASTING_TIME           = 10,
+    SPELLMOD_COOLDOWN               = 11,
+    SPELLMOD_EFFECT2                = 12,
+    SPELLMOD_IGNORE_ARMOR           = 13,
+    SPELLMOD_COST                   = 14,
+    SPELLMOD_CRIT_DAMAGE_BONUS      = 15,
+    SPELLMOD_RESIST_MISS_CHANCE     = 16,
+    SPELLMOD_JUMP_TARGETS           = 17,
+    SPELLMOD_CHANCE_OF_SUCCESS      = 18,
+    SPELLMOD_ACTIVATION_TIME        = 19,
+    SPELLMOD_DAMAGE_MULTIPLIER      = 20,
+    SPELLMOD_GLOBAL_COOLDOWN        = 21,
+    SPELLMOD_DOT                    = 22,
+    SPELLMOD_EFFECT3                = 23,
+    SPELLMOD_BONUS_MULTIPLIER       = 24,
     // spellmod 25
-    SPELLMOD_PROC_PER_MINUTE = 26,
-    SPELLMOD_VALUE_MULTIPLIER = 27,
-    SPELLMOD_RESIST_DISPEL_CHANCE = 28,
-    SPELLMOD_CRIT_DAMAGE_BONUS_2 = 29, //one not used spell
+    SPELLMOD_PROC_PER_MINUTE        = 26,
+    SPELLMOD_VALUE_MULTIPLIER       = 27,
+    SPELLMOD_RESIST_DISPEL_CHANCE   = 28,
+    SPELLMOD_CRIT_DAMAGE_BONUS_2    = 29, //one not used spell
     SPELLMOD_SPELL_COST_REFUND_ON_FAIL = 30
 };
 
@@ -167,167 +167,167 @@ enum SpellFacingFlags
 // byte value (UNIT_FIELD_BYTES_1, 0)
 enum UnitStandStateType
 {
-    UNIT_STAND_STATE_STAND = 0,
-    UNIT_STAND_STATE_SIT = 1,
-    UNIT_STAND_STATE_SIT_CHAIR = 2,
-    UNIT_STAND_STATE_SLEEP = 3,
-    UNIT_STAND_STATE_SIT_LOW_CHAIR = 4,
-    UNIT_STAND_STATE_SIT_MEDIUM_CHAIR = 5,
-    UNIT_STAND_STATE_SIT_HIGH_CHAIR = 6,
-    UNIT_STAND_STATE_DEAD = 7,
-    UNIT_STAND_STATE_KNEEL = 8,
-    UNIT_STAND_STATE_SUBMERGED = 9
+    UNIT_STAND_STATE_STAND             = 0,
+    UNIT_STAND_STATE_SIT               = 1,
+    UNIT_STAND_STATE_SIT_CHAIR         = 2,
+    UNIT_STAND_STATE_SLEEP             = 3,
+    UNIT_STAND_STATE_SIT_LOW_CHAIR     = 4,
+    UNIT_STAND_STATE_SIT_MEDIUM_CHAIR  = 5,
+    UNIT_STAND_STATE_SIT_HIGH_CHAIR    = 6,
+    UNIT_STAND_STATE_DEAD              = 7,
+    UNIT_STAND_STATE_KNEEL             = 8,
+    UNIT_STAND_STATE_SUBMERGED         = 9
 };
 
 // byte flag value (UNIT_FIELD_BYTES_1, 2)
 enum UnitStandFlags
 {
-    UNIT_STAND_FLAGS_UNK1 = 0x01,
-    UNIT_STAND_FLAGS_CREEP = 0x02,
-    UNIT_STAND_FLAGS_UNTRACKABLE = 0x04,
-    UNIT_STAND_FLAGS_UNK4 = 0x08,
-    UNIT_STAND_FLAGS_UNK5 = 0x10,
-    UNIT_STAND_FLAGS_ALL = 0xFF
+    UNIT_STAND_FLAGS_UNK1         = 0x01,
+    UNIT_STAND_FLAGS_CREEP        = 0x02,
+    UNIT_STAND_FLAGS_UNTRACKABLE  = 0x04,
+    UNIT_STAND_FLAGS_UNK4         = 0x08,
+    UNIT_STAND_FLAGS_UNK5         = 0x10,
+    UNIT_STAND_FLAGS_ALL          = 0xFF
 };
 
 // byte flags value (UNIT_FIELD_BYTES_1, 3)
 enum UnitBytes1_Flags
 {
-    UNIT_BYTE1_FLAG_ALWAYS_STAND = 0x01,
-    UNIT_BYTE1_FLAG_HOVER = 0x02,
-    UNIT_BYTE1_FLAG_UNK_3 = 0x04,
-    UNIT_BYTE1_FLAG_ALL = 0xFF
+    UNIT_BYTE1_FLAG_ALWAYS_STAND    = 0x01,
+    UNIT_BYTE1_FLAG_HOVER           = 0x02,
+    UNIT_BYTE1_FLAG_UNK_3           = 0x04,
+    UNIT_BYTE1_FLAG_ALL             = 0xFF
 };
 
 // high byte (3 from 0..3) of UNIT_FIELD_BYTES_2
 enum ShapeshiftForm
 {
-    FORM_NONE = 0x00,
-    FORM_CAT = 0x01,
-    FORM_TREE = 0x02,
-    FORM_TRAVEL = 0x03,
-    FORM_AQUA = 0x04,
-    FORM_BEAR = 0x05,
-    FORM_AMBIENT = 0x06,
-    FORM_GHOUL = 0x07,
-    FORM_DIREBEAR = 0x08,
-    FORM_STEVES_GHOUL = 0x09,
-    FORM_THARONJA_SKELETON = 0x0A,
-    FORM_TEST_OF_STRENGTH = 0x0B,
-    FORM_BLB_PLAYER = 0x0C,
-    FORM_SHADOW_DANCE = 0x0D,
-    FORM_CREATUREBEAR = 0x0E,
-    FORM_CREATURECAT = 0x0F,
-    FORM_GHOSTWOLF = 0x10,
-    FORM_BATTLESTANCE = 0x11,
-    FORM_DEFENSIVESTANCE = 0x12,
-    FORM_BERSERKERSTANCE = 0x13,
-    FORM_TEST = 0x14,
-    FORM_ZOMBIE = 0x15,
-    FORM_METAMORPHOSIS = 0x16,
-    FORM_UNDEAD = 0x19,
-    FORM_MASTER_ANGLER = 0x1A,
-    FORM_FLIGHT_EPIC = 0x1B,
-    FORM_SHADOW = 0x1C,
-    FORM_FLIGHT = 0x1D,
-    FORM_STEALTH = 0x1E,
-    FORM_MOONKIN = 0x1F,
+    FORM_NONE               = 0x00,
+    FORM_CAT                = 0x01,
+    FORM_TREE               = 0x02,
+    FORM_TRAVEL             = 0x03,
+    FORM_AQUA               = 0x04,
+    FORM_BEAR               = 0x05,
+    FORM_AMBIENT            = 0x06,
+    FORM_GHOUL              = 0x07,
+    FORM_DIREBEAR           = 0x08,
+    FORM_STEVES_GHOUL       = 0x09,
+    FORM_THARONJA_SKELETON  = 0x0A,
+    FORM_TEST_OF_STRENGTH   = 0x0B,
+    FORM_BLB_PLAYER         = 0x0C,
+    FORM_SHADOW_DANCE       = 0x0D,
+    FORM_CREATUREBEAR       = 0x0E,
+    FORM_CREATURECAT        = 0x0F,
+    FORM_GHOSTWOLF          = 0x10,
+    FORM_BATTLESTANCE       = 0x11,
+    FORM_DEFENSIVESTANCE    = 0x12,
+    FORM_BERSERKERSTANCE    = 0x13,
+    FORM_TEST               = 0x14,
+    FORM_ZOMBIE             = 0x15,
+    FORM_METAMORPHOSIS      = 0x16,
+    FORM_UNDEAD             = 0x19,
+    FORM_MASTER_ANGLER      = 0x1A,
+    FORM_FLIGHT_EPIC        = 0x1B,
+    FORM_SHADOW             = 0x1C,
+    FORM_FLIGHT             = 0x1D,
+    FORM_STEALTH            = 0x1E,
+    FORM_MOONKIN            = 0x1F,
     FORM_SPIRITOFREDEMPTION = 0x20
 };
 
 // low byte (0 from 0..3) of UNIT_FIELD_BYTES_2
 enum SheathState
 {
-    SHEATH_STATE_UNARMED = 0, // non prepared weapon
-    SHEATH_STATE_MELEE = 1, // prepared melee weapon
-    SHEATH_STATE_RANGED = 2 // prepared ranged weapon
+    SHEATH_STATE_UNARMED  = 0,                              // non prepared weapon
+    SHEATH_STATE_MELEE    = 1,                              // prepared melee weapon
+    SHEATH_STATE_RANGED   = 2                               // prepared ranged weapon
 };
 
-#define MAX_SHEATH_STATE 3
+#define MAX_SHEATH_STATE    3
 
 // byte (1 from 0..3) of UNIT_FIELD_BYTES_2
 enum UnitPVPStateFlags
 {
-    UNIT_BYTE2_FLAG_PVP = 0x01,
-    UNIT_BYTE2_FLAG_UNK1 = 0x02,
-    UNIT_BYTE2_FLAG_FFA_PVP = 0x04,
-    UNIT_BYTE2_FLAG_SANCTUARY = 0x08,
-    UNIT_BYTE2_FLAG_UNK4 = 0x10,
-    UNIT_BYTE2_FLAG_UNK5 = 0x20,
-    UNIT_BYTE2_FLAG_UNK6 = 0x40,
-    UNIT_BYTE2_FLAG_UNK7 = 0x80
+    UNIT_BYTE2_FLAG_PVP         = 0x01,
+    UNIT_BYTE2_FLAG_UNK1        = 0x02,
+    UNIT_BYTE2_FLAG_FFA_PVP     = 0x04,
+    UNIT_BYTE2_FLAG_SANCTUARY   = 0x08,
+    UNIT_BYTE2_FLAG_UNK4        = 0x10,
+    UNIT_BYTE2_FLAG_UNK5        = 0x20,
+    UNIT_BYTE2_FLAG_UNK6        = 0x40,
+    UNIT_BYTE2_FLAG_UNK7        = 0x80
 };
 
 // byte (2 from 0..3) of UNIT_FIELD_BYTES_2
 enum UnitRename
 {
-    UNIT_CAN_BE_RENAMED = 0x01,
-    UNIT_CAN_BE_ABANDONED = 0x02
+    UNIT_CAN_BE_RENAMED     = 0x01,
+    UNIT_CAN_BE_ABANDONED   = 0x02
 };
 
-#define CREATURE_MAX_SPELLS 8
-#define MAX_SPELL_CHARM 4
-#define MAX_SPELL_VEHICLE 6
-#define MAX_SPELL_POSSESS 8
-#define MAX_SPELL_CONTROL_BAR 10
+#define CREATURE_MAX_SPELLS     8
+#define MAX_SPELL_CHARM         4
+#define MAX_SPELL_VEHICLE       6
+#define MAX_SPELL_POSSESS       8
+#define MAX_SPELL_CONTROL_BAR   10
 
 #define MAX_AGGRO_RESET_TIME 10 // in seconds
-#define MAX_AGGRO_RADIUS 45.0f // yards
+#define MAX_AGGRO_RADIUS 45.0f  // yards
 
 enum Swing
 {
-    NOSWING = 0,
-    SINGLEHANDEDSWING = 1,
-    TWOHANDEDSWING = 2
+    NOSWING                    = 0,
+    SINGLEHANDEDSWING          = 1,
+    TWOHANDEDSWING             = 2
 };
 
 enum VictimState
 {
-    VICTIMSTATE_INTACT = 0, // set when attacker misses
-    VICTIMSTATE_HIT = 1, // victim got clear/blocked hit
-    VICTIMSTATE_DODGE = 2,
-    VICTIMSTATE_PARRY = 3,
-    VICTIMSTATE_INTERRUPT = 4,
-    VICTIMSTATE_BLOCKS = 5, // unused? not set when blocked, even on full block
-    VICTIMSTATE_EVADES = 6,
-    VICTIMSTATE_IS_IMMUNE = 7,
-    VICTIMSTATE_DEFLECTS = 8
+    VICTIMSTATE_INTACT         = 0, // set when attacker misses
+    VICTIMSTATE_HIT            = 1, // victim got clear/blocked hit
+    VICTIMSTATE_DODGE          = 2,
+    VICTIMSTATE_PARRY          = 3,
+    VICTIMSTATE_INTERRUPT      = 4,
+    VICTIMSTATE_BLOCKS         = 5, // unused? not set when blocked, even on full block
+    VICTIMSTATE_EVADES         = 6,
+    VICTIMSTATE_IS_IMMUNE      = 7,
+    VICTIMSTATE_DEFLECTS       = 8
 };
 
 enum HitInfo
 {
-    HITINFO_NORMALSWING = 0x00000000,
-    HITINFO_UNK1 = 0x00000001, // req correct packet structure
-    HITINFO_AFFECTS_VICTIM = 0x00000002,
-    HITINFO_OFFHAND = 0x00000004,
-    HITINFO_UNK2 = 0x00000008,
-    HITINFO_MISS = 0x00000010,
-    HITINFO_FULL_ABSORB = 0x00000020,
-    HITINFO_PARTIAL_ABSORB = 0x00000040,
-    HITINFO_FULL_RESIST = 0x00000080,
-    HITINFO_PARTIAL_RESIST = 0x00000100,
-    HITINFO_CRITICALHIT = 0x00000200, // critical hit
+    HITINFO_NORMALSWING         = 0x00000000,
+    HITINFO_UNK1                = 0x00000001,               // req correct packet structure
+    HITINFO_AFFECTS_VICTIM      = 0x00000002,
+    HITINFO_OFFHAND             = 0x00000004,
+    HITINFO_UNK2                = 0x00000008,
+    HITINFO_MISS                = 0x00000010,
+    HITINFO_FULL_ABSORB         = 0x00000020,
+    HITINFO_PARTIAL_ABSORB      = 0x00000040,
+    HITINFO_FULL_RESIST         = 0x00000080,
+    HITINFO_PARTIAL_RESIST      = 0x00000100,
+    HITINFO_CRITICALHIT         = 0x00000200,               // critical hit
     // 0x00000400
     // 0x00000800
     // 0x00001000
-    HITINFO_BLOCK = 0x00002000, // blocked damage
-    // 0x00004000 // Hides worldtext for 0 damage
-    // 0x00008000 // Related to blood visual
-    HITINFO_GLANCING = 0x00010000,
-    HITINFO_CRUSHING = 0x00020000,
-    HITINFO_NO_ANIMATION = 0x00040000,
+    HITINFO_BLOCK               = 0x00002000,               // blocked damage
+    // 0x00004000                                           // Hides worldtext for 0 damage
+    // 0x00008000                                           // Related to blood visual
+    HITINFO_GLANCING            = 0x00010000,
+    HITINFO_CRUSHING            = 0x00020000,
+    HITINFO_NO_ANIMATION        = 0x00040000,
     // 0x00080000
     // 0x00100000
-    HITINFO_SWINGNOHITSOUND = 0x00200000, // unused?
+    HITINFO_SWINGNOHITSOUND     = 0x00200000,               // unused?
     // 0x00400000
-    HITINFO_RAGE_GAIN = 0x00800000
+    HITINFO_RAGE_GAIN           = 0x00800000
 };
 
 //i would like to remove this: (it is defined in item.h
 enum InventorySlot
 {
-    NULL_BAG = 0,
-    NULL_SLOT = 255
+    NULL_BAG                   = 0,
+    NULL_SLOT                  = 255
 };
 
 struct FactionTemplateEntry;
@@ -391,52 +391,52 @@ enum DamageTypeToSchool
 enum AuraRemoveMode
 {
     AURA_REMOVE_NONE = 0,
-    AURA_REMOVE_BY_DEFAULT = 1, // scripted remove, remove by stack with aura with different ids and sc aura remove
+    AURA_REMOVE_BY_DEFAULT = 1,       // scripted remove, remove by stack with aura with different ids and sc aura remove
     AURA_REMOVE_BY_CANCEL,
-    AURA_REMOVE_BY_ENEMY_SPELL, // dispel and absorb aura destroy
-    AURA_REMOVE_BY_EXPIRE, // aura duration has ended
+    AURA_REMOVE_BY_ENEMY_SPELL,       // dispel and absorb aura destroy
+    AURA_REMOVE_BY_EXPIRE,            // aura duration has ended
     AURA_REMOVE_BY_DEATH
 };
 
 enum TriggerCastFlags
 {
-    TRIGGERED_NONE = 0x00000000, //! Not triggered
-    TRIGGERED_IGNORE_GCD = 0x00000001, //! Will ignore GCD
-    TRIGGERED_IGNORE_SPELL_AND_CATEGORY_CD = 0x00000002, //! Will ignore Spell and Category cooldowns
-    TRIGGERED_IGNORE_POWER_AND_REAGENT_COST = 0x00000004, //! Will ignore power and reagent cost
-    TRIGGERED_IGNORE_CAST_ITEM = 0x00000008, //! Will not take away cast item or update related achievement criteria
-    TRIGGERED_IGNORE_AURA_SCALING = 0x00000010, //! Will ignore aura scaling
-    TRIGGERED_IGNORE_CAST_IN_PROGRESS = 0x00000020, //! Will not check if a current cast is in progress
-    TRIGGERED_IGNORE_COMBO_POINTS = 0x00000040, //! Will ignore combo point requirement
-    TRIGGERED_CAST_DIRECTLY = 0x00000080, //! In Spell::prepare, will be cast directly without setting containers for executed spell
-    TRIGGERED_IGNORE_AURA_INTERRUPT_FLAGS = 0x00000100, //! Will ignore interruptible aura's at cast
-    TRIGGERED_IGNORE_SET_FACING = 0x00000200, //! Will not adjust facing to target (if any)
-    TRIGGERED_IGNORE_SHAPESHIFT = 0x00000400, //! Will ignore shapeshift checks
-    TRIGGERED_IGNORE_CASTER_AURASTATE = 0x00000800, //! Will ignore caster aura states including combat requirements and death state
-    TRIGGERED_IGNORE_CASTER_MOUNTED_OR_ON_VEHICLE = 0x00002000, //! Will ignore mounted/on vehicle restrictions
-    TRIGGERED_IGNORE_CASTER_AURAS = 0x00010000, //! Will ignore caster aura restrictions or requirements
-    TRIGGERED_DISALLOW_PROC_EVENTS = 0x00020000, //! Disallows proc events from triggered spell (default)
-    TRIGGERED_DONT_REPORT_CAST_ERROR = 0x00040000, //! Will return SPELL_FAILED_DONT_REPORT in CheckCast functions
-    TRIGGERED_IGNORE_EQUIPPED_ITEM_REQUIREMENT = 0x00080000, //! Will ignore equipped item requirements
-    TRIGGERED_FULL_MASK = 0xFFFFFFFF
+    TRIGGERED_NONE                                  = 0x00000000,   //! Not triggered
+    TRIGGERED_IGNORE_GCD                            = 0x00000001,   //! Will ignore GCD
+    TRIGGERED_IGNORE_SPELL_AND_CATEGORY_CD          = 0x00000002,   //! Will ignore Spell and Category cooldowns
+    TRIGGERED_IGNORE_POWER_AND_REAGENT_COST         = 0x00000004,   //! Will ignore power and reagent cost
+    TRIGGERED_IGNORE_CAST_ITEM                      = 0x00000008,   //! Will not take away cast item or update related achievement criteria
+    TRIGGERED_IGNORE_AURA_SCALING                   = 0x00000010,   //! Will ignore aura scaling
+    TRIGGERED_IGNORE_CAST_IN_PROGRESS               = 0x00000020,   //! Will not check if a current cast is in progress
+    TRIGGERED_IGNORE_COMBO_POINTS                   = 0x00000040,   //! Will ignore combo point requirement
+    TRIGGERED_CAST_DIRECTLY                         = 0x00000080,   //! In Spell::prepare, will be cast directly without setting containers for executed spell
+    TRIGGERED_IGNORE_AURA_INTERRUPT_FLAGS           = 0x00000100,   //! Will ignore interruptible aura's at cast
+    TRIGGERED_IGNORE_SET_FACING                     = 0x00000200,   //! Will not adjust facing to target (if any)
+    TRIGGERED_IGNORE_SHAPESHIFT                     = 0x00000400,   //! Will ignore shapeshift checks
+    TRIGGERED_IGNORE_CASTER_AURASTATE               = 0x00000800,   //! Will ignore caster aura states including combat requirements and death state
+    TRIGGERED_IGNORE_CASTER_MOUNTED_OR_ON_VEHICLE   = 0x00002000,   //! Will ignore mounted/on vehicle restrictions
+    TRIGGERED_IGNORE_CASTER_AURAS                   = 0x00010000,   //! Will ignore caster aura restrictions or requirements
+    TRIGGERED_DISALLOW_PROC_EVENTS                  = 0x00020000,   //! Disallows proc events from triggered spell (default)
+    TRIGGERED_DONT_REPORT_CAST_ERROR                = 0x00040000,   //! Will return SPELL_FAILED_DONT_REPORT in CheckCast functions
+    TRIGGERED_IGNORE_EQUIPPED_ITEM_REQUIREMENT      = 0x00080000,   //! Will ignore equipped item requirements
+    TRIGGERED_FULL_MASK                             = 0xFFFFFFFF
 };
 
 enum UnitMods
 {
-    UNIT_MOD_STAT_STRENGTH, // UNIT_MOD_STAT_STRENGTH..UNIT_MOD_STAT_SPIRIT must be in existed order, it's accessed by index values of Stats enum.
+    UNIT_MOD_STAT_STRENGTH,                                 // UNIT_MOD_STAT_STRENGTH..UNIT_MOD_STAT_SPIRIT must be in existed order, it's accessed by index values of Stats enum.
     UNIT_MOD_STAT_AGILITY,
     UNIT_MOD_STAT_STAMINA,
     UNIT_MOD_STAT_INTELLECT,
     UNIT_MOD_STAT_SPIRIT,
     UNIT_MOD_HEALTH,
-    UNIT_MOD_MANA, // UNIT_MOD_MANA..UNIT_MOD_RUNIC_POWER must be in existed order, it's accessed by index values of Powers enum.
+    UNIT_MOD_MANA,                                          // UNIT_MOD_MANA..UNIT_MOD_RUNIC_POWER must be in existed order, it's accessed by index values of Powers enum.
     UNIT_MOD_RAGE,
     UNIT_MOD_FOCUS,
     UNIT_MOD_ENERGY,
     UNIT_MOD_HAPPINESS,
     UNIT_MOD_RUNE,
     UNIT_MOD_RUNIC_POWER,
-    UNIT_MOD_ARMOR, // UNIT_MOD_ARMOR..UNIT_MOD_RESISTANCE_ARCANE must be in existed order, it's accessed by index values of SpellSchools enum.
+    UNIT_MOD_ARMOR,                                         // UNIT_MOD_ARMOR..UNIT_MOD_RESISTANCE_ARCANE must be in existed order, it's accessed by index values of SpellSchools enum.
     UNIT_MOD_RESISTANCE_HOLY,
     UNIT_MOD_RESISTANCE_FIRE,
     UNIT_MOD_RESISTANCE_NATURE,
@@ -477,250 +477,250 @@ enum BaseModType
 
 enum DeathState
 {
-    ALIVE = 0,
-    JUST_DIED = 1,
-    CORPSE = 2,
-    DEAD = 3,
+    ALIVE          = 0,
+    JUST_DIED      = 1,
+    CORPSE         = 2,
+    DEAD           = 3,
     JUST_RESPAWNED = 4
 };
 
 enum UnitState
 {
-    UNIT_STATE_DIED = 0x00000001, // player has fake death aura
-    UNIT_STATE_MELEE_ATTACKING = 0x00000002, // player is melee attacking someone
-    //UNIT_STATE_MELEE_ATTACK_BY = 0x00000004, // player is melee attack by someone
-    UNIT_STATE_STUNNED = 0x00000008,
-    UNIT_STATE_ROAMING = 0x00000010,
-    UNIT_STATE_CHASE = 0x00000020,
-    //UNIT_STATE_SEARCHING = 0x00000040,
-    UNIT_STATE_FLEEING = 0x00000080,
-    UNIT_STATE_IN_FLIGHT = 0x00000100, // player is in flight mode
-    UNIT_STATE_FOLLOW = 0x00000200,
-    UNIT_STATE_ROOT = 0x00000400,
-    UNIT_STATE_CONFUSED = 0x00000800,
-    UNIT_STATE_DISTRACTED = 0x00001000,
-    UNIT_STATE_ISOLATED = 0x00002000, // area auras do not affect other players
-    UNIT_STATE_ATTACK_PLAYER = 0x00004000,
-    UNIT_STATE_CASTING = 0x00008000,
-    UNIT_STATE_POSSESSED = 0x00010000,
-    UNIT_STATE_CHARGING = 0x00020000,
-    UNIT_STATE_JUMPING = 0x00040000,
-    UNIT_STATE_ONVEHICLE = 0x00080000,
-    UNIT_STATE_MOVE = 0x00100000,
-    UNIT_STATE_ROTATING = 0x00200000,
-    UNIT_STATE_EVADE = 0x00400000,
-    UNIT_STATE_ROAMING_MOVE = 0x00800000,
-    UNIT_STATE_CONFUSED_MOVE = 0x01000000,
-    UNIT_STATE_FLEEING_MOVE = 0x02000000,
-    UNIT_STATE_CHASE_MOVE = 0x04000000,
-    UNIT_STATE_FOLLOW_MOVE = 0x08000000,
-    UNIT_STATE_IGNORE_PATHFINDING = 0x10000000, // do not use pathfinding in any MovementGenerator
-    UNIT_STATE_UNATTACKABLE = (UNIT_STATE_IN_FLIGHT | UNIT_STATE_ONVEHICLE),
+    UNIT_STATE_DIED            = 0x00000001,                     // player has fake death aura
+    UNIT_STATE_MELEE_ATTACKING = 0x00000002,                     // player is melee attacking someone
+    //UNIT_STATE_MELEE_ATTACK_BY = 0x00000004,                     // player is melee attack by someone
+    UNIT_STATE_STUNNED         = 0x00000008,
+    UNIT_STATE_ROAMING         = 0x00000010,
+    UNIT_STATE_CHASE           = 0x00000020,
+    //UNIT_STATE_SEARCHING       = 0x00000040,
+    UNIT_STATE_FLEEING         = 0x00000080,
+    UNIT_STATE_IN_FLIGHT       = 0x00000100,                     // player is in flight mode
+    UNIT_STATE_FOLLOW          = 0x00000200,
+    UNIT_STATE_ROOT            = 0x00000400,
+    UNIT_STATE_CONFUSED        = 0x00000800,
+    UNIT_STATE_DISTRACTED      = 0x00001000,
+    UNIT_STATE_ISOLATED        = 0x00002000,                     // area auras do not affect other players
+    UNIT_STATE_ATTACK_PLAYER   = 0x00004000,
+    UNIT_STATE_CASTING         = 0x00008000,
+    UNIT_STATE_POSSESSED       = 0x00010000,
+    UNIT_STATE_CHARGING        = 0x00020000,
+    UNIT_STATE_JUMPING         = 0x00040000,
+    UNIT_STATE_ONVEHICLE       = 0x00080000,
+    UNIT_STATE_MOVE            = 0x00100000,
+    UNIT_STATE_ROTATING        = 0x00200000,
+    UNIT_STATE_EVADE           = 0x00400000,
+    UNIT_STATE_ROAMING_MOVE    = 0x00800000,
+    UNIT_STATE_CONFUSED_MOVE   = 0x01000000,
+    UNIT_STATE_FLEEING_MOVE    = 0x02000000,
+    UNIT_STATE_CHASE_MOVE      = 0x04000000,
+    UNIT_STATE_FOLLOW_MOVE     = 0x08000000,
+    UNIT_STATE_IGNORE_PATHFINDING = 0x10000000,                 // do not use pathfinding in any MovementGenerator
+    UNIT_STATE_UNATTACKABLE    = (UNIT_STATE_IN_FLIGHT | UNIT_STATE_ONVEHICLE),
     // for real move using movegen check and stop (except unstoppable flight)
-    UNIT_STATE_MOVING = UNIT_STATE_ROAMING_MOVE | UNIT_STATE_CONFUSED_MOVE | UNIT_STATE_FLEEING_MOVE | UNIT_STATE_CHASE_MOVE | UNIT_STATE_FOLLOW_MOVE,
-    UNIT_STATE_CONTROLLED = (UNIT_STATE_CONFUSED | UNIT_STATE_STUNNED | UNIT_STATE_FLEEING),
-    UNIT_STATE_LOST_CONTROL = (UNIT_STATE_CONTROLLED | UNIT_STATE_JUMPING | UNIT_STATE_CHARGING),
-    UNIT_STATE_SIGHTLESS = (UNIT_STATE_LOST_CONTROL | UNIT_STATE_EVADE),
-    UNIT_STATE_CANNOT_AUTOATTACK = (UNIT_STATE_LOST_CONTROL | UNIT_STATE_CASTING),
-    UNIT_STATE_CANNOT_TURN = (UNIT_STATE_LOST_CONTROL | UNIT_STATE_ROTATING),
+    UNIT_STATE_MOVING          = UNIT_STATE_ROAMING_MOVE | UNIT_STATE_CONFUSED_MOVE | UNIT_STATE_FLEEING_MOVE | UNIT_STATE_CHASE_MOVE | UNIT_STATE_FOLLOW_MOVE,
+    UNIT_STATE_CONTROLLED      = (UNIT_STATE_CONFUSED | UNIT_STATE_STUNNED | UNIT_STATE_FLEEING),
+    UNIT_STATE_LOST_CONTROL    = (UNIT_STATE_CONTROLLED | UNIT_STATE_JUMPING | UNIT_STATE_CHARGING),
+    UNIT_STATE_SIGHTLESS       = (UNIT_STATE_LOST_CONTROL | UNIT_STATE_EVADE),
+    UNIT_STATE_CANNOT_AUTOATTACK     = (UNIT_STATE_LOST_CONTROL | UNIT_STATE_CASTING),
+    UNIT_STATE_CANNOT_TURN     = (UNIT_STATE_LOST_CONTROL | UNIT_STATE_ROTATING),
     // stay by different reasons
-    UNIT_STATE_NOT_MOVE = UNIT_STATE_ROOT | UNIT_STATE_STUNNED | UNIT_STATE_DIED | UNIT_STATE_DISTRACTED,
-    UNIT_STATE_ALL_STATE = 0xffffffff //(UNIT_STATE_STOPPED | UNIT_STATE_MOVING | UNIT_STATE_IN_COMBAT | UNIT_STATE_IN_FLIGHT)
+    UNIT_STATE_NOT_MOVE        = UNIT_STATE_ROOT | UNIT_STATE_STUNNED | UNIT_STATE_DIED | UNIT_STATE_DISTRACTED,
+    UNIT_STATE_ALL_STATE       = 0xffffffff                      //(UNIT_STATE_STOPPED | UNIT_STATE_MOVING | UNIT_STATE_IN_COMBAT | UNIT_STATE_IN_FLIGHT)
 };
 
 enum UnitMoveType
 {
-    MOVE_WALK = 0,
-    MOVE_RUN = 1,
-    MOVE_RUN_BACK = 2,
-    MOVE_SWIM = 3,
-    MOVE_SWIM_BACK = 4,
-    MOVE_TURN_RATE = 5,
-    MOVE_FLIGHT = 6,
-    MOVE_FLIGHT_BACK = 7,
-    MOVE_PITCH_RATE = 8
+    MOVE_WALK           = 0,
+    MOVE_RUN            = 1,
+    MOVE_RUN_BACK       = 2,
+    MOVE_SWIM           = 3,
+    MOVE_SWIM_BACK      = 4,
+    MOVE_TURN_RATE      = 5,
+    MOVE_FLIGHT         = 6,
+    MOVE_FLIGHT_BACK    = 7,
+    MOVE_PITCH_RATE     = 8
 };
 
-#define MAX_MOVE_TYPE 9
+#define MAX_MOVE_TYPE     9
 
 extern float baseMoveSpeed[MAX_MOVE_TYPE];
 extern float playerBaseMoveSpeed[MAX_MOVE_TYPE];
 
 enum WeaponAttackType
 {
-    BASE_ATTACK = 0,
-    OFF_ATTACK = 1,
+    BASE_ATTACK   = 0,
+    OFF_ATTACK    = 1,
     RANGED_ATTACK = 2,
     MAX_ATTACK
 };
 
 enum CombatRating
 {
-    CR_WEAPON_SKILL = 0,
-    CR_DEFENSE_SKILL = 1,
-    CR_DODGE = 2,
-    CR_PARRY = 3,
-    CR_BLOCK = 4,
-    CR_HIT_MELEE = 5,
-    CR_HIT_RANGED = 6,
-    CR_HIT_SPELL = 7,
-    CR_CRIT_MELEE = 8,
-    CR_CRIT_RANGED = 9,
-    CR_CRIT_SPELL = 10,
-    CR_HIT_TAKEN_MELEE = 11,
-    CR_HIT_TAKEN_RANGED = 12,
-    CR_HIT_TAKEN_SPELL = 13,
-    CR_CRIT_TAKEN_MELEE = 14,
-    CR_CRIT_TAKEN_RANGED = 15,
-    CR_CRIT_TAKEN_SPELL = 16,
-    CR_HASTE_MELEE = 17,
-    CR_HASTE_RANGED = 18,
-    CR_HASTE_SPELL = 19,
-    CR_WEAPON_SKILL_MAINHAND = 20,
-    CR_WEAPON_SKILL_OFFHAND = 21,
-    CR_WEAPON_SKILL_RANGED = 22,
-    CR_EXPERTISE = 23,
-    CR_ARMOR_PENETRATION = 24
+    CR_WEAPON_SKILL             = 0,
+    CR_DEFENSE_SKILL            = 1,
+    CR_DODGE                    = 2,
+    CR_PARRY                    = 3,
+    CR_BLOCK                    = 4,
+    CR_HIT_MELEE                = 5,
+    CR_HIT_RANGED               = 6,
+    CR_HIT_SPELL                = 7,
+    CR_CRIT_MELEE               = 8,
+    CR_CRIT_RANGED              = 9,
+    CR_CRIT_SPELL               = 10,
+    CR_HIT_TAKEN_MELEE          = 11,
+    CR_HIT_TAKEN_RANGED         = 12,
+    CR_HIT_TAKEN_SPELL          = 13,
+    CR_CRIT_TAKEN_MELEE         = 14,
+    CR_CRIT_TAKEN_RANGED        = 15,
+    CR_CRIT_TAKEN_SPELL         = 16,
+    CR_HASTE_MELEE              = 17,
+    CR_HASTE_RANGED             = 18,
+    CR_HASTE_SPELL              = 19,
+    CR_WEAPON_SKILL_MAINHAND    = 20,
+    CR_WEAPON_SKILL_OFFHAND     = 21,
+    CR_WEAPON_SKILL_RANGED      = 22,
+    CR_EXPERTISE                = 23,
+    CR_ARMOR_PENETRATION        = 24
 };
 
-#define MAX_COMBAT_RATING 25
+#define MAX_COMBAT_RATING         25
 
 enum DamageEffectType
 {
-    DIRECT_DAMAGE = 0, // used for normal weapon damage (not for class abilities or spells)
-    SPELL_DIRECT_DAMAGE = 1, // spell/class abilities damage
-    DOT = 2,
-    HEAL = 3,
-    NODAMAGE = 4, // used also in case when damage applied to health but not applied to spell channelInterruptFlags/etc
-    SELF_DAMAGE = 5
+    DIRECT_DAMAGE           = 0,                            // used for normal weapon damage (not for class abilities or spells)
+    SPELL_DIRECT_DAMAGE     = 1,                            // spell/class abilities damage
+    DOT                     = 2,
+    HEAL                    = 3,
+    NODAMAGE                = 4,                            // used also in case when damage applied to health but not applied to spell channelInterruptFlags/etc
+    SELF_DAMAGE             = 5
 };
 
 // Value masks for UNIT_FIELD_FLAGS
 enum UnitFlags
 {
-    UNIT_FLAG_SERVER_CONTROLLED = 0x00000001, // set only when unit movement is controlled by server - by SPLINE/MONSTER_MOVE packets, together with UNIT_FLAG_STUNNED; only set to units controlled by client; client function CGUnit_C::IsClientControlled returns false when set for owner
-    UNIT_FLAG_NON_ATTACKABLE = 0x00000002, // not attackable
-    UNIT_FLAG_DISABLE_MOVE = 0x00000004,
-    UNIT_FLAG_PVP_ATTACKABLE = 0x00000008, // allow apply pvp rules to attackable state in addition to faction dependent state
-    UNIT_FLAG_RENAME = 0x00000010,
-    UNIT_FLAG_PREPARATION = 0x00000020, // don't take reagents for spells with SPELL_ATTR5_NO_REAGENT_WHILE_PREP
-    UNIT_FLAG_UNK_6 = 0x00000040,
-    UNIT_FLAG_NOT_ATTACKABLE_1 = 0x00000080, // ?? (UNIT_FLAG_PVP_ATTACKABLE | UNIT_FLAG_NOT_ATTACKABLE_1) is NON_PVP_ATTACKABLE
-    UNIT_FLAG_IMMUNE_TO_PC = 0x00000100, // disables combat/assistance with PlayerCharacters (PC) - see Unit::_IsValidAttackTarget, Unit::_IsValidAssistTarget
-    UNIT_FLAG_IMMUNE_TO_NPC = 0x00000200, // disables combat/assistance with NonPlayerCharacters (NPC) - see Unit::_IsValidAttackTarget, Unit::_IsValidAssistTarget
-    UNIT_FLAG_LOOTING = 0x00000400, // loot animation
-    UNIT_FLAG_PET_IN_COMBAT = 0x00000800, // in combat?, 2.0.8
-    UNIT_FLAG_PVP = 0x00001000, // changed in 3.0.3
-    UNIT_FLAG_SILENCED = 0x00002000, // silenced, 2.1.1
-    UNIT_FLAG_UNK_14 = 0x00004000, // 2.0.8
-    UNIT_FLAG_UNK_15 = 0x00008000,
-    UNIT_FLAG_UNK_16 = 0x00010000,
-    UNIT_FLAG_PACIFIED = 0x00020000, // 3.0.3 ok
-    UNIT_FLAG_STUNNED = 0x00040000, // 3.0.3 ok
-    UNIT_FLAG_IN_COMBAT = 0x00080000,
-    UNIT_FLAG_TAXI_FLIGHT = 0x00100000, // disable casting at client side spell not allowed by taxi flight (mounted?), probably used with 0x4 flag
-    UNIT_FLAG_DISARMED = 0x00200000, // 3.0.3, disable melee spells casting..., "Required melee weapon" added to melee spells tooltip.
-    UNIT_FLAG_CONFUSED = 0x00400000,
-    UNIT_FLAG_FLEEING = 0x00800000,
-    UNIT_FLAG_PLAYER_CONTROLLED = 0x01000000, // used in spell Eyes of the Beast for pet... let attack by controlled creature
-    UNIT_FLAG_NOT_SELECTABLE = 0x02000000,
-    UNIT_FLAG_SKINNABLE = 0x04000000,
-    UNIT_FLAG_MOUNT = 0x08000000,
-    UNIT_FLAG_UNK_28 = 0x10000000,
-    UNIT_FLAG_UNK_29 = 0x20000000, // used in Feing Death spell
-    UNIT_FLAG_SHEATHE = 0x40000000,
-    UNIT_FLAG_UNK_31 = 0x80000000
+    UNIT_FLAG_SERVER_CONTROLLED     = 0x00000001,           // set only when unit movement is controlled by server - by SPLINE/MONSTER_MOVE packets, together with UNIT_FLAG_STUNNED; only set to units controlled by client; client function CGUnit_C::IsClientControlled returns false when set for owner
+    UNIT_FLAG_NON_ATTACKABLE        = 0x00000002,           // not attackable
+    UNIT_FLAG_DISABLE_MOVE          = 0x00000004,
+    UNIT_FLAG_PVP_ATTACKABLE        = 0x00000008,           // allow apply pvp rules to attackable state in addition to faction dependent state
+    UNIT_FLAG_RENAME                = 0x00000010,
+    UNIT_FLAG_PREPARATION           = 0x00000020,           // don't take reagents for spells with SPELL_ATTR5_NO_REAGENT_WHILE_PREP
+    UNIT_FLAG_UNK_6                 = 0x00000040,
+    UNIT_FLAG_NOT_ATTACKABLE_1      = 0x00000080,           // ?? (UNIT_FLAG_PVP_ATTACKABLE | UNIT_FLAG_NOT_ATTACKABLE_1) is NON_PVP_ATTACKABLE
+    UNIT_FLAG_IMMUNE_TO_PC          = 0x00000100,           // disables combat/assistance with PlayerCharacters (PC) - see Unit::_IsValidAttackTarget, Unit::_IsValidAssistTarget
+    UNIT_FLAG_IMMUNE_TO_NPC         = 0x00000200,           // disables combat/assistance with NonPlayerCharacters (NPC) - see Unit::_IsValidAttackTarget, Unit::_IsValidAssistTarget
+    UNIT_FLAG_LOOTING               = 0x00000400,           // loot animation
+    UNIT_FLAG_PET_IN_COMBAT         = 0x00000800,           // in combat?, 2.0.8
+    UNIT_FLAG_PVP                   = 0x00001000,           // changed in 3.0.3
+    UNIT_FLAG_SILENCED              = 0x00002000,           // silenced, 2.1.1
+    UNIT_FLAG_UNK_14                = 0x00004000,           // 2.0.8
+    UNIT_FLAG_UNK_15                = 0x00008000,
+    UNIT_FLAG_UNK_16                = 0x00010000,
+    UNIT_FLAG_PACIFIED              = 0x00020000,           // 3.0.3 ok
+    UNIT_FLAG_STUNNED               = 0x00040000,           // 3.0.3 ok
+    UNIT_FLAG_IN_COMBAT             = 0x00080000,
+    UNIT_FLAG_TAXI_FLIGHT           = 0x00100000,           // disable casting at client side spell not allowed by taxi flight (mounted?), probably used with 0x4 flag
+    UNIT_FLAG_DISARMED              = 0x00200000,           // 3.0.3, disable melee spells casting..., "Required melee weapon" added to melee spells tooltip.
+    UNIT_FLAG_CONFUSED              = 0x00400000,
+    UNIT_FLAG_FLEEING               = 0x00800000,
+    UNIT_FLAG_PLAYER_CONTROLLED     = 0x01000000,           // used in spell Eyes of the Beast for pet... let attack by controlled creature
+    UNIT_FLAG_NOT_SELECTABLE        = 0x02000000,
+    UNIT_FLAG_SKINNABLE             = 0x04000000,
+    UNIT_FLAG_MOUNT                 = 0x08000000,
+    UNIT_FLAG_UNK_28                = 0x10000000,
+    UNIT_FLAG_UNK_29                = 0x20000000,           // used in Feing Death spell
+    UNIT_FLAG_SHEATHE               = 0x40000000,
+    UNIT_FLAG_UNK_31                = 0x80000000
 };
 
 // Value masks for UNIT_FIELD_FLAGS_2
 enum UnitFlags2
 {
-    UNIT_FLAG2_FEIGN_DEATH = 0x00000001,
-    UNIT_FLAG2_UNK1 = 0x00000002, // Hide unit model (show only player equip)
-    UNIT_FLAG2_IGNORE_REPUTATION = 0x00000004,
-    UNIT_FLAG2_COMPREHEND_LANG = 0x00000008,
-    UNIT_FLAG2_MIRROR_IMAGE = 0x00000010,
-    UNIT_FLAG2_INSTANTLY_APPEAR_MODEL = 0x00000020, // Unit model instantly appears when summoned (does not fade in)
-    UNIT_FLAG2_FORCE_MOVEMENT = 0x00000040,
-    UNIT_FLAG2_DISARM_OFFHAND = 0x00000080,
-    UNIT_FLAG2_DISABLE_PRED_STATS = 0x00000100, // Player has disabled predicted stats (Used by raid frames)
-    UNIT_FLAG2_DISARM_RANGED = 0x00000400, // this does not disable ranged weapon display (maybe additional flag needed?)
-    UNIT_FLAG2_REGENERATE_POWER = 0x00000800,
-    UNIT_FLAG2_RESTRICT_PARTY_INTERACTION = 0x00001000, // Restrict interaction to party or raid
-    UNIT_FLAG2_PREVENT_SPELL_CLICK = 0x00002000, // Prevent spellclick
-    UNIT_FLAG2_ALLOW_ENEMY_INTERACT = 0x00004000,
-    UNIT_FLAG2_DISABLE_TURN = 0x00008000,
-    UNIT_FLAG2_UNK2 = 0x00010000,
-    UNIT_FLAG2_PLAY_DEATH_ANIM = 0x00020000, // Plays special death animation upon death
-    UNIT_FLAG2_ALLOW_CHEAT_SPELLS = 0x00040000 // Allows casting spells with AttributesEx7 & SPELL_ATTR7_IS_CHEAT_SPELL
+    UNIT_FLAG2_FEIGN_DEATH                  = 0x00000001,
+    UNIT_FLAG2_UNK1                         = 0x00000002,   // Hide unit model (show only player equip)
+    UNIT_FLAG2_IGNORE_REPUTATION            = 0x00000004,
+    UNIT_FLAG2_COMPREHEND_LANG              = 0x00000008,
+    UNIT_FLAG2_MIRROR_IMAGE                 = 0x00000010,
+    UNIT_FLAG2_INSTANTLY_APPEAR_MODEL       = 0x00000020,   // Unit model instantly appears when summoned (does not fade in)
+    UNIT_FLAG2_FORCE_MOVEMENT               = 0x00000040,
+    UNIT_FLAG2_DISARM_OFFHAND               = 0x00000080,
+    UNIT_FLAG2_DISABLE_PRED_STATS           = 0x00000100,   // Player has disabled predicted stats (Used by raid frames)
+    UNIT_FLAG2_DISARM_RANGED                = 0x00000400,   // this does not disable ranged weapon display (maybe additional flag needed?)
+    UNIT_FLAG2_REGENERATE_POWER             = 0x00000800,
+    UNIT_FLAG2_RESTRICT_PARTY_INTERACTION   = 0x00001000,   // Restrict interaction to party or raid
+    UNIT_FLAG2_PREVENT_SPELL_CLICK          = 0x00002000,   // Prevent spellclick
+    UNIT_FLAG2_ALLOW_ENEMY_INTERACT         = 0x00004000,
+    UNIT_FLAG2_DISABLE_TURN                 = 0x00008000,
+    UNIT_FLAG2_UNK2                         = 0x00010000,
+    UNIT_FLAG2_PLAY_DEATH_ANIM              = 0x00020000,   // Plays special death animation upon death
+    UNIT_FLAG2_ALLOW_CHEAT_SPELLS           = 0x00040000    // Allows casting spells with AttributesEx7 & SPELL_ATTR7_IS_CHEAT_SPELL
 };
 
 /// Non Player Character flags
 enum NPCFlags
 {
-    UNIT_NPC_FLAG_NONE = 0x00000000,
-    UNIT_NPC_FLAG_GOSSIP = 0x00000001, // 100%
-    UNIT_NPC_FLAG_QUESTGIVER = 0x00000002, // guessed, probably ok
-    UNIT_NPC_FLAG_UNK1 = 0x00000004,
-    UNIT_NPC_FLAG_UNK2 = 0x00000008,
-    UNIT_NPC_FLAG_TRAINER = 0x00000010, // 100%
-    UNIT_NPC_FLAG_TRAINER_CLASS = 0x00000020, // 100%
-    UNIT_NPC_FLAG_TRAINER_PROFESSION = 0x00000040, // 100%
-    UNIT_NPC_FLAG_VENDOR = 0x00000080, // 100%
-    UNIT_NPC_FLAG_VENDOR_AMMO = 0x00000100, // 100%, general goods vendor
-    UNIT_NPC_FLAG_VENDOR_FOOD = 0x00000200, // 100%
-    UNIT_NPC_FLAG_VENDOR_POISON = 0x00000400, // guessed
-    UNIT_NPC_FLAG_VENDOR_REAGENT = 0x00000800, // 100%
-    UNIT_NPC_FLAG_REPAIR = 0x00001000, // 100%
-    UNIT_NPC_FLAG_FLIGHTMASTER = 0x00002000, // 100%
-    UNIT_NPC_FLAG_SPIRITHEALER = 0x00004000, // guessed
-    UNIT_NPC_FLAG_SPIRITGUIDE = 0x00008000, // guessed
-    UNIT_NPC_FLAG_INNKEEPER = 0x00010000, // 100%
-    UNIT_NPC_FLAG_BANKER = 0x00020000, // 100%
-    UNIT_NPC_FLAG_PETITIONER = 0x00040000, // 100% 0xC0000 = guild petitions, 0x40000 = arena team petitions
-    UNIT_NPC_FLAG_TABARDDESIGNER = 0x00080000, // 100%
-    UNIT_NPC_FLAG_BATTLEMASTER = 0x00100000, // 100%
-    UNIT_NPC_FLAG_AUCTIONEER = 0x00200000, // 100%
-    UNIT_NPC_FLAG_STABLEMASTER = 0x00400000, // 100%
-    UNIT_NPC_FLAG_GUILD_BANKER = 0x00800000, // cause client to send 997 opcode
-    UNIT_NPC_FLAG_SPELLCLICK = 0x01000000, // cause client to send 1015 opcode (spell click)
-    UNIT_NPC_FLAG_PLAYER_VEHICLE = 0x02000000 // players with mounts that have vehicle data should have it set
+    UNIT_NPC_FLAG_NONE                  = 0x00000000,
+    UNIT_NPC_FLAG_GOSSIP                = 0x00000001,       // 100%
+    UNIT_NPC_FLAG_QUESTGIVER            = 0x00000002,       // guessed, probably ok
+    UNIT_NPC_FLAG_UNK1                  = 0x00000004,
+    UNIT_NPC_FLAG_UNK2                  = 0x00000008,
+    UNIT_NPC_FLAG_TRAINER               = 0x00000010,       // 100%
+    UNIT_NPC_FLAG_TRAINER_CLASS         = 0x00000020,       // 100%
+    UNIT_NPC_FLAG_TRAINER_PROFESSION    = 0x00000040,       // 100%
+    UNIT_NPC_FLAG_VENDOR                = 0x00000080,       // 100%
+    UNIT_NPC_FLAG_VENDOR_AMMO           = 0x00000100,       // 100%, general goods vendor
+    UNIT_NPC_FLAG_VENDOR_FOOD           = 0x00000200,       // 100%
+    UNIT_NPC_FLAG_VENDOR_POISON         = 0x00000400,       // guessed
+    UNIT_NPC_FLAG_VENDOR_REAGENT        = 0x00000800,       // 100%
+    UNIT_NPC_FLAG_REPAIR                = 0x00001000,       // 100%
+    UNIT_NPC_FLAG_FLIGHTMASTER          = 0x00002000,       // 100%
+    UNIT_NPC_FLAG_SPIRITHEALER          = 0x00004000,       // guessed
+    UNIT_NPC_FLAG_SPIRITGUIDE           = 0x00008000,       // guessed
+    UNIT_NPC_FLAG_INNKEEPER             = 0x00010000,       // 100%
+    UNIT_NPC_FLAG_BANKER                = 0x00020000,       // 100%
+    UNIT_NPC_FLAG_PETITIONER            = 0x00040000,       // 100% 0xC0000 = guild petitions, 0x40000 = arena team petitions
+    UNIT_NPC_FLAG_TABARDDESIGNER        = 0x00080000,       // 100%
+    UNIT_NPC_FLAG_BATTLEMASTER          = 0x00100000,       // 100%
+    UNIT_NPC_FLAG_AUCTIONEER            = 0x00200000,       // 100%
+    UNIT_NPC_FLAG_STABLEMASTER          = 0x00400000,       // 100%
+    UNIT_NPC_FLAG_GUILD_BANKER          = 0x00800000,       // cause client to send 997 opcode
+    UNIT_NPC_FLAG_SPELLCLICK            = 0x01000000,       // cause client to send 1015 opcode (spell click)
+    UNIT_NPC_FLAG_PLAYER_VEHICLE        = 0x02000000        // players with mounts that have vehicle data should have it set
 };
 
 enum MovementFlags
 {
-    MOVEMENTFLAG_NONE = 0x00000000,
-    MOVEMENTFLAG_FORWARD = 0x00000001,
-    MOVEMENTFLAG_BACKWARD = 0x00000002,
-    MOVEMENTFLAG_STRAFE_LEFT = 0x00000004,
-    MOVEMENTFLAG_STRAFE_RIGHT = 0x00000008,
-    MOVEMENTFLAG_LEFT = 0x00000010,
-    MOVEMENTFLAG_RIGHT = 0x00000020,
-    MOVEMENTFLAG_PITCH_UP = 0x00000040,
-    MOVEMENTFLAG_PITCH_DOWN = 0x00000080,
-    MOVEMENTFLAG_WALKING = 0x00000100, // Walking
-    MOVEMENTFLAG_ONTRANSPORT = 0x00000200, // Used for flying on some creatures
-    MOVEMENTFLAG_DISABLE_GRAVITY = 0x00000400, // Former MOVEMENTFLAG_LEVITATING. This is used when walking is not possible.
-    MOVEMENTFLAG_ROOT = 0x00000800, // Must not be set along with MOVEMENTFLAG_MASK_MOVING
-    MOVEMENTFLAG_FALLING = 0x00001000, // damage dealt on that type of falling
-    MOVEMENTFLAG_FALLING_FAR = 0x00002000,
-    MOVEMENTFLAG_PENDING_STOP = 0x00004000,
-    MOVEMENTFLAG_PENDING_STRAFE_STOP = 0x00008000,
-    MOVEMENTFLAG_PENDING_FORWARD = 0x00010000,
-    MOVEMENTFLAG_PENDING_BACKWARD = 0x00020000,
-    MOVEMENTFLAG_PENDING_STRAFE_LEFT = 0x00040000,
-    MOVEMENTFLAG_PENDING_STRAFE_RIGHT = 0x00080000,
-    MOVEMENTFLAG_PENDING_ROOT = 0x00100000,
-    MOVEMENTFLAG_SWIMMING = 0x00200000, // appears with fly flag also
-    MOVEMENTFLAG_ASCENDING = 0x00400000, // press "space" when flying
-    MOVEMENTFLAG_DESCENDING = 0x00800000,
-    MOVEMENTFLAG_CAN_FLY = 0x01000000, // Appears when unit can fly AND also walk
-    MOVEMENTFLAG_FLYING = 0x02000000, // unit is actually flying. pretty sure this is only used for players. creatures use disable_gravity
-    MOVEMENTFLAG_SPLINE_ELEVATION = 0x04000000, // used for flight paths
-    MOVEMENTFLAG_SPLINE_ENABLED = 0x08000000, // used for flight paths
-    MOVEMENTFLAG_WATERWALKING = 0x10000000, // prevent unit from falling through water
-    MOVEMENTFLAG_FALLING_SLOW = 0x20000000, // active rogue safe fall spell (passive)
-    MOVEMENTFLAG_HOVER = 0x40000000, // hover, cannot jump
+    MOVEMENTFLAG_NONE                  = 0x00000000,
+    MOVEMENTFLAG_FORWARD               = 0x00000001,
+    MOVEMENTFLAG_BACKWARD              = 0x00000002,
+    MOVEMENTFLAG_STRAFE_LEFT           = 0x00000004,
+    MOVEMENTFLAG_STRAFE_RIGHT          = 0x00000008,
+    MOVEMENTFLAG_LEFT                  = 0x00000010,
+    MOVEMENTFLAG_RIGHT                 = 0x00000020,
+    MOVEMENTFLAG_PITCH_UP              = 0x00000040,
+    MOVEMENTFLAG_PITCH_DOWN            = 0x00000080,
+    MOVEMENTFLAG_WALKING               = 0x00000100,               // Walking
+    MOVEMENTFLAG_ONTRANSPORT           = 0x00000200,               // Used for flying on some creatures
+    MOVEMENTFLAG_DISABLE_GRAVITY       = 0x00000400,               // Former MOVEMENTFLAG_LEVITATING. This is used when walking is not possible.
+    MOVEMENTFLAG_ROOT                  = 0x00000800,               // Must not be set along with MOVEMENTFLAG_MASK_MOVING
+    MOVEMENTFLAG_FALLING               = 0x00001000,               // damage dealt on that type of falling
+    MOVEMENTFLAG_FALLING_FAR           = 0x00002000,
+    MOVEMENTFLAG_PENDING_STOP          = 0x00004000,
+    MOVEMENTFLAG_PENDING_STRAFE_STOP   = 0x00008000,
+    MOVEMENTFLAG_PENDING_FORWARD       = 0x00010000,
+    MOVEMENTFLAG_PENDING_BACKWARD      = 0x00020000,
+    MOVEMENTFLAG_PENDING_STRAFE_LEFT   = 0x00040000,
+    MOVEMENTFLAG_PENDING_STRAFE_RIGHT  = 0x00080000,
+    MOVEMENTFLAG_PENDING_ROOT          = 0x00100000,
+    MOVEMENTFLAG_SWIMMING              = 0x00200000,               // appears with fly flag also
+    MOVEMENTFLAG_ASCENDING             = 0x00400000,               // press "space" when flying
+    MOVEMENTFLAG_DESCENDING            = 0x00800000,
+    MOVEMENTFLAG_CAN_FLY               = 0x01000000,               // Appears when unit can fly AND also walk
+    MOVEMENTFLAG_FLYING                = 0x02000000,               // unit is actually flying. pretty sure this is only used for players. creatures use disable_gravity
+    MOVEMENTFLAG_SPLINE_ELEVATION      = 0x04000000,               // used for flight paths
+    MOVEMENTFLAG_SPLINE_ENABLED        = 0x08000000,               // used for flight paths
+    MOVEMENTFLAG_WATERWALKING          = 0x10000000,               // prevent unit from falling through water
+    MOVEMENTFLAG_FALLING_SLOW          = 0x20000000,               // active rogue safe fall spell (passive)
+    MOVEMENTFLAG_HOVER                 = 0x40000000,               // hover, cannot jump
 
     /// @todo Check if PITCH_UP and PITCH_DOWN really belong here..
     MOVEMENTFLAG_MASK_MOVING =
@@ -740,38 +740,38 @@ enum MovementFlags
 };
 enum MovementFlags2
 {
-    MOVEMENTFLAG2_NONE = 0x00000000,
-    MOVEMENTFLAG2_NO_STRAFE = 0x00000001,
-    MOVEMENTFLAG2_NO_JUMPING = 0x00000002,
-    MOVEMENTFLAG2_UNK3 = 0x00000004, // Overrides various clientside checks
-    MOVEMENTFLAG2_FULL_SPEED_TURNING = 0x00000008,
-    MOVEMENTFLAG2_FULL_SPEED_PITCHING = 0x00000010,
-    MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING = 0x00000020,
-    MOVEMENTFLAG2_UNK7 = 0x00000040,
-    MOVEMENTFLAG2_UNK8 = 0x00000080,
-    MOVEMENTFLAG2_UNK9 = 0x00000100,
-    MOVEMENTFLAG2_UNK10 = 0x00000200,
-    MOVEMENTFLAG2_INTERPOLATED_MOVEMENT = 0x00000400,
-    MOVEMENTFLAG2_INTERPOLATED_TURNING = 0x00000800,
-    MOVEMENTFLAG2_INTERPOLATED_PITCHING = 0x00001000,
-    MOVEMENTFLAG2_UNK14 = 0x00002000,
-    MOVEMENTFLAG2_UNK15 = 0x00004000,
-    MOVEMENTFLAG2_UNK16 = 0x00008000
+    MOVEMENTFLAG2_NONE                     = 0x00000000,
+    MOVEMENTFLAG2_NO_STRAFE                = 0x00000001,
+    MOVEMENTFLAG2_NO_JUMPING               = 0x00000002,
+    MOVEMENTFLAG2_UNK3                     = 0x00000004,        // Overrides various clientside checks
+    MOVEMENTFLAG2_FULL_SPEED_TURNING       = 0x00000008,
+    MOVEMENTFLAG2_FULL_SPEED_PITCHING      = 0x00000010,
+    MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING    = 0x00000020,
+    MOVEMENTFLAG2_UNK7                     = 0x00000040,
+    MOVEMENTFLAG2_UNK8                     = 0x00000080,
+    MOVEMENTFLAG2_UNK9                     = 0x00000100,
+    MOVEMENTFLAG2_UNK10                    = 0x00000200,
+    MOVEMENTFLAG2_INTERPOLATED_MOVEMENT    = 0x00000400,
+    MOVEMENTFLAG2_INTERPOLATED_TURNING     = 0x00000800,
+    MOVEMENTFLAG2_INTERPOLATED_PITCHING    = 0x00001000,
+    MOVEMENTFLAG2_UNK14                    = 0x00002000,
+    MOVEMENTFLAG2_UNK15                    = 0x00004000,
+    MOVEMENTFLAG2_UNK16                    = 0x00008000
 };
 
 enum UnitTypeMask
 {
-    UNIT_MASK_NONE = 0x00000000,
-    UNIT_MASK_SUMMON = 0x00000001,
-    UNIT_MASK_MINION = 0x00000002,
-    UNIT_MASK_GUARDIAN = 0x00000004,
-    UNIT_MASK_TOTEM = 0x00000008,
-    UNIT_MASK_PET = 0x00000010,
-    UNIT_MASK_VEHICLE = 0x00000020,
-    UNIT_MASK_PUPPET = 0x00000040,
-    UNIT_MASK_HUNTER_PET = 0x00000080,
-    UNIT_MASK_CONTROLABLE_GUARDIAN = 0x00000100,
-    UNIT_MASK_ACCESSORY = 0x00000200
+    UNIT_MASK_NONE                  = 0x00000000,
+    UNIT_MASK_SUMMON                = 0x00000001,
+    UNIT_MASK_MINION                = 0x00000002,
+    UNIT_MASK_GUARDIAN              = 0x00000004,
+    UNIT_MASK_TOTEM                 = 0x00000008,
+    UNIT_MASK_PET                   = 0x00000010,
+    UNIT_MASK_VEHICLE               = 0x00000020,
+    UNIT_MASK_PUPPET                = 0x00000040,
+    UNIT_MASK_HUNTER_PET            = 0x00000080,
+    UNIT_MASK_CONTROLABLE_GUARDIAN  = 0x00000100,
+    UNIT_MASK_ACCESSORY             = 0x00000200
 };
 
 namespace Movement{
@@ -784,10 +784,10 @@ struct DiminishingReturn
         : DRGroup(group), stack(0), hitTime(t), hitCount(count)
     {}
 
-    DiminishingGroup DRGroup:16;
-    uint16 stack:16;
-    uint32 hitTime;
-    uint32 hitCount;
+    DiminishingGroup        DRGroup:16;
+    uint16                  stack:16;
+    uint32                  hitTime;
+    uint32                  hitCount;
 };
 
 enum MeleeHitOutcome
@@ -927,8 +927,8 @@ private:
 // Need create structure like in SMSG_ATTACKERSTATEUPDATE opcode
 struct CalcDamageInfo
 {
-    Unit *attacker; // Attacker
-    Unit *target; // Target for damage
+    Unit  *attacker;             // Attacker
+    Unit  *target;               // Target for damage
     uint32 damageSchoolMask;
     uint32 damage;
     uint32 absorb;
@@ -941,8 +941,8 @@ struct CalcDamageInfo
     uint32 procAttacker;
     uint32 procVictim;
     uint32 procEx;
-    uint32 cleanDamage; // Used only for rage calculation
-    MeleeHitOutcome hitOutCome;  // TODO: remove this field (need use TargetState)
+    uint32 cleanDamage;          // Used only for rage calculation
+    MeleeHitOutcome hitOutCome;  /// @todo remove this field (need use TargetState)
 };
 
 // Spell damage info structure based on structure sending in SMSG_SPELLNONMELEEDAMAGELOG opcode
@@ -952,16 +952,16 @@ struct SpellNonMeleeDamage{
         absorb(0), resist(0), physicalLog(false), unused(false), blocked(0), HitInfo(0), cleanDamage(0)
     {}
 
-    Unit *target;
-    Unit *attacker;
+    Unit   *target;
+    Unit   *attacker;
     uint32 SpellID;
     uint32 damage;
     uint32 overkill;
     uint32 schoolMask;
     uint32 absorb;
     uint32 resist;
-    bool physicalLog;
-    bool unused;
+    bool   physicalLog;
+    bool   unused;
     uint32 blocked;
     uint32 HitInfo;
     // Used for help
@@ -975,11 +975,11 @@ struct SpellPeriodicAuraLogInfo
 
     AuraEffect const* auraEff;
     uint32 damage;
-    uint32 overDamage; // overkill/overheal
+    uint32 overDamage;                                      // overkill/overheal
     uint32 absorb;
     uint32 resist;
-    float multiplier;
-    bool critical;
+    float  multiplier;
+    bool   critical;
 };
 
 uint32 createProcExtendMask(SpellNonMeleeDamage* damageInfo, SpellMissInfo missCondition);
@@ -1015,14 +1015,14 @@ struct DeclinedName
 
 enum CurrentSpellTypes
 {
-    CURRENT_MELEE_SPELL = 0,
-    CURRENT_GENERIC_SPELL = 1,
-    CURRENT_CHANNELED_SPELL = 2,
-    CURRENT_AUTOREPEAT_SPELL = 3
+    CURRENT_MELEE_SPELL             = 0,
+    CURRENT_GENERIC_SPELL           = 1,
+    CURRENT_CHANNELED_SPELL         = 2,
+    CURRENT_AUTOREPEAT_SPELL        = 3
 };
 
 #define CURRENT_FIRST_NON_MELEE_SPELL 1
-#define CURRENT_MAX_SPELL 4
+#define CURRENT_MAX_SPELL             4
 
 struct GlobalCooldown
 {
@@ -1034,7 +1034,7 @@ struct GlobalCooldown
 
 typedef UNORDERED_MAP<uint32 /*category*/, GlobalCooldown> GlobalCooldownList;
 
-class GlobalCooldownMgr // Shared by Player and CharmInfo
+class GlobalCooldownMgr                                     // Shared by Player and CharmInfo
 {
 public:
     GlobalCooldownMgr() {}
@@ -1050,31 +1050,31 @@ private:
 
 enum ActiveStates
 {
-    ACT_PASSIVE = 0x01, // 0x01 - passive
-    ACT_DISABLED = 0x81, // 0x80 - castable
-    ACT_ENABLED = 0xC1, // 0x40 | 0x80 - auto cast + castable
-    ACT_COMMAND = 0x07, // 0x01 | 0x02 | 0x04
-    ACT_REACTION = 0x06, // 0x02 | 0x04
-    ACT_DECIDE = 0x00 // custom
+    ACT_PASSIVE  = 0x01,                                    // 0x01 - passive
+    ACT_DISABLED = 0x81,                                    // 0x80 - castable
+    ACT_ENABLED  = 0xC1,                                    // 0x40 | 0x80 - auto cast + castable
+    ACT_COMMAND  = 0x07,                                    // 0x01 | 0x02 | 0x04
+    ACT_REACTION = 0x06,                                    // 0x02 | 0x04
+    ACT_DECIDE   = 0x00                                     // custom
 };
 
 enum ReactStates
 {
-    REACT_PASSIVE = 0,
-    REACT_DEFENSIVE = 1,
+    REACT_PASSIVE    = 0,
+    REACT_DEFENSIVE  = 1,
     REACT_AGGRESSIVE = 2
 };
 
 enum CommandStates
 {
-    COMMAND_STAY = 0,
-    COMMAND_FOLLOW = 1,
-    COMMAND_ATTACK = 2,
+    COMMAND_STAY    = 0,
+    COMMAND_FOLLOW  = 1,
+    COMMAND_ATTACK  = 2,
     COMMAND_ABANDON = 3
 };
 
 #define UNIT_ACTION_BUTTON_ACTION(X) (uint32(X) & 0x00FFFFFF)
-#define UNIT_ACTION_BUTTON_TYPE(X) ((uint32(X) & 0xFF000000) >> 24)
+#define UNIT_ACTION_BUTTON_TYPE(X)   ((uint32(X) & 0xFF000000) >> 24)
 #define MAKE_UNIT_ACTION_BUTTON(A, T) (uint32(A) | (uint32(T) << 24))
 
 struct UnitActionBarEntry
@@ -1189,7 +1189,7 @@ struct CharmInfo
         bool _barInit;
 
         //for restoration after charmed
-        ReactStates _oldReactState;
+        ReactStates     _oldReactState;
 
         bool _isCommandAttack;
         bool _isCommandFollow;
@@ -1208,34 +1208,34 @@ struct CharmInfo
 
 enum ReactiveType
 {
-    REACTIVE_DEFENSE = 0,
+    REACTIVE_DEFENSE      = 0,
     REACTIVE_HUNTER_PARRY = 1,
-    REACTIVE_OVERPOWER = 2
+    REACTIVE_OVERPOWER    = 2
 };
 
 #define MAX_REACTIVE 3
-#define SUMMON_SLOT_PET 0
-#define SUMMON_SLOT_TOTEM 1
-#define MAX_TOTEM_SLOT 5
+#define SUMMON_SLOT_PET     0
+#define SUMMON_SLOT_TOTEM   1
+#define MAX_TOTEM_SLOT      5
 #define SUMMON_SLOT_MINIPET 5
-#define SUMMON_SLOT_QUEST 6
-#define MAX_SUMMON_SLOT 7
+#define SUMMON_SLOT_QUEST   6
+#define MAX_SUMMON_SLOT     7
 
 #define MAX_GAMEOBJECT_SLOT 4
 
 enum PlayerTotemType
 {
-    SUMMON_TYPE_TOTEM_FIRE = 63,
+    SUMMON_TYPE_TOTEM_FIRE  = 63,
     SUMMON_TYPE_TOTEM_EARTH = 81,
     SUMMON_TYPE_TOTEM_WATER = 82,
-    SUMMON_TYPE_TOTEM_AIR = 83
+    SUMMON_TYPE_TOTEM_AIR   = 83
 };
 
 // delay time next attack to prevent client attack animation problems
 #define ATTACK_DISPLAY_DELAY 200
-#define MAX_PLAYER_STEALTH_DETECT_RANGE 30.0f // max distance for detection targets by player
+#define MAX_PLAYER_STEALTH_DETECT_RANGE 30.0f               // max distance for detection targets by player
 
-struct SpellProcEventEntry; // used only privately
+struct SpellProcEventEntry;                                 // used only privately
 
 class Unit : public WorldObject
 {
@@ -1243,15 +1243,15 @@ class Unit : public WorldObject
         typedef std::set<Unit*> AttackerSet;
         typedef std::set<Unit*> ControlList;
 
-        typedef std::multimap<uint32, Aura*> AuraMap;
+        typedef std::multimap<uint32,  Aura*> AuraMap;
         typedef std::pair<AuraMap::const_iterator, AuraMap::const_iterator> AuraMapBounds;
         typedef std::pair<AuraMap::iterator, AuraMap::iterator> AuraMapBoundsNonConst;
 
-        typedef std::multimap<uint32, AuraApplication*> AuraApplicationMap;
+        typedef std::multimap<uint32,  AuraApplication*> AuraApplicationMap;
         typedef std::pair<AuraApplicationMap::const_iterator, AuraApplicationMap::const_iterator> AuraApplicationMapBounds;
         typedef std::pair<AuraApplicationMap::iterator, AuraApplicationMap::iterator> AuraApplicationMapBoundsNonConst;
 
-        typedef std::multimap<AuraStateType, AuraApplication*> AuraStateAurasMap;
+        typedef std::multimap<AuraStateType,  AuraApplication*> AuraStateAurasMap;
         typedef std::pair<AuraStateAurasMap::const_iterator, AuraStateAurasMap::const_iterator> AuraStateAurasMapBounds;
 
         typedef std::list<AuraEffect*> AuraEffectList;
@@ -1271,12 +1271,12 @@ class Unit : public WorldObject
         void RemoveFromWorld();
 
         void CleanupBeforeRemoveFromMap(bool finalCleanup);
-        void CleanupsBeforeDelete(bool finalCleanup = true); // used in ~Creature/~Player (or before mass creature delete to remove cross-references to already deleted units)
+        void CleanupsBeforeDelete(bool finalCleanup = true);                        // used in ~Creature/~Player (or before mass creature delete to remove cross-references to already deleted units)
 
-        DiminishingLevels GetDiminishing(DiminishingGroup group);
+        DiminishingLevels GetDiminishing(DiminishingGroup  group);
         void IncrDiminishing(DiminishingGroup group);
-        float ApplyDiminishingToDuration(DiminishingGroup group, int32 &duration, Unit* caster, DiminishingLevels Level, int32 limitduration);
-        void ApplyDiminishingAura(DiminishingGroup group, bool apply);
+        float ApplyDiminishingToDuration(DiminishingGroup  group, int32 &duration, Unit* caster, DiminishingLevels Level, int32 limitduration);
+        void ApplyDiminishingAura(DiminishingGroup  group, bool apply);
         void ClearDiminishings() { m_Diminishing.clear(); }
 
         // target dependent range checks
@@ -1300,9 +1300,9 @@ class Unit : public WorldObject
         uint32 m_extraAttacks;
         bool m_canDualWield;
 
-        void _addAttacker(Unit* pAttacker); // must be called only from Unit::Attack(Unit*)
-        void _removeAttacker(Unit* pAttacker); // must be called only from Unit::AttackStop()
-        Unit* getAttackerForHelper() const; // If someone wants to help, who to give them
+        void _addAttacker(Unit* pAttacker);                  // must be called only from Unit::Attack(Unit*)
+        void _removeAttacker(Unit* pAttacker);               // must be called only from Unit::AttackStop()
+        Unit* getAttackerForHelper() const;                 // If someone wants to help, who to give them
         bool Attack(Unit* victim, bool meleeAttack);
         void CastStop(uint32 except_spellid = 0);
         bool AttackStop();
@@ -1325,12 +1325,12 @@ class Unit : public WorldObject
 
         uint32 HasUnitTypeMask(uint32 mask) const { return mask & m_unitTypeMask; }
         void AddUnitTypeMask(uint32 mask) { m_unitTypeMask |= mask; }
-        bool isSummon() const { return m_unitTypeMask & UNIT_MASK_SUMMON; }
+        bool isSummon() const   { return m_unitTypeMask & UNIT_MASK_SUMMON; }
         bool isGuardian() const { return m_unitTypeMask & UNIT_MASK_GUARDIAN; }
-        bool isPet() const { return m_unitTypeMask & UNIT_MASK_PET; }
+        bool isPet() const      { return m_unitTypeMask & UNIT_MASK_PET; }
         bool isHunterPet() const{ return m_unitTypeMask & UNIT_MASK_HUNTER_PET; }
-        bool isTotem() const { return m_unitTypeMask & UNIT_MASK_TOTEM; }
-        bool IsVehicle() const { return m_unitTypeMask & UNIT_MASK_VEHICLE; }
+        bool isTotem() const    { return m_unitTypeMask & UNIT_MASK_TOTEM; }
+        bool IsVehicle() const  { return m_unitTypeMask & UNIT_MASK_VEHICLE; }
 
         uint8 getLevel() const { return uint8(GetUInt32Value(UNIT_FIELD_LEVEL)); }
         uint8 getLevelForTarget(WorldObject const* /*target*/) const { return getLevel(); }
@@ -1350,7 +1350,7 @@ class Unit : public WorldObject
         uint32 GetResistance(SpellSchoolMask mask) const;
         void SetResistance(SpellSchools school, int32 val) { SetStatInt32Value(UNIT_FIELD_RESISTANCES+school, val); }
 
-        uint32 GetHealth() const { return GetUInt32Value(UNIT_FIELD_HEALTH); }
+        uint32 GetHealth()    const { return GetUInt32Value(UNIT_FIELD_HEALTH); }
         uint32 GetMaxHealth() const { return GetUInt32Value(UNIT_FIELD_MAXHEALTH); }
 
         bool IsFullHealth() const { return GetHealth() == GetMaxHealth(); }
@@ -1370,7 +1370,7 @@ class Unit : public WorldObject
 
         Powers getPowerType() const { return Powers(GetByteValue(UNIT_FIELD_BYTES_0, 3)); }
         void setPowerType(Powers power);
-        uint32 GetPower(Powers power) const { return GetUInt32Value(UNIT_FIELD_POWER1 +power); }
+        uint32 GetPower(Powers power) const { return GetUInt32Value(UNIT_FIELD_POWER1   +power); }
         uint32 GetMaxPower(Powers power) const { return GetUInt32Value(UNIT_FIELD_MAXPOWER1+power); }
         void SetPower(Powers power, uint32 val);
         void SetMaxPower(Powers power, uint32 val);
@@ -1412,8 +1412,8 @@ class Unit : public WorldObject
         bool IsStandState() const;
         void SetStandState(uint8 state);
 
-        void SetStandFlags(uint8 flags) { SetByteFlag(UNIT_FIELD_BYTES_1, 2, flags); }
-        void RemoveStandFlags(uint8 flags) { RemoveByteFlag(UNIT_FIELD_BYTES_1, 2, flags); }
+        void  SetStandFlags(uint8 flags) { SetByteFlag(UNIT_FIELD_BYTES_1, 2, flags); }
+        void  RemoveStandFlags(uint8 flags) { RemoveByteFlag(UNIT_FIELD_BYTES_1, 2, flags); }
 
         bool IsMounted() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT); }
         uint32 GetMountID() const { return GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID); }
@@ -1469,10 +1469,10 @@ class Unit : public WorldObject
         SpellMissInfo MagicSpellHitResult(Unit* victim, SpellInfo const* spell);
         SpellMissInfo SpellHitResult(Unit* victim, SpellInfo const* spell, bool canReflect = false);
 
-        float GetUnitDodgeChance() const;
-        float GetUnitParryChance() const;
-        float GetUnitBlockChance() const;
-        float GetUnitMissChance(WeaponAttackType attType) const;
+        float GetUnitDodgeChance()    const;
+        float GetUnitParryChance()    const;
+        float GetUnitBlockChance()    const;
+        float GetUnitMissChance(WeaponAttackType attType)     const;
         float GetUnitCriticalChance(WeaponAttackType attackType, const Unit* victim) const;
         int32 GetMechanicResistChance(const SpellInfo* spell);
         bool CanUseAttackType(uint8 attacktype) const;
@@ -1483,31 +1483,31 @@ class Unit : public WorldObject
         uint32 GetDefenseSkillValue(Unit const* target = NULL) const;
         uint32 GetWeaponSkillValue(WeaponAttackType attType, Unit const* target = NULL) const;
         float GetWeaponProcChance() const;
-        float GetPPMProcChance(uint32 WeaponSpeed, float PPM, const SpellInfo* spellProto) const;
+        float GetPPMProcChance(uint32 WeaponSpeed, float PPM,  const SpellInfo* spellProto) const;
 
         MeleeHitOutcome RollMeleeOutcomeAgainst (const Unit* victim, WeaponAttackType attType) const;
         MeleeHitOutcome RollMeleeOutcomeAgainst (const Unit* victim, WeaponAttackType attType, int32 crit_chance, int32 miss_chance, int32 dodge_chance, int32 parry_chance, int32 block_chance) const;
 
-        bool isVendor() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_VENDOR); }
-        bool isTrainer() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_TRAINER); }
-        bool isQuestGiver() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER); }
-        bool isGossip() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP); }
-        bool isTaxi() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_FLIGHTMASTER); }
-        bool isGuildMaster() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PETITIONER); }
+        bool isVendor()       const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_VENDOR); }
+        bool isTrainer()      const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_TRAINER); }
+        bool isQuestGiver()   const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER); }
+        bool isGossip()       const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP); }
+        bool isTaxi()         const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_FLIGHTMASTER); }
+        bool isGuildMaster()  const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PETITIONER); }
         bool isBattleMaster() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_BATTLEMASTER); }
-        bool isBanker() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_BANKER); }
-        bool isInnkeeper() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_INNKEEPER); }
+        bool isBanker()       const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_BANKER); }
+        bool isInnkeeper()    const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_INNKEEPER); }
         bool isSpiritHealer() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPIRITHEALER); }
-        bool isSpiritGuide() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPIRITGUIDE); }
+        bool isSpiritGuide()  const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPIRITGUIDE); }
         bool isTabardDesigner()const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_TABARDDESIGNER); }
-        bool isAuctioner() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_AUCTIONEER); }
-        bool isArmorer() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_REPAIR); }
+        bool isAuctioner()    const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_AUCTIONEER); }
+        bool isArmorer()      const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_REPAIR); }
         bool isServiceProvider() const;
         bool isSpiritService() const { return HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPIRITHEALER | UNIT_NPC_FLAG_SPIRITGUIDE); }
 
-        bool isInFlight() const { return HasUnitState(UNIT_STATE_IN_FLIGHT); }
+        bool isInFlight()  const { return HasUnitState(UNIT_STATE_IN_FLIGHT); }
 
-        bool isInCombat() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT); }
+        bool isInCombat()  const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT); }
         void CombatStart(Unit* target, bool initialAggro = true);
         void SetInCombatState(bool PvP, Unit* enemy = NULL);
         void SetInCombatWith(Unit* enemy);
@@ -1519,9 +1519,9 @@ class Unit : public WorldObject
         bool HasBreakableByDamageAuraType(AuraType type, uint32 excludeAura = 0) const;
         bool HasBreakableByDamageCrowdControlAura(Unit* excludeCasterChannel = NULL) const;
 
-        bool HasStealthAura() const { return HasAuraType(SPELL_AURA_MOD_STEALTH); }
+        bool HasStealthAura()      const { return HasAuraType(SPELL_AURA_MOD_STEALTH); }
         bool HasInvisibilityAura() const { return HasAuraType(SPELL_AURA_MOD_INVISIBILITY); }
-        bool isFeared() const { return HasAuraType(SPELL_AURA_MOD_FEAR); }
+        bool isFeared()  const { return HasAuraType(SPELL_AURA_MOD_FEAR); }
         bool isInRoots() const { return HasAuraType(SPELL_AURA_MOD_ROOT); }
         bool IsPolymorphed() const;
 
@@ -1592,10 +1592,10 @@ class Unit : public WorldObject
         void SendMovementFlagUpdate(bool self = false);
 
         /*! These methods send the same packet to the client in apply and unapply case.
-The client-side interpretation of this packet depends on the presence of relevant movementflags
-which are sent with movementinfo. Furthermore, these packets are broadcast to nearby players as well
-as the current unit.
-*/
+            The client-side interpretation of this packet depends on the presence of relevant movementflags
+            which are sent with movementinfo. Furthermore, these packets are broadcast to nearby players as well
+            as the current unit.
+        */
         void SendMovementHover();
         void SendMovementFeatherFall();
         void SendMovementWaterWalking();
@@ -1625,9 +1625,9 @@ as the current unit.
         bool isDying() const { return (m_deathState == JUST_DIED); }
         bool isDead() const { return (m_deathState == DEAD || m_deathState == CORPSE); }
         DeathState getDeathState() const { return m_deathState; }
-        virtual void setDeathState(DeathState s); // overwrited in Creature/Player/Pet
+        virtual void setDeathState(DeathState s);           // overwrited in Creature/Player/Pet
 
-        uint64 GetOwnerGUID() const { return GetUInt64Value(UNIT_FIELD_SUMMONEDBY); }
+        uint64 GetOwnerGUID() const { return  GetUInt64Value(UNIT_FIELD_SUMMONEDBY); }
         void SetOwnerGUID(uint64 owner);
         uint64 GetCreatorGUID() const { return GetUInt64Value(UNIT_FIELD_CREATEDBY); }
         void SetCreatorGUID(uint64 creator) { SetUInt64Value(UNIT_FIELD_CREATEDBY, creator); }
@@ -1635,7 +1635,7 @@ as the current unit.
         void SetMinionGUID(uint64 guid) { SetUInt64Value(UNIT_FIELD_SUMMON, guid); }
         uint64 GetCharmerGUID() const { return GetUInt64Value(UNIT_FIELD_CHARMEDBY); }
         void SetCharmerGUID(uint64 owner) { SetUInt64Value(UNIT_FIELD_CHARMEDBY, owner); }
-        uint64 GetCharmGUID() const { return GetUInt64Value(UNIT_FIELD_CHARM); }
+        uint64 GetCharmGUID() const { return  GetUInt64Value(UNIT_FIELD_CHARM); }
         void SetPetGUID(uint64 guid) { m_SummonSlot[SUMMON_SLOT_PET] = guid; }
         uint64 GetPetGUID() const { return m_SummonSlot[SUMMON_SLOT_PET]; }
         void SetCritterGUID(uint64 guid) { SetUInt64Value(UNIT_FIELD_CRITTER, guid); }
@@ -1708,7 +1708,7 @@ as the current unit.
         void _RegisterAuraEffect(AuraEffect* aurEff, bool apply);
 
         // m_ownedAuras container management
-        AuraMap & GetOwnedAuras() { return m_ownedAuras; }
+        AuraMap      & GetOwnedAuras()       { return m_ownedAuras; }
         AuraMap const& GetOwnedAuras() const { return m_ownedAuras; }
 
         void RemoveOwnedAura(AuraMap::iterator &i, AuraRemoveMode removeMode = AURA_REMOVE_BY_DEFAULT);
@@ -1718,7 +1718,7 @@ as the current unit.
         Aura* GetOwnedAura(uint32 spellId, uint64 casterGUID = 0, uint64 itemCasterGUID = 0, uint8 reqEffMask = 0, Aura* except = NULL) const;
 
         // m_appliedAuras container management
-        AuraApplicationMap & GetAppliedAuras() { return m_appliedAuras; }
+        AuraApplicationMap      & GetAppliedAuras()       { return m_appliedAuras; }
         AuraApplicationMap const& GetAppliedAuras() const { return m_appliedAuras; }
 
         void RemoveAura(AuraApplicationMap::iterator &i, AuraRemoveMode mode = AURA_REMOVE_BY_DEFAULT);
@@ -1751,7 +1751,7 @@ as the current unit.
         void _ApplyAllAuraStatMods();
 
         AuraEffectList const& GetAuraEffectsByType(AuraType type) const { return m_modAuras[type]; }
-        AuraList & GetSingleCastAuras() { return m_scAuras; }
+        AuraList      & GetSingleCastAuras()       { return m_scAuras; }
         AuraList const& GetSingleCastAuras() const { return m_scAuras; }
 
         AuraEffect* GetAuraEffect(uint32 spellId, uint8 effIndex, uint64 casterGUID = 0) const;
@@ -1963,9 +1963,9 @@ as the current unit.
         uint32 MeleeDamageBonusTaken(Unit* attacker, uint32 pdamage, WeaponAttackType attType, SpellInfo const* spellProto = NULL);
 
 
-        bool isSpellBlocked(Unit* victim, SpellInfo const* spellProto, WeaponAttackType attackType = BASE_ATTACK);
-        bool isBlockCritical();
-        bool isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMask schoolMask, WeaponAttackType attackType = BASE_ATTACK) const;
+        bool   isSpellBlocked(Unit* victim, SpellInfo const* spellProto, WeaponAttackType attackType = BASE_ATTACK);
+        bool   isBlockCritical();
+        bool   isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMask schoolMask, WeaponAttackType attackType = BASE_ATTACK) const;
         uint32 SpellCriticalDamageBonus(SpellInfo const* spellProto, uint32 damage, Unit* victim);
         uint32 SpellCriticalHealingBonus(SpellInfo const* spellProto, uint32 damage, Unit* victim);
 
@@ -1992,7 +1992,7 @@ as the current unit.
         void CalcAbsorbResist(Unit* victim, SpellSchoolMask schoolMask, DamageEffectType damagetype, const uint32 damage, uint32 *absorb, uint32 *resist, SpellInfo const* spellInfo = NULL);
         void CalcHealAbsorb(Unit* victim, const SpellInfo* spellProto, uint32 &healAmount, uint32 &absorb);
 
-        void UpdateSpeed(UnitMoveType mtype, bool forced);
+        void  UpdateSpeed(UnitMoveType mtype, bool forced);
         float GetSpeed(UnitMoveType mtype) const;
         float GetSpeedRate(UnitMoveType mtype) const { return m_speed_rate[mtype]; }
         void SetSpeed(UnitMoveType mtype, float rate, bool forced = false);
@@ -2004,7 +2004,7 @@ as the current unit.
         int32 CalculateSpellDamage(Unit const* target, SpellInfo const* spellProto, uint8 effect_index, int32 const* basePoints = NULL) const;
         int32 CalcSpellDuration(SpellInfo const* spellProto);
         int32 ModSpellDuration(SpellInfo const* spellProto, Unit const* target, int32 duration, bool positive, uint32 effectMask);
-        void ModSpellCastTime(SpellInfo const* spellProto, int32 & castTime, Spell* spell=NULL);
+        void  ModSpellCastTime(SpellInfo const* spellProto, int32 & castTime, Spell* spell=NULL);
         float CalculateLevelPenalty(SpellInfo const* spellProto) const;
 
         void addFollower(FollowerReference* pRef) { m_FollowingRefManager.insertFirst(pRef); }
@@ -2081,17 +2081,17 @@ as the current unit.
         bool CreateVehicleKit(uint32 id, uint32 creatureEntry);
         void RemoveVehicleKit();
         Vehicle* GetVehicleKit()const { return m_vehicleKit; }
-        Vehicle* GetVehicle() const { return m_vehicle; }
+        Vehicle* GetVehicle()   const { return m_vehicle; }
         bool IsOnVehicle(const Unit* vehicle) const;
-        Unit* GetVehicleBase() const;
+        Unit* GetVehicleBase()  const;
         Creature* GetVehicleCreatureBase() const;
         float GetTransOffsetX() const { return m_movementInfo.t_pos.GetPositionX(); }
         float GetTransOffsetY() const { return m_movementInfo.t_pos.GetPositionY(); }
         float GetTransOffsetZ() const { return m_movementInfo.t_pos.GetPositionZ(); }
         float GetTransOffsetO() const { return m_movementInfo.t_pos.GetOrientation(); }
-        uint32 GetTransTime() const { return m_movementInfo.t_time; }
-        int8 GetTransSeat() const { return m_movementInfo.t_seat; }
-        uint64 GetTransGUID() const;
+        uint32 GetTransTime()   const { return m_movementInfo.t_time; }
+        int8 GetTransSeat()     const { return m_movementInfo.t_seat; }
+        uint64 GetTransGUID()   const;
         /// Returns the transport this unit is on directly (if on vehicle and transport, return vehicle)
         TransportBase* GetDirectTransport() const;
 
@@ -2108,10 +2108,10 @@ as the current unit.
 
         void BuildMovementPacket(ByteBuffer *data) const;
 
-        bool isMoving() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_MASK_MOVING); }
-        bool isTurning() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_MASK_TURNING); }
+        bool isMoving() const   { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_MASK_MOVING); }
+        bool isTurning() const  { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_MASK_TURNING); }
         virtual bool CanFly() const = 0;
-        bool IsFlying() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_FLYING | MOVEMENTFLAG_DISABLE_GRAVITY); }
+        bool IsFlying() const   { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_FLYING | MOVEMENTFLAG_DISABLE_GRAVITY); }
         void SetCanFly(bool apply);
 
         void RewardRage(uint32 damage, uint32 weaponSpeedHitFactor, bool attacker);
@@ -2184,9 +2184,9 @@ as the current unit.
         uint32 m_removedAurasCount;
 
         AuraEffectList m_modAuras[TOTAL_AURAS];
-        AuraList m_scAuras; // casted singlecast auras
-        AuraApplicationList m_interruptableAuras; // auras which have interrupt mask applied on unit
-        AuraStateAurasMap m_auraStateAuras; // Used for improve performance of aura state checks on aura apply/remove
+        AuraList m_scAuras;                        // casted singlecast auras
+        AuraApplicationList m_interruptableAuras;             // auras which have interrupt mask applied on unit
+        AuraStateAurasMap m_auraStateAuras;        // Used for improve performance of aura state checks on aura apply/remove
         uint32 m_interruptMask;
 
         float m_auraModifiersGroup[UNIT_MOD_END][MODIFIER_TYPE_END];
@@ -2240,9 +2240,9 @@ as the current unit.
 
         uint32 m_rootTimes;
 
-        uint32 m_state; // Even derived shouldn't modify
+        uint32 m_state;                                     // Even derived shouldn't modify
         uint32 m_CombatTimer;
-        uint32 m_lastManaUse; // msecs
+        uint32 m_lastManaUse;                               // msecs
         TimeTrackerSmall m_movesplineTimer;
 
         Diminishing m_Diminishing;
@@ -2258,7 +2258,7 @@ as the current unit.
         bool m_cleanupDone; // lock made to not add stuff after cleanup before delete
         bool m_duringRemoveFromWorld; // lock made to not add stuff after begining removing from world
 
-        Spell const* _focusSpell; ///> Locks the target during spell cast for proper facing
+        Spell const* _focusSpell;   ///> Locks the target during spell cast for proper facing
         bool _isWalkingBeforeCharm; // Are we walking before we were charmed?
 
         time_t _lastDamagedTime; // Part of Evade mechanics
