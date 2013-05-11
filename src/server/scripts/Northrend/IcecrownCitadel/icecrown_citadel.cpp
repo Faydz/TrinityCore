@@ -800,7 +800,7 @@ class boss_sister_svalna : public CreatureScript
                 events.ScheduleEvent(EVENT_SVALNA_COMBAT, 9000);
                 events.ScheduleEvent(EVENT_IMPALING_SPEAR, urand(40000, 50000));
                 events.ScheduleEvent(EVENT_AETHER_SHIELD, urand(100000, 110000));
-                DoCast(SPELL_DIVINE_SURGE);
+                //DoCast(SPELL_DIVINE_SURGE);
             }
 
             void KilledUnit(Unit* victim)

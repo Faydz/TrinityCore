@@ -1897,28 +1897,9 @@ void World::LoadAutobroadcasts()
     uint32 realmId = ConfigMgr::GetIntDefault("RealmID", 0);
     PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_AUTOBROADCAST);
     stmt->setInt32(0, realmId);
-    PreparedQueryResult result = LoginDatabase.Query(stmt);
 
-    if (!result)
-    {
-        sLog->outInfo(LOG_FILTER_SERVER_LOADING, ">> Loaded 0 autobroadcasts definitions. DB table `autobroadcast` is empty!");
-        return;
-    }
 
     uint32 count = 0;
-
-    do
-    {
-        Field* fields = result->Fetch();
-        std::string message = fields[0].GetString();
-        uint8 id = fields[0].GetUInt8();
-
-        m_Autobroadcasts.push_back(message);
-        m_Autobroadcasts[id] = fields[2].GetString();
-        m_AutobroadcastsWeights[id] = fields[1].GetUInt8();
-
-        ++count;
-    } while (result->NextRow());
 
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, ">> Loaded %u autobroadcast definitions in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
 }
