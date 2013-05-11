@@ -644,34 +644,36 @@ void BattlegroundTP::EventPlayerCapturedFlag(Player* source)
 
 void BattlegroundTP::RemovePlayer(Player* player, uint64 guid, uint32 /* team */)
 {
-    uint8 team = player->GetTeamId();
+    if(player){
+        uint8 team = player->GetTeamId();
 
-    if (_flagKeepers[team ^ 1] == guid)
-    {
-        /// First of all respawn flag and second unaura player, if is vice versa player will drop the flag and spawn it on ground.
-        RespawnFlag(team ^ 1, false);
-        player->RemoveAurasDueToSpell(team == TEAM_ALLIANCE? BG_TP_SPELL_HORDE_FLAG : BG_TP_SPELL_ALLIANCE_FLAG);       
-
-        if (_bothFlagsKept)
+        if (_flagKeepers[team ^ 1] == guid)
         {
-            /// Remove aura from both of them
-            for (uint8 teamTemp = TEAM_ALLIANCE; teamTemp <= TEAM_HORDE; ++teamTemp)
-            {
-                if (Player* pl = ObjectAccessor::FindPlayer(_flagKeepers[team]))
-                {
-                    if (_flagDebuffState && _flagDebuffState < 6)
-                        pl->RemoveAurasDueToSpell(TP_SPELL_FOCUSED_ASSAULT);
-                    else if (_flagDebuffState >= 6)
-                        pl->RemoveAurasDueToSpell(TP_SPELL_BRUTAL_ASSAULT);
-                }
-                else
-                    sLog->outError(LOG_FILTER_BATTLEGROUND, "BattlegroundTP: An error has occurred in RemovePlayer: player with GUID: %u haven't been found. (_bothflagsKept is TRUE).", _flagKeepers[team]);
-            }
+            /// First of all respawn flag and second unaura player, if is vice versa player will drop the flag and spawn it on ground.
+            RespawnFlag(team ^ 1, false);
+            player->RemoveAurasDueToSpell(team == TEAM_ALLIANCE? BG_TP_SPELL_HORDE_FLAG : BG_TP_SPELL_ALLIANCE_FLAG);       
 
-            /// Reset both flags things
-            _bothFlagsKept = false;
-            _flagDebuffState = 0;
-            _flagSpellForceTimer = 0;
+            if (_bothFlagsKept)
+            {
+                /// Remove aura from both of them
+                for (uint8 teamTemp = TEAM_ALLIANCE; teamTemp <= TEAM_HORDE; ++teamTemp)
+                {
+                    if (Player* pl = ObjectAccessor::FindPlayer(_flagKeepers[team]))
+                    {
+                        if (_flagDebuffState && _flagDebuffState < 6)
+                            pl->RemoveAurasDueToSpell(TP_SPELL_FOCUSED_ASSAULT);
+                        else if (_flagDebuffState >= 6)
+                            pl->RemoveAurasDueToSpell(TP_SPELL_BRUTAL_ASSAULT);
+                    }
+                    else
+                        sLog->outError(LOG_FILTER_BATTLEGROUND, "BattlegroundTP: An error has occurred in RemovePlayer: player with GUID: %u haven't been found. (_bothflagsKept is TRUE).", _flagKeepers[team]);
+                }
+
+                /// Reset both flags things
+                _bothFlagsKept = false;
+                _flagDebuffState = 0;
+                _flagSpellForceTimer = 0;
+            }
         }
     }
 }
