@@ -10872,16 +10872,14 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 }
             }
 
-            // Flashburn - Fire Mastery
-            if (owner->getClass() == CLASS_MAGE && spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_FIRE && damagetype == DOT && spellProto->SpellIconID == 33)
-            {//will not affect combustion
-               if (owner->HasAuraType(SPELL_AURA_MASTERY))
-               {
-                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FIRE)
-                   {
-                       DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -0.14f) * 0.028f); // fire base mastery is 7.852
-                   }
-               }
+            // Flashburn - Fire Mastery (will not affect combustion)
+            if (owner->getClass() == CLASS_MAGE && spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_FIRE && damagetype == DOT && spellProto->SpellIconID != 33)
+            {
+                if (owner->HasAuraType(SPELL_AURA_MASTERY))
+                {
+                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FIRE)
+                        DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -0.14f) * 0.028f); // fire base mastery is 7.852
+                }
             }
 
             //Molten Fury
