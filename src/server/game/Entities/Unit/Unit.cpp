@@ -5747,7 +5747,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     return true;
                 }
                 // Ignite
-                case 11119:
+                /*case 11119:
                 case 11120:
                 case 12846:
                 {
@@ -5757,7 +5757,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     triggered_spell_id = 12654;
                     basepoints0 += victim->GetRemainingPeriodicAmount(GetGUID(), triggered_spell_id, SPELL_AURA_PERIODIC_DAMAGE);
                     break;
-                }
+                }*/
                 // Glyph of Ice Block
                 case 56372:
                 {
