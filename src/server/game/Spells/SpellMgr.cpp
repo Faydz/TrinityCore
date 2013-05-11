@@ -3137,7 +3137,6 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Soul Harvest
                     case 79268:
                         spellInfo->Effects[EFFECT_0].Amplitude = 3000;
-                        spellInfo->Effects[EFFECT_1].Amplitude = 3000;
                         break;
                     // Enslave Demon
                     case 1098:
