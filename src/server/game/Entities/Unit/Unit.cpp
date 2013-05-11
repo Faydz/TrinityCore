@@ -10886,7 +10886,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             if (victim->GetHealthPct() <= 35.0f && owner->ToPlayer() && owner->getClass() == CLASS_MAGE && 
                 GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0))
             {
-                if (spellProto->SpellIconID == 33 || spellProto->SpellIconID == 937)
+                if (spellProto->SpellIconID != 33 || spellProto->SpellIconID != 937)
                 { //should not affect ignite nor combustion
                     if (Aura* aura = GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_MAGE, 2129, EFFECT_0)->GetBase()){
                         uint32 BP = 12;
@@ -10894,6 +10894,8 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                             BP = 8;
                         else if (aura->GetId() == 31679) //rank 1
                             BP = 4;
+                        else if (aura->GetId() == 86880) //rank 3
+                            BP = 12;
 
                         DoneTotalMod *= 1 + (BP / 100.0f);
                     }
