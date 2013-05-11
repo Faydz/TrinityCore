@@ -11872,6 +11872,12 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                 case 6262: // Healthstone
                     if(victim)
                     {
+						// Soulburn: Healthstone check
+						if(victim->HasAura(74434))
+						{
+							victim->CastSpell(victim, 79437, true);
+						}
+
                         healamount = uint32(0.45f * victim->GetCreateHealth());
                         return healamount;
                     }

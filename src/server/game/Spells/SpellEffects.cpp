@@ -407,6 +407,17 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             case SPELLFAMILY_WARLOCK:
                 switch (m_spellInfo->Id)
                 {
+					// Searing Pain
+					case 5676:
+						// Soulburn: Searing Pain check
+                        if(m_caster)
+                        {
+							if(m_caster->HasAura(74434))
+							{
+								m_caster->CastSpell(m_caster, 79440, true);
+							}
+						}
+						break;
                     // Firebolt (basic attack)
                     case 3110:
                         if(m_caster && m_caster->isPet() && m_caster->ToPet()->GetOwner())

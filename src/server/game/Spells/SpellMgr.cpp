@@ -3125,6 +3125,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case 28271: // Polymorph (other animal)
                 spellInfo->AuraInterruptFlags = AURA_INTERRUPT_FLAG_TAKE_DAMAGE;
                 break;
+            // Soulburn: Healthstone
+            case 79437:
+                spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_INCREASE_HEALTH_PERCENT;
+                break;
             default:
                 break;
         }

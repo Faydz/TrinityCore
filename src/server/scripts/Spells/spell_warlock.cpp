@@ -74,6 +74,7 @@ enum WarlockSpells
     SPELL_WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT          = 92795,
     SPELL_WARLOCK_SOUL_SWAP_SAVE_DOTS               = 86211,
     SPELL_WARLOCK_SOULBURN                          = 74434,
+    SPELL_WARLOCK_SOULBURN_DEMONIC_CIRCLE			= 79438,
     SPELL_WARLOCK_SOULSHATTER                       = 32835,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION               = 30108,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117,
@@ -873,6 +874,12 @@ class spell_warl_demonic_circle_teleport : public SpellScriptLoader
                     {
                         player->NearTeleportTo(circle->GetPositionX(), circle->GetPositionY(), circle->GetPositionZ(), circle->GetOrientation());
                         player->RemoveMovementImpairingAuras();
+						
+						// Soulburn: Demonic Circle check
+						if(player->HasAura(SPELL_WARLOCK_SOULBURN))
+						{
+							player->CastSpell(player, SPELL_WARLOCK_SOULBURN_DEMONIC_CIRCLE, true);
+						}
                     }
                 }
             }
