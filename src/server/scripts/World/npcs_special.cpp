@@ -3585,15 +3585,21 @@ public:
                 me->SetLevel(summoner->getLevel());
                 ownerOrientation = summoner->GetOrientation();
                 me->NearTeleportTo(summoner->GetPositionX(), summoner->GetPositionY(), (summoner->GetPositionZ() +2), ownerOrientation, true);
+                // Eliminiamo tutti i movimenti caricati a priori per la creatura, poi andiamo ad applicare il nuovo motionmaster
+                me->GetMotionMaster()->Clear();
                 me->GetMotionMaster()->MovePoint(0, me->GetPositionX() + 120 / 2 * cos(ownerOrientation), me->GetPositionY() + 120 / 2 * sin(ownerOrientation), (me->GetPositionZ()+2));
+
                 //the frostfire orb talent will change the damage spell of the orb
-                if (AuraEffect* frostfire =summoner->GetAuraEffect(SPELL_AURA_OVERRIDE_ACTIONBAR_SPELLS, SPELLFAMILY_MAGE, 4650, EFFECT_1)){
+                if (AuraEffect* frostfire = summoner->GetAuraEffect(SPELL_AURA_OVERRIDE_ACTIONBAR_SPELLS, SPELLFAMILY_MAGE, 4650, EFFECT_1))
+                {
                     damagespellid = 95969;
                     if (frostfire->GetId() == 84727)
                         damagespellid = 84721;
                 }
+
                 //this will choose if the flame orb will explode because of the talent fire power
-                if(AuraEffect* firepower =summoner->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_MAGE, 31, EFFECT_0)){
+                if(AuraEffect* firepower =summoner->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_MAGE, 31, EFFECT_0))
+                {
                     if (firepower->GetId() == 18460 && roll_chance_i(33))
                         explo = false;
                     else if (firepower->GetId() == 18459 && roll_chance_i(66))
@@ -3608,20 +3614,22 @@ public:
         {
             if (checkTimer <= diff)
             {
-                if (me->isInCombat() && !combat){
+                if (me->isInCombat() && !combat)
                     me->AddAura(82736, me);
-                }
+
                 checkTimer = 500;
             }
             else
                 checkTimer -= diff;
 
-            if (damageTimer <= diff){
+            if (damageTimer <= diff)
+            {
                 Unit* target = me->SelectNearestTarget(20);
                 Unit* oldtarget = target;
                 if (target && target->HasAuraTypeWithFamilyFlags(SPELL_AURA_MOD_CONFUSE,SPELLFAMILY_MAGE, 0x01000000))
-                    {
+                {
                     Aura* poly = NULL;
+
                     if (target->HasAura(118))            //polymorph sheep
                         poly = target->GetAura(118);
                     else if (target->HasAura(28272))     //polymorph pig
@@ -3635,38 +3643,51 @@ public:
                     else if (target->HasAura(61780))     //polymorph turkey
                         poly = target->GetAura(61780);
 
-                    if (poly != NULL && me->GetOwner() && poly->GetCasterGUID() == me->GetOwner()->GetGUID()){
+                    if (poly != NULL && me->GetOwner() && poly->GetCasterGUID() == me->GetOwner()->GetGUID())
                         target = me->SelectNearbyTarget(oldtarget, 20);
-                    }
                 }
-                if(target){
-                    if (me->GetOwner() && target){
+
+                if(target)
+                {
+                    // Workaround onde evitare che l'orb entri nelle mura e despawni prematuramente
+                    if (me->IsWithinMeleeRange(target))
+                        me->GetMotionMaster()->Clear();
+
+                    if (me->GetOwner() && target)
+                    {
                         me->CastSpell(target, damagespellid, me, 0, 0, me->GetOwner()->GetGUID());
                         me->CastSpell(target, visualspellid);
                     }
-                    else{
+                    else
+                    {
                         me->CastSpell(target, damagespellid);
                         me->CastSpell(target, visualspellid);
                     }
                 }
+
                 damageTimer = 1000; 
             }
             else
                 damageTimer-= diff;
 
-            if (despawnTimer <=diff){
-                if (explo && me->GetOwner()){
+            if (despawnTimer <= diff)
+            {
+                if (explo && me->GetOwner())
+                {
                     Unit* target = me->SelectNearestTarget(20);
+
                     if (target)
                         me->CastSpell(target, 83619, me, 0, 0, me->GetOwner()->GetGUID());
                 }
-                me->DisappearAndDie();
+
+                me->DisappearAndDie();                
             }
+
             else
                 despawnTimer -=diff;
         }
-        
     };
+
         CreatureAI* GetAI(Creature* creature) const
         {
             return new npc_flaming_orbAI(creature);
