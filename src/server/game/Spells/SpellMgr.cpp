@@ -3652,6 +3652,15 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                 }
                 break;
+            case SPELLFAMILY_ROGUE:
+                switch(spellInfo->Id)
+                {
+                    // Glyph of Hemorrhage
+                    case 56807:
+						spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+						break;
+				}
+				break;
             default:
                 break;
         }
