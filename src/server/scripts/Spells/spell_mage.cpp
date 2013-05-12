@@ -107,8 +107,8 @@ class spell_fingers_of_frost : public SpellScriptLoader
             {
                 Unit* caster = GetCaster();
                 Unit* target = GetExplTargetUnit();
-                
-                if(caster && target && caster->HasAura(SPELL_MAGE_FINGERS_OF_FROST))
+                hadFOF = caster->HasAura(SPELL_MAGE_FINGERS_OF_FROST);
+                if(caster && target && hadFOF)
                 {
                     if(GetSpellInfo()->Id == SPELL_MAGE_FROSTFIRE_BOLT && GetSpell()->GetCastTime() != 0)
                         return;
@@ -122,7 +122,7 @@ class spell_fingers_of_frost : public SpellScriptLoader
                 Unit* caster = GetCaster();
                 Unit* target = GetExplTargetUnit();
 
-                if(caster && target && caster->HasAura(SPELL_MAGE_FINGERS_OF_FROST))
+                if(caster && target && hadFOF)
                 {
                     if(GetSpellInfo()->Id == SPELL_MAGE_FROSTFIRE_BOLT && GetSpell()->GetCastTime() != 0)
                         return;
@@ -130,6 +130,9 @@ class spell_fingers_of_frost : public SpellScriptLoader
                     target->ModifyAuraState(AURA_STATE_FROZEN, false);
                 }
             }
+
+		private:
+			bool hadFOF;
 
             void Register()
             {
