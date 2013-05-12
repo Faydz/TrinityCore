@@ -190,6 +190,12 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
                 return DIMINISHING_FEAR;
             break;
         }
+        case SPELLFAMILY_SHAMAN:
+        {
+            if (spellproto->SpellFamilyFlags[2] & 0x4000)
+                return DIMINISHING_CONTROLLED_ROOT;
+            break;
+        }
         case SPELLFAMILY_DEATHKNIGHT:
         {
             // Hungering Cold (no flags)
