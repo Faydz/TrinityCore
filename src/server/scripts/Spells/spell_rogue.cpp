@@ -31,6 +31,7 @@ enum RogueSpells
     SPELL_ROGUE_BLADE_FLURRY_EXTRA_ATTACK        = 22482,
     SPELL_ROGUE_CHEAT_DEATH_COOLDOWN             = 31231,
     SPELL_ROGUE_GLYPH_OF_PREPARATION             = 56819,
+    SPELL_ROGUE_GLYPH_OF_BLIND		             = 91299,
     SPELL_ROGUE_PREY_ON_THE_WEAK                 = 58670,
     SPELL_ROGUE_SHIV_TRIGGERED                   = 5940,
     SPELL_ROGUE_TRICKS_OF_THE_TRADE_DMG_BOOST    = 57933,
@@ -40,6 +41,53 @@ enum RogueSpells
 enum RogueSpellIcons
 {
     ICON_ROGUE_IMPROVED_RECUPERATE               = 4819
+};
+
+// 2094 - Bling
+class spell_rog_blind : public SpellScriptLoader
+{
+    public:
+        spell_rog_blind() : SpellScriptLoader("spell_rog_blind") { }
+
+        class spell_rog_blind_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_rog_blind_AuraScript);
+			
+            bool Load()
+            {
+                return GetCaster()->GetTypeId() == TYPEID_PLAYER;
+            }
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_ROGUE_GLYPH_OF_BLIND))
+                    return false;
+                return true;
+            }
+
+            void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+				if(GetCaster() && GetCaster()->HasAura(SPELL_ROGUE_GLYPH_OF_BLIND))
+				{
+					if(Unit* target = GetTarget())
+					{
+						target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
+						target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE_PERCENT);
+						target->RemoveAurasByType(SPELL_AURA_PERIODIC_LEECH);
+					}
+				}
+            }
+
+            void Register()
+            {
+                AfterEffectApply += AuraEffectApplyFn(spell_rog_blind_AuraScript::HandleEffectApply, EFFECT_1, SPELL_AURA_MOD_CONFUSE, AURA_EFFECT_HANDLE_REAL);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_rog_blind_AuraScript();
+        }
 };
 
 // 13877, 33735, (check 51211, 65956) - Blade Flurry
@@ -728,6 +776,7 @@ public:
 
 void AddSC_rogue_spell_scripts()
 {
+	new spell_rog_blind();
     new spell_rog_blade_flurry();
     new spell_rog_cheat_death();
     new spell_rog_deadly_poison();
