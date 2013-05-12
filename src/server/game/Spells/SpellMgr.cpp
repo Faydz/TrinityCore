@@ -3435,8 +3435,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+					// Demoralizing Shout
+					case 1160:
+                        spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
+						break;
                     // Piercing Howl
                     case 12323:
+                        spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
                         spellInfo->AttributesEx8 |= SPELL_ATTR8_CANT_MISS;
                         break;
                     // Heroic Leap
@@ -3511,6 +3516,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+					// Demoralizing Roar
+					case 99:
+                        spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
+						break;
                     // Rake
                     case 1822:
                         spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_ARMOR;
