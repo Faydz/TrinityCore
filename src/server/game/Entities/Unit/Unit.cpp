@@ -8397,7 +8397,7 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
                 case 12867:
                     if(victim)
                     {
-                        int32 basepoints0 = CalculatePct(this->CalculateDamage(BASE_ATTACK, false, true), dummySpell->Effects[EFFECT_0]. BasePoints);
+                        int32 basepoints0 = CalculatePct(this->CalculateDamage(BASE_ATTACK, true, true), dummySpell->Effects[EFFECT_0]. BasePoints);
 
                         // Per tick heal
                         basepoints0 /= 6;
@@ -12427,7 +12427,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                                 || (offItem && offItem->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER))
                                 mod = 1.447f;
 
-                            int32 weaponDmg = this->CalculateDamage(BASE_ATTACK, false, true) * (1.9f * mod);
+                            int32 weaponDmg = this->CalculateDamage(BASE_ATTACK, true, true) * (1.9f * mod);
 
                             pdamage = uint32(weaponDmg + (367 * mod));
                         }
@@ -12436,7 +12436,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                     case 53:
                         // 2.0*WeapDMG + (310 * 2)
                         {
-                            int32 weaponDmg = CalculatePct(this->CalculateDamage(BASE_ATTACK, false, true), 200);
+                            int32 weaponDmg = CalculatePct(this->CalculateDamage(BASE_ATTACK, true, true), 200);
 
                             pdamage = uint32(weaponDmg + 620);
                         }
@@ -12450,7 +12450,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                     case 53209:
                         // (2.10*WeapDMG + 0.732*RAP)*0.78
                         {
-                            int32 weaponDmg = CalculatePct(this->CalculateDamage(RANGED_ATTACK, false, true), 210);
+                            int32 weaponDmg = CalculatePct(this->CalculateDamage(RANGED_ATTACK, true, true), 210);
                             float calcRAP = this->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.732f;
 
                             pdamage = uint32((weaponDmg + int32(calcRAP)) * 0.78f);
@@ -12461,7 +12461,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                     case 19434:
                         // 160%WeapDMG + 0.72*RAP + 744
                         {
-                            int32 weaponDmg = CalculatePct(this->CalculateDamage(RANGED_ATTACK, false, true), 160);
+                            int32 weaponDmg = CalculatePct(this->CalculateDamage(RANGED_ATTACK, true, true), 160);
                             float calcRAP = CalculatePct(this->GetTotalAttackPowerValue(RANGED_ATTACK), 72);
 
                             pdamage = uint32(weaponDmg + calcRAP + 744);
