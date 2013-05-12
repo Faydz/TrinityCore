@@ -2871,6 +2871,8 @@ void SpellMgr::LoadSpellCustomAttr()
             case 72505: // Ooze Eruption
             case 72624: // Ooze Eruption
             case 72625: // Ooze Eruption
+            case 88942: // Meteor Slash
+            case 95172:
                 // ONLY SPELLS WITH SPELLFAMILY_GENERIC and EFFECT_SCHOOL_DAMAGE
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_SHARE_DAMAGE;
                 break;

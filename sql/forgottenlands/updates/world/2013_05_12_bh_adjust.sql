@@ -6,6 +6,11 @@ INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entr
 UPDATE `creature_template` SET `ScriptName`='boss_argaloth' WHERE  `entry`=47120 LIMIT 1;
 UPDATE `creature_template` SET `ScriptName`='boss_argaloth' WHERE  `entry`=51350 LIMIT 1;
 
+DELETE FROM `creature_onkill_currency` WHERE `creature_id` IN (47120, 51350);
+INSERT INTO `creature_onkill_currency` (`creature_id`, `CurrencyId1`, `CurrencyCount1`) VALUES
+(47120, 396, 40),
+(51350, 396, 40);
+
 UPDATE `creature_template` SET `mindmg`=1225.5, `maxdmg`=1544.7, `attackpower`=1651, `dmg_multiplier`=10 WHERE  `entry`=47120 LIMIT 1;
 UPDATE `creature_template` SET `mindmg`=1225.5 WHERE  `entry`=51350 LIMIT 1;
 UPDATE `creature_template` SET `maxdmg`=1544.7 WHERE  `entry`=51350 LIMIT 1;
