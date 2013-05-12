@@ -3655,6 +3655,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_ROGUE:
                 switch(spellInfo->Id)
                 {
+					// Shadow Dance
+					case 51713:
+                        spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
+						break;
                     // Glyph of Hemorrhage
                     case 56807:
 						spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
