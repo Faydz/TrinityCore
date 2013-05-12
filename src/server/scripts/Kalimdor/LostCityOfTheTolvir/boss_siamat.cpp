@@ -187,7 +187,7 @@ public:
             Talk(SAY_KILL);
         }
 
-        void UpdateAI(const uint32 uiDiff) 
+        void UpdateAI( uint32 uiDiff) 
         {
             if (!UpdateVictim())
                 return;
@@ -289,7 +289,7 @@ public:
         {
         }
 
-        void DoAction(const int32 actionId)
+        void DoAction( int32 actionId)
         {
             switch (actionId)
             {
@@ -299,7 +299,7 @@ public:
             }
         }
 
-        void UpdateAI(const uint32 uiDiff) 
+        void UpdateAI( uint32 uiDiff) 
         {
             if (me->HasUnitState(UNIT_STATE_CASTING))
                 return;
@@ -357,7 +357,7 @@ public:
             events.ScheduleEvent(EVENT_CHAIN, 3000);
         }
 
-        void UpdateAI(const uint32 uiDiff) 
+        void UpdateAI( uint32 uiDiff) 
         {
             if (!UpdateVictim())
                 return;
@@ -419,7 +419,7 @@ public:
             events.ScheduleEvent(EVENT_THUNDER_CRASH, urand(3000, 10000));
         }
 
-        void UpdateAI(const uint32 uiDiff) 
+        void UpdateAI( uint32 uiDiff) 
         {
             if (!UpdateVictim())
                 return;

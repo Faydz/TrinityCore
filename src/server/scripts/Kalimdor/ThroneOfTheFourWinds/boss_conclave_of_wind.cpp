@@ -188,7 +188,7 @@ class boss_anshal: public CreatureScript
             }
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -278,7 +278,7 @@ class boss_anshal: public CreatureScript
             DoMeleeAttackIfReady();
         }
 
-        void DoAction(int32 const action)
+        void DoAction(int32 action)
         {
             switch (action)
             {
@@ -342,7 +342,7 @@ public:
             events.Reset();
         }
 
-        void DoAction(const int32 actionid)
+        void DoAction( int32 actionid)
         {
             switch (actionid)
             {
@@ -362,7 +362,7 @@ public:
             }
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             events.Update(diff);
 
@@ -414,7 +414,7 @@ public:
             events.ScheduleEvent(EVENT_TOXIC_SPORES, 7000, 0, 0);
             me->CastSpell(me, SPELL_TOXIC_SPORES, me);
         }
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             events.Update(diff);
             
@@ -583,7 +583,7 @@ class boss_nezir: public CreatureScript
             }
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -680,7 +680,7 @@ class boss_nezir: public CreatureScript
             DoMeleeAttackIfReady();
         }
 
-        void DoAction(int32 const action)
+        void DoAction(int32  action)
         {
             switch (action)
             {
@@ -862,7 +862,7 @@ class boss_rohash: public CreatureScript
             }
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -963,7 +963,7 @@ class boss_rohash: public CreatureScript
             DoMeleeAttackIfReady();
         }
 
-        void DoAction(int32 const action)
+        void DoAction(int32  action)
         {
             switch (action)
             {

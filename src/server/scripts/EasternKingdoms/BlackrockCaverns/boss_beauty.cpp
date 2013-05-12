@@ -81,7 +81,7 @@ public:
             events.ScheduleEvent(EVENT_TERRIFYNG_ROAR, urand(15000, 22000), 0, 0);
         }
 
-        void DoAction(const int32 action)
+        void DoAction(int32 action)
         {
             switch (action)
             {
@@ -91,7 +91,7 @@ public:
             }
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -232,7 +232,7 @@ public:
             events.ScheduleEvent(EVENT_LITTLE_BREATH, urand(6000, 12000), 0, 0);
 		}
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;

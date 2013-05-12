@@ -216,7 +216,7 @@ class boss_halfus_wyrmbreaker : public CreatureScript
                                 if (barrageCount == (proto->HasAura(SPELL_TIME_DILATATION) ? 3 : 8))
                                 {
                                     barrageCount = 0;
-                                    events.ScheduleEvent(EVENT_FIREBALL_BARRAGE, urand(15000, 17000));
+                                    events.ScheduleEvent(EVENT_FIREBALL_BARRAGE, urand(13000, 15000));
                                 } else
                                     events.ScheduleEvent(EVENT_FIREBALL_BARRAGE, !proto->HasAura(SPELL_TIME_DILATATION) ? 2500 : 1000);
                             }

@@ -64,7 +64,7 @@ public:
             events.ScheduleEvent(EVENT_CHAIN, 2050, 0, 0);
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;
