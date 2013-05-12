@@ -3129,6 +3129,9 @@ void SpellMgr::LoadSpellCustomAttr()
             case 79437:
                 spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_INCREASE_HEALTH_PERCENT;
                 break;
+            case 84593: // Stone grip
+                spellInfo->Effects[0].Amplitude = 12000;
+                break;
             default:
                 break;
         }
