@@ -187,7 +187,7 @@ class boss_isiset : public CreatureScript
                 SummonList.push_back(pSummon->GetGUID());
             }
 
-            void UpdateAI(const uint32 diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                     return;

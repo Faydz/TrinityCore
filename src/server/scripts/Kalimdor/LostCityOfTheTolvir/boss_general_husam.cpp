@@ -82,7 +82,7 @@ public:
                 pInstance->SetData(DATA_GENERAL_HUSAM_EVENT, IN_PROGRESS);
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;

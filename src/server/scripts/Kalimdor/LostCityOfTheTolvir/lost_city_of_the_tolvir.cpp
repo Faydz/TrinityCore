@@ -182,7 +182,7 @@ public:
 			events.ScheduleEvent(EVENT_SHADOW_BOLT, 6000);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (!UpdateVictim())
 				return;
 
@@ -242,7 +242,7 @@ public:
 			events.ScheduleEvent(EVENT_INFECTIOUS_PLAGUE, 7000);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (!UpdateVictim())
 				return;
 
@@ -297,7 +297,7 @@ public:
 			events.ScheduleEvent(EVENT_VICIOUS_LEECHES, 7000);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (!UpdateVictim())
 				return;
 
@@ -356,7 +356,7 @@ public:
 			events.ScheduleEvent(EVENT_SERUM_TORMENT, 4000);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (!UpdateVictim())
 				return;
 
@@ -411,7 +411,7 @@ public:
             events.ScheduleEvent(EVENT_SLAM, urand(6000, 8000));
         }
 
-        void UpdateAI(const uint32 diff) {
+        void UpdateAI(uint32 diff) {
             if (!UpdateVictim())
                 return;
 
@@ -461,7 +461,7 @@ public:
 			events.ScheduleEvent(EVENT_SKULL_CRACK, 3000);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (!UpdateVictim())
 				return;
 
@@ -510,7 +510,7 @@ public:
 			events.ScheduleEvent(EVENT_RESISTANCE, 11000);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (!UpdateVictim())
 				return;
 
@@ -564,7 +564,7 @@ public:
 			events.ScheduleEvent(EVENT_WING_CLIP, 4000);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (!UpdateVictim())
 				return;
 
@@ -622,7 +622,7 @@ public:
 			events.ScheduleEvent(EVENT_EVASION, 4000);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (!UpdateVictim())
 				return;
 
@@ -675,7 +675,7 @@ public:
 			events.ScheduleEvent(EVENT_SPINAL_PIERCE, 7000);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (!UpdateVictim())
 				return;
 
@@ -728,7 +728,7 @@ public:
 			events.ScheduleEvent(EVENT_SHOCKWAVE, 5000);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (!UpdateVictim())
 				return;
 
@@ -782,7 +782,7 @@ public:
 			events.ScheduleEvent(EVENT_FIRE_BLAST, 4000);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (!UpdateVictim())
 				return;
 
@@ -835,7 +835,7 @@ public:
 			events.ScheduleEvent(EVENT_TOXIC_DART, 1000);
 		}
 
-		void UpdateAI(const uint32 diff) {
+		void UpdateAI(uint32 diff) {
 			if (!UpdateVictim())
 				return;
 
