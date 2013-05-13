@@ -1,0 +1,16 @@
+diff a/src/server/game/Scripting/ScriptLoader.cpp b/src/server/game/Scripting/ScriptLoader.cpp	(rejected hunks)
+@@ -1287,6 +1287,7 @@ void AddBattlegroundScripts()
+ #ifdef SCRIPTS
+ /* This is where custom scripts' loading functions should be declared. */
+ 
++void AddSC_NPC_Transmogrify();
+ #endif
+ 
+ void AddCustomScripts()
+@@ -1294,5 +1295,6 @@ void AddCustomScripts()
+ #ifdef SCRIPTS
+     /* This is where custom scripts should be added. */
+ 
++    AddSC_NPC_Transmogrify();
+ #endif
+ }
