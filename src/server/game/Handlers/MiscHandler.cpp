@@ -55,6 +55,7 @@
 #include "BattlegroundMgr.h"
 #include "Battlefield.h"
 #include "BattlefieldMgr.h"
+#include "HookMgr.h"
 
 void WorldSession::HandleRepopRequestOpcode(WorldPacket& recvData)
 {
@@ -99,6 +100,12 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
 
     if (_player->PlayerTalkClass->IsGossipOptionCoded(gossipListId))
         recvData >> code;
+
+    if (IS_ITEM_GUID(guid) || IS_PLAYER_GUID(guid))
+    {
+        sHookMgr->HandleGossipSelectOption(GetPlayer(), guid, GetPlayer()->PlayerTalkClass->GetGossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GetGossipOptionAction(gossipListId), code, menuId);
+        return;
+    }
 
     Creature* unit = NULL;
     GameObject* go = NULL;
@@ -1385,7 +1392,7 @@ void WorldSession::HandleFarSightOpcode(WorldPacket& recvData)
         if (WorldObject* target = _player->GetViewpoint())
             _player->SetSeer(target);
         else
-            sLog->outError(LOG_FILTER_NETWORKIO, "Player %s (GUID: %u) requests non-existing seer " UI64FMTD, _player->GetName().c_str(), GUID_LOPART(_player->GetGUID()), _player->GetUInt64Value(PLAYER_FARSIGHT));
+            sLog->outError(LOG_FILTER_NETWORKIO, "Player %s requests non-existing seer " UI64FMTD, _player->GetName().c_str(), _player->GetUInt64Value(PLAYER_FARSIGHT));
     }
     else
     {

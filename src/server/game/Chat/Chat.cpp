@@ -1,20 +1,20 @@
 /*
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+* Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+* Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+*
+* This program is free software; you can redistribute it and/or modify it
+* under the terms of the GNU General Public License as published by the
+* Free Software Foundation; either version 2 of the License, or (at your
+* option) any later version.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT
+* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+* more details.
+*
+* You should have received a copy of the GNU General Public License along
+* with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "Common.h"
 #include "ObjectMgr.h"
@@ -183,7 +183,7 @@ bool ChatHandler::HasLowerSecurityAccount(WorldSession* target, uint32 target_ac
     else if (target_account)
         target_sec = AccountMgr::GetSecurity(target_account, realmID);
     else
-        return true;                                        // caller must report error for (target == NULL && target_account == 0)
+        return true; // caller must report error for (target == NULL && target_account == 0)
 
     AccountTypes target_ac_sec = AccountTypes(target_sec);
     if (m_session->GetSecurity() < target_ac_sec || (strong && m_session->GetSecurity() <= target_ac_sec))
@@ -440,7 +440,7 @@ bool ChatHandler::SetDataForCommandInTable(ChatCommand* table, char const* text,
             sLog->outInfo(LOG_FILTER_GENERAL, "Table `command` overwrite for command '%s' default security (%u) by %u", fullcommand.c_str(), table[i].SecurityLevel, security);
 
         table[i].SecurityLevel = security;
-        table[i].Help          = help;
+        table[i].Help = help;
         return true;
     }
 
@@ -570,9 +570,9 @@ bool ChatHandler::ShowHelpForSubCommands(ChatCommand* table, char const* cmd, ch
             continue;
 
         if (m_session)
-            list += "\n    ";
+            list += "\n ";
         else
-            list += "\n\r    ";
+            list += "\n\r ";
 
         list += table[i].Name;
 
@@ -656,7 +656,7 @@ void ChatHandler::FillMessageData(WorldPacket* data, WorldSession* session, uint
 {
     uint32 messageLength = (message ? strlen(message) : 0) + 1;
 
-    data->Initialize(SMSG_MESSAGECHAT, 100);                // guess size
+    data->Initialize(SMSG_MESSAGECHAT, 100); // guess size
     *data << uint8(type);
     if ((type != CHAT_MSG_CHANNEL && type != CHAT_MSG_WHISPER) || language == LANG_ADDON)
         *data << uint32(language);
@@ -693,15 +693,15 @@ void ChatHandler::FillMessageData(WorldPacket* data, WorldSession* session, uint
         case CHAT_MSG_BATTLENET:
         {
             *data << uint64(speaker->GetGUID());
-            *data << uint32(0);                             // 2.1.0
+            *data << uint32(0); // 2.1.0
             *data << uint32(speaker->GetName().size() + 1);
             *data << speaker->GetName();
             uint64 listener_guid = 0;
             *data << uint64(listener_guid);
             if (listener_guid && !IS_PLAYER_GUID(listener_guid))
             {
-                *data << uint32(1);                         // string listener_name_length
-                *data << uint8(0);                          // string listener_name
+                *data << uint32(1); // string listener_name_length
+                *data << uint8(0); // string listener_name
             }
             *data << uint32(messageLength);
             *data << message;
@@ -710,12 +710,12 @@ void ChatHandler::FillMessageData(WorldPacket* data, WorldSession* session, uint
         }
         default:
             if (type != CHAT_MSG_WHISPER_INFORM && type != CHAT_MSG_IGNORED && type != CHAT_MSG_DND && type != CHAT_MSG_AFK)
-                target_guid = 0;                            // only for CHAT_MSG_WHISPER_INFORM used original value target_guid
+                target_guid = 0; // only for CHAT_MSG_WHISPER_INFORM used original value target_guid
             break;
     }
 
-    *data << uint64(target_guid);                           // there 0 for BG messages
-    *data << uint32(0);                                     // can be chat msg group or something
+    *data << uint64(target_guid); // there 0 for BG messages
+    *data << uint32(0); // can be chat msg group or something
 
     if (type == CHAT_MSG_CHANNEL)
     {
@@ -737,7 +737,7 @@ Player* ChatHandler::getSelectedPlayer()
     if (!m_session)
         return NULL;
 
-    uint64 guid  = m_session->GetPlayer()->GetSelection();
+    uint64 guid = m_session->GetPlayer()->GetSelection();
 
     if (guid == 0)
         return m_session->GetPlayer();
@@ -800,30 +800,30 @@ char* ChatHandler::extractKeyFromLink(char* text, char const* linkType, char** s
     // or
     // [name] Shift-click form |color|linkType:key:something1:...:somethingN|h[name]|h|r
 
-    char* check = strtok(text, "|");                        // skip color
+    char* check = strtok(text, "|"); // skip color
     if (!check)
-        return NULL;                                        // end of data
+        return NULL; // end of data
 
-    char* cLinkType = strtok(NULL, ":");                    // linktype
+    char* cLinkType = strtok(NULL, ":"); // linktype
     if (!cLinkType)
-        return NULL;                                        // end of data
+        return NULL; // end of data
 
     if (strcmp(cLinkType, linkType) != 0)
     {
-        strtok(NULL, " ");                                  // skip link tail (to allow continue strtok(NULL, s) use after retturn from function
+        strtok(NULL, " "); // skip link tail (to allow continue strtok(NULL, s) use after retturn from function
         SendSysMessage(LANG_WRONG_LINK_TYPE);
         return NULL;
     }
 
-    char* cKeys = strtok(NULL, "|");                        // extract keys and values
+    char* cKeys = strtok(NULL, "|"); // extract keys and values
     char* cKeysTail = strtok(NULL, "");
 
-    char* cKey = strtok(cKeys, ":|");                       // extract key
+    char* cKey = strtok(cKeys, ":|"); // extract key
     if (something1)
-        *something1 = strtok(NULL, ":|");                   // extract something
+        *something1 = strtok(NULL, ":|"); // extract something
 
-    strtok(cKeysTail, "]");                                 // restart scan tail and skip name with possible spaces
-    strtok(NULL, " ");                                      // skip link tail (to allow continue strtok(NULL, s) use after return from function
+    strtok(cKeysTail, "]"); // restart scan tail and skip name with possible spaces
+    strtok(NULL, " "); // skip link tail (to allow continue strtok(NULL, s) use after return from function
     return cKey;
 }
 
@@ -854,39 +854,39 @@ char* ChatHandler::extractKeyFromLink(char* text, char const* const* linkTypes, 
 
     if (text[1] == 'c')
     {
-        char* check = strtok(text, "|");                    // skip color
+        char* check = strtok(text, "|"); // skip color
         if (!check)
-            return NULL;                                    // end of data
+            return NULL; // end of data
 
-        tail = strtok(NULL, "");                            // tail
+        tail = strtok(NULL, ""); // tail
     }
     else
-        tail = text+1;                                      // skip first |
+        tail = text+1; // skip first |
 
-    char* cLinkType = strtok(tail, ":");                    // linktype
+    char* cLinkType = strtok(tail, ":"); // linktype
     if (!cLinkType)
-        return NULL;                                        // end of data
+        return NULL; // end of data
 
     for (int i = 0; linkTypes[i]; ++i)
     {
         if (strcmp(cLinkType, linkTypes[i]) == 0)
         {
-            char* cKeys = strtok(NULL, "|");                // extract keys and values
+            char* cKeys = strtok(NULL, "|"); // extract keys and values
             char* cKeysTail = strtok(NULL, "");
 
-            char* cKey = strtok(cKeys, ":|");               // extract key
+            char* cKey = strtok(cKeys, ":|"); // extract key
             if (something1)
-                *something1 = strtok(NULL, ":|");           // extract something
+                *something1 = strtok(NULL, ":|"); // extract something
 
-            strtok(cKeysTail, "]");                         // restart scan tail and skip name with possible spaces
-            strtok(NULL, " ");                              // skip link tail (to allow continue strtok(NULL, s) use after return from function
+            strtok(cKeysTail, "]"); // restart scan tail and skip name with possible spaces
+            strtok(NULL, " "); // skip link tail (to allow continue strtok(NULL, s) use after return from function
             if (found_idx)
                 *found_idx = i;
             return cKey;
         }
     }
 
-    strtok(NULL, " ");                                      // skip link tail (to allow continue strtok(NULL, s) use after return from function
+    strtok(NULL, " "); // skip link tail (to allow continue strtok(NULL, s) use after return from function
     SendSysMessage(LANG_WRONG_LINK_TYPE);
     return NULL;
 }
@@ -913,7 +913,7 @@ GameObject* ChatHandler::GetObjectGlobalyWithGuidOrNearWithDbGuid(uint32 lowguid
 
     GameObject* obj = pl->GetMap()->GetGameObject(MAKE_NEW_GUID(lowguid, entry, HIGHGUID_GAMEOBJECT));
 
-    if (!obj && sObjectMgr->GetGOData(lowguid))                   // guid is DB guid of object
+    if (!obj && sObjectMgr->GetGOData(lowguid)) // guid is DB guid of object
     {
         // search near player then
         CellCoord p(Trinity::ComputeCellCoord(pl->GetPositionX(), pl->GetPositionY()));
@@ -931,20 +931,20 @@ GameObject* ChatHandler::GetObjectGlobalyWithGuidOrNearWithDbGuid(uint32 lowguid
 
 enum SpellLinkType
 {
-    SPELL_LINK_SPELL   = 0,
-    SPELL_LINK_TALENT  = 1,
+    SPELL_LINK_SPELL = 0,
+    SPELL_LINK_TALENT = 1,
     SPELL_LINK_ENCHANT = 2,
-    SPELL_LINK_TRADE   = 3,
-    SPELL_LINK_GLYPH   = 4
+    SPELL_LINK_TRADE = 3,
+    SPELL_LINK_GLYPH = 4
 };
 
 static char const* const spellKeys[] =
 {
-    "Hspell",                                               // normal spell
-    "Htalent",                                              // talent spell
-    "Henchant",                                             // enchanting recipe spell
-    "Htrade",                                               // profession/skill spell
-    "Hglyph",                                               // glyph
+    "Hspell", // normal spell
+    "Htalent", // talent spell
+    "Henchant", // enchanting recipe spell
+    "Htrade", // profession/skill spell
+    "Hglyph", // glyph
     0
 };
 
@@ -1019,8 +1019,8 @@ GameTele const* ChatHandler::extractGameTeleFromLink(char* text)
 
 enum GuidLinkType
 {
-    SPELL_LINK_PLAYER     = 0,                              // must be first for selection in not link case
-    SPELL_LINK_CREATURE   = 1,
+    SPELL_LINK_PLAYER = 0, // must be first for selection in not link case
+    SPELL_LINK_CREATURE = 1,
     SPELL_LINK_GAMEOBJECT = 2
 };
 
@@ -1234,7 +1234,7 @@ bool CliHandler::needReportToTarget(Player* /*chr*/) const
 
 bool ChatHandler::GetPlayerGroupAndGUIDByName(const char* cname, Player* &player, Group* &group, uint64 &guid, bool offline)
 {
-    player  = NULL;
+    player = NULL;
     guid = 0;
 
     if (cname)
@@ -1269,7 +1269,7 @@ bool ChatHandler::GetPlayerGroupAndGUIDByName(const char* cname, Player* &player
             player = m_session->GetPlayer();
 
         if (!guid || !offline)
-            guid  = player->GetGUID();
+            guid = player->GetGUID();
         group = player->GetGroup();
     }
 

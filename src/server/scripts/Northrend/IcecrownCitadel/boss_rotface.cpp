@@ -224,6 +224,8 @@ class npc_little_ooze : public CreatureScript
         {
             npc_little_oozeAI(Creature* creature) : ScriptedAI(creature)
             {
+                me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
+                me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
             }
 
             void IsSummonedBy(Unit* summoner)
@@ -274,6 +276,8 @@ class npc_big_ooze : public CreatureScript
         {
             npc_big_oozeAI(Creature* creature) : ScriptedAI(creature), instance(creature->GetInstanceScript())
             {
+                me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
+                me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
             }
 
             void IsSummonedBy(Unit* /*summoner*/)
@@ -774,6 +778,35 @@ class spell_rotface_unstable_ooze_explosion_suicide : public SpellScriptLoader
         }
 };
 
+class spell_rotface_slime_spray : public SpellScriptLoader
+{
+    public:
+        spell_rotface_slime_spray() : SpellScriptLoader("spell_rotface_slime_spray") { }
+
+        class spell_rotface_slime_spray_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_rotface_slime_spray_SpellScript);
+
+            void ChangeOrientation()
+            {
+                Unit* caster = GetCaster();
+                // find stalker and set caster orientation to face it
+                if (Creature* target = caster->FindNearestCreature(NPC_OOZE_SPRAY_STALKER, 200.0f))
+                    caster->SetOrientation(caster->GetAngle(target));
+            }
+
+            void Register()
+            {
+                BeforeCast += SpellCastFn(spell_rotface_slime_spray_SpellScript::ChangeOrientation);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_rotface_slime_spray_SpellScript();
+        }
+};
+
 void AddSC_boss_rotface()
 {
     new boss_rotface();
@@ -788,4 +821,5 @@ void AddSC_boss_rotface()
     new spell_rotface_unstable_ooze_explosion_init();
     new spell_rotface_unstable_ooze_explosion();
     new spell_rotface_unstable_ooze_explosion_suicide();
+    new spell_rotface_slime_spray();
 }

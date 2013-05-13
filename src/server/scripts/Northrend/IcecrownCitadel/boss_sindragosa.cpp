@@ -433,6 +433,10 @@ class boss_sindragosa : public CreatureScript
                         case EVENT_ICY_GRIP:
                             DoCast(me, SPELL_ICY_GRIP);
                             events.ScheduleEvent(EVENT_BLISTERING_COLD, 1000, EVENT_GROUP_LAND_PHASE);
+
+                        if (_isThirdPhase) // Need to reschedule in phase three, since it cannot be done via movement any longer
+                            events.RescheduleEvent(EVENT_ICY_GRIP, 40000);
+
                             break;
                         case EVENT_BLISTERING_COLD:
                             Talk(EMOTE_WARN_BLISTERING_COLD);
@@ -470,6 +474,7 @@ class boss_sindragosa : public CreatureScript
                             {
                                 Talk(EMOTE_WARN_FROZEN_ORB, target->GetGUID());
                                 DoCast(target, SPELL_ICE_TOMB_DUMMY, true);
+                                DoCast(target, SPELL_FROST_BEACON, true);
                             }
                             events.ScheduleEvent(EVENT_ICE_TOMB, urand(16000, 23000));
                             break;
@@ -670,7 +675,7 @@ class npc_spinestalker : public CreatureScript
 
                     me->setActive(true);
                     me->SetSpeed(MOVE_FLIGHT, 2.0f);
-                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    //me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                     float moveTime = me->GetExactDist(&SpinestalkerFlyPos) / (me->GetSpeed(MOVE_FLIGHT) * 0.001f);
                     me->m_Events.AddEvent(new FrostwyrmLandEvent(*me, SpinestalkerLandPos), me->m_Events.CalculateTime(uint64(moveTime) + 250));
                     me->SetDefaultMovementType(IDLE_MOTION_TYPE);
@@ -800,7 +805,7 @@ class npc_rimefang : public CreatureScript
 
                     me->setActive(true);
                     me->SetSpeed(MOVE_FLIGHT, 2.0f);
-                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC);
+                    //me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC);
                     float moveTime = me->GetExactDist(&RimefangFlyPos) / (me->GetSpeed(MOVE_FLIGHT) * 0.001f);
                     me->m_Events.AddEvent(new FrostwyrmLandEvent(*me, RimefangLandPos), me->m_Events.CalculateTime(uint64(moveTime) + 250));
                     me->SetDefaultMovementType(IDLE_MOTION_TYPE);
@@ -1314,7 +1319,24 @@ class spell_sindragosa_icy_grip : public SpellScriptLoader
             void HandleScript(SpellEffIndex effIndex)
             {
                 PreventHitDefaultEffect(effIndex);
-                GetHitUnit()->CastSpell(GetCaster(), SPELL_ICY_GRIP_JUMP, true);
+
+                Unit* unit = GetHitUnit();
+                Unit* caster = GetCaster();
+
+                if (unit && caster)
+                {
+                    if (caster->GetTypeId() == TYPEID_UNIT && unit->GetTypeId() == TYPEID_PLAYER && caster->getVictim())
+                    {
+                        if (caster->getVictim()->GetGUID() != unit->GetGUID()) // exclude tank
+                        {
+                            float x, y, z;
+                            caster->GetPosition(x, y, z);
+                            float speedZ = 10.0f;
+                            float speedXY = unit->GetExactDist2d(x, y);
+                            unit->GetMotionMaster()->MoveJump(x, y, z, speedXY, speedZ);
+                        }
+                    }
+                }
             }
 
             void Register()

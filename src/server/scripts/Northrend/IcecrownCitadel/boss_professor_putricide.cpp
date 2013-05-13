@@ -745,7 +745,11 @@ class npc_putricide_oozeAI : public ScriptedAI
         void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim() && !_newTargetSelectTimer)
+                {
+                    if (!me->HasUnitState(UNIT_STATE_CASTING))
+                        _newTargetSelectTimer = 1000;
                 return;
+                }
 
             if (!_newTargetSelectTimer && !me->IsNonMeleeSpellCasted(false, false, true, false, true))
                 _newTargetSelectTimer = 1000;

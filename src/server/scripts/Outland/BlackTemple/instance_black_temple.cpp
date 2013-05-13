@@ -202,7 +202,7 @@ public:
 
             case 185479:
                 TempleDoor = go->GetGUID();
-                if (m_auiEncounter[5] == DONE)
+                if (m_auiEncounter[4] == DONE) // Temporaer 
                     HandleGameObject(0, true, go);
                 break;
 
@@ -301,6 +301,7 @@ public:
             case DATA_GURTOGGBLOODBOILEVENT:
                 if (data == DONE)
                     HandleGameObject(GuurtogDoor, true);
+                    HandleGameObject(TempleDoor, true); // Temporaer
                 m_auiEncounter[4] = data;
                 break;
             case DATA_RELIQUARYOFSOULSEVENT:

@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+* Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+*
+* This program is free software; you can redistribute it and/or modify it
+* under the terms of the GNU General Public License as published by the
+* Free Software Foundation; either version 2 of the License, or (at your
+* option) any later version.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT
+* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+* more details.
+*
+* You should have received a copy of the GNU General Public License along
+* with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 
 /* ScriptData
 Name: character_commandscript
@@ -39,39 +39,39 @@ public:
     {
         static ChatCommand pdumpCommandTable[] =
         {
-            { "load",           SEC_ADMINISTRATOR,  true,  &HandlePDumpLoadCommand,                 "", NULL },
-            { "write",          SEC_ADMINISTRATOR,  true,  &HandlePDumpWriteCommand,                "", NULL },
-            { NULL,             0,                  false, NULL,                                    "", NULL }
+            { "load", SEC_ADMINISTRATOR, true, &HandlePDumpLoadCommand, "", NULL },
+            { "write", SEC_ADMINISTRATOR, true, &HandlePDumpWriteCommand, "", NULL },
+            { NULL, 0, false, NULL, "", NULL }
         };
         static ChatCommand characterDeletedCommandTable[] =
         {
-            { "delete",         SEC_CONSOLE,        true,  &HandleCharacterDeletedDeleteCommand,   "", NULL },
-            { "list",           SEC_ADMINISTRATOR,  true,  &HandleCharacterDeletedListCommand,     "", NULL },
-            { "restore",        SEC_ADMINISTRATOR,  true,  &HandleCharacterDeletedRestoreCommand,  "", NULL },
-            { "old",            SEC_CONSOLE,        true,  &HandleCharacterDeletedOldCommand,      "", NULL },
-            { NULL,             0,                  false, NULL,                                   "", NULL }
+            { "delete", SEC_CONSOLE, true, &HandleCharacterDeletedDeleteCommand, "", NULL },
+            { "list", SEC_ADMINISTRATOR, true, &HandleCharacterDeletedListCommand, "", NULL },
+            { "restore", SEC_ADMINISTRATOR, true, &HandleCharacterDeletedRestoreCommand, "", NULL },
+            { "old", SEC_CONSOLE, true, &HandleCharacterDeletedOldCommand, "", NULL },
+            { NULL, 0, false, NULL, "", NULL }
         };
 
         static ChatCommand characterCommandTable[] =
         {
-            { "customize",      SEC_GAMEMASTER,     true,  &HandleCharacterCustomizeCommand,       "", NULL },
-            { "changefaction",  SEC_GAMEMASTER,     true,  &HandleCharacterChangeFactionCommand,   "", NULL },
-            { "changerace",     SEC_GAMEMASTER,     true,  &HandleCharacterChangeRaceCommand,      "", NULL },
-            { "deleted",        SEC_GAMEMASTER,     true,  NULL,                                   "", characterDeletedCommandTable },
-            { "erase",          SEC_CONSOLE,        true,  &HandleCharacterEraseCommand,           "", NULL },
-            { "level",          SEC_ADMINISTRATOR,  true,  &HandleCharacterLevelCommand,           "", NULL },
-            { "rename",         SEC_GAMEMASTER,     true,  &HandleCharacterRenameCommand,          "", NULL },
-            { "reputation",     SEC_GAMEMASTER,     true,  &HandleCharacterReputationCommand,      "", NULL },
-            { "titles",         SEC_GAMEMASTER,     true,  &HandleCharacterTitlesCommand,          "", NULL },
-            { NULL,             0,                  false, NULL,                                   "", NULL }
+            { "customize", SEC_GAMEMASTER, true, &HandleCharacterCustomizeCommand, "", NULL },
+            { "changefaction", SEC_GAMEMASTER, true, &HandleCharacterChangeFactionCommand, "", NULL },
+            { "changerace", SEC_GAMEMASTER, true, &HandleCharacterChangeRaceCommand, "", NULL },
+            { "deleted", SEC_GAMEMASTER, true, NULL, "", characterDeletedCommandTable },
+            { "erase", SEC_CONSOLE, true, &HandleCharacterEraseCommand, "", NULL },
+            { "level", SEC_ADMINISTRATOR, true, &HandleCharacterLevelCommand, "", NULL },
+            { "rename", SEC_GAMEMASTER, true, &HandleCharacterRenameCommand, "", NULL },
+            { "reputation", SEC_GAMEMASTER, true, &HandleCharacterReputationCommand, "", NULL },
+            { "titles", SEC_GAMEMASTER, true, &HandleCharacterTitlesCommand, "", NULL },
+            { NULL, 0, false, NULL, "", NULL }
         };
 
         static ChatCommand commandTable[] =
         {
-            { "character",      SEC_GAMEMASTER,     true,  NULL,                                   "", characterCommandTable },
-            { "levelup",        SEC_ADMINISTRATOR,  false, &HandleLevelUpCommand,                  "", NULL },
-            { "pdump",          SEC_ADMINISTRATOR,  true,  NULL,                                   "", pdumpCommandTable },
-            { NULL,             0,                  false, NULL,                                   "", NULL }
+            { "character", SEC_GAMEMASTER, true, NULL, "", characterCommandTable },
+            { "levelup", SEC_ADMINISTRATOR, false, &HandleLevelUpCommand, "", NULL },
+            { "pdump", SEC_ADMINISTRATOR, true, NULL, "", pdumpCommandTable },
+            { NULL, 0, false, NULL, "", NULL }
         };
         return commandTable;
     }
@@ -79,22 +79,22 @@ public:
     // Stores informations about a deleted character
     struct DeletedInfo
     {
-        uint32      lowGuid;                            ///< the low GUID from the character
-        std::string name;                               ///< the character name
-        uint32      accountId;                          ///< the account id
-        std::string accountName;                        ///< the account name
-        time_t      deleteDate;                         ///< the date at which the character has been deleted
+        uint32 lowGuid; ///< the low GUID from the character
+        std::string name; ///< the character name
+        uint32 accountId; ///< the account id
+        std::string accountName; ///< the account name
+        time_t deleteDate; ///< the date at which the character has been deleted
     };
 
     typedef std::list<DeletedInfo> DeletedInfoList;
 
     /**
-    * Collects all GUIDs (and related info) from deleted characters which are still in the database.
-    *
-    * @param foundList    a reference to an std::list which will be filled with info data
-    * @param searchString the search string which either contains a player GUID or a part fo the character-name
-    * @return             returns false if there was a problem while selecting the characters (e.g. player name not normalizeable)
-    */
+* Collects all GUIDs (and related info) from deleted characters which are still in the database.
+*
+* @param foundList a reference to an std::list which will be filled with info data
+* @param searchString the search string which either contains a player GUID or a part fo the character-name
+* @return returns false if there was a problem while selecting the characters (e.g. player name not normalizeable)
+*/
     static bool GetDeletedCharacterInfoList(DeletedInfoList& foundList, std::string searchString)
     {
         PreparedQueryResult result;
@@ -133,9 +133,9 @@ public:
 
                 DeletedInfo info;
 
-                info.lowGuid    = fields[0].GetUInt32();
-                info.name       = fields[1].GetString();
-                info.accountId  = fields[2].GetUInt32();
+                info.lowGuid = fields[0].GetUInt32();
+                info.name = fields[1].GetString();
+                info.accountId = fields[2].GetUInt32();
 
                 // account name will be empty for not existed account
                 AccountMgr::GetName(info.accountId, info.accountName);
@@ -149,15 +149,15 @@ public:
     }
 
     /**
-    * Shows all deleted characters which matches the given search string, expected non empty list
-    *
-    * @see HandleCharacterDeletedListCommand
-    * @see HandleCharacterDeletedRestoreCommand
-    * @see HandleCharacterDeletedDeleteCommand
-    * @see DeletedInfoList
-    *
-    * @param foundList contains a list with all found deleted characters
-    */
+* Shows all deleted characters which matches the given search string, expected non empty list
+*
+* @see HandleCharacterDeletedListCommand
+* @see HandleCharacterDeletedRestoreCommand
+* @see HandleCharacterDeletedDeleteCommand
+* @see DeletedInfoList
+*
+* @param foundList contains a list with all found deleted characters
+*/
     static void HandleCharacterDeletedListHelper(DeletedInfoList const& foundList, ChatHandler* handler)
     {
         if (!handler->GetSession())
@@ -186,18 +186,18 @@ public:
     }
 
     /**
-    * Restore a previously deleted character
-    *
-    * @see HandleCharacterDeletedListHelper
-    * @see HandleCharacterDeletedRestoreCommand
-    * @see HandleCharacterDeletedDeleteCommand
-    * @see DeletedInfoList
-    *
-    * @param delInfo the informations about the character which will be restored
-    */
+* Restore a previously deleted character
+*
+* @see HandleCharacterDeletedListHelper
+* @see HandleCharacterDeletedRestoreCommand
+* @see HandleCharacterDeletedDeleteCommand
+* @see DeletedInfoList
+*
+* @param delInfo the informations about the character which will be restored
+*/
     static void HandleCharacterDeletedRestoreHelper(DeletedInfo const& delInfo, ChatHandler* handler)
     {
-        if (delInfo.accountName.empty())                    // account not exist
+        if (delInfo.accountName.empty()) // account not exist
         {
             handler->PSendSysMessage(LANG_CHARACTER_DELETED_SKIP_ACCOUNT, delInfo.name.c_str(), delInfo.lowGuid, delInfo.accountId);
             return;
@@ -243,7 +243,7 @@ public:
                     ChatHandler(player->GetSession()).PSendSysMessage(LANG_YOURS_LEVEL_PROGRESS_RESET, handler->GetNameLink().c_str());
                 else if (oldLevel < newLevel)
                     ChatHandler(player->GetSession()).PSendSysMessage(LANG_YOURS_LEVEL_UP, handler->GetNameLink().c_str(), newLevel);
-                else                                                // if (oldlevel > newlevel)
+                else // if (oldlevel > newlevel)
                     ChatHandler(player->GetSession()).PSendSysMessage(LANG_YOURS_LEVEL_DOWN, handler->GetNameLink().c_str(), newLevel);
             }
         }
@@ -440,7 +440,7 @@ public:
         if (isalpha(levelStr[0]))
         {
             nameStr = levelStr;
-            levelStr = NULL;                                    // current level will used
+            levelStr = NULL; // current level will used
         }
 
         Player* target;
@@ -453,13 +453,13 @@ public:
         int32 newlevel = levelStr ? atoi(levelStr) : oldlevel;
 
         if (newlevel < 1)
-            return false;                                       // invalid level
+            return false; // invalid level
 
-        if (newlevel > STRONG_MAX_LEVEL)                         // hardcoded maximum level
+        if (newlevel > STRONG_MAX_LEVEL) // hardcoded maximum level
             newlevel = STRONG_MAX_LEVEL;
 
         HandleCharacterLevel(target, targetGuid, oldlevel, newlevel, handler);
-        if (!handler->GetSession() || handler->GetSession()->GetPlayer() != target)      // including player == NULL
+        if (!handler->GetSession() || handler->GetSession()->GetPlayer() != target) // including player == NULL
         {
             std::string nameLink = handler->playerLink(targetName);
             handler->PSendSysMessage(LANG_YOU_CHANGE_LVL, nameLink.c_str(), newlevel);
@@ -597,15 +597,15 @@ public:
     }
 
    /**
-    * Handles the '.character deleted list' command, which shows all deleted characters which matches the given search string
-    *
-    * @see HandleCharacterDeletedListHelper
-    * @see HandleCharacterDeletedRestoreCommand
-    * @see HandleCharacterDeletedDeleteCommand
-    * @see DeletedInfoList
-    *
-    * @param args the search string which either contains a player GUID or a part fo the character-name
-    */
+* Handles the '.character deleted list' command, which shows all deleted characters which matches the given search string
+*
+* @see HandleCharacterDeletedListHelper
+* @see HandleCharacterDeletedRestoreCommand
+* @see HandleCharacterDeletedDeleteCommand
+* @see DeletedInfoList
+*
+* @param args the search string which either contains a player GUID or a part fo the character-name
+*/
     static bool HandleCharacterDeletedListCommand(ChatHandler* handler, char const* args)
     {
         DeletedInfoList foundList;
@@ -625,16 +625,16 @@ public:
     }
 
     /**
-     * Handles the '.character deleted restore' command, which restores all deleted characters which matches the given search string
-     *
-     * The command automatically calls '.character deleted list' command with the search string to show all restored characters.
-     *
-     * @see HandleCharacterDeletedRestoreHelper
-     * @see HandleCharacterDeletedListCommand
-     * @see HandleCharacterDeletedDeleteCommand
-     *
-     * @param args the search string which either contains a player GUID or a part of the character-name
-     */
+* Handles the '.character deleted restore' command, which restores all deleted characters which matches the given search string
+*
+* The command automatically calls '.character deleted list' command with the search string to show all restored characters.
+*
+* @see HandleCharacterDeletedRestoreHelper
+* @see HandleCharacterDeletedListCommand
+* @see HandleCharacterDeletedDeleteCommand
+*
+* @param args the search string which either contains a player GUID or a part of the character-name
+*/
     static bool HandleCharacterDeletedRestoreCommand(ChatHandler* handler, char const* args)
     {
         // It is required to submit at least one argument
@@ -691,15 +691,15 @@ public:
     }
 
     /**
-     * Handles the '.character deleted delete' command, which completely deletes all deleted characters which matches the given search string
-     *
-     * @see Player::GetDeletedCharacterGUIDs
-     * @see Player::DeleteFromDB
-     * @see HandleCharacterDeletedListCommand
-     * @see HandleCharacterDeletedRestoreCommand
-     *
-     * @param args the search string which either contains a player GUID or a part fo the character-name
-     */
+* Handles the '.character deleted delete' command, which completely deletes all deleted characters which matches the given search string
+*
+* @see Player::GetDeletedCharacterGUIDs
+* @see Player::DeleteFromDB
+* @see HandleCharacterDeletedListCommand
+* @see HandleCharacterDeletedRestoreCommand
+*
+* @param args the search string which either contains a player GUID or a part fo the character-name
+*/
     static bool HandleCharacterDeletedDeleteCommand(ChatHandler* handler, char const* args)
     {
         // It is required to submit at least one argument
@@ -727,16 +727,16 @@ public:
     }
 
     /**
-     * Handles the '.character deleted old' command, which completely deletes all deleted characters deleted with some days ago
-     *
-     * @see Player::DeleteOldCharacters
-     * @see Player::DeleteFromDB
-     * @see HandleCharacterDeletedDeleteCommand
-     * @see HandleCharacterDeletedListCommand
-     * @see HandleCharacterDeletedRestoreCommand
-     *
-     * @param args the search string which either contains a player GUID or a part fo the character-name
-     */
+* Handles the '.character deleted old' command, which completely deletes all deleted characters deleted with some days ago
+*
+* @see Player::DeleteOldCharacters
+* @see Player::DeleteFromDB
+* @see HandleCharacterDeletedDeleteCommand
+* @see HandleCharacterDeletedListCommand
+* @see HandleCharacterDeletedRestoreCommand
+*
+* @param args the search string which either contains a player GUID or a part fo the character-name
+*/
     static bool HandleCharacterDeletedOldCommand(ChatHandler* /*handler*/, char const* args)
     {
         int32 keepDays = sWorld->getIntConfig(CONFIG_CHARDELETE_KEEP_DAYS);
@@ -814,7 +814,7 @@ public:
         if (levelStr && isalpha(levelStr[0]))
         {
             nameStr = levelStr;
-            levelStr = NULL;                                    // current level will used
+            levelStr = NULL; // current level will used
         }
 
         Player* target;
@@ -830,12 +830,12 @@ public:
         if (newlevel < 1)
             newlevel = 1;
 
-        if (newlevel > STRONG_MAX_LEVEL)                         // hardcoded maximum level
+        if (newlevel > STRONG_MAX_LEVEL) // hardcoded maximum level
             newlevel = STRONG_MAX_LEVEL;
 
         HandleCharacterLevel(target, targetGuid, oldlevel, newlevel, handler);
 
-        if (!handler->GetSession() || handler->GetSession()->GetPlayer() != target)      // including chr == NULL
+        if (!handler->GetSession() || handler->GetSession()->GetPlayer() != target) // including chr == NULL
         {
             std::string nameLink = handler->playerLink(targetName);
             handler->PSendSysMessage(LANG_YOU_CHANGE_LVL, nameLink.c_str(), newlevel);
@@ -868,7 +868,7 @@ public:
         uint32 accountId = AccountMgr::GetId(accountName);
         if (!accountId)
         {
-            accountId = atoi(accountStr);                             // use original string
+            accountId = atoi(accountStr); // use original string
             if (!accountId)
             {
                 handler->PSendSysMessage(LANG_ACCOUNT_NOT_EXIST, accountName.c_str());
@@ -1017,3 +1017,5 @@ void AddSC_character_commandscript()
 {
     new character_commandscript();
 }
+
+

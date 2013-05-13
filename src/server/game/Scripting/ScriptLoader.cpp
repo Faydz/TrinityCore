@@ -1294,6 +1294,26 @@ void AddBattlegroundScripts()
 #ifdef SCRIPTS
 /* This is where custom scripts' loading functions should be declared. */
 
+    void AddSC_npc_dtporter();
+    void AddSC_npc_dtlostskills();
+    void AddSC_npc_dtvipvendor();
+    void AddSC_custom_dtrace();
+    void AddSC_custom_dtpvpevent();
+    void AddSC_custom_dtevent();
+    void AddSC_LEVEL_NPC();
+    void AddSC_NPC_Transmogrify();
+	//void AddSC_npc_dtinireset();
+	void AddSC_CHANGE_NPC();
+	void AddSC_dt_shop();
+    void AddSC_instance_dtprison();
+    void AddSC_dtprison();
+    void AddSC_boss_der_schwarzedoktor();
+    void AddSC_boss_2_Kla_thruun();
+    void AddSC_boss_sprixz_wunderling();
+	void AddSC_Pro_Max();
+	void AddSC_boss_arkton();
+	void AddSC_boss_tiefenwyrm();
+	void AddSC_custom_misc();
 #endif
 
 void AddCustomScripts()
@@ -1301,5 +1321,25 @@ void AddCustomScripts()
 #ifdef SCRIPTS
     /* This is where custom scripts should be added. */
 
+    AddSC_npc_dtporter();
+    AddSC_npc_dtlostskills();
+    AddSC_npc_dtvipvendor();
+    AddSC_custom_dtrace();
+    AddSC_custom_dtpvpevent();
+    AddSC_custom_dtevent();
+    AddSC_LEVEL_NPC();
+    AddSC_NPC_Transmogrify();
+	//AddSC_npc_dtinireset();
+	AddSC_CHANGE_NPC();
+	AddSC_dt_shop();  
+    AddSC_instance_dtprison();
+    AddSC_dtprison();
+    AddSC_boss_der_schwarzedoktor();
+    AddSC_boss_2_Kla_thruun();
+    AddSC_boss_sprixz_wunderling();
+	AddSC_Pro_Max();
+	AddSC_boss_arkton();
+	AddSC_boss_tiefenwyrm();
+	AddSC_custom_misc();
 #endif
 }

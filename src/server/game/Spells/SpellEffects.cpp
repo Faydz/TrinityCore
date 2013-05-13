@@ -65,6 +65,7 @@
 #include "InstanceScript.h"
 #include "PathGenerator.h"
 #include "ReputationMgr.h"
+#include "HookMgr.h"
 
 pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
 {
@@ -2211,6 +2212,7 @@ void Spell::EffectSummonChangeItem(SpellEffIndex effIndex)
 
             player->EquipItem(dest, pNewItem, true);
             player->AutoUnequipOffhandIfNeed();
+            sHookMgr->OnEquip(player, pNewItem, dest, 0);
             return;
         }
     }
@@ -5758,7 +5760,7 @@ void Spell::EffectDiscoverTaxi(SpellEffIndex effIndex)
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
         return;
     uint32 nodeid = m_spellInfo->Effects[effIndex].MiscValue;
-    if (sTaxiNodesStore.LookupEntry(nodeid))
+    if (sTaxiPathNodeEntriesByPath.LookupEntry(nodeid))
         unitTarget->ToPlayer()->GetSession()->SendDiscoverNewTaxiNode(nodeid);
 }
 

@@ -85,6 +85,20 @@ enum BuyBankSlotResult
     ERR_BANKSLOT_OK                 = 3
 };
 
+enum TransmogrificationResult
+{
+    ERR_FAKE_NEW_BAD_QUALITY,
+    ERR_FAKE_OLD_BAD_QUALITY,
+    ERR_FAKE_SAME_DISPLAY,
+    ERR_FAKE_SAME_DISPLAY_FAKE,
+    ERR_FAKE_CANT_USE,
+    ERR_FAKE_NOT_SAME_CLASS,
+    ERR_FAKE_BAD_CLASS,
+    ERR_FAKE_BAD_SUBLCASS,
+    ERR_FAKE_BAD_INVENTORYTYPE,
+    ERR_FAKE_OK
+};
+
 enum PlayerSpellState
 {
     PLAYERSPELL_UNCHANGED = 0,
@@ -407,6 +421,27 @@ enum PlayerFlags
     PLAYER_FLAGS_UNK30             = 0x40000000,
     PLAYER_FLAGS_UNK31             = 0x80000000
 };
+
+#define PLAYER_TITLE_MASK_ALLIANCE_PVP \
+(PLAYER_TITLE_PRIVATE | PLAYER_TITLE_CORPORAL | \
+PLAYER_TITLE_SERGEANT_A | PLAYER_TITLE_MASTER_SERGEANT | \
+PLAYER_TITLE_SERGEANT_MAJOR | PLAYER_TITLE_KNIGHT | \
+PLAYER_TITLE_KNIGHT_LIEUTENANT | PLAYER_TITLE_KNIGHT_CAPTAIN | \
+PLAYER_TITLE_KNIGHT_CHAMPION | PLAYER_TITLE_LIEUTENANT_COMMANDER | \
+PLAYER_TITLE_COMMANDER | PLAYER_TITLE_MARSHAL | \
+PLAYER_TITLE_FIELD_MARSHAL | PLAYER_TITLE_GRAND_MARSHAL)
+
+#define PLAYER_TITLE_MASK_HORDE_PVP \
+(PLAYER_TITLE_SCOUT | PLAYER_TITLE_GRUNT | \
+PLAYER_TITLE_SERGEANT_H | PLAYER_TITLE_SENIOR_SERGEANT | \
+PLAYER_TITLE_FIRST_SERGEANT | PLAYER_TITLE_STONE_GUARD | \
+PLAYER_TITLE_BLOOD_GUARD | PLAYER_TITLE_LEGIONNAIRE | \
+PLAYER_TITLE_CENTURION | PLAYER_TITLE_CHAMPION | \
+PLAYER_TITLE_LIEUTENANT_GENERAL | PLAYER_TITLE_GENERAL | \
+PLAYER_TITLE_WARLORD | PLAYER_TITLE_HIGH_WARLORD)
+
+#define PLAYER_TITLE_MASK_ALL_PVP \
+(PLAYER_TITLE_MASK_ALLIANCE_PVP | PLAYER_TITLE_MASK_HORDE_PVP)
 
 // used for PLAYER__FIELD_KNOWN_TITLES field (uint64), (1<<bit_index) without (-1)
 // can't use enum for uint64 values
@@ -1914,6 +1949,7 @@ class Player : public Unit, public GridObject<Player>
         void ModifyHonorPoints(int32 value, SQLTransaction* trans = NULL);      //! If trans is specified, honor save query will be added to trans
         void ModifyArenaPoints(int32 value, SQLTransaction* trans = NULL);      //! If trans is specified, arena point save query will be added to trans
         uint32 GetMaxPersonalArenaRatingRequirement(uint32 minarenaslot) const;
+        void UpdateKnownTitles();
         void SetHonorPoints(uint32 value);
         void SetArenaPoints(uint32 value);
 
@@ -2286,6 +2322,8 @@ class Player : public Unit, public GridObject<Player>
 
         //! Return collision height sent to client
         float GetCollisionHeight(bool mounted) const;
+
+        uint32 SuitableForTransmogrification(Item* oldItem, Item* newItem);
 
     protected:
         // Gamemaster whisper whitelist

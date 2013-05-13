@@ -13,6 +13,7 @@ file(GLOB_RECURSE sources_Achievements Achievements/*.cpp Achievements/*.h)
 file(GLOB_RECURSE sources_Addons Addons/*.cpp Addons/*.h)
 file(GLOB_RECURSE sources_AI AI/*.cpp AI/*.h)
 file(GLOB_RECURSE sources_AuctionHouse AuctionHouse/*.cpp AuctionHouse/*.h)
+file(GLOB_RECURSE sources_AuctionHouseBot AuctionHouse/AuctionHouseBot/*.cpp AuctionHouse/AuctionHouseBot/*.h)
 file(GLOB_RECURSE sources_Battlefield Battlefield/*.cpp Battlefield/*.h)
 file(GLOB_RECURSE sources_Battlegrounds Battlegrounds/*.cpp Battlegrounds/*.h)
 file(GLOB_RECURSE sources_Calendar Calendar/*.cpp Calendar/*.h)
@@ -63,6 +64,7 @@ set(game_STAT_SRCS
   ${sources_Addons}
   ${sources_AI}
   ${sources_AuctionHouse}
+  ${sources_AuctionHouseBot}
   ${sources_Battlefield}
   ${sources_Battlegrounds}
   ${sources_Calendar}
@@ -107,6 +109,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/dep/g3dlite/include
   ${CMAKE_SOURCE_DIR}/dep/SFMT
   ${CMAKE_SOURCE_DIR}/dep/zlib
+  ${CMAKE_SOURCE_DIR}/dep/lualib
   ${CMAKE_SOURCE_DIR}/src/server/collision
   ${CMAKE_SOURCE_DIR}/src/server/collision/Management
   ${CMAKE_SOURCE_DIR}/src/server/collision/Models
@@ -124,6 +127,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/server/shared/Packets
   ${CMAKE_SOURCE_DIR}/src/server/shared/Threading
   ${CMAKE_SOURCE_DIR}/src/server/shared/Utilities
+  ${CMAKE_SOURCE_DIR}/src/server/LuaEngine
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Accounts
   ${CMAKE_CURRENT_SOURCE_DIR}/Achievements
@@ -134,6 +138,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/AI/ScriptedAI
   ${CMAKE_CURRENT_SOURCE_DIR}/AI/SmartScripts
   ${CMAKE_CURRENT_SOURCE_DIR}/AuctionHouse
+  ${CMAKE_CURRENT_SOURCE_DIR}/AuctionHouse/AuctionHouseBot
   ${CMAKE_CURRENT_SOURCE_DIR}/Battlefield
   ${CMAKE_CURRENT_SOURCE_DIR}/Battlefield/Zones
   ${CMAKE_CURRENT_SOURCE_DIR}/Battlegrounds
@@ -204,9 +209,17 @@ include_directories(
 add_library(game STATIC
   ${game_STAT_SRCS}
   ${game_STAT_PCH_SRC}
+  ${lua_STAT_SRCS}
+  ${LuaEngine_STAT_SRCS}
 )
 
 add_dependencies(game revision.h)
+add_dependencies(game lua)
+
+target_link_libraries(game
+ lua
+ LuaEngine
+)
 
 # Generate precompiled header
 if (USE_COREPCH)

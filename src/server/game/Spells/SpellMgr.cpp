@@ -1546,7 +1546,7 @@ void SpellMgr::LoadSpellTargetPositions()
         SpellInfo const* spellInfo = GetSpellInfo(Spell_ID);
         if (!spellInfo)
         {
-            sLog->outError(LOG_FILTER_SQL, "Spell (Id: %u) listed in `spell_target_position` does not exist.", Spell_ID);
+            sLog->outError(LOG_FILTER_SQL, "Spell (ID:%u) listed in `spell_target_position` does not exist.", Spell_ID);
             continue;
         }
 
@@ -1561,7 +1561,7 @@ void SpellMgr::LoadSpellTargetPositions()
                     uint32 area_id = sMapMgr->GetAreaId(st.target_mapId, st.target_X, st.target_Y, st.target_Z);
                     if (area_id != uint32(spellInfo->Effects[i].MiscValue))
                     {
-                        sLog->outError(LOG_FILTER_SQL, "Spell (Id: %u) listed in `spell_target_position` expected to point to area %u, but points to area %u instead.", Spell_ID, spellInfo->Effects[i].MiscValue, area_id);
+                        sLog->outError(LOG_FILTER_SQL, "Spell (Id: %u) listed in `spell_target_position` expected point to zone %u bit point to zone %u.", Spell_ID, spellInfo->Effects[i].MiscValue, area_id);
                         break;
                     }
                 }
@@ -2990,6 +2990,13 @@ void SpellMgr::LoadDbcDataCorrections()
             case 30657: // Quake
                 spellInfo->EffectTriggerSpell[0] = 30571;
                 break;
+            case 1543: // Flare
+                spellInfo->EffectRadiusIndex[0] = EFFECT_RADIUS_10_YARDS;
+                spellInfo->EffectRadiusIndex[1] = EFFECT_RADIUS_10_YARDS;
+                spellInfo->speed = 100;
+                break;
+            case 49575: // Death Grip
+                 spellInfo->EffectMiscValueB[0] = 1;
             case 30541: // Blaze (needs conditions entry)
                 spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_TARGET_ENEMY;
                 spellInfo->EffectImplicitTargetB[0] = 0;
@@ -3083,6 +3090,10 @@ void SpellMgr::LoadDbcDataCorrections()
             case 66588: // Flaming Spear
             case 54171: // Divine Storm
                 spellInfo->MaxAffectedTargets = 3;
+                break;
+            case 71464: // Divine Surge
+                spellInfo->EffectRadiusIndex[0] = EFFECT_RADIUS_100_YARDS;
+                spellInfo->DurationIndex = 28;          // 5 seconds
                 break;
             case 38310: // Multi-Shot
             case 53385: // Divine Storm (Damage)
@@ -3443,6 +3454,9 @@ void SpellMgr::LoadDbcDataCorrections()
                 break;
             case 70530: // Volatile Ooze Beam Protection (Professor Putricide)
                 spellInfo->Effect[0] = SPELL_EFFECT_APPLY_AURA; // for an unknown reason this was SPELL_EFFECT_APPLY_AREA_AURA_RAID
+                break;
+            case 69508: // Slime Spray
+                spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_TARGET_ANY;
                 break;
             // THIS IS HERE BECAUSE COOLDOWN ON CREATURE PROCS IS NOT IMPLEMENTED
             case 71604: // Mutated Strength (Professor Putricide)

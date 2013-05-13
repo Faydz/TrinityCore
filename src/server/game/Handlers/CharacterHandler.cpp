@@ -46,6 +46,7 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#include "HookMgr.h"
 
 
 class LoginQueryHolder : public SQLQueryHolder
@@ -738,6 +739,7 @@ void WorldSession::HandleCharDeleteOpcode(WorldPacket& recvData)
     std::string IP_str = GetRemoteAddress();
     sLog->outInfo(LOG_FILTER_CHARACTER, "Account: %d, IP: %s deleted character: %s, GUID: %u, Level: %u", accountId, IP_str.c_str(), name.c_str(), GUID_LOPART(guid), level);
     sScriptMgr->OnPlayerDelete(guid);
+    sWorld->DeleteCharacterNameData(GUID_LOPART(guid));
 
     if (sLog->ShouldLog(LOG_FILTER_PLAYER_DUMP, LOG_LEVEL_INFO)) // optimize GetPlayerDump call
     {
@@ -996,6 +998,9 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
         pCurrChar->SendTalentsInfoData(false);              // original talents send already in to SendInitialPacketsBeforeAddToMap, resend reset state
         SendNotification(LANG_RESET_TALENTS);
     }
+
+    if (pCurrChar->HasAtLoginFlag(AT_LOGIN_FIRST))
+        sHookMgr->OnFirstLogin(pCurrChar);
 
     if (pCurrChar->HasAtLoginFlag(AT_LOGIN_FIRST))
         pCurrChar->RemoveAtLoginFlag(AT_LOGIN_FIRST);

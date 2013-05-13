@@ -173,7 +173,7 @@ void AuctionHouseMgr::SendAuctionSuccessfulMail(AuctionEntry* auction, SQLTransa
         uint32 profit = auction->bid + auction->deposit - auction->GetAuctionCut();
 
         //FIXME: what do if owner offline
-        if (owner)
+        if (owner && owner->GetGUIDLow() != auctionbot.GetAHBplayerGUID())
         {
             owner->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_GOLD_EARNED_BY_AUCTIONS, profit);
             owner->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_AUCTION_SOLD, auction->bid);
@@ -201,7 +201,7 @@ void AuctionHouseMgr::SendAuctionExpiredMail(AuctionEntry* auction, SQLTransacti
     // owner exist
     if (owner || owner_accId)
     {
-        if (owner)
+        if (owner && owner->GetGUIDLow() != auctionbot.GetAHBplayerGUID())
             owner->GetSession()->SendAuctionOwnerNotification(auction);
 
         MailDraft(auction->BuildAuctionMailSubject(AUCTION_EXPIRED), AuctionEntry::BuildAuctionMailBody(0, 0, auction->buyout, auction->deposit, 0))
@@ -223,6 +223,9 @@ void AuctionHouseMgr::SendAuctionOutbiddedMail(AuctionEntry* auction, uint32 new
     // old bidder exist
     if (oldBidder || oldBidder_accId)
     {
+        if (oldBidder && !newBidder)
+            oldBidder->GetSession()->SendAuctionBidderNotification(auction->GetHouseId(), auction->Id, auctionbot.GetAHBplayerGUID(), newPrice, auction->GetAuctionOutBid(), auction->itemEntry);
+
         if (oldBidder && newBidder)
             oldBidder->GetSession()->SendAuctionBidderNotification(auction->GetHouseId(), auction->Id, newBidder->GetGUID(), newPrice, auction->GetAuctionOutBid(), auction->itemEntry);
 
@@ -405,10 +408,12 @@ void AuctionHouseObject::AddAuction(AuctionEntry* auction)
 
     AuctionsMap[auction->Id] = auction;
     sScriptMgr->OnAuctionAdd(this, auction);
+    auctionbot.IncrementItemCounts(auction);
 }
 
-bool AuctionHouseObject::RemoveAuction(AuctionEntry* auction, uint32 /*itemEntry*/)
+bool AuctionHouseObject::RemoveAuction(AuctionEntry* auction, uint32 itemEntry)
 {
+    auctionbot.DecrementItemCounts(auction, itemEntry);
     bool wasInMap = AuctionsMap.erase(auction->Id) ? true : false;
 
     sScriptMgr->OnAuctionRemove(this, auction);
@@ -657,12 +662,12 @@ void AuctionEntry::SaveToDB(SQLTransaction& trans) const
     stmt->setUInt32(1, auctioneer);
     stmt->setUInt32(2, itemGUIDLow);
     stmt->setUInt32(3, owner);
-    stmt->setUInt32(4, buyout);
-    stmt->setUInt32(5, uint32(expire_time));
+    stmt->setInt32 (4, int32(buyout));
+    stmt->setUInt64(5, uint64(expire_time));
     stmt->setUInt32(6, bidder);
-    stmt->setUInt32(7, bid);
-    stmt->setUInt32(8, startbid);
-    stmt->setUInt32(9, deposit);
+    stmt->setInt32 (7, int32(bid));
+    stmt->setInt32 (8, int32(startbid));
+    stmt->setInt32 (9, int32(deposit));
     trans->Append(stmt);
 }
 
