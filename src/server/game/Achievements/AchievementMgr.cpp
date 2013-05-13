@@ -2723,7 +2723,11 @@ bool AchievementMgr<T>::AdditionalRequirementsSatisfied(AchievementCriteriaEntry
                 if (AuraType(reqValue) == SPELL_AURA_MOUNTED)
                     return false;
 
-                if (!unit || !AuraType(reqValue) || !unit->HasAuraType(AuraType(reqValue)))
+				// So tiny hack to prevent crash by calling .empty without existing index
+				if (!(reqValue >= 0 && reqValue < TOTAL_AURAS))
+					return false;
+
+                if (!unit || !unit->HasAuraType(AuraType(reqValue)))
                     return false;
                 break;
             case ACHIEVEMENT_CRITERIA_ADDITIONAL_CONDITION_ITEM_QUALITY_MIN: // 14
