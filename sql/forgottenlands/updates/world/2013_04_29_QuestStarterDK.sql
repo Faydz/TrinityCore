@@ -57,6 +57,8 @@ UPDATE `quest_template` SET `SourceItemId`='39510', `SourceItemCount`='1' WHERE 
 
 
 -- the scarlet apocalypse & an end to all things
+DELETE FROM `creature_involvedrelation` WHERE `quest`=12779;
+DELETE FROM `creature_questrelation` WHERE `quest`=12779;
 INSERT INTO `creature_involvedrelation` (`id`, `quest`) VALUES ('29110', '12779');
 INSERT INTO `creature_questrelation` (`id`, `quest`) VALUES ('29110', '12779');
 
