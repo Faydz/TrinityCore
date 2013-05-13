@@ -144,7 +144,7 @@ public:
             events.ScheduleEvent(EVENT_QUAKE, 5000 + rand() % 5000);
         }
 
-        void UpdateAI(const uint32 diff) 
+        void UpdateAI(uint32 diff) 
         {
             if (!UpdateVictim())
                 return;
@@ -199,7 +199,7 @@ public:
             events.ScheduleEvent(EVENT_FELL_FIREBALL, 1000);
         }
 
-        void UpdateAI(const uint32 diff) 
+        void UpdateAI(uint32 diff) 
         {
             if (!UpdateVictim())
                 return;
@@ -256,7 +256,7 @@ public:
             events.ScheduleEvent(EVENT_ROCK_BORE, 1000);
         }
 
-        void UpdateAI(const uint32 diff) 
+        void UpdateAI(uint32 diff) 
         {
             if (!UpdateVictim())
                 return;
@@ -321,7 +321,7 @@ public:
             events.ScheduleEvent(EVENT_SHADOWFURY, 5000 + rand() % 15000);
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;

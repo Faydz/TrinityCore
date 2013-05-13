@@ -105,7 +105,7 @@ public:
 			me->MonsterYell("You come seeking answers? Then have them! Look upon your answer to living!", LANG_UNIVERSAL, NULL);
 		}
 
-		void UpdateAI(const uint32 diff)
+		void UpdateAI(uint32 diff)
 		{
 			if (!UpdateVictim() || me->HasUnitState(UNIT_STATE_CASTING))
 				return;
@@ -242,7 +242,7 @@ public:
             events.ScheduleEvent(EVENT_CREPUSCOLAR_VEIL, urand(3000, 4000), 0, 0);
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;

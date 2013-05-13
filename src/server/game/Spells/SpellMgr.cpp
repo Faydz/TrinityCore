@@ -156,9 +156,6 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
             // Blind
             else if (spellproto->SpellFamilyFlags[0] & 0x1000000)
                 return DIMINISHING_FEAR;
-            // Cheap Shot
-            else if (spellproto->SpellFamilyFlags[0] & 0x400)
-                return DIMINISHING_OPENING_STUN;
             // Crippling poison - Limit to 10 seconds in PvP (No SpellFamilyFlags)
             else if (spellproto->SpellIconID == 163)
                 return DIMINISHING_LIMITONLY;
@@ -2874,6 +2871,8 @@ void SpellMgr::LoadSpellCustomAttr()
             case 72505: // Ooze Eruption
             case 72624: // Ooze Eruption
             case 72625: // Ooze Eruption
+            case 88942: // Meteor Slash
+            case 95172:
                 // ONLY SPELLS WITH SPELLFAMILY_GENERIC and EFFECT_SCHOOL_DAMAGE
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_SHARE_DAMAGE;
                 break;
@@ -3117,6 +3116,251 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_1].MiscValue = 150;
                 spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
                 break;
+			// Scare Beast
+			case 1513:
+            // Polymorph
+            case 118:
+            case 61305: // Polymorph (other animal)
+            case 28272: // polymorph (other animal)
+            case 61721: // Polymorph (other animal)
+            case 61780: // Polymorph (other animal)
+            case 28271: // Polymorph (other animal)
+                spellInfo->AuraInterruptFlags = AURA_INTERRUPT_FLAG_TAKE_DAMAGE;
+                break;
+            // Soulburn: Healthstone
+            case 79437:
+                spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_INCREASE_HEALTH_PERCENT;
+                break;
+            case 84593: // Stone grip
+                spellInfo->Effects[0].Amplitude = 12000;
+                break;
+            // CORREZIONI ITEM PROFESSIONI --- DA VICIOUS 377 A BLOODTHIRSTY 358
+            case 78457:
+                spellInfo->Effects[0].ItemType = 70044;
+                break;
+            case 78456:
+                spellInfo->Effects[0].ItemType = 70045;
+                break;
+            case 78448:
+                spellInfo->Effects[0].ItemType = 70046;
+                break;
+            case 78483:
+                spellInfo->Effects[0].ItemType = 70047;
+                break;
+            case 78449:
+                spellInfo->Effects[0].ItemType = 70048;
+                break;
+            case 78484:
+                spellInfo->Effects[0].ItemType = 70049;
+                break;
+            case 78471:
+                spellInfo->Effects[0].ItemType = 70050;
+                break;
+            case 78470:
+                spellInfo->Effects[0].ItemType = 70051;
+                break;
+            // Vicious Dragonscale
+            case 78473:
+                spellInfo->Effects[0].ItemType = 70036;
+                break;
+            case 78458:
+                spellInfo->Effects[0].ItemType = 70037;
+                break;
+            case 78450:
+                spellInfo->Effects[0].ItemType = 70038;
+                break;
+            case 78486:
+                spellInfo->Effects[0].ItemType = 70039;
+                break;
+            case 78459:
+                spellInfo->Effects[0].ItemType = 70040;
+                break;
+            case 78474:
+                spellInfo->Effects[0].ItemType = 70041;
+                break;
+            case 78485:
+                spellInfo->Effects[0].ItemType = 70042;
+                break;
+            case 78451:
+                spellInfo->Effects[0].ItemType = 70043;
+                break;
+            // Vicious Embersilk
+            case 75293:
+                spellInfo->Effects[0].ItemType = 70062;
+                break;
+            case 75297:
+                spellInfo->Effects[0].ItemType = 70061;
+                break;
+            case 75270:
+                spellInfo->Effects[0].ItemType = 70063;
+                break;
+            case 99537:
+                spellInfo->Effects[0].ItemType = 70070;
+                break;
+            case 75306:
+                spellInfo->Effects[0].ItemType = 70067;
+                break;
+            case 75295:
+                spellInfo->Effects[0].ItemType = 70065;
+                break;
+            case 75307:
+                spellInfo->Effects[0].ItemType = 70066;
+                break;
+            case 75305:
+                spellInfo->Effects[0].ItemType = 70060;
+                break;
+            case 75291:
+                spellInfo->Effects[0].ItemType = 70064;
+                break;
+            case 75269:
+                spellInfo->Effects[0].ItemType = 70052;
+                break;
+            case 75294:
+                spellInfo->Effects[0].ItemType = 70053;
+                break;
+            case 75290:
+                spellInfo->Effects[0].ItemType = 70054;
+                break;
+            case 75304:
+                spellInfo->Effects[0].ItemType = 70055;
+                break;
+            case 75296:
+                spellInfo->Effects[0].ItemType = 70056;
+                break;
+            case 75302:
+                spellInfo->Effects[0].ItemType = 70057;
+                break;
+            case 75303:
+                spellInfo->Effects[0].ItemType = 70058;
+                break;
+            case 75292:
+                spellInfo->Effects[0].ItemType = 70059;
+                break;
+            // Vicious Leather
+            case 78468:
+                spellInfo->Effects[0].ItemType = 70020;
+                break;
+            case 78454:
+                spellInfo->Effects[0].ItemType = 70021;
+                break;
+            case 78446:
+                spellInfo->Effects[0].ItemType = 70022;
+                break;
+            case 78481:
+                spellInfo->Effects[0].ItemType = 70023;
+                break;
+            case 78447:
+                spellInfo->Effects[0].ItemType = 70024;
+                break;
+            case 78469:
+                spellInfo->Effects[0].ItemType = 70025;
+                break;
+            case 78482:
+                spellInfo->Effects[0].ItemType = 70026;
+                break;
+            case 78455:
+                spellInfo->Effects[0].ItemType = 70027;
+                break;
+            // Vicious Ornate Pyrium
+            case 76467:
+                spellInfo->Effects[0].ItemType = 70018;
+                break;
+            case 76468:
+                spellInfo->Effects[0].ItemType = 70013;
+                break;
+            case 76465:
+                spellInfo->Effects[0].ItemType = 70019;
+                break;
+            case 76472:
+                spellInfo->Effects[0].ItemType = 70012;
+                break;
+            case 76466:
+                spellInfo->Effects[0].ItemType = 70014;
+                break;
+            case 76471:
+                spellInfo->Effects[0].ItemType = 70015;
+                break;
+            case 76470:
+                spellInfo->Effects[0].ItemType = 70016;
+                break;
+            case 76469:
+                spellInfo->Effects[0].ItemType = 70017;
+                break;
+            // Vicious Pyrium
+            case 76458:
+                spellInfo->Effects[0].ItemType = 70010;
+                break;
+            case 76459:
+                spellInfo->Effects[0].ItemType = 70005;
+                break;
+            case 76456:
+                spellInfo->Effects[0].ItemType = 70011;
+                break;
+            case 76464:
+                spellInfo->Effects[0].ItemType = 70004;
+                break;
+            case 76457:
+                spellInfo->Effects[0].ItemType = 70006;
+                break;
+            case 76463:
+                spellInfo->Effects[0].ItemType = 70007;
+                break;
+            case 76462:
+                spellInfo->Effects[0].ItemType = 70008;
+                break;
+            case 76461:
+                spellInfo->Effects[0].ItemType = 70009;
+                break;
+            // Vicious Wyrmhide
+            case 78445:
+                spellInfo->Effects[0].ItemType = 70028;
+                break;
+            case 78453:
+                spellInfo->Effects[0].ItemType = 70029;
+                break;
+            case 78444:
+                spellInfo->Effects[0].ItemType = 70030;
+                break;
+            case 78467:
+                spellInfo->Effects[0].ItemType = 70031;
+                break;
+            case 78452:
+                spellInfo->Effects[0].ItemType = 70032;
+                break;
+            case 78480:
+                spellInfo->Effects[0].ItemType = 70033;
+                break;
+            case 78479:
+                spellInfo->Effects[0].ItemType = 70034;
+                break;
+            case 78464:
+                spellInfo->Effects[0].ItemType = 70035;
+                break;
+            // Trinket
+            case 99540:
+                spellInfo->Effects[0].ItemType = 70072;
+                break;
+            case 99543:
+                spellInfo->Effects[0].ItemType = 70075;
+                break;
+            case 99536:
+                spellInfo->Effects[0].ItemType = 70068;
+                break;
+            case 99535:
+                spellInfo->Effects[0].ItemType = 70069;
+                break;
+            case 99544:
+                spellInfo->Effects[0].ItemType = 70076;
+                break;
+            case 99541:
+                spellInfo->Effects[0].ItemType = 70073;
+                break;
+            case 99542:
+                spellInfo->Effects[0].ItemType = 70074;
+                break;
+            case 99539:
+                spellInfo->Effects[0].ItemType = 70071;
+                break;
             default:
                 break;
         }
@@ -3129,7 +3373,6 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Soul Harvest
                     case 79268:
                         spellInfo->Effects[EFFECT_0].Amplitude = 3000;
-                        spellInfo->Effects[EFFECT_1].Amplitude = 3000;
                         break;
                     // Enslave Demon
                     case 1098:
@@ -3424,8 +3667,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+					// Demoralizing Shout
+					case 1160:
+                        spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
+						break;
                     // Piercing Howl
                     case 12323:
+                        spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
                         spellInfo->AttributesEx8 |= SPELL_ATTR8_CANT_MISS;
                         break;
                     // Heroic Leap
@@ -3500,6 +3748,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+					// Demoralizing Roar
+					case 99:
+                        spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
+						break;
                     // Rake
                     case 1822:
                         spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_ARMOR;
@@ -3629,6 +3881,19 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                 }
                 break;
+            case SPELLFAMILY_ROGUE:
+                switch(spellInfo->Id)
+                {
+					// Shadow Dance
+					case 51713:
+                        spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
+						break;
+                    // Glyph of Hemorrhage
+                    case 56807:
+						spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+						break;
+				}
+				break;
             default:
                 break;
         }

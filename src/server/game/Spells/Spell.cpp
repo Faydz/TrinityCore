@@ -2658,7 +2658,7 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool scaleA
         {
             unit->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_HITBYSPELL);
             /// @todo This is a hack. But we do not know what types of stealth should be interrupted by CC
-            if ((m_spellInfo->AttributesCu & SPELL_ATTR0_CU_AURA_CC) && unit->IsControlledByPlayer())
+			if ((m_spellInfo->AttributesCu & SPELL_ATTR0_CU_AURA_CC) && unit->IsControlledByPlayer() && m_spellInfo->IsBreakingStealth())
                 unit->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
         }
         else if (m_caster->IsFriendlyTo(unit))
@@ -3400,6 +3400,12 @@ void Spell::cast(bool skipCheck)
                 if(AuraEffect* auraEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 3524, EFFECT_0))
                     if(roll_chance_i(auraEff->GetAmount()))
                         m_caster->CastSpell(m_caster->getVictim(), 88691, NULL);
+		
+		// Updates rune regen on casting spell like Unholy Frenzy
+		if(m_caster->getClass() == CLASS_DEATH_KNIGHT)
+		{
+			m_caster->ToPlayer()->UpdateAllRunesRegen();
+		}
 
         m_caster->ToPlayer()->SetSpellModTakingSpell(this, false);
 

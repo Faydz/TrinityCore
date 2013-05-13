@@ -25,6 +25,9 @@ DoorData const doorData[] =
     {GO_OCCUTHAR_DOOR,  DATA_OCCUTHAR, DOOR_TYPE_ROOM,  BOUNDARY_NONE},
 };
 
+#define MAX_ENCOUNTER 3
+
+
 class instance_baradin_hold: public InstanceMapScript
 {
 public:
@@ -50,6 +53,8 @@ public:
 
         void Initialize()
         {
+            for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+                uiEncounter[i] = NOT_STARTED;
         }
 
         void OnCreatureCreate(Creature* creature)
@@ -68,6 +73,15 @@ public:
             }
         }
 
+        bool IsEncounterInProgress() const
+        {
+            for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+                if (uiEncounter[i] == IN_PROGRESS)
+                    return true;
+
+             return false;
+        }
+
         void OnGameObjectCreate(GameObject* go)
         {
             switch(go->GetEntry())
@@ -81,6 +95,34 @@ public:
                     AddDoor(go, true);
                     break;
             }
+        }
+
+        void SetData(uint32 type, uint32 data)
+		{
+			switch (type)
+			{
+                case DATA_ARGALOTH_EVENT:
+                    uiEncounter[0] = data;
+                    break;
+                case DATA_OCCUTHAR_EVENT:
+                    uiEncounter[1] = data;
+                    break;
+                case DATA_ALIZABAL_EVENT:
+                    uiEncounter[2] = data;
+                    break;
+            }
+        }
+
+        uint32 GetData(uint32 type) const
+        {
+            switch (type)
+            {
+                case DATA_ARGALOTH_EVENT:                return uiEncounter[0];
+                case DATA_OCCUTHAR_EVENT:			     return uiEncounter[1];
+                case DATA_ALIZABAL_EVENT:			     return uiEncounter[2];
+            }
+
+            return 0;
         }
 
         uint64 GetData64(uint32 data) const
@@ -162,6 +204,7 @@ public:
         uint64 _alizabalGUID;
         uint64 _argalothDoor;
         uint64 _occutharDoor;
+        uint32 uiEncounter[MAX_ENCOUNTER];
     };
 };
 

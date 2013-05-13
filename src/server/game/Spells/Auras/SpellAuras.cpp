@@ -1271,7 +1271,7 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                 {
 					// Serpent Sting
                     case 1978:
-						if(caster)
+						if(caster && GetEffect(EFFECT_0))
 						{
 							if (AuraEffect* auraEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 536, 0))
                             {

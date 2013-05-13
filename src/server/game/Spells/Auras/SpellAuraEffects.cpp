@@ -474,12 +474,14 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
 {
     // default amount calculation
 	int32 amount = 0;
-
-	if(GetBase()->GetOwner())
-		amount = m_spellInfo->Effects[m_effIndex].CalcValue(caster, &m_baseAmount, GetBase()->GetOwner()->ToUnit());
+    if (this){
+	    if(GetBase() && GetBase()->GetOwner() && GetBase()->GetOwner()->ToUnit()){
+		    amount = m_spellInfo->Effects[m_effIndex].CalcValue(caster, &m_baseAmount, GetBase()->GetOwner()->ToUnit());
+        }
+    }
 
     // check item enchant aura cast
-    if (!amount && caster)
+    if (!amount && caster && GetBase())
         if (uint64 itemGUID = GetBase()->GetCastItemGUID())
             if (Player* playerCaster = caster->ToPlayer())
                 if (Item* castItem = playerCaster->GetItemByGuid(itemGUID))
@@ -2065,7 +2067,9 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
         }
 
         // remove other shapeshift before applying a new one
-        target->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT, 0, GetBase());
+		// except when shadow dance
+		if(!target->HasAura(51713))
+			target->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT, 0, GetBase());
 
         // stop handling the effect if it was removed by linked event
         if (aurApp->GetRemoveMode())
@@ -6539,11 +6543,6 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
                             damage += (damage + 1) / 2;           // +1 prevent 0.5 damage possible lost at 1..4 ticks
                         // 5..8 ticks have normal tick damage
                         break;
-                }
-                break;
-            case SPELLFAMILY_DEATHKNIGHT:
-                switch (GetId())
-                {
                 }
                 break;
             case SPELLFAMILY_MAGE:

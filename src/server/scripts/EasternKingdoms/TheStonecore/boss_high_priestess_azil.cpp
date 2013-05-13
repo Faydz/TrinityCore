@@ -134,7 +134,7 @@ class boss_high_priestess_azil: public CreatureScript
             }
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -270,7 +270,7 @@ public:
                 events.ScheduleEvent(EVENT_AURA, 4000, 0, 0);
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             events.Update(diff);
             

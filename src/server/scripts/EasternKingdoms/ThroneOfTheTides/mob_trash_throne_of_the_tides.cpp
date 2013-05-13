@@ -28,7 +28,7 @@ struct mob_envahisseur_nazjarAI : public ScriptedAI
 		lacerer = 5000;
 	}
 
-	void UpdateAI(const uint32 diff)
+	void UpdateAI(uint32 diff)
 	{
 		if (!UpdateVictim())
 		return;
@@ -85,7 +85,7 @@ struct mob_envahisseur_nazjarAI : public ScriptedAI
  vague_de_soins = 17000;
  }
  
- void UpdateAI(const uint32 diff)
+ void UpdateAI(uint32 diff)
  {
  if (!UpdateVictim())
  return;
@@ -146,7 +146,7 @@ chaine_declairs = 7000;
 explosion_de_foudre = 10000;
 }
 
-void UpdateAI(const uint32 diff)
+void UpdateAI(uint32 diff)
 {
 if (!UpdateVictim())
  return;
@@ -198,7 +198,7 @@ mob_sentinelle_nazjarAI(Creature *c) : ScriptedAI(c) {}
 		trempe = 20000;
 	}
 
-	void UpdateAI(const uint32 diff)
+	void UpdateAI(uint32 diff)
 	{
 	 if (!UpdateVictim())
 	 return;
@@ -244,7 +244,7 @@ void Reset()
 vague_de_corruption = 12000;
 }
 
-void UpdateAI(const uint32 diff)
+void UpdateAI(uint32 diff)
 {
 if (!UpdateVictim())
  return;
@@ -287,7 +287,7 @@ void Reset()
 houle = 20000;
 }
 
-void UpdateAI(const uint32 diff)
+void UpdateAI(uint32 diff)
 {
 if (!UpdateVictim())
  return;
@@ -336,7 +336,7 @@ trait_deau = 5000;
 tsunami = 14000;
 }
 
-void UpdateAI(const uint32 diff)
+void UpdateAI(uint32 diff)
 {
 if (!UpdateVictim())
  return;
@@ -389,7 +389,7 @@ struct mob_chasseur_gloubelinAI : public ScriptedAI
         lance_empoisonnee = 8000;
     }
 
-    void UpdateAI(const uint32 diff)
+    void UpdateAI(uint32 diff)
         {
         if (!UpdateVictim())
          return;
@@ -444,7 +444,7 @@ void Reset()
 dechirure_du_vide = 20000;
 }
 
-void UpdateAI(const uint32 diff)
+void UpdateAI(uint32 diff)
 {
 if (!UpdateVictim())
  return;
