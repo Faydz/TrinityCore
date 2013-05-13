@@ -10200,7 +10200,10 @@ void Unit::SetMinion(Minion *minion, bool apply)
 
         // Ghoul pets have energy instead of mana (is anywhere better place for this code?)
         if (minion->IsPetGhoul())
+        {
             minion->setPowerType(POWER_ENERGY);
+            minion->SetPower(POWER_ENERGY, 100);
+        }
 
         if (GetTypeId() == TYPEID_PLAYER)
         {
