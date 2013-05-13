@@ -588,6 +588,9 @@ void Pet::Update(uint32 diff)
                 }
             }
 
+            if (IsPetGhoul())
+                setPowerType(POWER_ENERGY);
+
             //regenerate focus for hunter pets or energy for deathknight's ghoul
             if (m_regenTimer)
             {
@@ -607,13 +610,12 @@ void Pet::Update(uint32 diff)
                                 m_regenTimer = PET_FOCUS_REGEN_INTERVAL;
 
                             break;
-
                         // in creature::update
-                        //case POWER_ENERGY:
-                        //    Regenerate(POWER_ENERGY);
-                        //    m_regenTimer += CREATURE_REGEN_INTERVAL - diff;
-                        //    if (!m_regenTimer) ++m_regenTimer;
-                        //    break;
+                        case POWER_ENERGY:
+                            // Reset if large diff (lag) causes focus to get 'stuck'
+                            if (m_regenTimer > PET_FOCUS_REGEN_INTERVAL)
+                                m_regenTimer = PET_FOCUS_REGEN_INTERVAL;
+                            break;
                         default:
                             m_regenTimer = 0;
                             break;
