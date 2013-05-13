@@ -3736,7 +3736,7 @@ public:
 
 		void CheckIfMoveInRing(Unit *who)
         {
-            // Controlla se il target è vivo, in 10 yarde, non è già freezato, non è immune ed è in LOS
+            // Check if targets are alive, in 10 yards, not already frozen, not immune and in LOS
             if (who->isAlive() && me->IsInRange(who, 0.0f, 10.0f)
                 && !who->HasAura(82691)/*<= target already frozen*/
                 && !who->HasAura(91264)/*<= target is immune*/
