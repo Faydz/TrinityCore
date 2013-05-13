@@ -10859,6 +10859,23 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                     DoneTotalMod *= 1.25f;
             }
 
+            // Frostfire Bolt
+            if (spellProto->Id == 44614)
+            {
+                if (owner->HasAura(44544) && owner->HasAura(57761) && damagetype != DOT)
+                {
+                    DoneTotalMod *= 1.25f;
+
+                    if(uint8 charges = owner->GetAura(44544)->GetStackAmount())
+                    {
+                        if (charges - 1 > 0)
+                            owner->GetAura(44544)->SetStackAmount(charges - 1);
+                        else if (charges - 1 == 0)
+                            owner->GetAura(44544)->Remove();
+                    }
+                }
+            }
+
             // Frostburn - Frost Mastery
             if (owner->getClass() == CLASS_MAGE && victim->HasAuraState(AURA_STATE_FROZEN, spellProto, this))
             {
