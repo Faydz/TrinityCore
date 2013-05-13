@@ -10974,16 +10974,8 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             }
             break;
         case SPELLFAMILY_WARLOCK:
-
             switch(spellProto->Id)
             {
-                // Doom Bolt
-                case 85692:
-                    if(Unit* owner = this->GetCharmerOrOwner())
-                    {
-                        pdamage = CalculatePct(owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC), 90);
-                    }
-                    break;
                 // Fire and Brimstone
                 case 29722:
                 case 50796:
@@ -11006,11 +10998,37 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                     }
                     break;
             }
+            
+            /* PET'S COEFFICIENTS */
+            if(this->isPet())
+            {
+                if(Unit* owner = this->GetCharmerOrOwner())
+                {
+                    switch(spellProto->Id)
+                    {
+                        // Shadow Bite
+                        case 54049:
+                            DoneTotal += (float)owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC) * 0.614f;
 
-            // Shadow Bite (30% increase from each dot)
-            if (spellProto->SpellFamilyFlags[1] & 0x00400000 && isPet())
-                if (uint8 count = victim->GetDoTsByCaster(GetOwnerGUID()))
-                    AddPct(DoneTotalMod, 30 * count);
+                            // 30% increase from each dot
+                            if (uint8 count = victim->GetDoTsByCaster(GetOwnerGUID()))
+                                AddPct(DoneTotalMod, 30 * count);
+                            break;
+                        // Lash of Pain
+                        case 7814:
+                            DoneTotal += (float)owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC) * 0.306f;
+                            break;
+                        // Firebolt
+                        case 3110:
+                            DoneTotal += (float)owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC) * 0.1071f;
+                            break;
+                        // Doom Bolt
+                        case 85692:
+                            pdamage = CalculatePct(owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC), 90);
+                            break;
+                    }
+                }
+            }
 
             // Master Demonologist (Demonology Mastery)
             if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
@@ -12525,6 +12543,26 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                         if(spellProto->Id == 96103 || spellProto->Id == 85384)
                         {
                             AddPct(DoneTotalMod, 5.60 * player->GetMasteryPoints());
+                        }
+                    }
+                }
+                break;
+            case SPELLFAMILY_WARLOCK:
+                /* Felguard's coefficients */
+                if(this->isPet())
+                {
+                    if(Unit* owner = this->GetCharmerOrOwner())
+                    {
+                        switch(spellProto->Id)
+                        {
+                            // Felstorm
+                            case 89753:
+                                pdamage += (float)owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC) * 0.33f;
+                                break;
+                            // Legion Strike
+                            case 30213:
+                                pdamage += (float)owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC) * 0.264f;
+                                break;
                         }
                     }
                 }
