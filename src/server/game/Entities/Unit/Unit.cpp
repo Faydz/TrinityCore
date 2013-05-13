@@ -10851,8 +10851,13 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
         case SPELLFAMILY_MAGE:
             // Ice Lance
             if (spellProto->SpellIconID == 186)
+            {
                 if (victim->HasAuraState(AURA_STATE_FROZEN, spellProto, this))
                     DoneTotalMod *= 2.0f;
+                // Fingers of Frost increase Ice Lance damage by additional 25%
+                if (owner->HasAura(44544))
+                    DoneTotalMod *= 1.25f;
+            }
 
             // Frostburn - Frost Mastery
             if (owner->getClass() == CLASS_MAGE && victim->HasAuraState(AURA_STATE_FROZEN, spellProto, this))
