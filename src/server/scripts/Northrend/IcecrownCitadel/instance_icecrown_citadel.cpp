@@ -328,27 +328,69 @@ class instance_icecrown_citadel : public InstanceMapScript
                         SindragosasWardGUID = creature->GetGUID();
 						break;	
 					case NPC_GB_SKYBREAKER:
+						if (TeamInInstance != ALLIANCE)
+							creature->setFaction(14);
                         SkybreakerBossGUID = creature->GetGUID();
                         break;
                     case NPC_GB_ORGRIMS_HAMMER:
+						if (TeamInInstance == ALLIANCE)
+							creature->setFaction(14);
+						if (TeamInInstance != ALLIANCE)
+							creature->setFaction(35);
                         OrgrimmarBossGUID = creature->GetGUID();
                         break;
                     case NPC_GB_HIGH_OVERLORD_SAURFANG:
+						if (TeamInInstance == ALLIANCE)
+							creature->setFaction(14);
+						if (TeamInInstance != ALLIANCE)
+							creature->setFaction(35);
                         DeathbringerSaurfangGbGUID = creature->GetGUID();
                         break;
                     case NPC_GB_MURADIN_BRONZEBEARD:
+						if (TeamInInstance != ALLIANCE)
+							creature->setFaction(14);
                         MuradinBronzebeardGbGUID = creature->GetGUID();
                         break;
                     case NPC_GB_HIGH_OVERLORD_SAURFANG_NOT_VISUAL:
+						if (TeamInInstance == ALLIANCE)
+							creature->setFaction(14);
+						if (TeamInInstance != ALLIANCE)
+							creature->setFaction(35);
                         DeathbringerSaurfangNotVisualGUID = creature->GetGUID();
                         break;
                     case NPC_GB_MURADIN_BRONZEBEARD_NOT_VISUAL:
+						if (TeamInInstance != ALLIANCE)
+							creature->setFaction(14);
                         MuradinBronzebeardNotVisualGUID = creature->GetGUID();
                         break;
                     case NPC_GB_SKYBREAKER_SORCERERS:
+						if (TeamInInstance != ALLIANCE)
+							creature->setFaction(14);
                     case NPC_GB_KORKRON_BATTLE_MAGE:
+						if (TeamInInstance == ALLIANCE)
+							creature->setFaction(14);
+						if (TeamInInstance != ALLIANCE)
+							creature->setFaction(35);
                         GbBattleMageGUID = creature->GetGUID();
                         break;
+					case NPC_GB_HORDE_CANON:
+						if (TeamInInstance == ALLIANCE)
+							creature->setFaction(14);
+						if (TeamInInstance != ALLIANCE)
+							creature->setFaction(35);
+						break;
+					case NPC_GB_INVISIBLE_STALKER:
+						if (TeamInInstance == ALLIANCE)
+							creature->setFaction(14);
+						if (TeamInInstance != ALLIANCE)
+							creature->setFaction(35);
+						break;
+					case NPC_GB_HIHG_CAPTAIN_JUSTIN_BARTLETT:
+						if (TeamInInstance == ALLIANCE)
+							creature->setFaction(35);
+						if (TeamInInstance != ALLIANCE)
+							creature->setFaction(14);
+						break;
                     default:
                         break;
                 }
@@ -1355,20 +1397,6 @@ class instance_icecrown_citadel : public InstanceMapScript
                 {
                 if(TeamInInstance == ALLIANCE)
                 {
-					NPC_GB_HIGH_OVERLORD_SAURFANG->setFaction(14);
-					NPC_GB_GUNSHIP_HULL->setFaction(14);
-					NPC_GB_KORKRON_BATTLE_MAGE->setFaction(14);
-					NPC_GB_INVISIBLE_STALKER->setFaction(14);
-					NPC_GB_KORKRON_AXETHROWER->setFaction(14);
-					NPC_GB_KORKRON_ROCKETEER->setFaction(14);
-					NPC_GB_ORGRIMS_HAMMER->setFaction(14);
-					NPC_GB_SKYBREAKER->setFaction(35);
-					NPC_GB_MURADIN_BRONZEBEARD->setFaction(35);
-					NPC_GB_HIHG_CAPTAIN_JUSTIN_BARTLETT->setFaction(35);
-					NPC_GB_SKYBREAKER_DECKHAND->setFaction(35);
-					NPC_GB_ALLIANCE_CANON->setFaction(35);
-					NPC_GB_HIGH_OVERLORD_SAURFANG_NOT_VISUAL->setFaction(14);
-
                     if(th = sMapMgr->LoadTransportInMap(instance, GO_ORGRIM_S_HAMMER_ALLIANCE_ICC, 108000))
                     {
                         th->AddNPCPassengerInInstance(NPC_GB_ORGRIMS_HAMMER, 1.845810f, 1.268872f, 34.526218f, 1.5890f);
@@ -1463,18 +1491,6 @@ class instance_icecrown_citadel : public InstanceMapScript
 
                 if(TeamInInstance == HORDE)
                 {
-					NPC_GB_SKYBREAKER->setFaction(14);
-					NPC_GB_MURADIN_BRONZEBEARD->setFaction(14);
-					NPC_GB_HIHG_CAPTAIN_JUSTIN_BARTLETT->setFaction(14);
-					NPC_GB_SKYBREAKER_SORCERERS->setFaction(14);
-					NPC_GB_SKYBREAKER_RIFLEMAN->setFaction(14);
-					NPC_GB_SKYBREAKER_MORTAR_SOLDIER->setFaction(14);
-					NPC_GB_ORGRIMS_HAMMER->setFaction(35);
-					NPC_GB_HIGH_OVERLORD_SAURFANG->setFaction(35);
-					NPC_GB_MURADIN_BRONZEBEARD_NOT_VISUAL->setFaction(14);
-					NPC_GB_INVISIBLE_STALKER->setFaction(35);
-					NPC_GB_HORDE_CANON->setFaction(35);
-
                     if(t = sMapMgr->LoadTransportInMap(instance, GO_THE_SKYBREAKER_HORDE_ICC, 77800))
                     {
                         t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER, -17.156807f, -1.633260f, 20.81273f, 4.52672f);
