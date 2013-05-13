@@ -330,6 +330,8 @@ class instance_icecrown_citadel : public InstanceMapScript
 					case NPC_GB_SKYBREAKER:
 						if (TeamInInstance != ALLIANCE)
 							creature->setFaction(14);
+						if (TeamInInstance == ALLIANCE)
+							creature->setFaction(35);
                         SkybreakerBossGUID = creature->GetGUID();
                         break;
                     case NPC_GB_ORGRIMS_HAMMER:
@@ -349,6 +351,8 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case NPC_GB_MURADIN_BRONZEBEARD:
 						if (TeamInInstance != ALLIANCE)
 							creature->setFaction(14);
+						if (TeamInInstance == ALLIANCE)
+							creature->setFaction(35);
                         MuradinBronzebeardGbGUID = creature->GetGUID();
                         break;
                     case NPC_GB_HIGH_OVERLORD_SAURFANG_NOT_VISUAL:
@@ -361,11 +365,15 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case NPC_GB_MURADIN_BRONZEBEARD_NOT_VISUAL:
 						if (TeamInInstance != ALLIANCE)
 							creature->setFaction(14);
+						if (TeamInInstance == ALLIANCE)
+							creature->setFaction(35);
                         MuradinBronzebeardNotVisualGUID = creature->GetGUID();
                         break;
                     case NPC_GB_SKYBREAKER_SORCERERS:
 						if (TeamInInstance != ALLIANCE)
 							creature->setFaction(14);
+						if (TeamInInstance == ALLIANCE)
+							creature->setFaction(35);
                     case NPC_GB_KORKRON_BATTLE_MAGE:
 						if (TeamInInstance == ALLIANCE)
 							creature->setFaction(14);
