@@ -1526,9 +1526,9 @@ SpellCastResult SpellInfo::CheckLocation(uint32 map_id, uint32 zone_id, uint32 a
     // bg spell checks
     switch (Id)
     {
-        case 23333:                                         // Warsong Flag
-        case 23335:                                         // Silverwing Flag
-            return map_id == 489 && player && player->InBattleground() ? SPELL_CAST_OK : SPELL_FAILED_REQUIRES_AREA;
+        case 23333:                                         // Warsong Flag | TP:Alliance Flag
+        case 23335:                                         // Silverwing Flag | TP:Horde Flag
+            return (map_id == 489 || map_id == 726) && player && player->InBattleground() ? SPELL_CAST_OK : SPELL_FAILED_REQUIRES_AREA;
         case 34976:                                         // Netherstorm Flag
             return map_id == 566 && player && player->InBattleground() ? SPELL_CAST_OK : SPELL_FAILED_REQUIRES_AREA;
         case 2584:                                          // Waiting to Resurrect
@@ -2104,10 +2104,17 @@ SpellSpecificType SpellInfo::GetSpellSpecific() const
             // only hunter stings have this
             if (Dispel == DISPEL_POISON)
                 return SPELL_SPECIFIC_STING;
-
-            // only hunter aspects have this (but not all aspects in hunter family)
-            if (SpellFamilyFlags.HasFlag(0x00380000, 0x00440000, 0x00001010))
-                return SPELL_SPECIFIC_ASPECT;
+            
+            // Fix aspects with deterrence up
+            switch(Id)
+            {
+                case 13165: //Aspect of the Hawk
+                case 82661: //Aspect of the Fox
+                case 5118:  //Aspect of the Cheetah
+                case 13159: //Aspect of the Pack
+                case 20043: //Aspect of the Wild
+                    return SPELL_SPECIFIC_ASPECT;
+            }
 
             break;
         }

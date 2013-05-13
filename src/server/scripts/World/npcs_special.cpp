@@ -269,6 +269,92 @@ public:
 };
 
 /*######
+## npc_doomguard
+######*/
+
+enum DoomGuard
+{
+    DOOMGUARD_DOOM_BOLT              = 85692,
+    WARLOCK_BANE_OF_DOOM             = 603,
+    WARLOCK_BANE_OF_AGONY            = 980,
+};
+
+class npc_doomguard : public CreatureScript
+{
+public:
+    npc_doomguard() : CreatureScript("npc_doomguard") { }
+
+    struct npc_doomguardAI : PetAI
+    {
+        npc_doomguardAI(Creature* creature) : PetAI(creature) {}
+        
+        void InitializeAI()
+        {
+            me->SetPower(POWER_ENERGY, me->GetMaxPower(POWER_ENERGY));
+        }
+
+        void UpdateAI(uint32 /*diff*/)
+        {   
+            if(Unit* owner = me->GetOwner())
+            {
+                Unit* ownerVictim = owner->getVictim();
+                Unit* meVictim = isTargetable(me->getVictim()) ? me->getVictim() : NULL;
+
+                // Even if the target losts the banes
+                if(!meVictim)
+                {
+                    if(isTargetable(ownerVictim))
+                    {
+                        // Doomguard's target switching only when warlock cast bane of agony/doom on him
+                        meVictim = ownerVictim;
+                        
+                        me->Attack(meVictim, true);
+                        me->GetMotionMaster()->MoveChase(meVictim);
+                    }
+                    else
+                    {
+                        // Reset victim so it wont't cast spell to incorrect targets
+                        dummyGuard();
+                    }
+                }
+                
+                if(meVictim && !me->HasSpellCooldown(DOOMGUARD_DOOM_BOLT))
+                {
+                    DoCastVictim(DOOMGUARD_DOOM_BOLT);
+                }
+            }
+        }
+
+        // If the victim exists and has one of the banes
+        bool isTargetable(Unit* victim)
+        {
+            if(Unit* owner = me->GetOwner())
+            {
+                return victim && (victim->HasAura(WARLOCK_BANE_OF_DOOM, owner->GetGUID()) || victim->HasAura(WARLOCK_BANE_OF_AGONY, owner->GetGUID()));
+            }
+
+            return false;
+        }
+
+        // Puts the Doomguard in "dummy mode"
+        void dummyGuard()
+        {
+            if(Unit* owner = me->GetOwner())
+            {
+                me->SetReactState(REACT_PASSIVE);
+                me->GetMotionMaster()->Clear(false);
+                me->GetMotionMaster()->MoveFollow(owner, PET_FOLLOW_DIST *2, me->GetFollowAngle());
+            }
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_doomguardAI(creature);
+    }
+};
+
+/*######
 ## npc_dancing_rune_weapon
 ######*/
 
@@ -304,7 +390,7 @@ public:
                 Unit* ownerVictim = owner->getVictim();
                 Unit* meVictim = me->getVictim();
 
-                // Rune Weapon's target switching only when paladin switch
+                // Rune Weapon's target switching only when DK switches
                 if(ownerVictim != meVictim)
                 {
                     meVictim = ownerVictim;
@@ -344,23 +430,33 @@ public:
     {
         npc_blood_parasiteAI(Creature* creature) : PetAI(creature) {}
         
+        void InitializeAI()
+        {
+            maxHealth = me->GetMaxHealth();
+        }
+
         void UpdateAI(uint32 /*diff*/)
         {   
-            Unit* owner = me->GetOwner();
-            bloodGorged = me->GetAura(BLOODWORM_BLOOD_GORGED_BUFF, me->GetGUID());
+            if(Aura* aura = me->GetAura(BLOODWORM_BLOOD_GORGED_BUFF, me->GetGUID()))
+            {
+                bloodGorgedStacks = aura->GetStackAmount();
+            }
 
-            if(owner)
+            if(Unit* owner = me->GetOwner())
             {
                 Unit* ownerVictim = owner->getVictim();
                 Unit* meVictim = me->getVictim();
 
-                // Worm's target switching only when paladin switch
-                if(ownerVictim != meVictim)
+                if(ownerVictim)
                 {
-                    meVictim = ownerVictim;
+                    // Worm's target switching only when DK switches
+                    if(ownerVictim != meVictim)
+                    {
+                        meVictim = ownerVictim;
                         
-                    me->Attack(meVictim, true);
-                    me->GetMotionMaster()->MoveChase(meVictim);
+                        me->Attack(meVictim, true);
+                        me->GetMotionMaster()->MoveChase(meVictim);
+                    }
                 }
             }
 
@@ -369,20 +465,21 @@ public:
 
         void JustDied(Unit* /*killer*/)
         {
-            Unit* owner = me->GetOwner();
-
-            if (!owner || !bloodGorged)
+            if(Unit* owner = me->GetOwner())
             {
-                return;
+                if (!owner || !bloodGorgedStacks || !maxHealth)
+                {
+                    return;
+                }
+
+				int32 bp0 = CalculatePct(maxHealth, bloodGorgedStacks * 10);
+				me->CastCustomSpell(owner, BLOODWORM_BLOOD_GORGED_HEAL, &bp0, NULL, NULL, true);
             }
-
-            int32 bp0 = CalculatePct(me->GetMaxHealth(), bloodGorged->GetStackAmount() * 10);
-
-            me->CastCustomSpell(owner, BLOODWORM_BLOOD_GORGED_HEAL, &bp0, NULL, NULL, true);
         }
 
     private:
-        Aura* bloodGorged;
+        uint32 maxHealth;
+        uint8 bloodGorgedStacks;
     };
 
     CreatureAI* GetAI(Creature* creature) const
@@ -3418,6 +3515,19 @@ public:
                    targetGuid = target->GetGUID();
                }
            }
+
+           if (Unit * owner = me->GetOwner())
+           {
+               if (Unit* target = owner->getAttackerForHelper())
+               {
+                   if (me->IsWithinDistInMap(target, 2.0f))
+                   {
+                       me->CastSpell(target, 87532, false ,0, 0, owner->GetGUID());
+                       me->CastSpell(me, 87427, false);
+                       me->DespawnOrUnsummon();
+                   }
+               }
+           }
        }
 
     };
@@ -3475,21 +3585,29 @@ public:
                 me->SetLevel(summoner->getLevel());
                 ownerOrientation = summoner->GetOrientation();
                 me->NearTeleportTo(summoner->GetPositionX(), summoner->GetPositionY(), (summoner->GetPositionZ() +2), ownerOrientation, true);
+                // Eliminiamo tutti i movimenti caricati a priori per la creatura, poi andiamo ad applicare il nuovo motionmaster
+                me->GetMotionMaster()->Clear();
                 me->GetMotionMaster()->MovePoint(0, me->GetPositionX() + 120 / 2 * cos(ownerOrientation), me->GetPositionY() + 120 / 2 * sin(ownerOrientation), (me->GetPositionZ()+2));
+
                 //the frostfire orb talent will change the damage spell of the orb
-                if (AuraEffect* frostfire =summoner->GetAuraEffect(SPELL_AURA_OVERRIDE_ACTIONBAR_SPELLS, SPELLFAMILY_MAGE, 4650, EFFECT_1)){
+                if (AuraEffect* frostfire = summoner->GetAuraEffect(SPELL_AURA_OVERRIDE_ACTIONBAR_SPELLS, SPELLFAMILY_MAGE, 4650, EFFECT_1))
+                {
                     damagespellid = 95969;
                     if (frostfire->GetId() == 84727)
                         damagespellid = 84721;
                 }
+
                 //this will choose if the flame orb will explode because of the talent fire power
-                if(AuraEffect* firepower =summoner->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_MAGE, 31, EFFECT_0)){
-                    if (firepower->GetId() == 18460 && roll_chance_i(33))
-                        explo = false;
-                    else if (firepower->GetId() == 18459 && roll_chance_i(66))
-                        explo = false;
-                    else
+                if(AuraEffect* firepower =summoner->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_MAGE, 31, EFFECT_0))
+                {
+                    if (firepower->GetId() == 18459 && roll_chance_i(33))
                         explo = true;
+                    else if (firepower->GetId() == 18460 && roll_chance_i(66))
+                        explo = true;
+                    else if (firepower->GetId() == 54734)
+                        explo = true;
+                    else
+                        explo = false;
                 }
             }
         }
@@ -3498,20 +3616,22 @@ public:
         {
             if (checkTimer <= diff)
             {
-                if (me->isInCombat() && !combat){
+                if (me->isInCombat() && !combat)
                     me->AddAura(82736, me);
-                }
+
                 checkTimer = 500;
             }
             else
                 checkTimer -= diff;
 
-            if (damageTimer <= diff){
+            if (damageTimer <= diff)
+            {
                 Unit* target = me->SelectNearestTarget(20);
                 Unit* oldtarget = target;
                 if (target && target->HasAuraTypeWithFamilyFlags(SPELL_AURA_MOD_CONFUSE,SPELLFAMILY_MAGE, 0x01000000))
-                    {
+                {
                     Aura* poly = NULL;
+
                     if (target->HasAura(118))            //polymorph sheep
                         poly = target->GetAura(118);
                     else if (target->HasAura(28272))     //polymorph pig
@@ -3525,99 +3645,97 @@ public:
                     else if (target->HasAura(61780))     //polymorph turkey
                         poly = target->GetAura(61780);
 
-                    if (poly != NULL && me->GetOwner() && poly->GetCasterGUID() == me->GetOwner()->GetGUID()){
+                    if (poly != NULL && me->GetOwner() && poly->GetCasterGUID() == me->GetOwner()->GetGUID())
                         target = me->SelectNearbyTarget(oldtarget, 20);
-                    }
                 }
-                if(target){
-                    if (me->GetOwner() && target){
+
+                if(target)
+                {
+                    // Workaround onde evitare che l'orb entri nelle mura e despawni prematuramente
+                    if (me->IsWithinMeleeRange(target))
+                        me->GetMotionMaster()->Clear();
+
+                    if (me->GetOwner() && target)
+                    {
                         me->CastSpell(target, damagespellid, me, 0, 0, me->GetOwner()->GetGUID());
                         me->CastSpell(target, visualspellid);
                     }
-                    else{
+                    else
+                    {
                         me->CastSpell(target, damagespellid);
                         me->CastSpell(target, visualspellid);
                     }
                 }
+
                 damageTimer = 1000; 
             }
             else
                 damageTimer-= diff;
 
-            if (despawnTimer <=diff){
-                if (explo && me->GetOwner()){
+            if (despawnTimer <= diff)
+            {
+                if (explo && me->GetOwner())
+                {
                     Unit* target = me->SelectNearestTarget(20);
+
                     if (target)
                         me->CastSpell(target, 83619, me, 0, 0, me->GetOwner()->GetGUID());
                 }
-                me->DisappearAndDie();
+
+                me->DisappearAndDie();                
             }
+
             else
                 despawnTimer -=diff;
         }
-        
     };
+
         CreatureAI* GetAI(Creature* creature) const
         {
             return new npc_flaming_orbAI(creature);
         }
 };
 
-class npc_ring_of_frost: public CreatureScript {
+class npc_ring_of_frost: public CreatureScript
+{
 public:
-	npc_ring_of_frost() :
-			CreatureScript("npc_ring_of_frost") {
-	}
+	npc_ring_of_frost() : CreatureScript("npc_ring_of_frost")
+    { }
 
-	struct npc_ring_of_frostAI: public ScriptedAI {
-		npc_ring_of_frostAI(Creature *c) :
-				ScriptedAI(c) {
-		}
+	struct npc_ring_of_frostAI: public ScriptedAI 
+    {
+		npc_ring_of_frostAI(Creature *c) : ScriptedAI(c)
+        { }
+
 		bool Isready;
 		uint32 timer;
 
-		void Reset() {
+		void Reset() 
+        {
 			timer = 3000; // 3sec
 			Isready = false;
 		}
 
-		void InitializeAI() {
+		void InitializeAI()
+        {
 			ScriptedAI::InitializeAI();
 			Unit * owner = me->GetOwner();
+
 			if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
 				return;
 
 			me->SetReactState(REACT_PASSIVE);
 			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-
-			// Remove other ring spawned by the player
-			//Cell pair(Trinity::ComputeCellPair(owner->GetPositionX(),owner->GetPositionY()));
-			//Cell cell(pair);
-			//cell.data.Part.reserved = ALL_DISTRICT;
-			//cell.SetNoCreate();
-            
-            /*std::list<Creature*> templist;
-			Trinity::AllCreaturesOfEntryInRange check(owner, me->GetEntry(), 50.0f);
-			Trinity::CreatureListSearcher<Trinity::AllCreaturesOfEntryInRange> searcher(owner, templist, check);
-
-			TypeContainerVisitor<Trinity::CreatureListSearcher<Trinity::AllCreaturesOfEntryInRange>,
-					GridTypeMapContainer> visitor(searcher);
-			//cell.Visit(pair, visitor, *(owner->GetMap()));
-
-			if (!templist.empty())
-				for (std::list<Creature*>::const_iterator itr =
-						templist.begin(); itr != templist.end(); ++itr)
-					if ((*itr)->GetOwner() == me->GetOwner() && *itr != me)
-						(*itr)->DisappearAndDie();
-			templist.clear();*/
 		}
 
-		void EnterEvadeMode() {
+		void EnterEvadeMode() 
+        {
 			return;
 		}
 
-		void CheckIfMoveInRing(Unit *who) {
+		void CheckIfMoveInRing(Unit *who)
+        {
 			if (who->isAlive() && me->IsInRange(who, 2.0f, 4.7f)
 					&& !who->HasAura(82691)/*<= target already frozen*/
 					&& !who->HasAura(91264)/*<= target is immune*/
@@ -3625,9 +3743,12 @@ public:
 				me->CastSpell(who, 82691, true);
 		}
 
-		void UpdateAI(uint32 diff) {
-			if (timer <= diff) {
-				if (!Isready) {
+		void UpdateAI(uint32 diff)
+        {
+			if (timer <= diff) 
+            {
+				if (!Isready)
+                {
 					Isready = true;
 					timer = 9000; // 9sec
 				} else
@@ -3640,8 +3761,7 @@ public:
 			Trinity::AnyUnfriendlyUnitInObjectRangeCheck u_check(me, me, 5.0f);
 			Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, u_check);
 			me->VisitNearbyObject(5.0f, searcher);
-			for (std::list<Unit*>::const_iterator iter = targets.begin();
-					iter != targets.end(); ++iter)
+			for (std::list<Unit*>::const_iterator iter = targets.begin(); iter != targets.end(); ++iter)
 				CheckIfMoveInRing(*iter);
 		}
 	};
@@ -3654,6 +3774,7 @@ public:
 void AddSC_npcs_special()
 {
     new npc_air_force_bots();
+    new npc_doomguard();
     new npc_dancing_rune_weapon();
     new npc_blood_parasite();
     new npc_force_of_nature();

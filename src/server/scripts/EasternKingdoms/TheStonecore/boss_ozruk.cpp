@@ -61,7 +61,7 @@ class boss_ozruk: public CreatureScript
             events.ScheduleEvent(EVENT_ELEMENTIUM_BULWARK, urand(10000, 15000), 0, 0); 
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;

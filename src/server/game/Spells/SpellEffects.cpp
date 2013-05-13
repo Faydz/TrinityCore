@@ -407,6 +407,17 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             case SPELLFAMILY_WARLOCK:
                 switch (m_spellInfo->Id)
                 {
+					// Searing Pain
+					case 5676:
+						// Soulburn: Searing Pain check
+                        if(m_caster)
+                        {
+							if(m_caster->HasAura(74434))
+							{
+								m_caster->CastSpell(m_caster, 79440, true);
+							}
+						}
+						break;
                     // Firebolt (basic attack)
                     case 3110:
                         if(m_caster && m_caster->isPet() && m_caster->ToPet()->GetOwner())
@@ -590,7 +601,7 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 if (m_caster->GetTypeId() == TYPEID_PLAYER && (m_spellInfo->SpellFamilyFlags[0] & 0x000800000) && m_spellInfo->SpellVisual[0] == 6587)
                 {
                     // AP coefficient
-                    damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.196f * m_caster->ToPlayer()->GetComboPoints());
+                    damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.109f * m_caster->ToPlayer()->GetComboPoints());
                     // converts each extra point of energy ( up to 25 energy ) into additional damage
                     int32 energy = -(m_caster->ModifyPower(POWER_ENERGY, -25));
                     // 25 energy = 100% more damage
@@ -656,32 +667,6 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                             // Eviscerate and Envenom Bonus Damage (item set effect)
                             if (m_caster->HasAura(37169))
                                 damage += combo * 40;
-                        }
-                    }
-                }
-                // Eviscerate
-                else if (m_spellInfo->SpellFamilyFlags[0] & 0x00020000)
-                {
-                    if (m_caster->GetTypeId() == TYPEID_PLAYER)
-                    {
-                        if (uint32 combo = ((Player*)m_caster)->GetComboPoints())
-                        {
-                            float ap = m_caster->GetTotalAttackPowerValue(BASE_ATTACK);
-                            damage += irand(int32(ap * combo * 0.03f), int32(ap * combo * 0.07f));
-
-                            // Eviscerate and Envenom Bonus Damage (item set effect)
-                            if (m_caster->HasAura(37169))
-                                damage += combo*40;
-                        }
-                    }
-
-                    // Serrated Blades
-                    if (unitTarget->HasAura(1943))
-                    {
-                        if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_ROGUE, 2004, 0))
-                        {
-                            if (roll_chance_i(aurEff->GetAmount()))
-                                unitTarget->GetAura(1943)->RefreshDuration();
                         }
                     }
                 }
@@ -3597,7 +3582,7 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             // Blood-Caked Strike - Blood-Caked Blade
             if (m_spellInfo->SpellIconID == 1736)
             {
-                AddPct(totalDamagePercentMod, unitTarget->GetDiseasesByCaster(m_caster->GetGUID()) * 12.5f);
+                AddPct(totalDamagePercentMod, unitTarget->GetDiseasesByCaster(m_caster->GetGUID()) * 50.0f);
                 break;
             }
             // Heart Strike
@@ -3610,6 +3595,12 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
 
                 AddPct(totalDamagePercentMod, bonusPct);
                 break;
+            }
+            case SPELLFAMILY_PALADIN:
+            {
+                // Crusader Strike
+                if (m_spellInfo->SpellIconID == 2309)
+                   spell_bonus = int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK)*0.319f);
             }
             break;
         }
@@ -6133,6 +6124,11 @@ void Spell::EffectCreateTamedPet(SpellEffIndex effIndex)
     Pet* pet = unitTarget->CreateTamedPetFrom(creatureEntry, m_spellInfo->Id);
     if (!pet)
         return;
+
+    // relocate
+    float px, py, pz;
+    unitTarget->GetClosePoint(px, py, pz, pet->GetObjectSize(), PET_FOLLOW_DIST, pet->GetFollowAngle());
+    pet->Relocate(px, py, pz, unitTarget->GetOrientation());
 
     // add to world
     pet->GetMap()->AddToMap(pet->ToCreature());

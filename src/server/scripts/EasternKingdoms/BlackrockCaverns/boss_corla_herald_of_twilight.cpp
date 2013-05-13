@@ -162,7 +162,7 @@ public:
 			me->MonsterYell("HERETICS! You will suffer for this interruption!", LANG_UNIVERSAL, NULL);
 		}
 
-		void UpdateAI(const uint32 diff)
+		void UpdateAI(uint32 diff)
 		{
 			if (!UpdateVictim())
 				return;
@@ -232,7 +232,7 @@ public:
 			me->SetReactState(REACT_PASSIVE);
 		}
 
-        void UpdateAI(const uint32 Diff)
+        void UpdateAI(uint32 Diff)
         {
 			if(!Intialized && !me->HasAura(SPELL_KNEELING_IN_SUPPLICATION))
 			{
@@ -319,7 +319,7 @@ public:
 			me->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_DISABLE_MOVE | UNIT_FLAG_NOT_SELECTABLE);
 		}
 
-		void UpdateAI(const uint32 diff)
+		void UpdateAI(uint32 diff)
 		{
 			if (channelTarget == NULL/* || lastTarget == NULL */|| zealot == NULL)
 				return;
@@ -373,7 +373,7 @@ public:
 			zealot = summoner;
 		}
 
-		void DoAction(const int32 action)
+		void DoAction(int32 action)
 		{
 			switch(action)
 			{

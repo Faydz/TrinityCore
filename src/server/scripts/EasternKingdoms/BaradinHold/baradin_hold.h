@@ -44,4 +44,11 @@ enum Data
     DATA_ALIZABAL   = 3,
 };
 
+enum DataEvents
+{
+    DATA_ARGALOTH_EVENT,
+    DATA_OCCUTHAR_EVENT,
+    DATA_ALIZABAL_EVENT
+};
+
 #endif

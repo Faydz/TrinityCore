@@ -58,7 +58,7 @@ public:
                 pInstance->SetData(DATA_COMMANDER_ULTHOK_EVENT, IN_PROGRESS);
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -136,7 +136,7 @@ class npc_fissure : public CreatureScript
 				me->AddAura(SPELL_DARK_FISSURE_AURA, me);
 			}
 
-			void UpdateAI(const uint32 diff)
+			void UpdateAI(uint32 diff)
 			{
                 if (!UpdateVictim())
                     return;

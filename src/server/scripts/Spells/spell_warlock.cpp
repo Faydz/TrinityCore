@@ -43,17 +43,17 @@ enum WarlockSpells
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER     = 54509,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS      = 54435,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER    = 54443,
-    SPELL_WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE        = 89653,
     SPELL_WARLOCK_DEMON_SOUL_IMP                    = 79459,
     SPELL_WARLOCK_DEMON_SOUL_FELHUNTER              = 79460,
-    SPELL_WARLOCK_DEMON_SOUL_FELGUARD               = 79452,
-    SPELL_WARLOCK_DEMON_SOUL_SUCCUBUS               = 79453,
-    SPELL_WARLOCK_DEMON_SOUL_VOIDWALKER             = 79454,
+    SPELL_WARLOCK_DEMON_SOUL_FELGUARD               = 79462,
+    SPELL_WARLOCK_DEMON_SOUL_SUCCUBUS               = 79463,
+    SPELL_WARLOCK_DEMON_SOUL_VOIDWALKER             = 79464,
+    SPELL_WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE        = 89653,
+    SPELL_WARLOCK_HAND_OF_GUL_DAN_AURA              = 86000,
+    SPELL_WARLOCK_HAND_OF_GUL_DAN_GRAPHIC           = 85526,
     SPELL_WARLOCK_HAUNT                             = 48181,
     SPELL_WARLOCK_HAUNT_HEAL                        = 48210,
     SPELL_WARLOCK_IMMOLATE                          = 348,
-    SPELL_WARLOCK_HAND_OF_GUL_DAN_AURA              = 86000,
-    SPELL_WARLOCK_HAND_OF_GUL_DAN_GRAPHIC           = 85526,
     SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1         = 18703,
     SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R2         = 18704,
     SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1    = 60955,
@@ -68,16 +68,19 @@ enum WarlockSpells
     SPELL_WARLOCK_NETHER_WARD_TALENT                = 91713,
     SPELL_WARLOCK_SHADOW_WARD                       = 6229,
     SPELL_WARLOCK_SIPHON_LIFE_HEAL                  = 63106,
-    SPELL_WARLOCK_SOULSHATTER                       = 32835,
     SPELL_WARLOCK_SOUL_SHARD_ENERGIZE               = 87388,
     SPELL_WARLOCK_SOUL_SWAP_COOLDOWN                = 94229,
     SPELL_WARLOCK_SOUL_SWAP_GLYPH                   = 56226,
     SPELL_WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT          = 92795,
     SPELL_WARLOCK_SOUL_SWAP_SAVE_DOTS               = 86211,
     SPELL_WARLOCK_SOULBURN                          = 74434,
+    SPELL_WARLOCK_SOULBURN_DEMONIC_CIRCLE			= 79438,
+    SPELL_WARLOCK_SOULSHATTER                       = 32835,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION               = 30108,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117,
 };
+
+bool _SeedOfCorruptionFlag = false;
 
 // 71521 spell_warl_Hand_of_Guldan
 class spell_warl_hand_of_guldan: public SpellScriptLoader 
@@ -609,8 +612,25 @@ class spell_warl_conflagrate : public SpellScriptLoader
 
             void HandleHit(SpellEffIndex /*effIndex*/)
             {
-                if (AuraEffect const* aurEff = GetHitUnit()->GetAuraEffect(SPELL_WARLOCK_IMMOLATE, EFFECT_2, GetCaster()->GetGUID()))
-                    SetHitDamage(CalculatePct(aurEff->GetAmount(), GetSpellInfo()->Effects[EFFECT_1].CalcValue(GetCaster())));
+                Unit* caster = GetCaster();
+                Unit* target = GetHitUnit();
+
+                if(caster && target)
+                {
+                    if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_WARLOCK_IMMOLATE, EFFECT_2, caster->GetGUID()))
+                    {
+                        if(aurEff->GetBase())
+                        {
+                            int32 immolateTotalDamage;
+                            int32 singleDotDamage = aurEff->GetAmount();
+                            uint32 baseTotalTicks = aurEff->GetBase()->GetMaxDuration();
+                            
+                            singleDotDamage = caster->SpellDamageBonusDone(target, aurEff->GetSpellInfo(), singleDotDamage, DOT, aurEff->GetBase()->GetStackAmount());
+                            immolateTotalDamage = singleDotDamage * int32(baseTotalTicks / aurEff->GetAmplitude());
+                            SetHitDamage(CalculatePct(immolateTotalDamage, 60.0f));
+                        }
+                    }
+                }
             }
 
             void Register()
@@ -677,6 +697,7 @@ class spell_warl_seed_of_corruption_dot : public SpellScriptLoader
                     //Checks for soulburn buff and soulburn: Seed of Corruption talent
                     if(caster->HasAura(SPELL_WARLOCK_SOULBURN) && caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 1932, 0))
                     {
+                        _SeedOfCorruptionFlag = true;
                         caster->RemoveAurasDueToSpell(SPELL_WARLOCK_SOULBURN);
                     }
                 }
@@ -853,6 +874,12 @@ class spell_warl_demonic_circle_teleport : public SpellScriptLoader
                     {
                         player->NearTeleportTo(circle->GetPositionX(), circle->GetPositionY(), circle->GetPositionZ(), circle->GetOrientation());
                         player->RemoveMovementImpairingAuras();
+						
+						// Soulburn: Demonic Circle check
+						if(player->HasAura(SPELL_WARLOCK_SOULBURN))
+						{
+							player->CastSpell(player, SPELL_WARLOCK_SOULBURN_DEMONIC_CIRCLE, true);
+						}
                     }
                 }
             }
@@ -1268,6 +1295,30 @@ class spell_warl_seed_of_corruption : public SpellScriptLoader
 
             void FilterTargets(std::list<WorldObject*>& targets)
             {
+                if(Unit* caster = GetCaster())
+                {
+                    if(_SeedOfCorruptionFlag)
+                    {
+                        //Resets the flag for the next SoC without soulburn
+                        _SeedOfCorruptionFlag = false;
+
+                        //The detonation is successful, soul shard is refund
+                        caster->CastSpell(caster, SPELL_WARLOCK_SOUL_SHARD_ENERGIZE, true);
+
+                        //All target of the seed of corruption detonation are affected by corruption
+                        for (std::list<WorldObject*>::iterator iter = targets.begin(); iter != targets.end(); ++iter)
+                        {
+                            if ((*iter))
+                            {
+                                if (Unit* unit = (*iter)->ToUnit())
+                                {
+                                    caster->CastSpell(unit, SPELL_WARLOCK_CORRUPTION, true);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (GetExplTargetUnit())
                     targets.remove(GetExplTargetUnit());
             }

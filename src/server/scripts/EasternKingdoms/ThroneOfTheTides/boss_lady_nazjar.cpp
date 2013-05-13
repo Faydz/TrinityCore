@@ -150,7 +150,7 @@ public:
                 pInstance->SetData(DATA_LADY_NAZJAR_EVENT, DONE);
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -276,7 +276,7 @@ class npc_waterspout_trigger : public CreatureScript
                 me->AddAura(SPELL_GEYZER_AURA, me);
             }
 
-            void UpdateAI(const uint32 diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                     return;

@@ -456,8 +456,8 @@ class spell_pal_communion : public SpellScriptLoader
 
                 if (Unit* caster = GetCaster())
                 {
-                    if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_PALADIN, 3017, EFFECT_1))
-                        amount = aurEff->GetAmount();
+                    if(caster->HasAura(31876))
+                        amount = 3;
                 }       
             }
 
@@ -1759,6 +1759,9 @@ class spell_pal_templar_s_verdict : public SpellScriptLoader
                 if(!caster)
                     return;
 
+                // (((AP/14) * Weaponspeed) + Weapon damage) * 30% = (AP/14) * Weaponspeed) * 30% + (Weapon damage * 30%)
+                damage += int32((caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.07f * caster->GetAttackTime(BASE_ATTACK)/1000)*0.3f);
+                
                 if (caster->HasAura(SPELL_PALADIN_DIVINE_PURPOSE_PROC))
                 {
                     caster->RemoveAurasDueToSpell(SPELL_PALADIN_DIVINE_PURPOSE_PROC);
@@ -1916,4 +1919,5 @@ void AddSC_paladin_spell_scripts()
     new spell_pal_templar_s_verdict();
     new spell_pal_seal_of_righteousness_aoe_check();
     new spell_pal_seal_of_righteousness();
+    new spell_pal_grand_crusader();
 }

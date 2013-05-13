@@ -1177,6 +1177,24 @@ enum TrinityStrings
     LANG_BG_SA_H_GY_WEST                    = 10072, //The Horde captured the West Graveyard!
     LANG_BG_SA_H_GY_EAST                    = 10073, //The Horde captured the East Graveyard!
 
+    /// Twin Peaks
+    LANG_BG_TP_START_TWO_MINUTES            = 10074,
+    LANG_BG_TP_START_ONE_MINUTE             = 10075,
+    LANG_BG_TP_START_HALF_MINUTE            = 10076,
+    LANG_BG_TP_HAS_BEGUN                    = 10077,
+
+    LANG_BG_TP_CAPTURED_HF                  = 10078,
+    LANG_BG_TP_CAPTURED_AF                  = 10079,
+    LANG_BG_TP_DROPPED_HF                   = 10080,
+    LANG_BG_TP_DROPPED_AF                   = 10081,
+    LANG_BG_TP_RETURNED_AF                  = 10082,
+    LANG_BG_TP_RETURNED_HF                  = 10083,
+    LANG_BG_TP_PICKEDUP_HF                  = 10084,
+    LANG_BG_TP_PICKEDUP_AF                  = 10085,
+    LANG_BG_TP_F_PLACED                     = 10086,
+    LANG_BG_TP_ALLIANCE_FLAG_RESPAWNED      = 10087,
+    LANG_BG_TP_HORDE_FLAG_RESPAWNED         = 10088,
+
     // Use for custom patches             11000-11999
     LANG_AUTO_BROADCAST                 = 11000,
     LANG_INVALID_REALMID                = 11001,

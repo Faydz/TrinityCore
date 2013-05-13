@@ -322,7 +322,7 @@ pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS]=
     &AuraEffect::HandlePhase,                                     //261 SPELL_AURA_PHASE
     &AuraEffect::HandleNoImmediateEffect,                         //262 SPELL_AURA_ABILITY_IGNORE_AURASTATE implemented in spell::cancast
     &AuraEffect::HandleAuraAllowOnlyAbility,                      //263 SPELL_AURA_ALLOW_ONLY_ABILITY player can use only abilities set in SpellClassMask
-    &AuraEffect::HandleUnused,                                    //264 unused (3.2.0)
+    &AuraEffect::HandleAuraDeterrence,                            //264 SPELL_AURA_264 (4.3.4)
     &AuraEffect::HandleUnused,                                    //265 unused (4.3.4)
     &AuraEffect::HandleUnused,                                    //266 unused (4.3.4)
     &AuraEffect::HandleNoImmediateEffect,                         //267 SPELL_AURA_MOD_IMMUNE_AURA_APPLY_SCHOOL         implemented in Unit::IsImmunedToSpellEffect
@@ -473,10 +473,15 @@ void AuraEffect::GetApplicationList(std::list<AuraApplication*> & applicationLis
 int32 AuraEffect::CalculateAmount(Unit* caster)
 {
     // default amount calculation
-    int32 amount = m_spellInfo->Effects[m_effIndex].CalcValue(caster, &m_baseAmount, GetBase()->GetOwner()->ToUnit());
+	int32 amount = 0;
+    if (this){
+	    if(GetBase() && GetBase()->GetOwner() && GetBase()->GetOwner()->ToUnit()){
+		    amount = m_spellInfo->Effects[m_effIndex].CalcValue(caster, &m_baseAmount, GetBase()->GetOwner()->ToUnit());
+        }
+    }
 
     // check item enchant aura cast
-    if (!amount && caster)
+    if (!amount && caster && GetBase())
         if (uint64 itemGUID = GetBase()->GetCastItemGUID())
             if (Player* playerCaster = caster->ToPlayer())
                 if (Item* castItem = playerCaster->GetItemByGuid(itemGUID))
@@ -2035,6 +2040,18 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
             case FORM_BEAR:
             case FORM_FLIGHT_EPIC:
             case FORM_FLIGHT:
+            {
+                if(target->HasAura(96429))
+                    // remove movement affects
+                    target->RemoveMovementImpairingAuras();
+                else
+                    target->RemoveAurasWithMechanic(1 << MECHANIC_SNARE);
+
+                // and polymorphic affects
+                if (target->IsPolymorphed())
+                    target->RemoveAurasDueToSpell(target->getTransForm());
+                break;
+            }
             case FORM_MOONKIN:
             {
                 // remove movement affects
@@ -2050,7 +2067,9 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
         }
 
         // remove other shapeshift before applying a new one
-        target->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT, 0, GetBase());
+		// except when shadow dance
+		if(!target->HasAura(51713))
+			target->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT, 0, GetBase());
 
         // stop handling the effect if it was removed by linked event
         if (aurApp->GetRemoveMode())
@@ -2117,8 +2136,11 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
             if (target->getClass() == CLASS_DRUID)
             {
                 target->setPowerType(POWER_MANA);
-                // Remove movement impairing effects also when shifting out
-                target->RemoveMovementImpairingAuras();
+                if(target->HasAura(96429))
+                    // Remove movement impairing effects also when shifting out
+                    target->RemoveMovementImpairingAuras();
+                else
+                    target->RemoveAurasWithMechanic(1 << MECHANIC_SNARE);
             }
         }
 
@@ -2486,6 +2508,28 @@ void AuraEffect::HandleAuraCloneCaster(AuraApplication const* aurApp, uint8 mode
 /************************/
 /***      FIGHT       ***/
 /************************/
+
+void AuraEffect::HandleAuraDeterrence(AuraApplication const* aurApp, uint8 mode, bool apply) const
+{
+    if (!(mode & AURA_EFFECT_HANDLE_REAL))
+        return;
+
+    Unit* target = aurApp->GetTarget();
+
+    if (!target || target->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (apply)
+    {
+        // Ranged deflect
+        target->CastSpell(target, 67801, true);
+        
+        // Damage Reduction
+        target->CastSpell(target, 114406, true);
+    }
+
+    HandleAuraModPacify(aurApp, mode, apply);
+}
 
 void AuraEffect::HandleFeignDeath(AuraApplication const* aurApp, uint8 mode, bool apply) const
 {
@@ -4151,12 +4195,15 @@ void AuraEffect::HandleAuraOverrideSpellpowerByAPPercent(AuraApplication const* 
         return;
 
     Unit* target = aurApp->GetTarget();
-
-
+    Player* player = target->ToPlayer();
+    
     if (target->GetTypeId() != TYPEID_PLAYER && target->ToPlayer()->getClass() != CLASS_SHAMAN)
         return;
 
-    // Recalculate bonus
+    // Calculates mod
+    int32 auraModifier = player->GetTotalAuraModifier(SPELL_AURA_OVERRIDE_SPELL_POWER_BY_AP_PCT);
+
+    player->SetFloatValue(PLAYER_FIELD_OVERRIDE_SPELL_POWER_BY_AP_PCT, (float)auraModifier);
     target->ToPlayer()->UpdateSpellDamageAndHealingBonus();
 }
 
@@ -6498,11 +6545,6 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
                         break;
                 }
                 break;
-            case SPELLFAMILY_DEATHKNIGHT:
-                switch (GetId())
-                {
-                }
-                break;
             case SPELLFAMILY_MAGE:
                 switch (GetId())
                 {
@@ -6728,12 +6770,26 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
         
         switch (m_spellInfo->SpellFamilyName)
         {
+            case SPELLFAMILY_WARLOCK:
+                switch(m_spellInfo->Id)
+                {
+                    // Soul Harvest
+                    case 79268:
+                        {
+                            float tickPct = 45.0f / (float)GetTotalTicks();
+                        
+                            damage += CalculatePct(caster->GetMaxHealth(), tickPct);
+                        }
+                        break;
+                }
+                break;
             case SPELLFAMILY_WARRIOR:
                 switch (GetId())
                 {
+                    // Blood Craze
                     case 16488: 
                     case 16490: 
-                    case 16491: // Blood Craze
+                    case 16491:
                         damage = (caster->CountPctFromMaxHealth(GetAmount()) / (GetBase()->GetMaxDuration() / IN_MILLISECONDS)) / 2;
                         break;
                 }

@@ -168,7 +168,7 @@ class boss_anraphet : public CreatureScript
                 DoCast(SPELL_DESTRUCTION_PROTOCOL);
             }
 
-            void UpdateAI(uint32 const diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                    return;
@@ -270,7 +270,7 @@ class boss_flame_warden : public CreatureScript
                     instance->SetData(DATA_FLAME_WARDEN, IN_PROGRESS);
             }
 
-            void UpdateAI(uint32 const diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                     return;
@@ -338,7 +338,7 @@ class boss_air_warden : public CreatureScript
                     instance->SetData(DATA_AIR_WARDEN, IN_PROGRESS);
             }
 
-            void UpdateAI(uint32 const diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                     return;
@@ -401,7 +401,7 @@ class boss_earth_warden : public CreatureScript
                     instance->SetData(DATA_EARTH_WARDEN, IN_PROGRESS);
             }
 
-            void UpdateAI(uint32 const diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                     return;
@@ -469,7 +469,7 @@ class boss_water_warden : public CreatureScript
                     instance->SetData(DATA_WATER_WARDEN, IN_PROGRESS);
             }
 
-            void UpdateAI(uint32 const diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                     return;

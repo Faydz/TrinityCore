@@ -54,6 +54,7 @@ enum ShamanSpells
     SHAMAN_SPELL_FULMINATION_INFO               = 95774,
     SHAMAN_SPELL_LIGHTNING_SHIELD_PROC          = 26364,
     SHAMAN_TOTEM_SPELL_EARTHEN_POWER            = 59566,
+    SHAMAN_TOTEM_SPELL_SEARING_FLAMES           = 77661,
     SPELL_SHAMAN_TOTEM_TOTEMIC_WRATH            = 77746,
     SPELL_SHAMAN_TOTEM_TOTEMIC_WRATH_AURA       = 77747,
     SPELL_SHAMAN_TOTEM_HEALING_STREAM_HEAL      = 52042,
@@ -101,7 +102,10 @@ class spell_sha_frost_shock : public SpellScriptLoader
                         if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, SHAMAN_ICON_ID_FROZEN_POWER, EFFECT_1))
                         {
                             if (roll_chance_i(aurEff->GetAmount()))
-                                caster->CastSpell(target, 63685, true);
+                            {
+                                if (caster->IsWithinDistInMap(target, 15.0f))
+                                    caster->CastSpell(target, 63685, true);
+                            }
                         }
                     }
                 }
@@ -155,7 +159,7 @@ class spell_sha_unleash_elements : public SpellScriptLoader
                             switch (weapons[i]->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT))
                             {
                                 case 3345:  // Earthliving Weapon
-                                    caster->CastSpell(caster, SPELL_SHAMAN_UNLEASH_LIFE, true);
+                                    caster->CastSpell(target, SPELL_SHAMAN_UNLEASH_LIFE, true);
                                     break;
                                 case 5:     // Flametongue Weapon
                                     caster->CastSpell(target, SPELL_SHAMAN_UNLEASH_FLAME, true);
@@ -177,10 +181,33 @@ class spell_sha_unleash_elements : public SpellScriptLoader
 
             SpellCastResult CheckCast()
             {
-                Unit* target = GetExplTargetUnit();
-                Unit* caster = GetCaster();
-                if (caster->ToPlayer()->IsFriendlyTo(target))
-                    return SPELL_FAILED_TARGET_FRIENDLY;
+                if (Unit* caster = GetCaster())
+                {
+                    if (Unit* target = GetExplTargetUnit())
+                    {
+                        Item* weapons[2]= {0,0};
+                        weapons[0] = caster->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
+                        weapons[1] = caster->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
+
+                        for(int i = 0; i < 2; i++)
+                        {
+                            if(!weapons[i])
+                                continue;
+
+                            if(weapons[i]->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 3345)
+                            {
+                                if(!caster->ToPlayer()->IsFriendlyTo(target))
+                                    return SPELL_FAILED_SUCCESS;
+                                else
+                                    return SPELL_CAST_OK;
+                            }
+
+                            if (caster->ToPlayer()->IsFriendlyTo(target))
+                                return SPELL_FAILED_TARGET_FRIENDLY;
+                        }
+                    }
+                }
+
                 return SPELL_CAST_OK;
             }
 
@@ -334,68 +361,6 @@ class spell_sha_chain_heal : public SpellScriptLoader
         SpellScript* GetSpellScript() const
         {
             return new spell_sha_chain_heal_SpellScript();
-        }
-};
-
-// -974 - Earth Shield
-class spell_sha_earth_shield : public SpellScriptLoader
-{
-    public:
-        spell_sha_earth_shield() : SpellScriptLoader("spell_sha_earth_shield") { }
-
-        class spell_sha_earth_shield_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_sha_earth_shield_AuraScript);
-
-            bool Validate(SpellInfo const* /*spellInfo*/)
-            {
-                if (!sSpellMgr->GetSpellInfo(SPELL_SHAMAN_EARTH_SHIELD_HEAL))
-                    return false;
-                if (!sSpellMgr->GetSpellInfo(SPELL_SHAMAN_GLYPH_OF_EARTH_SHIELD))
-                    return false;
-                return true;
-            }
-
-            void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool & /*canBeRecalculated*/)
-            {
-                if (Unit* caster = GetCaster())
-                {
-                    amount = caster->SpellHealingBonusDone(GetUnitOwner(), GetSpellInfo(), amount, HEAL);
-                    amount = GetUnitOwner()->SpellHealingBonusTaken(caster, GetSpellInfo(), amount, HEAL);
-
-                    // Glyph of Earth Shield
-                    //! WORKAROUND
-                    //! this glyph is a proc
-                    if (AuraEffect* glyph = caster->GetAuraEffect(SPELL_SHAMAN_GLYPH_OF_EARTH_SHIELD, EFFECT_0))
-                        AddPct(amount, glyph->GetAmount());
-                }
-            }
-
-            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& /*eventInfo*/)
-            {
-                PreventDefaultAction();
-
-                //! HACK due to currenct proc system implementation
-                if (Player* player = GetTarget()->ToPlayer())
-                    if (player->HasSpellCooldown(SPELL_SHAMAN_EARTH_SHIELD_HEAL))
-                        return;
-
-                GetTarget()->CastCustomSpell(SPELL_SHAMAN_EARTH_SHIELD_HEAL, SPELLVALUE_BASE_POINT0, aurEff->GetAmount(), GetTarget(), true, NULL, aurEff, GetCasterGUID());
-
-                if (Player* player = GetTarget()->ToPlayer())
-                    player->AddSpellCooldown(SPELL_SHAMAN_EARTH_SHIELD_HEAL, 0, time(NULL) + 3);
-            }
-
-            void Register()
-            {
-                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_sha_earth_shield_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_DUMMY);
-                OnEffectProc += AuraEffectProcFn(spell_sha_earth_shield_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
-            }
-        };
-
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_sha_earth_shield_AuraScript();
         }
 };
 
@@ -639,25 +604,42 @@ class spell_sha_lava_lash : public SpellScriptLoader
                 return GetCaster()->GetTypeId() == TYPEID_PLAYER;
             }
 
-            void HandleDummy(SpellEffIndex /*effIndex*/)
+            void RecalculateDamage()
             {
-                if (Player* caster = GetCaster()->ToPlayer())
+
+                if(!GetCaster() || !GetHitUnit())
+                    return;
+
+                int32 hitDamage = GetHitDamage();
+
+                uint32 stackAmount = 0;
+
+                if(GetCaster()->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND)->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 5)
+                    AddPct(hitDamage, 40);
+
+                if(Unit* target = GetHitUnit())
                 {
-                    int32 damage = GetEffectValue();
-                    int32 hitDamage = GetHitDamage();
-                    if (caster->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
+                    if(Unit * caster = GetCaster())
                     {
-                        // Damage is increased by 25% if your off-hand weapon is enchanted with Flametongue.
-                        if (caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_SHAMAN, 0x200000, 0, 0))
-                            AddPct(hitDamage, damage);
-                        SetHitDamage(hitDamage);
+                        if(AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_SHAMAN, 4780, EFFECT_1))
+                        {
+                            uint32 bonusPct = aurEff->GetAmount();
+                            if (Aura* aur = target->GetAura(SHAMAN_TOTEM_SPELL_SEARING_FLAMES))
+                            {
+                                stackAmount = aur->GetStackAmount();
+                                AddPct(hitDamage, (stackAmount * bonusPct));
+                                target->RemoveAura(SHAMAN_TOTEM_SPELL_SEARING_FLAMES);
+                            }
+                        }
                     }
                 }
+
+                SetHitDamage(hitDamage);
             }
 
             void Register()
             {
-                OnEffectHitTarget += SpellEffectFn(spell_sha_lava_lash_SpellScript::HandleDummy, EFFECT_1, SPELL_EFFECT_DUMMY);
+                OnHit += SpellHitFn(spell_sha_lava_lash_SpellScript::RecalculateDamage);
             }
 
         };
@@ -1109,7 +1091,6 @@ void AddSC_shaman_spell_scripts()
     new spell_sha_ancestral_awakening_proc();
     new spell_sha_bloodlust();
     new spell_sha_chain_heal();
-    new spell_sha_earth_shield();
     new spell_sha_earthbind_totem();
     new spell_sha_earthen_power();
     new spell_sha_fire_nova();

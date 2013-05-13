@@ -607,7 +607,9 @@ void KillRewarder::_RewardGroup()
                     if (member->IsAtGroupRewardDistance(_victim))
                     {
                         _RewardPlayer(member, isDungeon);
-                        member->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_SPECIAL_PVP_KILL, 1, 0, 0, _victim);
+						
+						if (_victim)
+							member->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_SPECIAL_PVP_KILL, 1, 0, 0, _victim);
                     }
                 }
             }
@@ -2623,6 +2625,18 @@ void Player::Regenerate(Powers power)
             focusPerSecond += 6.0f;
             focusPerSecond *= sWorld->getRate(RATE_POWER_FOCUS);
             focusPerSecond /= 2.0f;
+
+            AuraEffectList const& ModPowerRegenPCTAuras = GetAuraEffectsByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
+                for (AuraEffectList::const_iterator i = ModPowerRegenPCTAuras.begin(); i != ModPowerRegenPCTAuras.end(); ++i)
+                {
+                    // what the fuck is this aura? cazzo
+                    if ((*i)->GetId() == 77442)
+                        continue;
+
+                    if (Powers((*i)->GetMiscValue()) == power)
+                        AddPct(focusPerSecond, (*i)->GetAmount());
+                }
+
             addvalue += focusPerSecond;
             break;
         }
@@ -7065,7 +7079,7 @@ void Player::RewardReputation(Unit* victim, float rate)
 
     ReputationOnKillEntry const* Rep = sObjectMgr->GetReputationOnKilEntry(victim->ToCreature()->GetCreatureTemplate()->Entry);
 
-    // All mob in level 85 dungeons give championing reputation
+    // All mob in level 85 dungeons give championing reputation && All bosses give guild reputation
     if (!Rep)
     {
         if (Map* map = victim->GetMap())
@@ -7078,6 +7092,14 @@ void Player::RewardReputation(Unit* victim, float rate)
                         Rep = sObjectMgr->GetReputationOnKilEntry(42696);
                     else
                         Rep = sObjectMgr->GetReputationOnKilEntry(49667);
+                }
+
+                if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 1000000)
+                {
+                    if (!map->IsHeroic())
+                        Rep = sObjectMgr->GetReputationOnKilEntry(43438);
+                    else
+                        Rep = sObjectMgr->GetReputationOnKilEntry(49642);
                 }
             }
         }
@@ -7103,6 +7125,13 @@ void Player::RewardReputation(Unit* victim, float rate)
     }
 
     uint32 team = GetTeam();
+
+    // Skip Guild rep from championing if we are in a guild group
+    if (Rep->RepFaction1 == 1168 || Rep->RepFaction2 == 1168)
+    {
+        if (GetGroup() && GetGroup()->IsGuildGroup(GetGuildId()))
+            ChampioningFaction = 0;
+    }
 
     if (Rep->RepFaction1 && (!Rep->TeamDependent || team == ALLIANCE))
     {
@@ -7194,6 +7223,20 @@ void Player::RewardReputation(Quest const* quest)
 
         if (FactionEntry const* factionEntry = sFactionStore.LookupEntry(quest->RewardFactionId[i]))
             GetReputationMgr().ModifyReputation(factionEntry, rep);
+
+        // Give guild rep on completed quest
+        if (Guild * pGuild = sGuildMgr->GetGuildById(GetGuildId()))
+        {
+            if (uint32 exp = quest->XPValue(this))
+            {
+                uint32 gRep = exp / 450;
+                if (gRep <= 0)
+                    gRep = 1;
+
+                if (FactionEntry const* guildEntry = sFactionStore.LookupEntry(1168))
+                    GetReputationMgr().ModifyReputation(guildEntry, gRep);
+            }
+        }   
     }
 }
 
@@ -27166,10 +27209,15 @@ VoidStorageItem* Player::GetVoidStorageItem(uint64 id, uint8& slot) const
 {
     for (uint8 i = 0; i < VOID_STORAGE_MAX_SLOT; ++i)
     {
-        if (_voidStorageItems[i] && _voidStorageItems[i]->ItemId == id)
-        {
-            slot = i;
-            return _voidStorageItems[i];
+        if (_voidStorageItems[i]){
+            sLog->outError(LOG_FILTER_NETWORKIO, "VOIDSTORAGE: - Player (GUID: %u, name: %s) - GetVoidStorage looking for id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
+            sLog->outError(LOG_FILTER_NETWORKIO, "VOIDSTORAGE: - Player (GUID: %u, name: %s) - GetVoidStorage passing through id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(_voidStorageItems[i]->ItemId));
+            if(_voidStorageItems[i]->ItemId == id)
+            {
+                sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) withdrawing item (id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
+                slot = i;
+                return _voidStorageItems[i];
+            }    
         }
     }
 

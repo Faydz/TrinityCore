@@ -2692,6 +2692,7 @@ bool AchievementMgr<T>::AdditionalRequirementsSatisfied(AchievementCriteriaEntry
         uint32 const reqType = criteria->additionalConditionType[i];
         uint32 const reqValue = criteria->additionalConditionValue[i];
 
+        if (criteria->type == ACHIEVEMENT_CRITERIA_TYPE_SPECIAL_PVP_KILL)
         switch (AchievementCriteriaAdditionalCondition(reqType))
         {
             case ACHIEVEMENT_CRITERIA_ADDITIONAL_CONDITION_TARGET_CREATURE_ENTRY: // 4
@@ -2718,7 +2719,11 @@ bool AchievementMgr<T>::AdditionalRequirementsSatisfied(AchievementCriteriaEntry
                 if (!unit || !unit->HasAura(reqValue))
                     return false;
             case ACHIEVEMENT_CRITERIA_ADDITIONAL_CONDITION_TARGET_HAS_AURA_TYPE: // 11
-                if (!unit || !unit->HasAuraType(AuraType(reqValue)))
+                // Little hack to prevent crash, bug achievements: 1751 and 223
+                if (AuraType(reqValue) == SPELL_AURA_MOUNTED)
+                    return false;
+
+                if (!unit || !AuraType(reqValue) || !unit->HasAuraType(AuraType(reqValue)))
                     return false;
                 break;
             case ACHIEVEMENT_CRITERIA_ADDITIONAL_CONDITION_ITEM_QUALITY_MIN: // 14
