@@ -65,7 +65,6 @@ enum PriestSpellIcons
 {
     PRIEST_ICON_ID_BORROWED_TIME                    = 2899,
     PRIEST_ICON_ID_EMPOWERED_RENEW_TALENT           = 3021,
-    PRIEST_ICON_ID_PAIN_AND_SUFFERING               = 2874,
     PRIEST_ICON_ID_REFLECTIVE_SHIELD                = 4880,
     PRIEST_ICON_ID_GLYPH_OF_POWER_WORD_SHIELD       = 566,
 };
@@ -632,8 +631,15 @@ class spell_pri_shadow_word_death : public SpellScriptLoader
                 int32 damage = GetHitDamage();
 
                 // Pain and Suffering reduces damage
-                if (AuraEffect* aurEff = GetCaster()->GetDummyAuraEffect(SPELLFAMILY_PRIEST, PRIEST_ICON_ID_PAIN_AND_SUFFERING, EFFECT_1))
-                    AddPct(damage, aurEff->GetAmount());
+                if(Unit* caster = GetCaster())
+                {
+                    int32 amount = caster->HasAura(47581) ? -40 : caster->HasAura(47580) ? -20 : 0;
+
+                    if(amount)
+                    {
+                        AddPct(damage, amount);
+                    }
+                }
 
                 GetCaster()->CastCustomSpell(GetCaster(), SPELL_PRIEST_SHADOW_WORD_DEATH, &damage, 0, 0, true);
             }
