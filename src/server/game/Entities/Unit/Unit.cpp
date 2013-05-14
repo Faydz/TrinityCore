@@ -6282,7 +6282,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                             triggered_spell_id = 81208;
                             break;
                         case 596:   // Prayer of Healing
-                        case 33110: // Prayer of Mending
                             if (HasAura(81208))
                                 RemoveAura(81208);
                             if (HasAura(81209))

@@ -52,6 +52,14 @@ enum PriestSpells
     SPELL_PRIEST_VAMPIRIC_TOUCH_DISPEL              = 64085,
 };
 
+enum PriestChakra
+{
+    SPELL_PRIEST_CHAKRA                             = 14751,
+    SPELL_PRIEST_CHAKRA_SERENITY                    = 81208,
+    SPELL_PRIEST_CHAKRA_SANCTUARY                   = 81206,
+    SPELL_PRIEST_CHAKRA_CHASTISE                    = 81209
+};
+
 enum PriestSpellIcons
 {
     PRIEST_ICON_ID_BORROWED_TIME                    = 2899,
@@ -509,6 +517,16 @@ class spell_pri_prayer_of_mending_heal : public SpellScriptLoader
                         int32 heal = GetHitHeal();
                         AddPct(heal, aurEff->GetAmount());
                         SetHitHeal(heal);
+                    }
+
+                    if (caster->HasAura(SPELL_PRIEST_CHAKRA))
+                    {
+                        if (caster->HasAura(SPELL_PRIEST_CHAKRA_SERENITY))
+                            caster->RemoveAura(SPELL_PRIEST_CHAKRA_SERENITY);
+                        if (caster->HasAura(SPELL_PRIEST_CHAKRA_CHASTISE))
+                            caster->RemoveAura(SPELL_PRIEST_CHAKRA_CHASTISE);
+
+                        caster->CastSpell(caster, SPELL_PRIEST_CHAKRA_SANCTUARY);
                     }
                 }
             }
