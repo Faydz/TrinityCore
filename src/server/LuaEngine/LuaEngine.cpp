@@ -35,7 +35,7 @@ void Eluna::StartEluna(bool restart)
     if (restart)
     {
         sHookMgr->OnEngineRestart();
-        sLog->outInfo(LOG_FILTER_GENERAL, "Eluna Nova::Restarting Engine");
+        TC_LOG_INFO(LOG_FILTER_GENERAL, "Eluna Nova::Restarting Engine");
 
         if (LuaState)
         {
@@ -65,7 +65,7 @@ void Eluna::StartEluna(bool restart)
         AddScriptHooks();
 
     LuaState = luaL_newstate();
-    sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Eluna Nova Lua Engine loaded.");
+    TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, "Eluna Nova Lua Engine loaded.");
 
     LoadedScripts loadedScripts;
     LoadDirectory("scripts", &loadedScripts);
@@ -91,7 +91,7 @@ void Eluna::StartEluna(bool restart)
         strcpy(filename, itr->c_str());
         if (luaL_loadfile(LuaState, filename) != 0)
         {
-            sLog->outError(LOG_FILTER_SERVER_LOADING, "Eluna Nova::Error loading `%s`.", itr->c_str());
+            TC_LOG_ERROR(LOG_FILTER_SERVER_LOADING, "Eluna Nova::Error loading `%s`.", itr->c_str());
             report(LuaState);
         }
         else
@@ -99,13 +99,13 @@ void Eluna::StartEluna(bool restart)
             int err = lua_pcall(LuaState, 0, 0, 0);
             if (err != 0 && err == LUA_ERRRUN)
             {
-                sLog->outError(LOG_FILTER_SERVER_LOADING, "Eluna Nova::Error loading `%s`.", itr->c_str());
+                TC_LOG_ERROR(LOG_FILTER_SERVER_LOADING, "Eluna Nova::Error loading `%s`.", itr->c_str());
                 report(LuaState);
             }
         }
         ++count;
     }
-    sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Eluna Nova::Loaded %u Lua scripts", count);
+    TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, "Eluna Nova::Loaded %u Lua scripts", count);
 }
 
 void Eluna::RegisterGlobals(lua_State* L)
@@ -191,7 +191,7 @@ void Eluna::LoadDirectory(char* Dirname, LoadedScripts* lscr)
     // break if we don't find dir
     if (!hFile)
     {
-        sLog->outError(LOG_FILTER_SERVER_LOADING, "Eluna Nova::No `scripts` directory found!");
+        TC_LOG_ERROR(LOG_FILTER_SERVER_LOADING, "Eluna Nova::No `scripts` directory found!");
         return;
     }
 
@@ -248,7 +248,7 @@ void Eluna::LoadDirectory(char* Dirname, LoadedScripts* lscr)
         if (stat(_path, &attributes) == -1)
         {
             error = true;
-            sLog->outError(LOG_FILTER_SERVER_LOADING, "Eluna Nova::Error opening `%s`", _path);
+            TC_LOG_ERROR(LOG_FILTER_SERVER_LOADING, "Eluna Nova::Error opening `%s`", _path);
         }
         else
             error = false;
@@ -689,7 +689,7 @@ void Eluna::ElunaBind::Insert(uint32 entryId, uint32 eventId, int funcRef)
 
 UNORDERED_MAP<uint64, Eluna::LuaEventMap*> Eluna::LuaEventMap::LuaEventMaps;
 UNORDERED_MAP<int, Eluna::LuaEventData*> Eluna::LuaEventData::LuaEvents;
-UNORDERED_MAP<uint64, std::list<int> > Eluna::LuaEventData::EventIDs;
+UNORDERED_MAP<uint64, std::set<int> > Eluna::LuaEventData::EventIDs;
 
 void Eluna::LuaEventMap::ScriptEventsResetAll()
 {
@@ -780,7 +780,7 @@ uint32 LuaTaxiMgr::AddPath(std::list<TaxiPathNodeEntry> nodes, uint32 mountA, ui
         return 0;
     if (!pathId)
         pathId = sTaxiPathNodesByPath.size();
-    if (sTaxiPathNodesByPath.size() >= pathId)
+    if (sTaxiPathNodesByPath.size() <= pathId)
         sTaxiPathNodesByPath.resize(pathId+1);
     sTaxiPathNodesByPath[pathId].clear();
     sTaxiPathNodesByPath[pathId].resize(nodes.size());
@@ -798,15 +798,12 @@ uint32 LuaTaxiMgr::AddPath(std::list<TaxiPathNodeEntry> nodes, uint32 mountA, ui
         nodeEntry->x = entry.x;
         nodeEntry->y = entry.y;
         nodeEntry->z = entry.z;
-        sTaxiPathNodeEntriesByPath.nodeEntries[nodeId] = nodeEntry;
+        sTaxiNodesStore.SetEntry(nodeId, nodeEntry);
         entry.index = nodeId++;
         sTaxiPathNodesByPath[pathId].set(index++, TaxiPathNodePtr(new TaxiPathNodeEntry(entry)));
     }
     if (startNode >= nodeId)
-    {
-        nodeId = startNode;
         return 0;
-    }
     sTaxiPathSetBySource[startNode][nodeId-1] = TaxiPathBySourceAndDestination(pathId, price);
     return pathId;
 }

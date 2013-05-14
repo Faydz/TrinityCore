@@ -17200,7 +17200,7 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
             // problems with taxi path loading
             TaxiNodesEntry const* nodeEntry = NULL;
             if (uint32 node_id = m_taxi.GetTaxiSource())
-                nodeEntry = sTaxiPathNodeEntriesByPath.LookupEntry(node_id);
+                nodeEntry = sTaxiNodesStore.LookupEntry(node_id);
 
             if (!nodeEntry) // don't know taxi start node, to homebind
             {
@@ -17219,7 +17219,7 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
         if (uint32 node_id = m_taxi.GetTaxiSource())
         {
             // save source node as recall coord to prevent recall and fall from sky
-            TaxiNodesEntry const* nodeEntry = sTaxiPathNodeEntriesByPath.LookupEntry(node_id);
+            TaxiNodesEntry const* nodeEntry = sTaxiNodesStore.LookupEntry(node_id);
             if (nodeEntry && nodeEntry->map_id == GetMapId())
             {
                 ASSERT(nodeEntry); // checked in m_taxi.LoadTaxiDestinationsFromString
@@ -20968,7 +20968,7 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     uint32 sourcenode = nodes[0];
 
     // starting node too far away (cheat?)
-    TaxiNodesEntry const* node = sTaxiPathNodeEntriesByPath.LookupEntry(sourcenode);
+    TaxiNodesEntry const* node = sTaxiNodesStore.LookupEntry(sourcenode);
     if (!node)
     {
         GetSession()->SendActivateTaxiReply(ERR_TAXINOSUCHPATH);
@@ -21081,7 +21081,7 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
 
     if (sWorld->getBoolConfig(CONFIG_INSTANT_TAXI))
     {
-        TaxiNodesEntry const* lastPathNode = sTaxiPathNodeEntriesByPath.LookupEntry(nodes[nodes.size()-1]);
+        TaxiNodesEntry const* lastPathNode = sTaxiNodesStore.LookupEntry(nodes[nodes.size()-1]);
         m_taxi.ClearTaxiDestinations();
         TeleportTo(lastPathNode->map_id, lastPathNode->x, lastPathNode->y, lastPathNode->z, GetOrientation());
         return false;

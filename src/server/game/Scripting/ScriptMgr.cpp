@@ -183,10 +183,10 @@ void ScriptMgr::Initialize()
 
     FillSpellSummary();
     AddScripts();
-
+	/* Eluna [Lua Engine] */
     TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded %u C++ scripts in %u ms", GetScriptCount(), GetMSTimeDiffToNow(oldMSTime));
-
     sEluna->StartEluna(false);
+=======
 }
 
 void ScriptMgr::Unload()
