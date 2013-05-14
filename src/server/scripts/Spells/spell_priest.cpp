@@ -50,6 +50,7 @@ enum PriestSpells
     SPELL_PRIEST_SHADOW_WORD_DEATH                  = 32409,
     SPELL_PRIEST_T9_HEALING_2P                      = 67201,
     SPELL_PRIEST_VAMPIRIC_TOUCH_DISPEL              = 64085,
+    SPELL_PRIEST_GLYPH_OF_POWER_WORD_SHIELD_HEAL    = 56160,
 };
 
 enum PriestChakra
@@ -66,6 +67,7 @@ enum PriestSpellIcons
     PRIEST_ICON_ID_EMPOWERED_RENEW_TALENT           = 3021,
     PRIEST_ICON_ID_PAIN_AND_SUFFERING               = 2874,
     PRIEST_ICON_ID_REFLECTIVE_SHIELD                = 4880,
+    PRIEST_ICON_ID_GLYPH_OF_POWER_WORD_SHIELD       = 566,
 };
 
 // -47509 - Divine Aegis
@@ -780,7 +782,7 @@ class spell_pri_power_word_shield : public SpellScriptLoader
                     if (Unit* target = GetHitUnit())
                     {
                         // Body And Soul
-                        if (AuraEffect* aurEff = GetCaster()->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 2218, 0))
+                        if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 2218, 0))
                         {
                             int32 bp0 = aurEff->GetAmount();
                             GetCaster()->CastCustomSpell(GetHitUnit(), 64128, &bp0, NULL, NULL, true);
@@ -860,11 +862,28 @@ class spell_pri_power_word_shield : public SpellScriptLoader
                     }
                 }
             }
+            
+            void HandleAfterApply (AuraEffect const* aurEff, AuraEffectHandleModes mode)
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetTarget();
+
+                if (caster && target && GetEffect(EFFECT_0))
+                {
+                    // Glyph of Power Word Shield
+                    if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, PRIEST_ICON_ID_GLYPH_OF_POWER_WORD_SHIELD, 0))
+                    {
+                        int32 bp0 = CalculatePct(GetEffect(EFFECT_0)->GetAmount(), aurEff->GetAmount());
+                        caster->CastCustomSpell(target, SPELL_PRIEST_GLYPH_OF_POWER_WORD_SHIELD_HEAL, &bp0, NULL, NULL, true);
+                    }
+                }
+            }
 
             void Register()
             {
                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_pri_power_word_shield_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
                 AfterEffectAbsorb += AuraEffectAbsorbFn(spell_pri_power_word_shield_AuraScript::ReflectDamage, EFFECT_0);
+                AfterEffectApply += AuraEffectApplyFn(spell_pri_power_word_shield_AuraScript::HandleAfterApply, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB, AURA_EFFECT_HANDLE_REAL);
             }
         };
 
