@@ -11240,7 +11240,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             {
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_SHAMAN_ENCHANCEMENT)
                {
-                   float pct = uint32(0.025f * owner->ToPlayer()->GetMasteryPoints());
+                   float pct = 0.025f * owner->ToPlayer()->GetMasteryPoints();
                    DoneTotalMod *= 1 + pct;
                }
             }
