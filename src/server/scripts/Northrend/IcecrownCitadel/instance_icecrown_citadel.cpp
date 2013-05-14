@@ -328,7 +328,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                         SindragosasWardGUID = creature->GetGUID();
 						break;	
 					case NPC_GB_SKYBREAKER:
-						if (TeamInInstance != ALLIANCE)
+						if (TeamInInstance == HORDE)
 							creature->setFaction(14);
 						if (TeamInInstance == ALLIANCE)
 							creature->setFaction(35);
@@ -337,19 +337,19 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case NPC_GB_ORGRIMS_HAMMER:
 						if (TeamInInstance == ALLIANCE)
 							creature->setFaction(14);
-						if (TeamInInstance != ALLIANCE)
+						if (TeamInInstance == HORDE)
 							creature->setFaction(35);
                         OrgrimmarBossGUID = creature->GetGUID();
                         break;
                     case NPC_GB_HIGH_OVERLORD_SAURFANG:
 						if (TeamInInstance == ALLIANCE)
 							creature->setFaction(14);
-						if (TeamInInstance != ALLIANCE)
+						if (TeamInInstance == HORDE)
 							creature->setFaction(35);
                         DeathbringerSaurfangGbGUID = creature->GetGUID();
                         break;
                     case NPC_GB_MURADIN_BRONZEBEARD:
-						if (TeamInInstance != ALLIANCE)
+						if (TeamInInstance == HORDE)
 							creature->setFaction(14);
 						if (TeamInInstance == ALLIANCE)
 							creature->setFaction(35);
@@ -358,45 +358,45 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case NPC_GB_HIGH_OVERLORD_SAURFANG_NOT_VISUAL:
 						if (TeamInInstance == ALLIANCE)
 							creature->setFaction(14);
-						if (TeamInInstance != ALLIANCE)
+						if (TeamInInstance == HORDE)
 							creature->setFaction(35);
                         DeathbringerSaurfangNotVisualGUID = creature->GetGUID();
                         break;
                     case NPC_GB_MURADIN_BRONZEBEARD_NOT_VISUAL:
-						if (TeamInInstance != ALLIANCE)
+						if (TeamInInstance == HORDE)
 							creature->setFaction(14);
 						if (TeamInInstance == ALLIANCE)
 							creature->setFaction(35);
                         MuradinBronzebeardNotVisualGUID = creature->GetGUID();
                         break;
                     case NPC_GB_SKYBREAKER_SORCERERS:
-						if (TeamInInstance != ALLIANCE)
+						if (TeamInInstance == HORDE)
 							creature->setFaction(14);
 						if (TeamInInstance == ALLIANCE)
 							creature->setFaction(35);
                     case NPC_GB_KORKRON_BATTLE_MAGE:
 						if (TeamInInstance == ALLIANCE)
 							creature->setFaction(14);
-						if (TeamInInstance != ALLIANCE)
+						if (TeamInInstance == HORDE)
 							creature->setFaction(35);
                         GbBattleMageGUID = creature->GetGUID();
                         break;
 					case NPC_GB_HORDE_CANON:
 						if (TeamInInstance == ALLIANCE)
 							creature->setFaction(14);
-						if (TeamInInstance != ALLIANCE)
+						if (TeamInInstance == HORDE)
 							creature->setFaction(35);
 						break;
 					case NPC_GB_INVISIBLE_STALKER:
 						if (TeamInInstance == ALLIANCE)
 							creature->setFaction(14);
-						if (TeamInInstance != ALLIANCE)
+						if (TeamInInstance == HORDE)
 							creature->setFaction(35);
 						break;
 					case NPC_GB_HIHG_CAPTAIN_JUSTIN_BARTLETT:
 						if (TeamInInstance == ALLIANCE)
 							creature->setFaction(35);
-						if (TeamInInstance != ALLIANCE)
+						if (TeamInInstance == HORDE)
 							creature->setFaction(14);
 						break;
                     default:

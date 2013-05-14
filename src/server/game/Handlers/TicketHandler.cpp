@@ -44,8 +44,8 @@ void WorldSession::HandleGMTicketCreateOpcode(WorldPacket& recvData)
     GmTicket* ticket = sTicketMgr->GetTicketByPlayer(GetPlayer()->GetGUID());
 
     if (ticket && ticket->IsCompleted())
-        sTicketMgr->CloseTicket(ticket->GetId(), GetPlayer()->GetGUID());	
-	
+        sTicketMgr->CloseTicket(ticket->GetId(), GetPlayer()->GetGUID());;
+
     // Player must not have ticket
     if (!ticket || ticket->IsClosed())
     {
@@ -81,7 +81,7 @@ void WorldSession::HandleGMTicketCreateOpcode(WorldPacket& recvData)
             }
             else
             {
-                sLog->outError(LOG_FILTER_NETWORKIO, "CMSG_GMTICKET_CREATE possibly corrupt. Uncompression failed.");
+                TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "CMSG_GMTICKET_CREATE possibly corrupt. Uncompression failed.");
                 recvData.rfinish();
                 return;
             }
