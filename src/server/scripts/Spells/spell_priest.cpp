@@ -70,6 +70,34 @@ enum PriestSpellIcons
     PRIEST_ICON_ID_GLYPH_OF_POWER_WORD_SHIELD       = 566,
 };
 
+// 15290 - Vampiric Embrace
+class spell_pri_vampiric_embrace : public SpellScriptLoader
+{
+    public:
+        spell_pri_vampiric_embrace() : SpellScriptLoader("spell_pri_vampiric_embrace") { }
+
+        class spell_pri_vampiric_embrace_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_pri_vampiric_embrace_SpellScript);
+
+            void FilterTargets(std::list<WorldObject*>& unitList)
+            {
+                if (GetCaster())
+                    unitList.remove(GetCaster());
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pri_vampiric_embrace_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_CASTER_AREA_PARTY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pri_vampiric_embrace_SpellScript();
+        }
+};
+
 // -47509 - Divine Aegis
 class spell_pri_divine_aegis : public SpellScriptLoader
 {
@@ -1083,6 +1111,7 @@ public:
 
 void AddSC_priest_spell_scripts()
 {
+    new spell_pri_vampiric_embrace();
     new spell_pri_divine_aegis();
     new spell_pri_glyph_of_prayer_of_healing();
     new spell_pri_guardian_spirit();
