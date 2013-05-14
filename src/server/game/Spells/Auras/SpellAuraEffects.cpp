@@ -6762,19 +6762,6 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
         
         switch (m_spellInfo->SpellFamilyName)
         {
-            case SPELLFAMILY_WARLOCK:
-                switch(m_spellInfo->Id)
-                {
-                    // Soul Harvest
-                    case 79268:
-                        {
-                            float tickPct = 45.0f / (float)GetTotalTicks();
-                        
-                            damage += CalculatePct(caster->GetMaxHealth(), tickPct);
-                        }
-                        break;
-                }
-                break;
             case SPELLFAMILY_WARRIOR:
                 switch (GetId())
                 {
