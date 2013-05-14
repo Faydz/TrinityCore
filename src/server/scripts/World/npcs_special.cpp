@@ -3740,10 +3740,10 @@ public:
             if (who->isAlive() && me->IsInRange(who, 0.0f, 10.0f)
                 && !who->HasAura(82691)/*<= target already frozen*/
                 && !who->HasAura(91264)/*<= target is immune*/
-                && me->IsWithinLOSInMap(who) /*&& Isready*/)
+                && !who->HasAuraState(AURA_STATE_FROZEN)
+                && me->IsWithinLOSInMap(who) && Isready)
             {
                 who->AddAura(82691, who);
-                me->CastSpell(me, 82691, true);
             }
         }
 
