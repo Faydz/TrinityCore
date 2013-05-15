@@ -6266,7 +6266,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         }
                     }
                     break;
-                // Chackra
+                // Chakra
                 case 14751:
                     switch (procSpell->Id)
                     {
@@ -6274,27 +6274,15 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         case 2060:  // Greater Heal
                         case 2061:  // Flash Heal
                         case 32546: // Binding Heal
-                            if (HasAura(81206))
-                                RemoveAura(81206);
-                            if (HasAura(81209))
-                                RemoveAura(81209);
 
                             triggered_spell_id = 81208;
                             break;
-                        case 596:   // Prayer of Healing
-                            if (HasAura(81208))
-                                RemoveAura(81208);
-                            if (HasAura(81209))
-                                RemoveAura(81209);
+                        case 596:   // Prayer of Healing (Mending handled in SpellScript)
 
                             triggered_spell_id = 81206;
                             break;
                         case 585:   // Smite
                         case 73510: // Mind Spike
-                            if (HasAura(81206))
-                                RemoveAura(81206);
-                            if (HasAura(81209))
-                                RemoveAura(81209);
 
                             triggered_spell_id = 81209;
                             break;

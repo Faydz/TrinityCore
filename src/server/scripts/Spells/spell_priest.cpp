@@ -528,6 +528,44 @@ class spell_pri_penance : public SpellScriptLoader
         }
 };
 
+// 41635 - Prayer of Mending
+class spell_pri_prayer_of_mending : public SpellScriptLoader
+{
+    public:
+        spell_pri_prayer_of_mending() : SpellScriptLoader("spell_pri_prayer_of_mending") { }
+
+        class spell_pri_prayer_of_mending_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_pri_prayer_of_mending_AuraScript);
+
+            bool Load()
+            {
+                return GetCaster() && GetCaster()->GetTypeId() == TYPEID_PLAYER;
+            }
+
+            void HandleApplyEffect(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if (caster->HasAura(SPELL_PRIEST_CHAKRA))
+                    {
+                        caster->CastSpell(caster, SPELL_PRIEST_CHAKRA_SANCTUARY);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_pri_prayer_of_mending_AuraScript::HandleApplyEffect, EFFECT_0, SPELL_AURA_RAID_PROC_FROM_CHARGE_WITH_VALUE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_pri_prayer_of_mending_AuraScript();
+        }
+};
+
 // 33110 - Prayer of Mending Heal
 class spell_pri_prayer_of_mending_heal : public SpellScriptLoader
 {
@@ -547,16 +585,6 @@ class spell_pri_prayer_of_mending_heal : public SpellScriptLoader
                         int32 heal = GetHitHeal();
                         AddPct(heal, aurEff->GetAmount());
                         SetHitHeal(heal);
-                    }
-
-                    if (caster->HasAura(SPELL_PRIEST_CHAKRA))
-                    {
-                        if (caster->HasAura(SPELL_PRIEST_CHAKRA_SERENITY))
-                            caster->RemoveAura(SPELL_PRIEST_CHAKRA_SERENITY);
-                        if (caster->HasAura(SPELL_PRIEST_CHAKRA_CHASTISE))
-                            caster->RemoveAura(SPELL_PRIEST_CHAKRA_CHASTISE);
-
-                        caster->CastSpell(caster, SPELL_PRIEST_CHAKRA_SANCTUARY);
                     }
                 }
             }
@@ -1129,6 +1157,7 @@ void AddSC_priest_spell_scripts()
     new spell_pri_pain_and_suffering_proc();    
     new spell_pri_penance();
     new spell_pri_power_word_shield();
+    new spell_pri_prayer_of_mending();
     new spell_pri_prayer_of_mending_heal();
     new spell_pri_renew();
     new spell_pri_shadow_word_death();
