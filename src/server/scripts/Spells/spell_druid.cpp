@@ -2205,6 +2205,41 @@ class spell_dru_survival_instincts : public SpellScriptLoader
         }
 };
 
+class spell_dru_skull_bash : public SpellScriptLoader
+{
+    public:
+        spell_dru_skull_bash() : SpellScriptLoader("spell_dru_skull_bash") { }
+
+        class spell_dru_skull_bash_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_skull_bash_SpellScript);
+
+            SpellCastResult CheckCast()
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if (caster->HasUnitState(UNIT_STATE_ROOT))
+                    {
+                        SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_CANT_DO_WHILE_ROOTED);
+                        return SPELL_FAILED_CUSTOM_ERROR;
+                    }
+                }
+
+                return SPELL_CAST_OK;
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_dru_skull_bash_SpellScript::CheckCast);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_skull_bash_SpellScript;
+        }
+};
+
 void AddSC_druid_spell_scripts()
 {
     new spell_dru_wild_mushroom();
@@ -2249,4 +2284,5 @@ void AddSC_druid_spell_scripts()
     new spell_dru_lacerate();
     new spell_dru_lunar_shower();
     new spell_dru_survival_instincts();
+    new spell_dru_skull_bash();
 }
