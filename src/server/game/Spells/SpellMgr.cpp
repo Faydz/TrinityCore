@@ -100,6 +100,9 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
             // Deep Freeze
             else if (spellproto->SpellIconID == 2939 && spellproto->SpellVisual[0] == 9963)
                 return DIMINISHING_CONTROLLED_STUN;
+            // Ring of Frost
+            else if (spellproto->SpellIconID == 5279 && spellproto->SpellVisual[0] == 4499)
+                return DIMINISHING_CONTROLLED_STUN;
             // Frost Nova / Freeze (Water Elemental)
             else if (spellproto->SpellIconID == 193)
                 return DIMINISHING_CONTROLLED_ROOT;
@@ -3441,6 +3444,17 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 85547:
                     case 86105:
                         spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(39); //2 seconds
+                        break;
+                }
+                break;
+            case SPELLFAMILY_MAGE:
+                switch(spellInfo->Id)
+                {
+                    // Ring of Frost
+                    case 82676:
+                        spellInfo->CastTimeEntry = sSpellCastTimesStore.LookupEntry(1.5);
+                        spellInfo->CastTimeMax = 1500;
+                        spellInfo->CastTimeMin = 1500;
                         break;
                 }
                 break;
