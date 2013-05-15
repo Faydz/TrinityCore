@@ -3677,18 +3677,17 @@ void Unit::RemoveAurasDueToSpellBySteal(uint32 spellId, uint64 casterGUID, Unit*
                 {
                     if (Unit* target = aura->GetUnitOwner())
                     {
-                        int32 healAmount = aura->GetEffect(1)->GetAmount();
-                        if (Unit* caster = aura->GetCaster())
+                        if(aura->GetEffect(EFFECT_1))
                         {
-                            
+                            int32 healAmount = aura->GetEffect(EFFECT_1)->GetAmount();
+                            if (Unit* caster = aura->GetCaster())
+                            {
                                 healAmount = caster->SpellHealingBonusDone(target, aura->GetSpellInfo(), healAmount, HEAL, 1);
                                 healAmount = target->SpellHealingBonusTaken(caster, aura->GetSpellInfo(), healAmount, HEAL, 1);
                             
                                 target->CastCustomSpell(target, 33778, &healAmount, NULL, NULL, true, NULL, NULL, aura->GetCasterGUID());
                             }
-                            return;
-
-                        target->CastCustomSpell(target, 33778, &healAmount, NULL, NULL, true, NULL, NULL, aura->GetCasterGUID());
+                        }
                     }
                 }
             }
