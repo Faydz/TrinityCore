@@ -3317,65 +3317,65 @@ class spell_gb_burning_pitch : public SpellScriptLoader
 /* 69193 is the damage when landing, it does not include the visual (which is 69192) */
 class spell_icc_rocket_pack : public SpellScriptLoader
 {
-    public:
-        spell_icc_rocket_pack() : SpellScriptLoader("spell_icc_rocket_pack") { }
- 
-        class spell_icc_rocket_pack_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_icc_rocket_pack_SpellScript);
- 
-            SpellCastResult CheckRequirement()
-            {
-                Unit* caster = GetOriginalCaster();
-                if (caster->GetTypeId() != TYPEID_PLAYER)
-                    return SPELL_FAILED_TARGET_NOT_PLAYER;
- 
-                // The aura checks if the player has the aura that Zafod Boombox uses. (SPELL_EFFECT_APPLY_AREA_AURA_FRIEND)
-                if (!caster->ToPlayer()->HasAura(70348)) // Rocket Pack Useable
-                {
-                    // May have a custom error message.
-                    Spell::SendCastResult(caster->ToPlayer(), GetSpellInfo(), 0, SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW);
-                    return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
-                }
- 
-                return SPELL_CAST_OK;
-            }
- 
-            void Register()
-            {
-                OnCheckCast += SpellCheckCastFn(spell_icc_rocket_pack_SpellScript::CheckRequirement);
-            }
-        };
- 
-        class spell_icc_rocket_pack_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_icc_rocket_pack_AuraScript);
- 
-            void AfterRemove(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
-            {
-                Unit* caster = GetCaster();
-                caster->CastSpell(caster, 69193, true);
-                // 69193 does trigger the visual AoE effect (69192) through DB
-                caster->RemoveAurasDueToSpell(69188); // spell_linked_spell
-                caster->RemoveAurasDueToSpell(68721); // spell_linked_spell
-            }
- 
-            void Register()
-            {
-                AfterEffectRemove += AuraEffectRemoveFn(spell_icc_rocket_pack_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
-            }
-        };
- 
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_icc_rocket_pack_SpellScript();
-        }
- 
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_icc_rocket_pack_AuraScript();
-        }
-};
+	public:
+	spell_icc_rocket_pack() : SpellScriptLoader("spell_icc_rocket_pack") { }
+
+		class spell_icc_rocket_pack_SpellScript : public SpellScript
+		{
+			PrepareSpellScript(spell_icc_rocket_pack_SpellScript);
+
+			SpellCastResult CheckRequirement()
+		{
+	Unit* caster = GetOriginalCaster();
+	if (caster->GetTypeId() != TYPEID_PLAYER)
+	return SPELL_FAILED_TARGET_NOT_PLAYER;
+
+ // The aura checks if the player has the aura that Zafod Boombox uses. (SPELL_EFFECT_APPLY_AREA_AURA_FRIEND)
+	if (!caster->ToPlayer()->HasAura(70348)) // Rocket Pack Useable
+	{
+ // May have a custom error message.
+		Spell::SendCastResult(caster->ToPlayer(), GetSpellInfo(), 0, SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW);
+		return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
+	}
+
+	return SPELL_CAST_OK;
+ }
+
+ void Register()
+	{
+		OnCheckCast += SpellCheckCastFn(spell_icc_rocket_pack_SpellScript::CheckRequirement);
+	}
+ };
+
+ class spell_icc_rocket_pack_AuraScript : public AuraScript
+ {
+	PrepareAuraScript(spell_icc_rocket_pack_AuraScript);
+
+ void AfterRemove(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+ {
+	Unit* caster = GetCaster();
+	caster->CastSpell(caster, 69193, true);
+	// 69193 does trigger the visual AoE effect (69192) through DB
+	caster->RemoveAurasDueToSpell(69188); // spell_linked_spell
+	caster->RemoveAurasDueToSpell(68721); // spell_linked_spell
+ }
+
+ void Register()
+	{
+	AfterEffectRemove += AuraEffectRemoveFn(spell_icc_rocket_pack_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+	}
+ };
+
+ SpellScript* GetSpellScript() const
+ {
+	return new spell_icc_rocket_pack_SpellScript();
+ }
+
+ AuraScript* GetAuraScript() const
+ {
+	return new spell_icc_rocket_pack_AuraScript();
+ }
+}
 
 void AddSC_boss_gunship_battle()
 {
