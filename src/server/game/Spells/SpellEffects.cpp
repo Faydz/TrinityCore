@@ -471,6 +471,13 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             case SPELLFAMILY_PALADIN:
                 switch(m_spellInfo->Id)
                 {
+                    // Exorcism
+                    case 879:
+                        if(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) > m_caster->ToPlayer()->SpellBaseDamageBonusDone(GetSpellInfo()->GetSchoolMask()))
+                            damage += m_caster->GetTotalAttackPowerValue(BASE_ATTACK)*0.34f;
+                        else
+                            damage += m_caster->ToPlayer()->SpellBaseDamageBonusDone(GetSpellInfo()->GetSchoolMask())*0.34f;
+                        break;
                     // Seal of Righteousness aoe damage
                     case 25742:
                         if(m_caster && effIndex == EFFECT_1)
