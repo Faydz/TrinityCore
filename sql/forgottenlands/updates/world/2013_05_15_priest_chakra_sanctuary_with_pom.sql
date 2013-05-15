@@ -6,11 +6,5 @@ INSERT INTO `spell_group` VALUES (1122, 81206);
 INSERT INTO `spell_group` VALUES (1122, 81208);
 INSERT INTO `spell_group` VALUES (1122, 81209);
 
-DELETE FROM spell_linked_spell WHERE spell_trigger in(81206, 81208, 81209);
-INSERT INTO `spell_linked_spell` VALUES (81206, 81207, 2, 'Sanctuary');
-INSERT INTO `spell_linked_spell` VALUES (81208, -14751, 0, 'Serenity removes Chakra');
-INSERT INTO `spell_linked_spell` VALUES (81206, -14751, 0, 'Sanctuary removes Chakra');
-INSERT INTO `spell_linked_spell` VALUES (81209, -14751, 0, 'Chastise removes Chakra');
-
 DELETE FROM spell_proc_event WHERE entry=14751;
 INSERT INTO `spell_proc_event` VALUES (14751, 0, 0, 7808, 4, 65536, 87376, 0, 0, 100, 0);

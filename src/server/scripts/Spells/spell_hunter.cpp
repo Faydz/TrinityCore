@@ -79,7 +79,7 @@ class spell_hun_silencing_shot : public SpellScriptLoader
                     {
                         // Fixed value
                         int32 bp0 = 10;
-                        caster->CastCustomSpell(caster, 82716, &bp0, NULL, NULL, true);
+                        caster->CastCustomSpell(caster, SPELL_HUNTER_FOCUS_ENERGIZE, &bp0, NULL, NULL, true);
                     }
                 }
             }
