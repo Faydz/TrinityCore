@@ -3452,7 +3452,6 @@ void SpellMgr::LoadSpellCustomAttr()
                 {
                     // Ring of Frost
                     case 82676:
-                        spellInfo->CastTimeEntry = sSpellCastTimesStore.LookupEntry(1.5);
                         spellInfo->CastTimeMax = 1500;
                         spellInfo->CastTimeMin = 1500;
                         break;
