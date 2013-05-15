@@ -3844,6 +3844,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_HUNTER:
                 switch(spellInfo->Id)
                 {
+                    // Glyph of Silencing Shot
+                    case 56836:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName= SPELL_AURA_DUMMY;
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+                        break;
                     // bestial discipline all ranks
                     case 19590:
                     case 19592:

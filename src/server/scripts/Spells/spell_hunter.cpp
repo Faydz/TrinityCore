@@ -41,6 +41,7 @@ enum HunterSpells
 	SPELL_HUNTER_CHIMERA_SHOT_SERPENT               = 53353,
     SPELL_HUNTER_COBRA_SHOT                         = 77767,
     SPELL_HUNTER_GLYPH_OF_ASPECT_OF_THE_VIPER       = 56851,
+    SPELL_HUNTER_GLYPH_OF_SILENCING_SHOT            = 56836,
     SPELL_HUNTER_INVIGORATION_TRIGGERED             = 53398,
     SPELL_HUNTER_MASTERS_CALL_TRIGGERED             = 62305,
     SPELL_HUNTER_MISDIRECTION_PROC                  = 35079,
@@ -53,7 +54,47 @@ enum HunterSpells
     SPELL_HUNTER_SERPENT_STING_DEBUFF               = 1978,
     SPELL_HUNTER_SNIPER_TRAINING_R1                 = 53302,
     SPELL_HUNTER_SNIPER_TRAINING_BUFF_R1            = 64418,
+    SPELL_HUNTER_FOCUS_ENERGIZE                     = 82716,
     SPELL_DRAENEI_GIFT_OF_THE_NAARU                 = 59543,
+};
+
+// 34490 - Silencing Shot
+class spell_hun_silencing_shot : public SpellScriptLoader
+{
+    public:
+        spell_hun_silencing_shot() : SpellScriptLoader("spell_hun_silencing_shot") { }
+
+        class spell_hun_silencing_shot_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_hun_silencing_shot_AuraScript);
+
+            void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetTarget();
+                if (caster && target)
+                {
+                    // Glyph of Silencing Shot energize on spell interruption
+                    if (caster->HasAura(SPELL_HUNTER_GLYPH_OF_SILENCING_SHOT) && target->HasUnitState(UNIT_STATE_CASTING))
+                    {
+                        // Fixed value
+                        int32 bp0 = 10;
+                        caster->CastCustomSpell(caster, 82716, &bp0, NULL, NULL, true);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_hun_silencing_shot_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_MOD_SILENCE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            }
+        };
+
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_hun_silencing_shot_AuraScript();
+        }
 };
 
 // 13161 - Aspect of the Beast
@@ -1067,6 +1108,7 @@ class spell_hun_cobra_shot : public SpellScriptLoader
 
 void AddSC_hunter_spell_scripts()
 {
+    new spell_hun_silencing_shot();
     new spell_hun_aspect_of_the_beast();
     new spell_hun_ascpect_of_the_viper();
     new spell_hun_disengage();
