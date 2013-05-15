@@ -3669,7 +3669,29 @@ void Unit::RemoveAurasDueToSpellBySteal(uint32 spellId, uint64 casterGUID, Unit*
             if (stealCharge)
                 aura->ModCharges(-1, AURA_REMOVE_BY_ENEMY_SPELL);
             else
+            {
                 aura->ModStackAmount(-1, AURA_REMOVE_BY_ENEMY_SPELL);
+                
+                // Lifebloom Spellsteal
+                if(aura->GetId() == 33763)
+                {
+                    if (Unit* target = aura->GetUnitOwner())
+                    {
+                        int32 healAmount = aura->GetEffect(1)->GetAmount();
+                        if (Unit* caster = aura->GetCaster())
+                        {
+                            
+                                healAmount = caster->SpellHealingBonusDone(target, aura->GetSpellInfo(), healAmount, HEAL, 1);
+                                healAmount = target->SpellHealingBonusTaken(caster, aura->GetSpellInfo(), healAmount, HEAL, 1);
+                            
+                                target->CastCustomSpell(target, 33778, &healAmount, NULL, NULL, true, NULL, NULL, aura->GetCasterGUID());
+                            }
+                            return;
+
+                        target->CastCustomSpell(target, 33778, &healAmount, NULL, NULL, true, NULL, NULL, aura->GetCasterGUID());
+                    }
+                }
+            }
 
             return;
         }
