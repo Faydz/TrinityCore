@@ -471,6 +471,13 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             case SPELLFAMILY_PALADIN:
                 switch(m_spellInfo->Id)
                 {
+                    // Exorcism
+                    case 879:
+                        if(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) > m_caster->ToPlayer()->SpellBaseDamageBonusDone(GetSpellInfo()->GetSchoolMask()))
+                            damage += m_caster->GetTotalAttackPowerValue(BASE_ATTACK)*0.34f;
+                        else
+                            damage += m_caster->ToPlayer()->SpellBaseDamageBonusDone(GetSpellInfo()->GetSchoolMask())*0.34f;
+                        break;
                     // Seal of Righteousness aoe damage
                     case 25742:
                         if(m_caster && effIndex == EFFECT_1)
@@ -954,16 +961,6 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                         bp0 += aurEff->GetAmount();
 
                     m_caster->CastCustomSpell(m_caster, 77443, &bp0, NULL, NULL, true);
-                    break;
-                }
-                // Cobra Shot Focus Regen
-                case 77767:
-                {                
-                    int32 bp0 = 9;
-                    if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, 0))
-                        bp0 += aurEff->GetAmount();
-
-                    m_caster->CastCustomSpell(m_caster, 91954, &bp0, NULL, NULL, true);                
                     break;
                 }
             }
@@ -4488,8 +4485,18 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     break;
             }
             break;
-        case SPELLFAMILY_PALADIN:
+        case SPELLFAMILY_HUNTER:
         {
+            // Cobra Shot Focus Regen
+            case 77767:
+            {                
+                int32 bp0 = 9;
+                if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, 0))
+                    bp0 += aurEff->GetAmount();
+
+                m_caster->CastCustomSpell(m_caster, 91954, &bp0, NULL, NULL, true);                
+                break;
+            }
         }
         case SPELLFAMILY_DEATHKNIGHT:
         {

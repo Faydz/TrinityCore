@@ -564,14 +564,6 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                         amount += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
                     }
                     break;
-                case SPELLFAMILY_WARLOCK:
-                    // Shadow Ward
-                    if (m_spellInfo->SpellFamilyFlags[2] & 0x80000000)
-                    {
-                        // +80.68% from sp bonus
-                        amount += caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()) * 0.8068f;
-                    }
-                    break;
                 case SPELLFAMILY_PRIEST:
                     // Power Word: Shield
                     if (GetId() == 17)
@@ -2067,7 +2059,9 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
         }
 
         // remove other shapeshift before applying a new one
-        target->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT, 0, GetBase());
+		// except when shadow dance
+		if(!target->HasAura(51713))
+			target->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT, 0, GetBase());
 
         // stop handling the effect if it was removed by linked event
         if (aurApp->GetRemoveMode())
@@ -6768,19 +6762,6 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
         
         switch (m_spellInfo->SpellFamilyName)
         {
-            case SPELLFAMILY_WARLOCK:
-                switch(m_spellInfo->Id)
-                {
-                    // Soul Harvest
-                    case 79268:
-                        {
-                            float tickPct = 45.0f / (float)GetTotalTicks();
-                        
-                            damage += CalculatePct(caster->GetMaxHealth(), tickPct);
-                        }
-                        break;
-                }
-                break;
             case SPELLFAMILY_WARRIOR:
                 switch (GetId())
                 {

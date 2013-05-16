@@ -7079,7 +7079,7 @@ void Player::RewardReputation(Unit* victim, float rate)
 
     ReputationOnKillEntry const* Rep = sObjectMgr->GetReputationOnKilEntry(victim->ToCreature()->GetCreatureTemplate()->Entry);
 
-    // All mob in level 85 dungeons give championing reputation
+    // All mob in level 85 dungeons give championing reputation && All bosses give guild reputation
     if (!Rep)
     {
         if (Map* map = victim->GetMap())
@@ -7092,6 +7092,14 @@ void Player::RewardReputation(Unit* victim, float rate)
                         Rep = sObjectMgr->GetReputationOnKilEntry(42696);
                     else
                         Rep = sObjectMgr->GetReputationOnKilEntry(49667);
+                }
+
+                if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 1000000)
+                {
+                    if (!map->IsHeroic())
+                        Rep = sObjectMgr->GetReputationOnKilEntry(43438);
+                    else
+                        Rep = sObjectMgr->GetReputationOnKilEntry(49642);
                 }
             }
         }
@@ -7117,6 +7125,13 @@ void Player::RewardReputation(Unit* victim, float rate)
     }
 
     uint32 team = GetTeam();
+
+    // Skip Guild rep from championing if we are in a guild group
+    if (Rep->RepFaction1 == 1168 || Rep->RepFaction2 == 1168)
+    {
+        if (GetGroup() && GetGroup()->IsGuildGroup(GetGuildId()))
+            ChampioningFaction = 0;
+    }
 
     if (Rep->RepFaction1 && (!Rep->TeamDependent || team == ALLIANCE))
     {
@@ -7208,6 +7223,20 @@ void Player::RewardReputation(Quest const* quest)
 
         if (FactionEntry const* factionEntry = sFactionStore.LookupEntry(quest->RewardFactionId[i]))
             GetReputationMgr().ModifyReputation(factionEntry, rep);
+
+        // Give guild rep on completed quest
+        if (Guild * pGuild = sGuildMgr->GetGuildById(GetGuildId()))
+        {
+            if (uint32 exp = quest->XPValue(this))
+            {
+                uint32 gRep = exp / 450;
+                if (gRep <= 0)
+                    gRep = 1;
+
+                if (FactionEntry const* guildEntry = sFactionStore.LookupEntry(1168))
+                    GetReputationMgr().ModifyReputation(guildEntry, gRep);
+            }
+        }   
     }
 }
 
@@ -25074,6 +25103,7 @@ uint32 Player::GetRuneTypeBaseCooldown(RuneType runeType) const
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE);
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE_2);
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE_3);
+    hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_RANGED_HASTE);
 
     cooldown *=  1.0f - (hastePct / 100.0f);
     return cooldown;
@@ -26995,8 +27025,9 @@ void Player::RefundItem(Item* item)
     {
         uint32 count = iece->RequiredCurrencyCount[i];
         uint32 currencyid = iece->RequiredCurrency[i];
+
         if (count && currencyid)
-            ModifyCurrency(currencyid, count);
+            ModifyCurrency(currencyid, count, false, true);
     }
 
     // Grant back money

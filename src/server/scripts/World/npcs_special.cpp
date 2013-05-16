@@ -3736,25 +3736,31 @@ public:
 
 		void CheckIfMoveInRing(Unit *who)
         {
-			if (who->isAlive() && me->IsInRange(who, 2.0f, 4.7f)
-					&& !who->HasAura(82691)/*<= target already frozen*/
-					&& !who->HasAura(91264)/*<= target is immune*/
-					&& me->IsWithinLOSInMap(who) && Isready)
-				me->CastSpell(who, 82691, true);
-		}
-
-		void UpdateAI(uint32 diff)
-        {
-			if (timer <= diff) 
+            // Check if targets are alive, between 0.8y and 4.6y, not already frozen, not immune or in LOS
+            if (who->isAlive() && me->IsInRange(who, 0.8f, 4.6f)
+                && !who->HasAura(82691)/*<= target already frozen*/
+                && !who->HasAura(91264)/*<= target is immune*/
+                && !who->HasAuraState(AURA_STATE_FROZEN)
+                && me->IsWithinLOSInMap(who) && Isready)
             {
-				if (!Isready)
+                who->AddAura(82691, who);
+            }
+        }
+
+        void UpdateAI(uint32 diff)
+        {
+            if (timer <= diff)
+            {
+                if (!Isready)
                 {
-					Isready = true;
-					timer = 9000; // 9sec
-				} else
-					me->DisappearAndDie();
-			} else
-				timer -= diff;
+                    Isready = true;
+                    timer = 9000; // 9sec
+                }
+                else
+                    me->DisappearAndDie();
+            }
+            else
+                timer -= diff;
 
 			// Find all the enemies
 			std::list<Unit*> targets;
