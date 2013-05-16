@@ -3447,16 +3447,6 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                 }
                 break;
-            case SPELLFAMILY_MAGE:
-                switch(spellInfo->Id)
-                {
-                    // Ring of Frost
-                    case 82676:
-                        spellInfo->CastTimeMax = 1500;
-                        spellInfo->CastTimeMin = 1500;
-                        break;
-                }
-                break;
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
