@@ -3674,6 +3674,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Heroic Strike
+                    case 78:
+                        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_NORMALIZED_WEAPON_DMG;
+                        spellInfo->Effects[EFFECT_0].BasePoints = 549;
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
+                        spellInfo->Effects[EFFECT_1].BasePoints = 110;
+                        break;
 					// Demoralizing Shout
 					case 1160:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;

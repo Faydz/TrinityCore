@@ -525,10 +525,6 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         ApplyPct(damage, m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
 						m_caster->RemoveAurasDueToSpell(32216);
                         break;
-                    // Heroic Strike
-                    case 78:
-                        damage = 8 + m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.6f;
-                        break;
                     // Cleave
                     case 845:
                         damage += int32(6 + m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.45f);
