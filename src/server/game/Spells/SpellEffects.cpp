@@ -527,7 +527,7 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         break;
                     // Cleave
                     case 845:
-                        damage += int32(6 + m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.45f);
+                        damage += int32(m_caster->CalculateDamage(BASE_ATTACK, true, false) * 1.15f);
                         break;
                     // Shockwave
                     case 46968: 
