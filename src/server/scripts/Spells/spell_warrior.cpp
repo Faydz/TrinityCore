@@ -330,19 +330,6 @@ class spell_warr_bloodthirst : public SpellScriptLoader
         {
             PrepareSpellScript(spell_warr_bloodthirst_SpellScript);
 
-            void HandleDamage(SpellEffIndex /*effIndex*/)
-            {
-                int32 damage = GetEffectValue();
-                ApplyPct(damage, GetCaster()->GetTotalAttackPowerValue(BASE_ATTACK));
-
-                if (Unit* target = GetHitUnit())
-                {
-                    damage = GetCaster()->SpellDamageBonusDone(target, GetSpellInfo(), uint32(damage), SPELL_DIRECT_DAMAGE);
-                    damage = target->SpellDamageBonusTaken(GetCaster(), GetSpellInfo(), uint32(damage), SPELL_DIRECT_DAMAGE);
-                }
-                SetHitDamage(damage);
-            }
-
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
                 int32 damage = GetEffectValue();
@@ -351,7 +338,6 @@ class spell_warr_bloodthirst : public SpellScriptLoader
 
             void Register()
             {
-                OnEffectHitTarget += SpellEffectFn(spell_warr_bloodthirst_SpellScript::HandleDamage, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
                 OnEffectHit += SpellEffectFn(spell_warr_bloodthirst_SpellScript::HandleDummy, EFFECT_1, SPELL_EFFECT_DUMMY);
             }
         };
