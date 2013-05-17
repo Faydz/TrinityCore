@@ -6096,19 +6096,19 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
                     }
                 }
                 case 49016: // Hysteria
-                    uint32 damage = uint32(target->CountPctFromMaxHealth(1));
-                    target->DealDamage(target, damage, NULL, NODAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+                    {
+                        uint32 damage = uint32(target->CountPctFromMaxHealth(1));
+                        target->DealDamage(target, damage, NULL, NODAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+                    }
+                    break;
+                case 43265: // Death and Decay
+                    if (caster)
+                    {
+                        caster->CastSpell(target, 52212, true);
+                    }
                     break;
             }
-            // Death and Decay
-            if (GetSpellInfo()->SpellFamilyFlags[0] & 0x20)
-            {
-                if (caster)
-                {
-                    caster->CastSpell(target, 52212, true);
-                }
-                break;
-            }
+
             // Blood of the North
             // Reaping
             // Death Rune Mastery

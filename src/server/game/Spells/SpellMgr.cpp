@@ -3586,6 +3586,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Frost Strike
+                    case 49143:
+                        spellInfo->Effects[EFFECT_1].BasePoints = 143;
+                        break;
                     // Dark Simulacrum dummy aura
                     case 94984:
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;

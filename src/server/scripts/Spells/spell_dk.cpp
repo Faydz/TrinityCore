@@ -934,38 +934,6 @@ class spell_dk_scourge_strike : public SpellScriptLoader
                 return true;
             }
 
-            void HandleDummy(SpellEffIndex /*effIndex*/)
-            {
-                if (Unit* caster = GetCaster())
-                {
-                    if (Unit* target = GetHitUnit())
-                    {
-                        int32 bp = int32(0.2f * caster->GetDamageTakenInPastSecs(5));
-
-                        // Improved Death Strike
-                        if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, 2751, 0))
-                            AddPct(bp, caster->CalculateSpellDamage(caster, aurEff->GetSpellInfo(), 2));
-
-                        if (bp < int32(caster->CountPctFromMaxHealth(7)))
-                            return;
-
-                        if (Player* player = caster->ToPlayer())
-                        {
-                            if (player->HasAuraType(SPELL_AURA_MASTERY))
-                            {
-                                if (player->GetPrimaryTalentTree(player->GetActiveSpec()) == BS_DEATH_KNIGHT_BLOOD)
-                                {
-                                    int32 shieldAmount = 0;
-                                    shieldAmount = bp * (6.25f * player->GetMasteryPoints()) / 100;
-                                    player->CastCustomSpell(player, 77535, &shieldAmount, NULL, NULL, true);
-                                }
-                            }
-                        }
-                        caster->CastCustomSpell(caster, 45470, &bp, NULL, NULL, false);
-                    }
-                }
-            }
-
             void HandleAfterHit()
             {
                 Unit* caster = GetCaster();
@@ -984,7 +952,6 @@ class spell_dk_scourge_strike : public SpellScriptLoader
 
             void Register()
             {
-                OnEffectHitTarget += SpellEffectFn(spell_dk_scourge_strike_SpellScript::HandleDummy, EFFECT_2, SPELL_EFFECT_DUMMY);
                 AfterHit += SpellHitFn(spell_dk_scourge_strike_SpellScript::HandleAfterHit);
             }
         };
