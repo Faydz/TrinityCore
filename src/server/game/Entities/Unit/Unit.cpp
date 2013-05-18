@@ -11460,12 +11460,16 @@ int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask) const
 
     AuraEffectList const& mDamageDone = GetAuraEffectsByType(SPELL_AURA_MOD_DAMAGE_DONE);
     for (AuraEffectList::const_iterator i = mDamageDone.begin(); i != mDamageDone.end(); ++i)
-        if (((*i)->GetMiscValue() & schoolMask) != 0 &&
-        (*i)->GetSpellInfo()->EquippedItemClass == -1 &&
-                                                            // -1 == any item class (not wand then)
-        (*i)->GetSpellInfo()->EquippedItemInventoryTypeMask == 0)
-                                                            // 0 == any inventory type (not wand then)
-            DoneAdvertisedBenefit += (*i)->GetAmount();
+    {
+        if (((*i)->GetMiscValue() & schoolMask) != 0)
+        {
+            if ((*i)->GetSpellInfo()->EquippedItemClass == -1) // -1 == any item class (not wand then)
+            { 
+                if ((*i)->GetSpellInfo()->EquippedItemInventoryTypeMask == -1)  // -1 == any inventory type (not wand then)
+                    DoneAdvertisedBenefit += (*i)->GetAmount();
+            }
+        }
+    }
 
     if (GetTypeId() == TYPEID_PLAYER)
     {
