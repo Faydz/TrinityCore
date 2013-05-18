@@ -207,6 +207,6 @@ INSERT INTO `reference_loot_template` (`entry`, `item`, `ChanceOrQuestChance`, `
 DELETE FROM `creature_loot_template` WHERE `entry` IN (46210,46211);
 INSERT INTO `creature_loot_template` (`entry`, `item`, `ChanceOrQuestChance`, `lootmode`, `groupid`, `mincountOrRef`, `maxcount`) VALUES
 (46211, 0, 100, 1, 1, -42168, 4),
-(46211, 0, 100, 1, 1, -42169, 2),
+(46211, 1, 100, 1, 0, -42169, 2),
 (46210, 0, 100, 1, 1, -42168, 3),
 (46210, 1, 100, 1, 0, -42169, 1);
