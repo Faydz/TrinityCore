@@ -2244,6 +2244,37 @@ class spell_dru_skull_bash : public SpellScriptLoader
         }
 };
 
+class spell_dru_regrowth : public SpellScriptLoader
+{
+public:
+    spell_dru_regrowth() : SpellScriptLoader("spell_dru_regrowth") { }
+
+    class spell_dru_regrowth_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_dru_regrowth_AuraScript);
+
+        void OnPeriodic(AuraEffect const* aurEff)
+        {
+            // Glyph of Regrowth
+            if(Unit* caster = GetCaster())
+                if(Unit* target = GetTarget())
+                    if(AuraEffect *aurGlyph = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 197, EFFECT_0))
+                        if(target->HealthBelowPct(aurGlyph->GetAmount()))
+                            aurEff->GetBase()->RefreshDuration();
+        }
+
+        void Register()
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_dru_regrowth_AuraScript::OnPeriodic, EFFECT_1, SPELL_AURA_PERIODIC_HEAL);
+        }
+    };
+
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_dru_regrowth_AuraScript();
+    }
+};
+
 void AddSC_druid_spell_scripts()
 {
     new spell_dru_wild_mushroom();
@@ -2289,4 +2320,5 @@ void AddSC_druid_spell_scripts()
     new spell_dru_lunar_shower();
     new spell_dru_survival_instincts();
     new spell_dru_skull_bash();
+    new spell_dru_regrowth();
 }
