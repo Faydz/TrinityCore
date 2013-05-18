@@ -68,7 +68,7 @@ enum spell_c
 enum Nums
 {
     NPC_BLOOD_OF_THE_OLD_GOD              = 43707,
-    NPC_SPILLED_BLOOD                     = 5043585,
+    NPC_SPILLED_BLOOD                     = 341781,
     NPC_BLAZE                             = 43585,
     NPC_CORRUPTING_ADHERENT               = 43622,
     NPC_DARKENED_CREATION                 = 44045,
@@ -776,7 +776,7 @@ public:
         {
             if (!GetTarget())
                 return;
-            
+
             if (GetTarget()->GetMap() && GetTarget()->GetMap()->IsHeroic())
             {
                 GetTarget()->SetPower(POWER_ALTERNATE_POWER, GetTarget()->GetPower(POWER_ALTERNATE_POWER) + 2);
