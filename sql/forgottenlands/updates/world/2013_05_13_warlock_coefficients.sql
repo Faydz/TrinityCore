@@ -1,4 +1,4 @@
-DELETE FROM spell_bonus_data WHERE entry in(47960, 47897, 6789, 29722, 22703, 5676, 686, 17877, 30283, 50796, 5857, 42223, 50590, 54049, 7814, 3110);
+DELETE FROM spell_bonus_data WHERE entry in(47960, 47897, 6789, 29722, 22703, 5676, 686, 17877, 30283, 50796, 5857, 42223, 50590, 54049, 7814, 3110,71521,77799);
 
 INSERT INTO `spell_bonus_data` VALUES (47960, 0, 0.0667, -1, -1, 'Warlock - Shadowflame');
 INSERT INTO `spell_bonus_data` VALUES (47897, 0.1064, -1, -1, -1, 'Warlock - Shadowflame Direct Damage');

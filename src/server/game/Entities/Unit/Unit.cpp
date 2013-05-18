@@ -2697,6 +2697,13 @@ float Unit::GetUnitCriticalChance(WeaponAttackType attackType, const Unit* victi
 
     crit += victim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE);
 
+    // reduce crit chance from Rating for players
+    if (attackType != RANGED_ATTACK)
+    {
+        // Glyph of barkskin
+        if (victim->HasAura(63057) && victim->HasAura(22812)) crit -= 25.0f;
+    }
+
     if (crit < 0.0f)
         crit = 0.0f;
     return crit;
@@ -3669,7 +3676,28 @@ void Unit::RemoveAurasDueToSpellBySteal(uint32 spellId, uint64 casterGUID, Unit*
             if (stealCharge)
                 aura->ModCharges(-1, AURA_REMOVE_BY_ENEMY_SPELL);
             else
+            {
                 aura->ModStackAmount(-1, AURA_REMOVE_BY_ENEMY_SPELL);
+                
+                // Lifebloom Spellsteal
+                if(aura->GetId() == 33763)
+                {
+                    if (Unit* target = aura->GetUnitOwner())
+                    {
+                        if(aura->GetEffect(EFFECT_1))
+                        {
+                            int32 healAmount = aura->GetEffect(EFFECT_1)->GetAmount();
+                            if (Unit* caster = aura->GetCaster())
+                            {
+                                healAmount = caster->SpellHealingBonusDone(target, aura->GetSpellInfo(), healAmount, HEAL, 1);
+                                healAmount = target->SpellHealingBonusTaken(caster, aura->GetSpellInfo(), healAmount, HEAL, 1);
+                            
+                                target->CastCustomSpell(target, 33778, &healAmount, NULL, NULL, true, NULL, NULL, aura->GetCasterGUID());
+                            }
+                        }
+                    }
+                }
+            }
 
             return;
         }
@@ -6266,7 +6294,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         }
                     }
                     break;
-                // Chackra
+                // Chakra
                 case 14751:
                     switch (procSpell->Id)
                     {
@@ -6274,28 +6302,15 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         case 2060:  // Greater Heal
                         case 2061:  // Flash Heal
                         case 32546: // Binding Heal
-                            if (HasAura(81206))
-                                RemoveAura(81206);
-                            if (HasAura(81209))
-                                RemoveAura(81209);
 
                             triggered_spell_id = 81208;
                             break;
-                        case 596:   // Prayer of Healing
-                        case 33110: // Prayer of Mending
-                            if (HasAura(81208))
-                                RemoveAura(81208);
-                            if (HasAura(81209))
-                                RemoveAura(81209);
+                        case 596:   // Prayer of Healing (Mending handled in SpellScript)
 
                             triggered_spell_id = 81206;
                             break;
                         case 585:   // Smite
                         case 73510: // Mind Spike
-                            if (HasAura(81206))
-                                RemoveAura(81206);
-                            if (HasAura(81209))
-                                RemoveAura(81209);
 
                             triggered_spell_id = 81209;
                             break;
@@ -11080,7 +11095,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             {
                 // Damaging Death Coil
                 case 47632:
-                    DoneTotal += CalculatePct(this->GetTotalAttackPowerValue(BASE_ATTACK), 30);
+                    DoneTotal += CalculatePct(this->GetTotalAttackPowerValue(BASE_ATTACK), 23);
                     break;
                 // Blood Plague
                 case 55078:
@@ -11240,7 +11255,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             {
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_SHAMAN_ENCHANCEMENT)
                {
-                   float pct = uint32(0.025f * owner->ToPlayer()->GetMasteryPoints());
+                   float pct = 0.025f * owner->ToPlayer()->GetMasteryPoints();
                    DoneTotalMod *= 1 + pct;
                }
             }

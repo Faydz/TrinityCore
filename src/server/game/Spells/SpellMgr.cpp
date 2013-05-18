@@ -100,6 +100,9 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
             // Deep Freeze
             else if (spellproto->SpellIconID == 2939 && spellproto->SpellVisual[0] == 9963)
                 return DIMINISHING_CONTROLLED_STUN;
+            // Ring of Frost
+            else if (spellproto->SpellIconID == 5279 && spellproto->SpellVisual[0] == 4499)
+                return DIMINISHING_CONTROLLED_STUN;
             // Frost Nova / Freeze (Water Elemental)
             else if (spellproto->SpellIconID == 193)
                 return DIMINISHING_CONTROLLED_ROOT;
@@ -3586,6 +3589,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Frost Strike
+                    case 49143:
+                        spellInfo->Effects[EFFECT_1].BasePoints = 143;
+                        break;
                     // Dark Simulacrum dummy aura
                     case 94984:
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
@@ -3670,6 +3677,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Heroic Strike
+                    case 78:
+                        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_NORMALIZED_WEAPON_DMG;
+                        spellInfo->Effects[EFFECT_0].BasePoints = 549;
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
+                        spellInfo->Effects[EFFECT_1].BasePoints = 110;
+                        break;
 					// Demoralizing Shout
 					case 1160:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
@@ -3834,6 +3848,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_HUNTER:
                 switch(spellInfo->Id)
                 {
+                    // Glyph of Silencing Shot
+                    case 56836:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName= SPELL_AURA_DUMMY;
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+                        break;
                     // bestial discipline all ranks
                     case 19590:
                     case 19592:
