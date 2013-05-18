@@ -3134,6 +3134,9 @@ void SpellMgr::LoadSpellCustomAttr()
             case 84593: // Stone grip
                 spellInfo->Effects[0].Amplitude = 12000;
                 break;
+            case 83609: // Atrophic Poison
+                spellInfo->Effects[0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ENEMY);
+                break;
             // CORREZIONI ITEM PROFESSIONI --- DA VICIOUS 377 A BLOODTHIRSTY 358
             case 78457:
                 spellInfo->Effects[0].ItemType = 70044;

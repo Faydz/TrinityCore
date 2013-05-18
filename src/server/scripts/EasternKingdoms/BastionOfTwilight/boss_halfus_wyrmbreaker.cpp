@@ -36,26 +36,32 @@ enum spell
     SPELL_FIREBOLT_BARRAGE_SLOW                   = 83733, // 83733 
     SPELL_FIREBOLT_BARRAGE_FAST                   = 83720,
     SPELL_TIME_DILATATION                         = 83601,
-    SPELL_SCORCHING_BLAST                         = 83707,
+    SPELL_SCORCHING_BREATH                        = 83707,
     SPELL_SHADOW_NOVA                             = 83703,
+    SPELL_SHADOW_WRAPPED                          = 83952,
     SPELL_DANCING_FLAMES                          = 84106,
     SPELL_CYCLONE_WINDS                           = 84092,
     SPELL_ENRAGE                                  = 26662,
     SPELL_FURIOUS_ROAR                            = 83710,
+    SPELL_ATROPHIC_POISON                         = 83609,
+    SPELL_SUPERHEATED_BREATH                      = 83956,
 };
 
 enum events
 {
-    EVENT_MALEVOLENT_STRIKE                       = 1,
-    EVENT_FRENZIED_ASSOULT                        = 2,
-    EVENT_FIREBALL_BARRAGE                        = 3,
-    EVENT_ENRAGE                                  = 4,
-    EVENT_FURIOUS_ROAR                            = 5,
+    EVENT_MALEVOLENT_STRIKE = 1,
+    EVENT_FRENZIED_ASSOULT,
+    EVENT_FIREBALL_BARRAGE,
+    EVENT_ENRAGE,
+    EVENT_FURIOUS_ROAR,
+    EVENT_SHADOW_NOVA,
+    EVENT_SCORCHING_BREATH,
 };
 
 enum sharedActions
 {
-    ACTION_FIREBALL_BARRAGE_START = 1,
+    ACTION_FIREBALL_BARRAGE_START                  = 1,
+    ACTION_BREATH_START                            = 2,
 };
 
 class boss_halfus_wyrmbreaker : public CreatureScript
@@ -84,6 +90,10 @@ class boss_halfus_wyrmbreaker : public CreatureScript
                 barrageCount = 0;
                 roarCount = 0;
                 firstFuriosCasted = false;
+
+                // Add Shadow nova aura (HEROIC)
+                if (me->GetMap() && me->GetMap()->IsHeroic())
+                    me->AddAura(SPELL_SHADOW_WRAPPED, me);
 
                 if (Creature* dragon = me->GetCreature(*me, instance->GetData64(NPC_NETHER_SCION)))
                 {
@@ -124,6 +134,16 @@ class boss_halfus_wyrmbreaker : public CreatureScript
                     else
                         dragon->AI()->EnterEvadeMode();
                 }
+
+                std::list<Creature*> unitList;
+                me->GetCreatureListWithEntryInGrid(unitList, 44641, 100.0f);
+                for (std::list<Creature*>::const_iterator itr = unitList.begin(); itr != unitList.end(); ++itr)
+                {
+                    if (!(*itr)->isAlive())
+                        (*itr)->Respawn(true);
+                    else
+                        (*itr)->AI()->EnterEvadeMode();                    
+                }
 			}
 
 			void EnterCombat(Unit* /*who*/)
@@ -140,6 +160,14 @@ class boss_halfus_wyrmbreaker : public CreatureScript
                 // Malevolent Strike Aura trigger
                 me->AddAura(SPELL_MALEVOLENT_STRIKE_TRIG, me);
 
+                // Add Heroic Auras & Events
+                if (me->GetMap() && me->GetMap()->IsHeroic())
+                {
+                    me->AddAura(SPELL_SHADOW_WRAPPED, me);
+                    events.ScheduleEvent(EVENT_SHADOW_NOVA, urand(11000, 12000));
+                    events.ScheduleEvent(EVENT_SCORCHING_BREATH, urand(25000, 27000)); 
+                }
+
                 // Firball Barrage activator
                 if (Creature* proto = me->GetCreature(*me, instance->GetData64(NPC_PROTO_BEHEMOTH)))
                 {
@@ -151,8 +179,9 @@ class boss_halfus_wyrmbreaker : public CreatureScript
                     proto->AttackStop();
                     proto->StopMoving();
 
-                    if (proto->AI())
-                        proto->AI()->DoAction(ACTION_FIREBALL_BARRAGE_START);
+                    // Superheated breath!
+                    if (me->GetMap() && me->GetMap()->IsHeroic())
+                        me->AddAura(SPELL_SUPERHEATED_BREATH, proto);
 
                     events.ScheduleEvent(EVENT_FIREBALL_BARRAGE, urand(15000, 20000));
                 }
@@ -186,6 +215,16 @@ class boss_halfus_wyrmbreaker : public CreatureScript
                 }
             }
 
+            void DoAction(int32 actionId)
+            {
+                switch (actionId)
+                {
+                    case ACTION_BREATH_START:
+                        events.ScheduleEvent(EVENT_SCORCHING_BREATH, urand(25000, 27000)); 
+                        break;
+                }
+            }
+
 			void UpdateAI(uint32 diff)
 			{
 				if (!UpdateVictim())
@@ -197,6 +236,14 @@ class boss_halfus_wyrmbreaker : public CreatureScript
                 {
                     switch (eventId)
                     {
+                        case EVENT_SCORCHING_BREATH:
+                            // Cast breath
+                            if (Creature* proto = me->GetCreature(*me, instance->GetData64(NPC_PROTO_BEHEMOTH)))
+                            {
+                                proto->CastSpell(proto, SPELL_SCORCHING_BREATH, false);
+                                events.ScheduleEvent(EVENT_SCORCHING_BREATH, urand(25000, 27000)); 
+                            }
+                            break;
                         case EVENT_FIREBALL_BARRAGE:
                             // Cast barrage on random players
                             if (Creature* proto = me->GetCreature(*me, instance->GetData64(NPC_PROTO_BEHEMOTH)))
@@ -237,6 +284,10 @@ class boss_halfus_wyrmbreaker : public CreatureScript
                                 events.ScheduleEvent(EVENT_FURIOUS_ROAR, 30000);
                             }
                             break;
+                        case EVENT_SHADOW_NOVA:
+                            me->CastSpell(me, SPELL_SHADOW_NOVA, false);
+                            events.ScheduleEvent(EVENT_SHADOW_NOVA, urand(8000, 9000));
+                            break;
                         default:
                             break;
                     }                
@@ -275,7 +326,10 @@ class npc_halfus_dragon : public CreatureScript
                 switch (me->GetEntry())
                 {
                     case NPC_STORM_RIDER:
-                        me->AddAura(SPELL_UNRESPONSIVE, me);
+                        if (me->GetMap() && !me->GetMap()->IsHeroic())
+                            me->AddAura(SPELL_UNRESPONSIVE, me);
+
+                        me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                         return;
                     default:
 			            me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
@@ -348,6 +402,9 @@ class npc_halfus_dragon : public CreatureScript
                                     creature->AddAura(SPELL_TIME_DILATATION, proto);
                             }
                             break;
+                        case NPC_STORM_RIDER:
+                            creature->AddAura(SPELL_CYCLONE_WINDS, halfus);
+                            break;
                     }
 
                     if (!halfus->isInCombat())
@@ -358,8 +415,7 @@ class npc_halfus_dragon : public CreatureScript
                 }
             }
             creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-            // creature->AddAura(SPELL_BIND_WILL, creature);
-			return true;
+            return true;
 		}
 
 		bool OnGossipSelect(Player* pPlayer, Creature* creature, uint32 /*uiSender*/, uint32 uiAction)
@@ -429,10 +485,53 @@ class spell_halfus_stone_grip : public SpellScriptLoader
         }
 };
 
+class go_whelp_cage : public GameObjectScript
+{
+public:
+    go_whelp_cage() : GameObjectScript("go_whelp_cage") { }
+
+    bool OnGossipHello(Player* pPlayer, GameObject* pGO)
+    {
+        if (!pPlayer || !pPlayer->ToUnit() || !pGO)
+            return false;
+
+        InstanceScript* instance;
+        instance = pGO->GetInstanceScript();
+        if (!instance)
+            return false;
+
+        std::list<Creature*> unitList;
+        pGO->GetCreatureListWithEntryInGrid(unitList, 44641, 100.0f);
+        for (std::list<Creature*>::const_iterator itr = unitList.begin(); itr != unitList.end(); ++itr)
+        {
+            // Venom da drake!
+            if (Creature* proto = pPlayer->GetCreature(*pPlayer, instance->GetData64(NPC_PROTO_BEHEMOTH)))
+                (*itr)->AddAura(SPELL_ATROPHIC_POISON, proto); 
+
+            (*itr)->setFaction(14);
+            (*itr)->SetReactState(REACT_AGGRESSIVE);
+            
+        }
+
+        if (Creature* halfus = pPlayer->GetCreature(*pPlayer, instance->GetData64(DATA_WYRMBREAKER))) 
+        {
+            if (!halfus->isInCombat())
+            {
+                halfus->Attack(pPlayer, true);
+                halfus->GetMotionMaster()->MoveChase(pPlayer, 1.0f, 1.0f);
+            }
+        }
+
+        pGO->SetGoState(GO_STATE_ACTIVE);
+        return true;
+    }
+};
+
 void AddSC_boss_halfus_wyrmbreaker()
 {
 	new boss_halfus_wyrmbreaker();
 	new npc_halfus_dragon();
     new spell_halfus_stone_touch();
     new spell_halfus_stone_grip();
+    new go_whelp_cage();
 }
