@@ -3765,6 +3765,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Solar Beam
+                    case 78675:
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_SILENCE;
+                        break;
 					// Demoralizing Roar
 					case 99:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
