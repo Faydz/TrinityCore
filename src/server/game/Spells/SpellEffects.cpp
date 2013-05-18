@@ -3914,10 +3914,10 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                                 uint32 dur = (*itr)->GetBase()->GetDuration();
                                 uint32 ids = (*itr)->GetId();
                                 int32 dam = (*itr)->GetAmount();
-                                if (ids == 11366) //only cast the dot from pyroblast
+                                if (ids == 92315 || ids == 11366 || ids == 44614) //only cast the dot from pyroblast!, pyroblast and firefrost bolt
                                     m_caster->AddAura(ids, unitTarget);
                                 else
-                                m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
+                                    m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
                                 if (unitTarget->GetAura(ids)){        //this should prevent crashing if target was immune to the casting
                                     unitTarget->GetAura(ids)->SetDuration(dur);
                                 }
