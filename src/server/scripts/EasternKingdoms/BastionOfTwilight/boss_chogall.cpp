@@ -366,8 +366,11 @@ public:
         void Reset()
         {
             summons.DespawnAll();
-            if (Creature* chogall = me->GetCreature(*me, instance->GetData64(DATA_CHOGALL)))
-                DoZoneInCombat(chogall);
+            if (instance)
+            {
+                if (Creature* chogall = me->GetCreature(*me, instance->GetData64(DATA_CHOGALL)))
+                    DoZoneInCombat(chogall);
+            }
         }
 
         void UpdateAI(uint32 diff)
