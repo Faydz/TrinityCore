@@ -794,6 +794,10 @@ class spell_dru_eclipse_energize : public SpellScriptLoader
                             caster->RemoveAurasDueToSpell(SPELL_DRUID_SOLAR_ECLIPSE);
                             caster->RemoveAura(94338);
                         }
+
+                        // Glyph of Starsurge
+                        if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 1957, EFFECT_0))
+                            caster->ToPlayer()->ReduceSpellCooldown(48505, aurEff->GetAmount()*IN_MILLISECONDS);
                         break;
                     }
                 }
