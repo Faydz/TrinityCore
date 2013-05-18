@@ -6095,6 +6095,7 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
                         }
                     }
                 }
+                    break;
                 case 49016: // Hysteria
                     {
                         uint32 damage = uint32(target->CountPctFromMaxHealth(1));
