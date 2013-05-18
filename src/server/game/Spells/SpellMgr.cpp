@@ -3765,6 +3765,14 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Innervate (Glyph of Innervate)
+                    case 54833:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_PERIODIC_ENERGIZE;
+                        break;
+                    // Glyph of Innervate
+                    case 54832:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 10;
+                        break;
                     // Solar Beam
                     case 78675:
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_SILENCE;

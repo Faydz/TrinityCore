@@ -694,7 +694,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                     // Glyph of Innervate
 					if (AuraEffect* aurEff = GetBase()->GetCaster()->GetDummyAuraEffect(SPELLFAMILY_DRUID, 62, 0))
 					{
-						int32 bp0 = energizePct / 2 / 10;
+                        int32 bp0 = (GetBase()->GetCaster()->GetMaxPower(POWER_MANA) * aurEff->GetAmount() / 100) / GetTotalTicks();
 						GetBase()->GetCaster()->CastCustomSpell(GetBase()->GetCaster(), 54833, &bp0, 0, 0, true, 0, 0, 0);
 					}
 				}
