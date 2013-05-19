@@ -3918,6 +3918,9 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_ROGUE:
                 switch(spellInfo->Id)
                 {
+                    case 39666:
+                        spellInfo->Effects[0].BasePoints = -200;
+                        break;
 					// Shadow Dance
 					case 51713:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
