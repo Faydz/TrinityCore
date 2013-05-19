@@ -4584,7 +4584,11 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                 //Cycle trough all periodic auras to increase Combustion periodic damage
                 for (Unit::AuraEffectList::const_iterator i = mPeriodic.begin(); i != mPeriodic.end(); ++i)                 
                     if ((*i)->GetCasterGUID() == m_caster->GetGUID())
-                        bp += (*i)->GetAmount();         
+                    {
+                        int32 tempDmg = m_caster->SpellDamageBonusDone(unitTarget, (*i)->GetSpellInfo(), (*i)->GetAmount(), DOT);
+                        tempDmg = unitTarget->SpellDamageBonusTaken(m_caster, (*i)->GetSpellInfo(), tempDmg, DOT);
+                        bp += tempDmg / (*i)->GetTotalTicks();
+                    }
                 m_caster->CastCustomSpell(unitTarget, 83853, &bp,NULL, NULL, true);
             }
             
