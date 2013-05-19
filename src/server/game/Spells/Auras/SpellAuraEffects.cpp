@@ -694,7 +694,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                     // Glyph of Innervate
 					if (AuraEffect* aurEff = GetBase()->GetCaster()->GetDummyAuraEffect(SPELLFAMILY_DRUID, 62, 0))
 					{
-						int32 bp0 = energizePct / 2 / 10;
+                        int32 bp0 = (GetBase()->GetCaster()->GetMaxPower(POWER_MANA) * aurEff->GetAmount() / 100) / GetTotalTicks();
 						GetBase()->GetCaster()->CastCustomSpell(GetBase()->GetCaster(), 54833, &bp0, 0, 0, true, 0, 0, 0);
 					}
 				}
@@ -763,6 +763,12 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
             // Dash - do not set speed if not in cat form
             if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_DRUID && GetSpellInfo()->SpellFamilyFlags[2] & 0x00000008)
                 amount = GetBase()->GetUnitOwner()->GetShapeshiftForm() == FORM_CAT ? amount : 0;
+            break;
+        case SPELL_AURA_MOD_DECREASE_SPEED:
+            // Glyph of Hurricane
+            if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_DRUID && GetSpellInfo()->SpellFamilyFlags[0] & 0x00400000)
+                if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 220, EFFECT_0))
+                    amount = aurEff->GetAmount();
             break;
         case SPELL_AURA_MOUNTED:
             if (MountCapabilityEntry const* mountCapability = GetBase()->GetUnitOwner()->GetMountCapability(uint32(GetMiscValueB())))

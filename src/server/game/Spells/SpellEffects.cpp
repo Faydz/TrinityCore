@@ -1652,7 +1652,11 @@ void Spell::EffectHeal(SpellEffIndex /*effIndex*/)
             return;
 
         int32 addhealth = damage;
-
+        
+        // Glyph of Healing Touch
+        if (m_spellInfo->Id == 5185)
+            if(AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 962, EFFECT_0))
+                m_caster->ToPlayer()->ReduceSpellCooldown(17116, aurEff->GetAmount()*IN_MILLISECONDS);
         // Vessel of the Naaru (Vial of the Sunwell trinket)
         if (m_spellInfo->Id == 45064)
         {
