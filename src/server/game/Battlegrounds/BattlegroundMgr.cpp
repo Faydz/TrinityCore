@@ -783,7 +783,7 @@ Battleground* BattlegroundMgr::GetBattlegroundTemplate(BattlegroundTypeId bgType
 uint32 BattlegroundMgr::CreateClientVisibleInstanceId(BattlegroundTypeId bgTypeId, BattlegroundBracketId bracket_id)
 {
     if (IsArenaType(bgTypeId))
-        return 0;                                           //arenas don't have client-instanceids
+        return 0;                                           //arenas don't have client-instanceids -- DO RATED BGs HAVE?
 
     // we create here an instanceid, which is just for
     // displaying this to the client and without any other use..
@@ -814,6 +814,8 @@ Battleground* BattlegroundMgr::CreateNewBattleground(BattlegroundTypeId original
     switch (originalBgTypeId)
     {
         case BATTLEGROUND_RB:
+            isRandom = true;
+        case BATTLEGROUND_RATED_10_VS_10:
             isRandom = true;
         case BATTLEGROUND_AA:
             bgTypeId = GetRandomBG(originalBgTypeId);
@@ -876,6 +878,7 @@ Battleground* BattlegroundMgr::CreateNewBattleground(BattlegroundTypeId original
             break;
         case BATTLEGROUND_RB:
         case BATTLEGROUND_AA:
+        case BATTLEGROUND_RATED_10_VS_10:
             bg = new Battleground(*bg_template);
             break;
         default:
@@ -908,6 +911,9 @@ Battleground* BattlegroundMgr::CreateNewBattleground(BattlegroundTypeId original
                 break;
             case ARENA_TYPE_5v5:
                 maxPlayersPerTeam = 5;
+                break;
+            case ARENA_TYPE_10v10:
+                maxPlayersPerTeam = 10;
                 break;
         }
 
