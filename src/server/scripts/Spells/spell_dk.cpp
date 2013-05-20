@@ -314,10 +314,19 @@ class spell_dk_anti_magic_zone : public SpellScriptLoader
 
             void CalculateAmount(AuraEffect const* /*aurEff*/, int32 & amount, bool & /*canBeRecalculated*/)
             {
-                SpellInfo const* talentSpell = sSpellMgr->GetSpellInfo(SPELL_DK_ANTI_MAGIC_SHELL_TALENT);
-                amount = talentSpell->Effects[EFFECT_0].CalcValue(GetCaster());
-                if (Player* player = GetCaster()->ToPlayer())
-                     amount += int32(2 * player->GetTotalAttackPowerValue(BASE_ATTACK));
+                if(Unit* npc = GetCaster())
+                {
+                    SpellInfo const* talentSpell = sSpellMgr->GetSpellInfo(SPELL_DK_ANTI_MAGIC_SHELL_TALENT);
+                    amount = talentSpell->Effects[EFFECT_0].CalcValue(npc);
+
+                    if (Unit* unit = npc->GetCharmerOrOwner())
+                    {
+                        if(Player* player = unit->ToPlayer())
+                        {   
+                            amount += int32(4 * player->GetStat(STAT_STRENGTH));
+                        }
+                    }
+                }
             }
 
             void Absorb(AuraEffect* /*aurEff*/, DamageInfo & dmgInfo, uint32 & absorbAmount)
