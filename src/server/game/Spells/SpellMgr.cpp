@@ -3674,6 +3674,14 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                 }
                 break;
+            case SPELLFAMILY_MAGE:
+                switch(spellInfo->Id)
+                {
+                case 44614:
+                    spellInfo->StackAmount = 1;
+                    break;
+                }
+                break;
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
