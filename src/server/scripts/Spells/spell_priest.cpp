@@ -550,6 +550,7 @@ class spell_pri_prayer_of_mending : public SpellScriptLoader
                     if (caster->HasAura(SPELL_PRIEST_CHAKRA))
                     {
                         caster->CastSpell(caster, SPELL_PRIEST_CHAKRA_SANCTUARY);
+                        caster->RemoveAurasDueToSpell(SPELL_PRIEST_CHAKRA);
                     }
                 }
             }

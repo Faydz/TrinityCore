@@ -6321,6 +6321,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
                     if (triggered_spell_id == 0)
                         return false;
+                    else
+                        this->RemoveAurasDueToSpell(procSpell->Id);
                     break;
                 // Train of Thought
                 case 92295:
