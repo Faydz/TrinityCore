@@ -1025,6 +1025,14 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
         // special cases
         switch (triggered_spell_id)
         {
+            // Soulstone Resurrection
+            case 6203:
+                if(m_caster && unitTarget && unitTarget->isDead())
+                {
+                    unitTarget->CastSpell(unitTarget, 3026);
+                    return;
+                }
+                break;
             // Rend
             case 94009:
                 if(Aura* aura = unitTarget->GetAura(triggered_spell_id, m_caster->GetGUID()))
