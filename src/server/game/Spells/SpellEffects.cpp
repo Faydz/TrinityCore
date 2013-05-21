@@ -1106,7 +1106,8 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
                     // remove all harmful spells on you...
                     SpellInfo const* spell = iter->second->GetBase()->GetSpellInfo();
                     if ((spell->DmgClass == SPELL_DAMAGE_CLASS_MAGIC // only affect magic spells
-                        || ((spell->GetDispelMask()) & dispelMask))
+                        || ((spell->GetDispelMask()) & dispelMask)
+                        || (spell->Id == 31803))
                         // ignore positive and passive auras
                         && !iter->second->IsPositive() && !iter->second->GetBase()->IsPassive())
                     {

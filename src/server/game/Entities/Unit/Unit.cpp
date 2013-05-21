@@ -11213,7 +11213,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 					{
 						if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
 						{
-							DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints();
+							DoneTotalMod *= 1.0f + 3.5f * owner->ToPlayer()->GetMasteryPoints();
 						}
 					}
 				break;
@@ -11222,7 +11222,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 					// Mastery Assassination (Potent Poisons)
 					if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
 						if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
-							DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints() / 100;
+							DoneTotalMod *= 1.0f + 3.5f * owner->ToPlayer()->GetMasteryPoints() / 100;
 				break;
 			}
 
@@ -11241,12 +11241,12 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                // Mastery Assassination (Potent Poisons)
                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
-                       DoneTotalMod *= 1.0f + 0.035f * owner->ToPlayer()->GetMasteryPoints() / 100;
+                       DoneTotalMod *= 1.0f + 3.5f * owner->ToPlayer()->GetMasteryPoints() / 100;
 
                // Mastery Subtlety Executione
                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_ROGUE_SUBTLETY)
-                       DoneTotalMod *= 1.0f + 0.025f * owner->ToPlayer()->GetMasteryPoints() / 100;
+                       DoneTotalMod *= 1.0f + 2.5f * owner->ToPlayer()->GetMasteryPoints() / 100;
             }
             break;
         case SPELLFAMILY_SHAMAN:

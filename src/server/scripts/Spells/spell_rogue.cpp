@@ -388,7 +388,7 @@ class spell_rog_preparation : public SpellScriptLoader
                     if (spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE)
                     {
                         if (spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_COLDB_SHADOWSTEP ||     // Cold Blood, Shadowstep
-                            spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_VAN_EVAS_SPRINT)         // Vanish, Evasion, Sprint
+                            spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_VAN_EVAS_SPRINT && spellInfo->Id != 5277)         // Vanish, Evasion, Sprint
                             caster->RemoveSpellCooldown((itr++)->first, true);
                         else if (caster->HasAura(SPELL_ROGUE_GLYPH_OF_PREPARATION))
                         {
@@ -762,9 +762,16 @@ public:
                 GetCaster()->CastSpell(GetCaster(), 1784, true);
             }
         }
+
+        void HandleApply(AuraEffect const * aurEff, AuraEffectHandleModes mode) 
+        {
+            if(Unit* caster = GetCaster())
+                caster->CombatStop(true);
+        }
         
         void Register()
         {
+            OnEffectApply += AuraEffectApplyFn(spell_rog_vanish_buff_AuraScript::HandleApply, EFFECT_0, SPELL_AURA_MOD_SHAPESHIFT, AURA_EFFECT_HANDLE_REAL);
             OnEffectRemove += AuraEffectRemoveFn(spell_rog_vanish_buff_AuraScript::HandleRemove, EFFECT_0, SPELL_AURA_MOD_SHAPESHIFT, AURA_EFFECT_HANDLE_REAL);
         }
     };
