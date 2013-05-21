@@ -307,13 +307,13 @@ public:
                             caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_RAGE, &bp0, NULL, NULL, true);
                             break;
                         case CLASS_ROGUE:
-                            caster->CastSpell(target, SPELL_WARLOCK_JINX_ENERGY, &bp0, NULL, NULL, true);
+                            caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_ENERGY, &bp0, NULL, NULL, true);
                             break;
                         case CLASS_DEATH_KNIGHT:
-                            caster->CastSpell(target, SPELL_WARLOCK_JINX_RUNIC_POWER, &bp0, NULL, NULL, true);
+                            caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_RUNIC_POWER, &bp0, NULL, NULL, true);
                             break;
                         case CLASS_HUNTER:
-                            caster->CastSpell(target, SPELL_WARLOCK_JINX_FOCUS, &bp0, NULL, NULL, true);
+                            caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_FOCUS, &bp0, NULL, NULL, true);
                             break;
                     }
                 }
