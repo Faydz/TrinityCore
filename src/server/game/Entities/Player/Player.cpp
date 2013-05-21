@@ -23411,9 +23411,13 @@ void Player::SendInitialPacketsAfterAddToMap()
     SendAurasForTarget(this);
     SendEnchantmentDurations();                             // must be after add to map
     SendItemDurations();                                    // must be after add to map
+    
     RestoreAllSpellMods();
+    UpdateSpeed(MOVE_RUN, true);
+
     // RIAPPLICAZIONE DEI TALENTI PER EVITARE I FASTIDIOSI BUG LATO CLIENT SU DK E BLOCCO A TERRA
-    //ForceSpecReactivation(this->GetActiveSpec());
+    // ForceSpecReactivation(this->GetActiveSpec());
+    
     // raid downscaling - send difficulty to player
     if (GetMap()->IsRaid())
     {
