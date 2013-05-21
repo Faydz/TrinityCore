@@ -1828,6 +1828,7 @@ class Player : public Unit, public GridObject<Player>
 
         // Dual Spec
         void UpdateSpecCount(uint8 count);
+        void ForceSpecReactivation(uint8 spec);
         void ActivateSpec(uint8 spec);
 
         void InitGlyphsForLevel();
@@ -1840,7 +1841,7 @@ class Player : public Unit, public GridObject<Player>
         PlayerTalentMap const* GetTalentMap(uint8 spec) const { return _talentMgr->SpecInfo[spec].Talents; }
         PlayerTalentMap* GetTalentMap(uint8 spec) { return _talentMgr->SpecInfo[spec].Talents; }
         ActionButtonList const& GetActionButtons() const { return m_actionButtons; }
-
+        
         uint32 GetFreePrimaryProfessionPoints() const { return GetUInt32Value(PLAYER_CHARACTER_POINTS); }
         void SetFreePrimaryProfessions(uint16 profs) { SetUInt32Value(PLAYER_CHARACTER_POINTS, profs); }
         void InitPrimaryProfessions();
