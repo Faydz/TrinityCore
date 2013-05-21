@@ -1025,6 +1025,14 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
         // special cases
         switch (triggered_spell_id)
         {
+            // Soulstone Resurrection
+            case 6203:
+                if(m_caster && unitTarget && unitTarget->isDead())
+                {
+                    unitTarget->CastSpell(unitTarget, 3026);
+                    return;
+                }
+                break;
             // Rend
             case 94009:
                 if(Aura* aura = unitTarget->GetAura(triggered_spell_id, m_caster->GetGUID()))
@@ -4584,7 +4592,11 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                 //Cycle trough all periodic auras to increase Combustion periodic damage
                 for (Unit::AuraEffectList::const_iterator i = mPeriodic.begin(); i != mPeriodic.end(); ++i)                 
                     if ((*i)->GetCasterGUID() == m_caster->GetGUID())
-                        bp += (*i)->GetAmount();         
+                    {
+                        int32 tempDmg = m_caster->SpellDamageBonusDone(unitTarget, (*i)->GetSpellInfo(), (*i)->GetAmount(), DOT);
+                        tempDmg = unitTarget->SpellDamageBonusTaken(m_caster, (*i)->GetSpellInfo(), tempDmg, DOT);
+                        bp += tempDmg / (*i)->GetTotalTicks();
+                    }
                 m_caster->CastCustomSpell(unitTarget, 83853, &bp,NULL, NULL, true);
             }
             

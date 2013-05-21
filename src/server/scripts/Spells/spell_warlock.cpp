@@ -272,6 +272,66 @@ public:
     }
 };
 
+enum WarlockWeaknessJinx
+{
+    SPELL_WARLOCK_JINX_RAGE                         = 85539,
+    SPELL_WARLOCK_JINX_ENERGY                       = 85540,
+    SPELL_WARLOCK_JINX_RUNIC_POWER                  = 85541,
+    SPELL_WARLOCK_JINX_FOCUS                        = 85542,
+};
+
+// 702 - Curse of Weakness
+class spell_warl_curse_of_weakness: public SpellScriptLoader
+{
+public:
+    spell_warl_curse_of_weakness() : SpellScriptLoader("spell_warl_curse_of_weakness"){ }
+
+    class spell_warl_curse_of_weakness_AuraScript: public AuraScript
+    {
+        PrepareAuraScript(spell_warl_curse_of_weakness_AuraScript);
+
+        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetTarget();
+
+            if(caster && target)
+            {
+                if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 5002, EFFECT_1))
+                {
+                    int32 bp0 = aurEff->GetAmount();
+
+                    switch(target->getClass())
+                    {
+                        case CLASS_WARRIOR:
+                            caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_RAGE, &bp0, NULL, NULL, true);
+                            break;
+                        case CLASS_ROGUE:
+                            caster->CastSpell(target, SPELL_WARLOCK_JINX_ENERGY, &bp0, NULL, NULL, true);
+                            break;
+                        case CLASS_DEATH_KNIGHT:
+                            caster->CastSpell(target, SPELL_WARLOCK_JINX_RUNIC_POWER, &bp0, NULL, NULL, true);
+                            break;
+                        case CLASS_HUNTER:
+                            caster->CastSpell(target, SPELL_WARLOCK_JINX_FOCUS, &bp0, NULL, NULL, true);
+                            break;
+                    }
+                }
+            }
+        }
+
+        void Register()
+        {
+            OnEffectApply += AuraEffectApplyFn(spell_warl_curse_of_weakness_AuraScript::HandleApply, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+        }
+    };
+
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_warl_curse_of_weakness_AuraScript();
+    }
+};
+
 // 86121 - Soul Swap action bar spell
 class spell_warl_soul_swap: public SpellScriptLoader {
 public:
@@ -1421,6 +1481,7 @@ void AddSC_warlock_spell_scripts()
     new spell_warl_fel_flame();
     new spell_warl_incinerate();
     new spell_warl_curse_of_the_elements();
+    new spell_warl_curse_of_weakness();
     new spell_warl_soul_swap();
     new spell_warl_soul_swap_buff();
     new spell_warl_soul_swap_exhale();

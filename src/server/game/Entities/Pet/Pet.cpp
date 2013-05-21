@@ -1033,6 +1033,50 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
         }
     }
 
+    // Creature's stats scaling with its owner
+    if (GetOwner()->GetTypeId() == TYPEID_PLAYER)
+    {
+        Unit* owner = GetOwner();
+
+        uint32 health = 0;
+        uint32 power = 0;
+        float strength = 0.0f;
+        float agility = 0.0f;
+        float stamina = 0.0f;
+        float intellect = 0.0f;
+        float spirit = 0.0f;
+
+        switch(creature_ID)
+        {
+            case 417:   // Felhunter
+            case 416:   // Imp
+            case 1860:  // Voidwalker
+            case 1863:  // Succubus
+            case 17252: // Felguard
+            case 89:    // Infernal
+            case 11859: // Doomguard
+                health = CalculatePct(owner->GetMaxHealth(), 75);
+                intellect = CalculatePct(owner->GetPower(POWER_MANA), 30);
+                break;
+        }
+
+        if(health)
+            SetCreateHealth(health);
+        if(power)
+            SetCreateMana(power);
+        if(strength)
+            SetCreateStat(STAT_STRENGTH, strength);
+        if(agility)
+            SetCreateStat(STAT_AGILITY, agility);
+        if(stamina)
+            SetCreateStat(STAT_STAMINA, stamina);
+        if(intellect)
+            SetCreateStat(STAT_INTELLECT, intellect);
+        if(spirit)
+            SetCreateStat(STAT_SPIRIT, spirit);
+    }
+
+
     UpdateAllStats();
 
     SetFullHealth();
