@@ -3926,6 +3926,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_ROGUE:
                 switch(spellInfo->Id)
                 {
+                    case 79140:
+                    case 76577:
+                        spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
+                        break;
                     case 39666:
                         spellInfo->Effects[0].BasePoints = -200;
                         break;
