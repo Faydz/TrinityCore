@@ -782,6 +782,43 @@ public:
     }
 };
 
+// sap aura
+class spell_rog_sap: public SpellScriptLoader 
+{
+public:
+    spell_rog_sap() : SpellScriptLoader("spell_rog_sap") 
+    { }
+
+    class spell_rog_sap_AuraScript: public AuraScript
+    {
+        PrepareAuraScript(spell_rog_sap_AuraScript);
+
+        void HandleRemove(AuraEffect const * aurEff, AuraEffectHandleModes mode) 
+        {
+            if (Unit* caster = GetCaster())
+                if(Unit* target = this->GetTarget())
+                {
+                    int32 bp0 = 0;
+                    if(caster->HasAura(79123))
+                        bp0 = -35;
+                    else if(caster->HasAura(79125))
+                        bp0 = -70;
+                    caster->CastCustomSpell(target, 79124, &bp0, NULL, NULL, true);
+                }
+        }
+        
+        void Register()
+        {
+            OnEffectRemove += AuraEffectRemoveFn(spell_rog_sap_AuraScript::HandleRemove, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    AuraScript *GetAuraScript() const
+    {
+        return new spell_rog_sap_AuraScript();
+    }
+};
+
 void AddSC_rogue_spell_scripts()
 {
 	new spell_rog_blind();
@@ -798,4 +835,5 @@ void AddSC_rogue_spell_scripts()
     new spell_rog_tricks_of_the_trade_proc();
     new spell_rog_smoke_bomb();
     new spell_rog_vanish_buff();
+    new spell_rog_sap();
 }
