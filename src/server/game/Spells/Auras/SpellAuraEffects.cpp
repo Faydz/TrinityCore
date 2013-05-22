@@ -4936,7 +4936,16 @@ void AuraEffect::HandleModSpellPowerPct(AuraApplication const* aurApp, uint8 mod
 
     if (target && target->GetTypeId() == TYPEID_PLAYER)
         if(Player* tPlayer = target->ToPlayer())
-            tPlayer->ApplySpellPowerBonus(int32(CalculatePct(target->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC), GetAmount())), apply);
+        {
+            if (apply)
+                tPlayer->ApplySpellPowerBonus(int32(CalculatePct(target->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC), GetAmount())), apply);
+            else
+            {
+                int32 sp = target->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC);
+                sp = sp / int32(1 + GetAmount() / 100);
+                tPlayer->ApplySpellPowerBonus(int32(CalculatePct(sp, GetAmount())), apply);
+            }
+        }
 }
 
 void AuraEffect::HandleModOffhandDamagePercent(AuraApplication const* aurApp, uint8 mode, bool apply) const
