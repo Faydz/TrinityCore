@@ -25126,6 +25126,28 @@ void Player::SetRuneCooldown(uint8 index, uint32 cooldown)
     m_runes->SetRuneState(index, (cooldown == 0) ? true : false);
 }
 
+void Player::SetRandomRuneAvailable()
+{      
+    uint32 cooldownrunes[MAX_RUNES];  // Questo array contiene le rune che hanno cooldown
+    uint8 runescount = 0;             
+
+    for (uint32 j = 0; j < MAX_RUNES; ++j) 
+    {
+        if (GetRuneCooldown(j) > 0 ) 
+        {
+            cooldownrunes[runescount] = j;     //Se una runa ha cooldown, me la segno, dopo pesco da questo array
+            runescount++;
+        }
+    }
+    if (runescount > 0)
+    {
+        uint8 rndrune = uint8(urand(0, runescount - 1));  // Pesco una posizione dall'array
+        SetRuneCooldown(cooldownrunes[rndrune], 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array 
+    }
+    else
+        return;
+}
+
 void Player::SetRuneConvertAura(uint8 index, AuraEffect const* aura)
 {
     m_runes->runes[index].ConvertAura = aura;

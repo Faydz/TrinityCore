@@ -7907,23 +7907,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                             // Normal behaviour
                             else
                             {
-                                uint32 cooldownrunes[MAX_RUNES];
-                                uint8 runescount = 0;
-
-                                for (uint32 j = 0; j < MAX_RUNES; ++j) 
-                                {
-                                    if (player->GetRuneCooldown(j)) 
-                                    {
-                                        cooldownrunes[runescount] = j;
-                                        runescount++;
-                                    }
-                                }
-
-                                if (runescount > 0)
-                                {
-                                    uint8 rndrune = urand(0, runescount - 1);
-                                    player->SetRuneCooldown(cooldownrunes[rndrune], 0);
-                                }
+                                player->SetRandomRuneAvailable();
                             }
                         }
                     }
