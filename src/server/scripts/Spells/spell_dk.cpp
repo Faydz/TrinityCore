@@ -58,11 +58,28 @@ enum DeathKnightSpellIcons
     DK_ICON_ID_IMPROVED_DEATH_STRIKE            = 2751
 };
 
+Unit* necroticStrikeTarget = NULL;
+
 // 73975 - Necrotic Strike
 class spell_dk_necrotic_strike : public SpellScriptLoader
 {
     public:
         spell_dk_necrotic_strike() : SpellScriptLoader("spell_dk_necrotic_strike") { }
+        
+        class spell_dk_necrotic_strike_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dk_necrotic_strike_SpellScript)
+
+            void HandleOnHit()
+            {
+                necroticStrikeTarget = GetExplTargetUnit();
+            }
+
+            void Register()
+            {
+                BeforeHit += SpellHitFn(spell_dk_necrotic_strike_SpellScript::HandleOnHit);
+            }
+        };
 
         class spell_dk_necrotic_strike_AuraScript : public AuraScript
         {
@@ -72,11 +89,14 @@ class spell_dk_necrotic_strike : public SpellScriptLoader
             {
                 Unit* caster = GetCaster();
 
-                if (caster)
+                if (caster && necroticStrikeTarget)
                 {
                     canBeRecalculated = false;
 
                     amount = caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.70f;
+
+                    // Amount absorbed scales with resilience
+                    amount -= necroticStrikeTarget->GetDamageReduction(amount);
                 }
             }
 
@@ -85,6 +105,11 @@ class spell_dk_necrotic_strike : public SpellScriptLoader
                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dk_necrotic_strike_AuraScript::HandleEffectCalcAmount, EFFECT_0, SPELL_AURA_SCHOOL_HEAL_ABSORB);
             }
         };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dk_necrotic_strike_SpellScript();
+        }
 
         AuraScript *GetAuraScript() const
         {
