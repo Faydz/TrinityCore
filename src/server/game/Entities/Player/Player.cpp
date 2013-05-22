@@ -25143,6 +25143,8 @@ void Player::SetRandomRuneAvailable()
     {
         uint8 rndrune = uint8(urand(0, runescount - 1));  // Pesco una posizione dall'array
         SetRuneCooldown(cooldownrunes[rndrune], 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array 
+        UpdateAllRunesRegen();
+        ResyncRunes(MAX_RUNES);
     }
     else
         return;
@@ -25197,6 +25199,7 @@ void Player::ConvertRune(uint8 index, RuneType newType)
     data << uint8(index);
     data << uint8(newType);
     GetSession()->SendPacket(&data);
+    ResyncRunes(MAX_RUNES);
 }
 
 void Player::ResyncRunes(uint8 count)
