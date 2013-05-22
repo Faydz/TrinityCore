@@ -982,7 +982,7 @@ bool Guardian::UpdateStats(Stats stat)
     {
         switch (stat)
         {
-            case STAT_STAMINA:  mod = 0.3f; break;                // Default Owner's Stamina scale
+            case STAT_STAMINA:  mod = 0.88f; break;                // Default Owner's Stamina scale
             case STAT_STRENGTH: mod = 0.7f; break;                // Default Owner's Strength scale
             default: break;
         }
@@ -1003,7 +1003,50 @@ bool Guardian::UpdateStats(Stats stat)
     }
     else if (stat == STAT_STAMINA)
     {
-        ownersBonus = CalculatePct(owner->GetStat(STAT_STAMINA), 30);
+        int pct = 30;
+
+        switch(owner->getClass())
+        {
+            case CLASS_WARLOCK:
+                pct = 75;
+                break;
+            case CLASS_MAGE:
+                pct = 78;
+                break;
+            case CLASS_SHAMAN:
+                pct = 78;
+                break;
+            case CLASS_HUNTER:
+                pct = 67;
+                
+                // Looks for creature template
+                if(CreatureTemplate const* cinfo = GetCreatureTemplate())
+                {
+                    // Checks the pet talent type
+                    CreatureFamilyEntry const* pet_family = sCreatureFamilyStore.LookupEntry(cinfo->family);
+                    if (pet_family)
+                    {
+                        switch(pet_family->petTalentType)
+                        {
+                            // Ferocity
+                            case 0:
+                                pct = 67;
+                                break;
+                            // Tenacity
+                            case 1:
+                                pct = 78;
+                                break;
+                            // Cunning
+                            case 2:
+                                pct = 73;
+                                break;
+                        }
+                    }
+                }
+                break;
+        }
+
+        ownersBonus = CalculatePct(owner->GetStat(STAT_STAMINA), pct);
         value += ownersBonus;
     }
                                                             //warlock's and mage's pets gain 30% of owner's intellect
@@ -1099,13 +1142,14 @@ void Guardian::UpdateMaxHealth()
     float multiplicator;
     switch (GetEntry())
     {
-        case ENTRY_IMP:         multiplicator = 8.4f;   break;
-        case ENTRY_VOIDWALKER:  multiplicator = 11.0f;  break;
-        case ENTRY_SUCCUBUS:    multiplicator = 9.1f;   break;
-        case ENTRY_FELHUNTER:   multiplicator = 9.5f;   break;
-        case ENTRY_FELGUARD:    multiplicator = 11.0f;  break;
-        case ENTRY_BLOODWORM:   multiplicator = 1.0f;   break;
-        default:                multiplicator = 10.0f;  break;
+        case ENTRY_IMP:             multiplicator = 8.4f;   break;
+        case ENTRY_VOIDWALKER:      multiplicator = 11.0f;  break;
+        case ENTRY_SUCCUBUS:        multiplicator = 9.1f;   break;
+        case ENTRY_FELHUNTER:       multiplicator = 9.5f;   break;
+        case ENTRY_FELGUARD:        multiplicator = 11.0f;  break;
+        case ENTRY_BLOODWORM:       multiplicator = 1.0f;   break;
+        case ENTRY_WATER_ELEMENTAL: multiplicator = 7.5;  break;
+        default:                    multiplicator = 14.0f;  break;
     }
 
     float value = GetModifierValue(unitMod, BASE_VALUE) + GetCreateHealth();

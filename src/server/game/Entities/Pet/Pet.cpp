@@ -920,10 +920,15 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
         }
         default:
         {
+            int fixedHp = 32474;
+
             switch (GetEntry())
             {
                 case 510: // mage Water Elemental
                 {
+                    SetCreateHealth(fixedHp);
+                    SetCreateStat(STAT_STAMINA, float(GetOwner()->GetStat(STAT_STAMINA)) * 0.78f);
+
                     SetBonusDamage(int32(GetOwner()->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FROST) * 0.33f));
                     break;
                 }
@@ -983,8 +988,7 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                 }
                 case 29264: // Feral Spirit
                 {
-                    if (!pInfo)
-                        SetCreateHealth(30*petlevel);
+                    SetCreateHealth(fixedHp);
 
                     // wolf attack speed is 1.5s
                     SetAttackTime(BASE_ATTACK, cinfo->baseattacktime);
@@ -993,7 +997,6 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                     SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float((petlevel * 4 + petlevel)));
 
                     SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, float(GetOwner()->GetArmor()) * 0.35f);  // Bonus Armor (35% of player armor)
-                    SetModifierValue(UNIT_MOD_STAT_STAMINA, BASE_VALUE, float(GetOwner()->GetStat(STAT_STAMINA)) * 0.3f);  // Bonus Stamina (30% of player stamina)
                     if (!HasAura(58877))//prevent apply twice for the 2 wolves
                         AddAura(58877, this);//Spirit Hunt, passive, Spirit Wolves' attacks heal them and their master for 150% of damage done.
                     break;
@@ -1032,50 +1035,6 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
             break;
         }
     }
-
-    // Creature's stats scaling with its owner
-    if (GetOwner()->GetTypeId() == TYPEID_PLAYER)
-    {
-        Unit* owner = GetOwner();
-
-        uint32 health = 0;
-        uint32 power = 0;
-        float strength = 0.0f;
-        float agility = 0.0f;
-        float stamina = 0.0f;
-        float intellect = 0.0f;
-        float spirit = 0.0f;
-
-        switch(creature_ID)
-        {
-            case 417:   // Felhunter
-            case 416:   // Imp
-            case 1860:  // Voidwalker
-            case 1863:  // Succubus
-            case 17252: // Felguard
-            case 89:    // Infernal
-            case 11859: // Doomguard
-                health = CalculatePct(owner->GetMaxHealth(), 75);
-                intellect = CalculatePct(owner->GetPower(POWER_MANA), 30);
-                break;
-        }
-
-        if(health)
-            SetCreateHealth(health);
-        if(power)
-            SetCreateMana(power);
-        if(strength)
-            SetCreateStat(STAT_STRENGTH, strength);
-        if(agility)
-            SetCreateStat(STAT_AGILITY, agility);
-        if(stamina)
-            SetCreateStat(STAT_STAMINA, stamina);
-        if(intellect)
-            SetCreateStat(STAT_INTELLECT, intellect);
-        if(spirit)
-            SetCreateStat(STAT_SPIRIT, spirit);
-    }
-
 
     UpdateAllStats();
 
