@@ -3631,13 +3631,6 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             }
             break;
         }
-        case SPELLFAMILY_PALADIN:
-        {
-            // Crusader Strike
-            if (m_spellInfo->SpellIconID == 2309)
-                spell_bonus = int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK)*0.319f);
-            break;
-        }
     }
 
     bool normalized = false;
