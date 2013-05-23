@@ -7907,7 +7907,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                             // Normal behaviour
                             else
                             {
-                                player->SetRandomRuneAvailable();
+                                player->SetRandomRuneAvailable(uint32(81229));
                             }
                         }
                     }
@@ -8300,7 +8300,7 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
                         }
                         else if (dummySpell->SpellIconID == 22 && procSpell->Id == 85948)
                         {
-                            if (player->GetCurrentRune(i) == RUNE_DEATH)
+                            if (player->GetCurrentRune(i) == RUNE_DEATH || player->GetCurrentRune(i) == RUNE_UNHOLY)
                                 continue;
                         }
                         else

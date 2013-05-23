@@ -23416,7 +23416,7 @@ void Player::SendInitialPacketsAfterAddToMap()
     UpdateSpeed(MOVE_RUN, true);
 
     // RIAPPLICAZIONE DEI TALENTI PER EVITARE I FASTIDIOSI BUG LATO CLIENT SU DK E BLOCCO A TERRA
-    // ForceSpecReactivation(this->GetActiveSpec());
+    ForceAuraEffectReactivation();
     
     // raid downscaling - send difficulty to player
     if (GetMap()->IsRaid())
@@ -25126,7 +25126,7 @@ void Player::SetRuneCooldown(uint8 index, uint32 cooldown)
     m_runes->SetRuneState(index, (cooldown == 0) ? true : false);
 }
 
-void Player::SetRandomRuneAvailable()
+void Player::SetRandomRuneAvailable(uint32 spellid)
 {      
     uint32 cooldownrunes[MAX_RUNES];  // Questo array contiene le rune che hanno cooldown
     uint8 runescount = 0;             
@@ -25142,9 +25142,11 @@ void Player::SetRandomRuneAvailable()
     if (runescount > 0)
     {
         uint8 rndrune = uint8(urand(0, runescount - 1));  // Pesco una posizione dall'array
-        SetRuneCooldown(cooldownrunes[rndrune], 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array 
-        UpdateAllRunesRegen();
-        ResyncRunes(MAX_RUNES);
+        SetRuneCooldown(cooldownrunes[rndrune], 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
+        if(AuraEffect *aurEff = GetAuraEffect(spellid,0)){
+            // Forzo una addrune fittizia che riaggiunge una runa uguale su se stessa, in modo da refreshare lato client
+            AddRuneByAuraEffect(cooldownrunes[rndrune], GetCurrentRune(cooldownrunes[rndrune]), aurEff);
+        }
     }
     else
         return;
@@ -26622,140 +26624,18 @@ void Player::UpdateSpecCount(uint8 count)
     SendTalentsInfoData(false);
 }
 
-
-void Player::ForceSpecReactivation(uint8 spec){
-
-    // Eseguo gli stessi passi di un cambio spec, con alcune modifiche:
-    // NON ESEGUO NESSUN TIPO DI COMMIT SQL
-    // NON ESEGUO NESSUNA LETTURA SQL
-    // NON INVIO NESSUN MESSAGGIO LATO CLIENT 
-    if (spec > GetSpecsCount())
-        return;
-    if (IsNonMeleeSpellCasted(false))
-        InterruptNonMeleeSpells(false);
-    if (Pet* pet = GetPet())
-        RemovePet(pet, PET_SAVE_NOT_IN_SLOT);
-    ClearComboPointHolders();
-    ClearAllReactives();
-    UnsummonAllTotems();
-    ExitVehicle();
-    RemoveAllControlled();
-
-
-   for (uint32 talentId = 0; talentId < sTalentStore.GetNumRows(); ++talentId)
-    {
-        TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentId);
-
-        if (!talentInfo)
-            continue;
-
-        TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
-
-        if (!talentTabInfo)
-            continue;
-
-        // unlearn only talents for character class
-        // some spell learned by one class as normal spells or know at creation but another class learn it as talent,
-        // to prevent unexpected lost normal learned spell skip another class talents
-        if ((getClassMask() & talentTabInfo->ClassMask) == 0)
-            continue;
-
-        for (int8 rank = MAX_TALENT_RANK-1; rank >= 0; --rank)
-        {
-            // skip non-existant talent ranks
-            if (talentInfo->RankID[rank] == 0)
-                continue;
-            removeSpell(talentInfo->RankID[rank], true); // removes the talent, and all dependant, learned, and chained spells..
-            if (const SpellInfo* _spellEntry = sSpellMgr->GetSpellInfo(talentInfo->RankID[rank]))
-                for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)                  // search through the SpellInfo for valid trigger spells
-                    if (_spellEntry->Effects[i].TriggerSpell > 0 && _spellEntry->Effects[i].Effect == SPELL_EFFECT_LEARN_SPELL)
-                        removeSpell(_spellEntry->Effects[i].TriggerSpell, true); // and remove any spells that the talent teaches
-            // if this talent rank can be found in the PlayerTalentMap, mark the talent as removed so it gets deleted
-            //PlayerTalentMap::iterator plrTalent = m_talents[m_activeSpec]->find(talentInfo->RankID[rank]);
-            //if (plrTalent != m_talents[m_activeSpec]->end())
-            //    plrTalent->second->state = PLAYERSPELL_REMOVED;
-        }
-    }
-
-    // Remove spec specific spells
-    for (uint32 i = 0; i < MAX_TALENT_TABS; ++i)
-    {
-        std::vector<uint32> const* specSpells = GetTalentTreePrimarySpells(GetTalentTabPages(getClass())[i]);
-        if (specSpells)
-            for (size_t i = 0; i < specSpells->size(); ++i)
-                removeSpell(specSpells->at(i), true);
-    }
-
-    // set glyphs
-    for (uint8 slot = 0; slot < MAX_GLYPH_SLOT_INDEX; ++slot)
-        // remove secondary glyph
-        if (uint32 oldglyph = GetGlyph(GetActiveSpec(), slot))
-            if (GlyphPropertiesEntry const* old_gp = sGlyphPropertiesStore.LookupEntry(oldglyph))
-                RemoveAurasDueToSpell(old_gp->SpellId);
-
-    SetActiveSpec(spec);
-    uint32 spentTalents = 0;
-
-    for (uint32 talentId = 0; talentId < sTalentStore.GetNumRows(); ++talentId)
-    {
-        TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentId);
-
-        if (!talentInfo)
-            continue;
-
-        TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
-
-        if (!talentTabInfo)
-            continue;
-
-        // learn only talents for character class
-        if ((getClassMask() & talentTabInfo->ClassMask) == 0)
-            continue;
-
-        // learn highest talent rank that exists in newly activated spec
-        for (int8 rank = MAX_TALENT_RANK-1; rank >= 0; --rank)
-        {
-            // skip non-existant talent ranks
-            if (talentInfo->RankID[rank] == 0)
-                continue;
-            // if the talent can be found in the newly activated PlayerTalentMap
-            if (HasTalent(talentInfo->RankID[rank], GetActiveSpec()))
-            {
-                learnSpell(talentInfo->RankID[rank], false); // add the talent to the PlayerSpellMap
-                spentTalents += (rank + 1);                  // increment the spentTalents count
+// Custom function used to force some effects to be reactivated after teleporting.
+void Player::ForceAuraEffectReactivation(){
+    // Blood of the North
+    if(this->HasAura(54637)){
+        if(AuraEffect *aurEff = this->GetAuraEffect(54637,0)){
+            for(uint8 i = 0;i<MAX_RUNES;i++){
+                if(this->GetBaseRune(i) == RUNE_BLOOD){
+                    this->AddRuneByAuraEffect(i, RUNE_DEATH, aurEff);
+                }
             }
         }
     }
-
-    std::vector<uint32> const* specSpells = GetTalentTreePrimarySpells(GetPrimaryTalentTree(GetActiveSpec()));
-    if (specSpells)
-        for (size_t i = 0; i < specSpells->size(); ++i)
-            learnSpell(specSpells->at(i), false);
-
-    // set glyphs
-    for (uint8 slot = 0; slot < MAX_GLYPH_SLOT_INDEX; ++slot)
-    {
-        uint32 glyph = GetGlyph(GetActiveSpec(), slot);
-
-        // apply primary glyph
-        if (glyph)
-            if (GlyphPropertiesEntry const* gp = sGlyphPropertiesStore.LookupEntry(glyph))
-                CastSpell(this, gp->SpellId, true);
-
-        SetGlyph(slot, glyph);
-    }
-
-    SetUsedTalentCount(spentTalents);
-    InitTalentForLevel();
-
-    Powers pw = getPowerType();
-    if (pw != POWER_MANA)
-        SetPower(POWER_MANA, 0); // Mana must be 0 even if it isn't the active power type.
-
-    SetPower(pw, 0);
-
-    if (!sTalentTabStore.LookupEntry(GetPrimaryTalentTree(GetActiveSpec())))
-        ResetTalents(true);
 }
 
 void Player::ActivateSpec(uint8 spec)
