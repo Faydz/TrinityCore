@@ -26633,10 +26633,12 @@ void Player::ForceAuraEffectReactivation(){
         }
     }
     // Unstuck Player
-    for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i)
-        if (this->GetSpeedRate(UnitMoveType(i)) > GetSpeedRate(UnitMoveType(i)))
+    for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i){
             SetSpeed(UnitMoveType(i), this->GetSpeedRate(UnitMoveType(i)), true);
+            UpdateSpeed(UnitMoveType(i),true);
+    }
 }
+
 
 void Player::ActivateSpec(uint8 spec)
 {
