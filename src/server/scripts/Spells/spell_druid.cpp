@@ -1624,23 +1624,9 @@ public:
                 }
             }
 
-            void HandleBeforeCast()
-            {
-                if (Unit* caster=GetCaster())
-                {
-                        // Glyph of Ferocious Bite
-                        if (AuraEffect* aura = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 1680, EFFECT_1))
-                        {
-                            int32 bp0 = (caster->GetPower(POWER_ENERGY))/10;
-                            caster->CastCustomSpell(caster, 101024, &bp0, NULL, NULL, true);
-                        }
-                }
-            }
-
             void Register() 
             {
                 OnHit += SpellHitFn(spell_dru_ferocious_bite_SpellScript::HandleOnHit);
-                BeforeCast += SpellCastFn(spell_dru_ferocious_bite_SpellScript::HandleBeforeCast);
             }
         };
 

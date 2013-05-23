@@ -615,6 +615,14 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     int32 energy = -(m_caster->ModifyPower(POWER_ENERGY, -25));
                     // 25 energy = 100% more damage
                     AddPct(damage, energy * 4);
+
+                    // Glyph of Ferocious Bite
+                    if (AuraEffect* aura = m_caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 1680, EFFECT_1))
+                    {
+                        int32 bp0 = (energy+25)/10;
+                        m_caster->CastCustomSpell(m_caster, 101024, &bp0, NULL, NULL, true);
+                    }
+                    
                 }
                 // Maul - Rend And Tear
                 if (m_spellInfo->Id == 6807 && unitTarget->HasAuraState(AURA_STATE_BLEEDING))
