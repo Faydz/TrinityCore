@@ -25126,7 +25126,7 @@ void Player::SetRuneCooldown(uint8 index, uint32 cooldown)
     m_runes->SetRuneState(index, (cooldown == 0) ? true : false);
 }
 
-void Player::SetRandomRuneAvailable(uint32 spellid)
+void Player::SetRandomRuneAvailable()
 {      
     uint32 cooldownrunes[MAX_RUNES];  // Questo array contiene le rune che hanno cooldown
     uint8 runescount = 0;             
@@ -25143,10 +25143,6 @@ void Player::SetRandomRuneAvailable(uint32 spellid)
     {
         uint8 rndrune = uint8(urand(0, runescount - 1));  // Pesco una posizione dall'array
         SetRuneCooldown(cooldownrunes[rndrune], 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
-        if(AuraEffect *aurEff = GetAuraEffect(spellid,0)){
-            // Forzo una addrune fittizia che riaggiunge una runa uguale su se stessa, in modo da refreshare lato client
-            AddRuneByAuraEffect(cooldownrunes[rndrune], GetCurrentRune(cooldownrunes[rndrune]), aurEff);
-        }
     }
     else
         return;
@@ -26636,6 +26632,10 @@ void Player::ForceAuraEffectReactivation(){
             }
         }
     }
+    // Unstuck Player
+    for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i)
+        if (this->GetSpeedRate(UnitMoveType(i)) > GetSpeedRate(UnitMoveType(i)))
+            SetSpeed(UnitMoveType(i), this->GetSpeedRate(UnitMoveType(i)), true);
 }
 
 void Player::ActivateSpec(uint8 spec)

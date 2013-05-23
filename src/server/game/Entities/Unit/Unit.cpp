@@ -7907,7 +7907,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                             // Normal behaviour
                             else
                             {
-                                player->SetRandomRuneAvailable(uint32(81229));
+                                player->SetRandomRuneAvailable();
                             }
                         }
                     }
