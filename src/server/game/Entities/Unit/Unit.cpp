@@ -11196,9 +11196,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 					if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && owner->getClass() == CLASS_ROGUE)
 					{
 						if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BG_ROGUE_ASSASINATION)
-						{
-							DoneTotalMod *= 1.0f + 3.5f * owner->ToPlayer()->GetMasteryPoints();
-						}
+							DoneTotalMod *= 1.0f + 3.5f * owner->ToPlayer()->GetMasteryPoints() / 100;
 					}
 				break;
 				// Venomous Wounds
