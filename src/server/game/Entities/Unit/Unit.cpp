@@ -14530,6 +14530,9 @@ float Unit::GetTotalAttackPowerValue(WeaponAttackType attType) const
     if (attType == RANGED_ATTACK)
     {
         int32 ap = GetInt32Value(UNIT_FIELD_RANGED_ATTACK_POWER);
+        ap += GetInt32Value(UNIT_FIELD_ATTACK_POWER_MOD_POS);
+        ap += GetInt32Value(UNIT_FIELD_ATTACK_POWER_MOD_NEG);
+
         if (ap < 0)
             return 0.0f;
         return ap * (1.0f + GetFloatValue(UNIT_FIELD_RANGED_ATTACK_POWER_MULTIPLIER));
@@ -14537,6 +14540,9 @@ float Unit::GetTotalAttackPowerValue(WeaponAttackType attType) const
     else
     {
         int32 ap = GetInt32Value(UNIT_FIELD_ATTACK_POWER);
+        ap += GetInt32Value(UNIT_FIELD_ATTACK_POWER_MOD_POS);
+        ap += GetInt32Value(UNIT_FIELD_ATTACK_POWER_MOD_NEG);
+
         if (ap < 0)
             return 0.0f;
         return ap * (1.0f + GetFloatValue(UNIT_FIELD_ATTACK_POWER_MULTIPLIER));

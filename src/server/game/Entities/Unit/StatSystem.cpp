@@ -307,7 +307,14 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
 
     float base_attPower  = GetModifierValue(unitMod, BASE_VALUE) * GetModifierValue(unitMod, BASE_PCT);
     float attPowerMod_pos = GetModifierValue(unitMod, TOTAL_VALUE);
-    float attPowerMod_neg = GetModifierValue(unitMod, TOTAL_VALUE);
+    float attPowerMod_neg = 0.0f;
+
+    // Check if we have to subcract or increase AP
+    if (attPowerMod_pos < 0)
+    {    
+        attPowerMod_pos = 0;
+        attPowerMod_neg = -attPowerMod_pos;
+    }
 
     if (ranged)
     {
@@ -366,7 +373,7 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
 void Player::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, bool addTotalPct, float& min_damage, float& max_damage)
 {
     UnitMods unitMod;
-
+    
     switch (attType)
     {
         case BASE_ATTACK:
@@ -429,7 +436,7 @@ void Player::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, bo
     }*/
 
     min_damage = ((base_value + weapon_mindamage) * base_pct + total_value) * total_pct;
-    max_damage = ((base_value + weapon_maxdamage) * base_pct + total_value) * total_pct;
+    max_damage = ((base_value + weapon_maxdamage) * base_pct + total_value) * total_pct;   
 }
 
 void Player::UpdateDamagePhysical(WeaponAttackType attType)
