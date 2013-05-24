@@ -391,11 +391,17 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     }
                     // Gargoyle Strike
                     case 51963:
-                    {
-                        // about +4 base spell dmg per level
-                        damage = (m_caster->getLevel() - 60) * 4 + 60;
+                        if (Unit* caster = GetCaster())
+                        {
+                            if(caster->isGuardian())
+                            {
+                                if(Unit* owner = caster->GetCharmerOrOwner())
+                                {
+                                    damage += owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.4f;
+                                }
+                            }
+                        }
                         break;
-                    }
                     // Rocket Barrage (Racial)
                     case 69041:
                     {
@@ -471,6 +477,13 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             case SPELLFAMILY_PALADIN:
                 switch(m_spellInfo->Id)
                 {
+                    // Exorcism
+                    case 879:
+                        if(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) > m_caster->ToPlayer()->SpellBaseDamageBonusDone(GetSpellInfo()->GetSchoolMask()))
+                            damage += m_caster->GetTotalAttackPowerValue(BASE_ATTACK)*0.34f;
+                        else
+                            damage += m_caster->ToPlayer()->SpellBaseDamageBonusDone(GetSpellInfo()->GetSchoolMask())*0.34f;
+                        break;
                     // Seal of Righteousness aoe damage
                     case 25742:
                         if(m_caster && effIndex == EFFECT_1)
@@ -512,13 +525,9 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         ApplyPct(damage, m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
 						m_caster->RemoveAurasDueToSpell(32216);
                         break;
-                    // Heroic Strike
-                    case 78:
-                        damage = 8 + m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.6f;
-                        break;
                     // Cleave
                     case 845:
-                        damage += int32(6 + m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.45f);
+                        damage += int32(m_caster->CalculateDamage(BASE_ATTACK, true, false) * 1.15f);
                         break;
                     // Shockwave
                     case 46968: 
@@ -606,6 +615,14 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     int32 energy = -(m_caster->ModifyPower(POWER_ENERGY, -25));
                     // 25 energy = 100% more damage
                     AddPct(damage, energy * 4);
+
+                    // Glyph of Ferocious Bite
+                    if (AuraEffect* aura = m_caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 1680, EFFECT_1))
+                    {
+                        int32 bp0 = (energy+25)/10;
+                        m_caster->CastCustomSpell(m_caster, 101024, &bp0, NULL, NULL, true);
+                    }
+                    
                 }
                 // Maul - Rend And Tear
                 if (m_spellInfo->Id == 6807 && unitTarget->HasAuraState(AURA_STATE_BLEEDING))
@@ -706,28 +723,29 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     break;
                     // Howling Blast
                     case 49184:
-                        float mod = 1.0f;
-
-                        if (Unit* caster = GetCaster())
                         {
-                            if (effIndex == EFFECT_1)
-                                mod = 0.5f;
+                            float mod = 1.0f;
 
-                            damage = mod * (damage + (caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.44));
+                            if (Unit* caster = GetCaster())
+                            {
+                                if (effIndex == EFFECT_1)
+                                    mod = 0.5f;
+
+                                damage = mod * (damage + (caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.441));
+                            }
                         }
                         break;
-                }
-
-                // Blood Boil - bonus for diseased targets
-                if (m_spellInfo->SpellFamilyFlags[0] & 0x00040000)
-                {
-                    damage += CalculatePct(m_caster->GetTotalAttackPowerValue(BASE_ATTACK), 6);
-
-                    if (unitTarget->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DEATHKNIGHT, 0, 0, 0x00000002, m_caster->GetGUID()))
-                    {
-                        // +50% if dots still on target
-                        AddPct(damage, 50);
-                    }
+                    // Blood Boil
+                    case 48721:
+                        damage += CalculatePct(m_caster->GetTotalAttackPowerValue(BASE_ATTACK), 8);
+                        
+                        // Bonus for diseased targets
+                        if (unitTarget->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DEATHKNIGHT, 0, 0, 0x00000002, m_caster->GetGUID()))
+                        {
+                            // +50% if dots still on target
+                            AddPct(damage, 50);
+                        }
+                        break;
                 }
                 break;
             }
@@ -888,31 +906,33 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                     uint32 healthPct = m_caster->CountPctFromMaxHealth(7);
                     uint32 damageTaken = m_caster->GetDamageTakenInPastSecs(5) * 0.20f;
 
-                    // Improved Death Strike
-                    if (AuraEffect const * aurEff = m_caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, 2751, 0)) 
-                        damageTaken = uint32(damageTaken * (m_caster->CalculateSpellDamage(m_caster, aurEff->GetSpellInfo(), 2) + 100.0f) / 100.0f);
-
                     if (healthPct > damageTaken)
                         bp = int32(healthPct);
                     else 
                         bp = int32(damageTaken);                
 
-                    if (m_caster->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY))
+                    // Improved Death Strike
+                    if (AuraEffect const * aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2751, EFFECT_2))
+                        AddPct(bp, aurEff->GetAmount());
+
+                    if (m_caster->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && m_caster->HasAura(48263))
                     {
                         if (m_caster->ToPlayer()->GetPrimaryTalentTree(m_caster->ToPlayer()->GetActiveSpec()) == BS_DEATH_KNIGHT_BLOOD)
                         {
-                            int32 shield = int32(bp * (50.0f + (6.25f * m_caster->ToPlayer()->GetMasteryPoints())) / 100.0f);
+                            int32 shield = int32(bp * (6.25f * m_caster->ToPlayer()->GetMasteryPoints()) / 100.0f);
 
                             // This effect stacks
-                            if (m_caster->HasAura(77535, m_caster->GetGUID()))
-                                shield += m_caster->GetAura(77535, m_caster->GetGUID())->GetEffect(0)->GetAmount();
+                            if (Aura* aura = m_caster->GetAura(77535, m_caster->GetGUID()))
+                            {
+                                if(AuraEffect* aurEff = aura->GetEffect(EFFECT_0))
+                                {
+                                    shield += aurEff->GetAmount();
+                                }
+                            }
 
                             m_caster->CastCustomSpell(m_caster, 77535, &shield, NULL, NULL, false);
                         }
                     }
-                    // Improved Death Strike
-                    if (AuraEffect const * aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2751, EFFECT_2))
-                        AddPct(bp, aurEff->GetAmount());
 
                     m_caster->CastCustomSpell(m_caster, 45470, &bp, NULL, NULL, false);
                     break;
@@ -954,16 +974,6 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                         bp0 += aurEff->GetAmount();
 
                     m_caster->CastCustomSpell(m_caster, 77443, &bp0, NULL, NULL, true);
-                    break;
-                }
-                // Cobra Shot Focus Regen
-                case 77767:
-                {                
-                    int32 bp0 = 9;
-                    if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, 0))
-                        bp0 += aurEff->GetAmount();
-
-                    m_caster->CastCustomSpell(m_caster, 91954, &bp0, NULL, NULL, true);                
                     break;
                 }
             }
@@ -1023,6 +1033,14 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
         // special cases
         switch (triggered_spell_id)
         {
+            // Soulstone Resurrection
+            case 6203:
+                if(m_caster && unitTarget && unitTarget->isDead())
+                {
+                    unitTarget->CastSpell(unitTarget, 3026);
+                    return;
+                }
+                break;
             // Rend
             case 94009:
                 if(Aura* aura = unitTarget->GetAura(triggered_spell_id, m_caster->GetGUID()))
@@ -1096,7 +1114,8 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
                     // remove all harmful spells on you...
                     SpellInfo const* spell = iter->second->GetBase()->GetSpellInfo();
                     if ((spell->DmgClass == SPELL_DAMAGE_CLASS_MAGIC // only affect magic spells
-                        || ((spell->GetDispelMask()) & dispelMask))
+                        || ((spell->GetDispelMask()) & dispelMask)
+                        || (spell->Id == 31803))
                         // ignore positive and passive auras
                         && !iter->second->IsPositive() && !iter->second->GetBase()->IsPassive())
                     {
@@ -1650,7 +1669,11 @@ void Spell::EffectHeal(SpellEffIndex /*effIndex*/)
             return;
 
         int32 addhealth = damage;
-
+        
+        // Glyph of Healing Touch
+        if (m_spellInfo->Id == 5185)
+            if(AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 962, EFFECT_0))
+                m_caster->ToPlayer()->ReduceSpellCooldown(17116, aurEff->GetAmount()*IN_MILLISECONDS);
         // Vessel of the Naaru (Vial of the Sunwell trinket)
         if (m_spellInfo->Id == 45064)
         {
@@ -3549,58 +3572,62 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
         }
         case SPELLFAMILY_DEATHKNIGHT:
         {
-            // Blood Strike
-            if (m_spellInfo->SpellFamilyFlags[0] & 0x400000)
+            switch(m_spellInfo->Id)
             {
-                float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue(m_caster) * unitTarget->GetDiseasesByCaster(m_caster->GetGUID()) / 10.0f;
-                // Death Knight T8 Melee 4P Bonus
-                if (AuraEffect const* aurEff = m_caster->GetAuraEffect(64736, EFFECT_0))
-                    AddPct(bonusPct, aurEff->GetAmount());
-                AddPct(totalDamagePercentMod, bonusPct);
-                break;
+                // Death Strike
+                case 49998:
+                    // Glyph of Death Strike
+                    // 2% more damage per 5 runic power, up to a maximum of 40%
+                    if (AuraEffect const* aurEff = m_caster->GetAuraEffect(59336, EFFECT_0))
+                        if (uint32 runic = std::min<uint32>(uint32(m_caster->GetPower(POWER_RUNIC_POWER) / 2.5f), aurEff->GetSpellInfo()->Effects[EFFECT_1].CalcValue(m_caster)))
+                            AddPct(totalDamagePercentMod, runic);
+                    break;
+                // Blood Strike
+                case 45902:
+                    {
+                        // (12.5% more damage per disease)
+                        float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue(m_caster) * unitTarget->GetDiseasesByCaster(m_caster->GetGUID()) / 10.0f;
+
+                        // Death Knight T8 Melee 4P Bonus
+                        if (AuraEffect const* aurEff = m_caster->GetAuraEffect(64736, EFFECT_0))
+                            AddPct(bonusPct, aurEff->GetAmount());
+
+                        AddPct(totalDamagePercentMod, bonusPct);
+                    }
+                    break;
+                // Heart Strike
+                case 55050:
+                    {
+                        // (15% more damage per disease)
+                        float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue(m_caster) * unitTarget->GetDiseasesByCaster(m_caster->GetGUID());
+
+                        // Death Knight T8 Melee 4P Bonus
+                        if (AuraEffect const* aurEff = m_caster->GetAuraEffect(64736, EFFECT_0))
+                            AddPct(bonusPct, aurEff->GetAmount());
+
+                        AddPct(totalDamagePercentMod, bonusPct);
+                    }
+                    break;
+                // Obliterate
+                case 49020:
+                    {
+                        // (12.5% more damage per disease)
+                        float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue(m_caster) * unitTarget->GetDiseasesByCaster(m_caster->GetGUID(), false) / 2.0f;
+
+                        // Death Knight T8 Melee 4P Bonus
+                        if (AuraEffect const* aurEff = m_caster->GetAuraEffect(64736, EFFECT_0))
+                            AddPct(bonusPct, aurEff->GetAmount());
+
+                        AddPct(totalDamagePercentMod, bonusPct);
+                    }
+                    break;
             }
-            // Death Strike
-            if (m_spellInfo->SpellFamilyFlags[0] & 0x10)
-            {
-                // Glyph of Death Strike
-                // 2% more damage per 5 runic power, up to a maximum of 40%
-                if (AuraEffect const* aurEff = m_caster->GetAuraEffect(59336, EFFECT_0))
-                    if (uint32 runic = std::min<uint32>(uint32(m_caster->GetPower(POWER_RUNIC_POWER) / 2.5f), aurEff->GetSpellInfo()->Effects[EFFECT_1].CalcValue(m_caster)))
-                        AddPct(totalDamagePercentMod, runic);
-                break;
-            }
-            // Obliterate (12.5% more damage per disease)
-            if (m_spellInfo->SpellFamilyFlags[1] & 0x20000)
-            {
-                float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue(m_caster) * unitTarget->GetDiseasesByCaster(m_caster->GetGUID(), false) / 2.0f;
-                // Death Knight T8 Melee 4P Bonus
-                if (AuraEffect const* aurEff = m_caster->GetAuraEffect(64736, EFFECT_0))
-                    AddPct(bonusPct, aurEff->GetAmount());
-                AddPct(totalDamagePercentMod, bonusPct);
-                break;
-            }
+
             // Blood-Caked Strike - Blood-Caked Blade
             if (m_spellInfo->SpellIconID == 1736)
             {
                 AddPct(totalDamagePercentMod, unitTarget->GetDiseasesByCaster(m_caster->GetGUID()) * 50.0f);
                 break;
-            }
-            // Heart Strike
-            if (m_spellInfo->SpellFamilyFlags[0] & 0x1000000)
-            {
-                float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue(m_caster) * unitTarget->GetDiseasesByCaster(m_caster->GetGUID());
-                // Death Knight T8 Melee 4P Bonus
-                if (AuraEffect const* aurEff = m_caster->GetAuraEffect(64736, EFFECT_0))
-                    AddPct(bonusPct, aurEff->GetAmount());
-
-                AddPct(totalDamagePercentMod, bonusPct);
-                break;
-            }
-            case SPELLFAMILY_PALADIN:
-            {
-                // Crusader Strike
-                if (m_spellInfo->SpellIconID == 2309)
-                   spell_bonus = int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK)*0.319f);
             }
             break;
         }
@@ -3901,10 +3928,10 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                                 uint32 dur = (*itr)->GetBase()->GetDuration();
                                 uint32 ids = (*itr)->GetId();
                                 int32 dam = (*itr)->GetAmount();
-                                if (ids == 11366) //only cast the dot from pyroblast
+                                if (ids == 92315 || ids == 11366 || ids == 44614) //only cast the dot from pyroblast!, pyroblast and firefrost bolt
                                     m_caster->AddAura(ids, unitTarget);
                                 else
-                                m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
+                                    m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
                                 if (unitTarget->GetAura(ids)){        //this should prevent crashing if target was immune to the casting
                                     unitTarget->GetAura(ids)->SetDuration(dur);
                                 }
@@ -4488,8 +4515,18 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     break;
             }
             break;
-        case SPELLFAMILY_PALADIN:
+        case SPELLFAMILY_HUNTER:
         {
+            // Cobra Shot Focus Regen
+            case 77767:
+            {                
+                int32 bp0 = 9;
+                if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, 0))
+                    bp0 += aurEff->GetAmount();
+
+                m_caster->CastCustomSpell(m_caster, 91954, &bp0, NULL, NULL, true);                
+                break;
+            }
         }
         case SPELLFAMILY_DEATHKNIGHT:
         {
@@ -4557,7 +4594,11 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                 //Cycle trough all periodic auras to increase Combustion periodic damage
                 for (Unit::AuraEffectList::const_iterator i = mPeriodic.begin(); i != mPeriodic.end(); ++i)                 
                     if ((*i)->GetCasterGUID() == m_caster->GetGUID())
-                        bp += (*i)->GetAmount();         
+                    {
+                        int32 tempDmg = m_caster->SpellDamageBonusDone(unitTarget, (*i)->GetSpellInfo(), (*i)->GetAmount(), DOT);
+                        tempDmg = unitTarget->SpellDamageBonusTaken(m_caster, (*i)->GetSpellInfo(), tempDmg, DOT);
+                        bp += tempDmg / (*i)->GetTotalTicks();
+                    }
                 m_caster->CastCustomSpell(unitTarget, 83853, &bp,NULL, NULL, true);
             }
             

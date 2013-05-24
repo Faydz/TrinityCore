@@ -103,7 +103,7 @@ class spell_sha_frost_shock : public SpellScriptLoader
                         {
                             if (roll_chance_i(aurEff->GetAmount()))
                             {
-                                if (caster->IsWithinDistInMap(target, 15.0f))
+                                if (!caster->IsWithinDistInMap(target, 14.9f))
                                     caster->CastSpell(target, 63685, true);
                             }
                         }

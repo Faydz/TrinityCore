@@ -2251,8 +2251,8 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         //I think this always returns true. Correct me if I am wrong.
         // If the map is not created, assume it is possible to enter it.
         // It will be created in the WorldPortAck.
-        //Map* map = sMapMgr->FindBaseNonInstanceMap(mapid);
-        //if (!map || map->CanEnter(this))
+        // Map* map = sMapMgr->FindBaseNonInstanceMap(mapid);
+        // if (!map || map->CanEnter(this))
         {
             //lets reset near teleport flag if it wasn't reset during chained teleports
             SetSemaphoreTeleportNear(false);
@@ -19325,6 +19325,10 @@ bool Player::Satisfy(AccessRequirement const* ar, uint32 target_map, bool report
             if (!leader || !leader->HasAchieved(ar->achievement))
                 missingAchievement = ar->achievement;
 
+        // Temp Hack for BoT Hero.
+        if (target_map == 671 && missingAchievement != 0)
+            missingAchievement = 0;
+
         Difficulty target_difficulty = GetDifficulty(mapEntry->IsRaid());
         MapDifficulty const* mapDiff = GetDownscaledMapDifficultyData(target_map, target_difficulty);
         if (LevelMin || LevelMax || missingItem || missingQuest || missingAchievement)
@@ -23382,6 +23386,7 @@ void Player::SendInitialPacketsAfterAddToMap()
     // set some aura effects that send packet to player client after add player to map
     // SendMessageToSet not send it to player not it map, only for aura that not changed anything at re-apply
     // same auras state lost at far teleport, send it one more time in this case also
+    
     static const AuraType auratypes[] =
     {
         SPELL_AURA_MOD_FEAR,     SPELL_AURA_TRANSFORM,                 SPELL_AURA_WATER_WALK,
@@ -23394,6 +23399,7 @@ void Player::SendInitialPacketsAfterAddToMap()
         if (!auraList.empty())
             auraList.front()->HandleEffect(this, AURA_EFFECT_HANDLE_SEND_FOR_CLIENT, true);
     }
+    
 
     if (HasAuraType(SPELL_AURA_MOD_STUN))
         SetRooted(true);
@@ -23405,7 +23411,13 @@ void Player::SendInitialPacketsAfterAddToMap()
     SendAurasForTarget(this);
     SendEnchantmentDurations();                             // must be after add to map
     SendItemDurations();                                    // must be after add to map
+    
+    RestoreAllSpellMods();
+    UpdateSpeed(MOVE_RUN, true);
 
+    // RIAPPLICAZIONE DEI TALENTI PER EVITARE I FASTIDIOSI BUG LATO CLIENT SU DK E BLOCCO A TERRA
+    ForceAuraEffectReactivation();
+    
     // raid downscaling - send difficulty to player
     if (GetMap()->IsRaid())
     {
@@ -25102,7 +25114,7 @@ uint32 Player::GetRuneTypeBaseCooldown(RuneType runeType) const
     // ... and some auras.
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE);
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE_2);
-    hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE_3);
+    hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_RANGED_HASTE);
 
     cooldown *=  1.0f - (hastePct / 100.0f);
     return cooldown;
@@ -25112,6 +25124,28 @@ void Player::SetRuneCooldown(uint8 index, uint32 cooldown)
 {
     m_runes->runes[index].Cooldown = cooldown;
     m_runes->SetRuneState(index, (cooldown == 0) ? true : false);
+}
+
+void Player::SetRandomRuneAvailable()
+{      
+    uint32 cooldownrunes[MAX_RUNES];  // Questo array contiene le rune che hanno cooldown
+    uint8 runescount = 0;             
+
+    for (uint32 j = 0; j < MAX_RUNES; ++j) 
+    {
+        if (GetRuneCooldown(j) > 0 ) 
+        {
+            cooldownrunes[runescount] = j;     //Se una runa ha cooldown, me la segno, dopo pesco da questo array
+            runescount++;
+        }
+    }
+    if (runescount > 0)
+    {
+        uint8 rndrune = uint8(urand(0, runescount - 1));  // Pesco una posizione dall'array
+        SetRuneCooldown(cooldownrunes[rndrune], 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
+    }
+    else
+        return;
 }
 
 void Player::SetRuneConvertAura(uint8 index, AuraEffect const* aura)
@@ -25163,6 +25197,7 @@ void Player::ConvertRune(uint8 index, RuneType newType)
     data << uint8(index);
     data << uint8(newType);
     GetSession()->SendPacket(&data);
+    ResyncRunes(MAX_RUNES);
 }
 
 void Player::ResyncRunes(uint8 count)
@@ -26585,6 +26620,26 @@ void Player::UpdateSpecCount(uint8 count)
     SendTalentsInfoData(false);
 }
 
+// Custom function used to force some effects to be reactivated after teleporting.
+void Player::ForceAuraEffectReactivation(){
+    // Blood of the North
+    if(this->HasAura(54637)){
+        if(AuraEffect *aurEff = this->GetAuraEffect(54637,0)){
+            for(uint8 i = 0;i<MAX_RUNES;i++){
+                if(this->GetBaseRune(i) == RUNE_BLOOD){
+                    this->AddRuneByAuraEffect(i, RUNE_DEATH, aurEff);
+                }
+            }
+        }
+    }
+    // Unstuck Player
+    for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i){
+            SetSpeed(UnitMoveType(i), this->GetSpeedRate(UnitMoveType(i)), true);
+            UpdateSpeed(UnitMoveType(i),true);
+    }
+}
+
+
 void Player::ActivateSpec(uint8 spec)
 {
     if (GetActiveSpec() == spec)
@@ -27024,8 +27079,9 @@ void Player::RefundItem(Item* item)
     {
         uint32 count = iece->RequiredCurrencyCount[i];
         uint32 currencyid = iece->RequiredCurrency[i];
+
         if (count && currencyid)
-            ModifyCurrency(currencyid, count);
+            ModifyCurrency(currencyid, count, false, true);
     }
 
     // Grant back money

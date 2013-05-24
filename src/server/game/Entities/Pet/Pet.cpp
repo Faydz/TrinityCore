@@ -588,6 +588,9 @@ void Pet::Update(uint32 diff)
                 }
             }
 
+            if (IsPetGhoul())
+                setPowerType(POWER_ENERGY);
+
             //regenerate focus for hunter pets or energy for deathknight's ghoul
             if (m_regenTimer)
             {
@@ -607,13 +610,12 @@ void Pet::Update(uint32 diff)
                                 m_regenTimer = PET_FOCUS_REGEN_INTERVAL;
 
                             break;
-
                         // in creature::update
-                        //case POWER_ENERGY:
-                        //    Regenerate(POWER_ENERGY);
-                        //    m_regenTimer += CREATURE_REGEN_INTERVAL - diff;
-                        //    if (!m_regenTimer) ++m_regenTimer;
-                        //    break;
+                        case POWER_ENERGY:
+                            // Reset if large diff (lag) causes focus to get 'stuck'
+                            if (m_regenTimer > PET_FOCUS_REGEN_INTERVAL)
+                                m_regenTimer = PET_FOCUS_REGEN_INTERVAL;
+                            break;
                         default:
                             m_regenTimer = 0;
                             break;
@@ -918,10 +920,15 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
         }
         default:
         {
+            int fixedHp = 32474;
+
             switch (GetEntry())
             {
                 case 510: // mage Water Elemental
                 {
+                    SetCreateHealth(fixedHp);
+                    SetCreateStat(STAT_STAMINA, float(GetOwner()->GetStat(STAT_STAMINA)) * 0.78f);
+
                     SetBonusDamage(int32(GetOwner()->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FROST) * 0.33f));
                     break;
                 }
@@ -981,8 +988,7 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                 }
                 case 29264: // Feral Spirit
                 {
-                    if (!pInfo)
-                        SetCreateHealth(30*petlevel);
+                    SetCreateHealth(fixedHp);
 
                     // wolf attack speed is 1.5s
                     SetAttackTime(BASE_ATTACK, cinfo->baseattacktime);
@@ -991,7 +997,6 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                     SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float((petlevel * 4 + petlevel)));
 
                     SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, float(GetOwner()->GetArmor()) * 0.35f);  // Bonus Armor (35% of player armor)
-                    SetModifierValue(UNIT_MOD_STAT_STAMINA, BASE_VALUE, float(GetOwner()->GetStat(STAT_STAMINA)) * 0.3f);  // Bonus Stamina (30% of player stamina)
                     if (!HasAura(58877))//prevent apply twice for the 2 wolves
                         AddAura(58877, this);//Spirit Hunt, passive, Spirit Wolves' attacks heal them and their master for 150% of damage done.
                     break;

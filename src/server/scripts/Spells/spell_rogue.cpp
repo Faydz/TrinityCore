@@ -388,14 +388,15 @@ class spell_rog_preparation : public SpellScriptLoader
                     if (spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE)
                     {
                         if (spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_COLDB_SHADOWSTEP ||     // Cold Blood, Shadowstep
-                            spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_VAN_EVAS_SPRINT)         // Vanish, Evasion, Sprint
+                            spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_VAN_EVAS_SPRINT && spellInfo->Id != 5277)         // Vanish, Evasion, Sprint
                             caster->RemoveSpellCooldown((itr++)->first, true);
                         else if (caster->HasAura(SPELL_ROGUE_GLYPH_OF_PREPARATION))
                         {
                             if (spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_DISMANTLE ||        // Dismantle
                                 spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_KICK ||              // Kick
                                 (spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_BLADE_FLURRY &&     // Blade Flurry
-                                spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_BLADE_FLURRY))
+                                spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_BLADE_FLURRY ||
+                                spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG_ROGUE_SMOKE_BOMB))
                                 caster->RemoveSpellCooldown((itr++)->first, true);
                             else
                                 ++itr;
@@ -761,9 +762,16 @@ public:
                 GetCaster()->CastSpell(GetCaster(), 1784, true);
             }
         }
+
+        void HandleApply(AuraEffect const * aurEff, AuraEffectHandleModes mode) 
+        {
+            if(Unit* caster = GetCaster())
+                caster->CombatStop(true);
+        }
         
         void Register()
         {
+            OnEffectApply += AuraEffectApplyFn(spell_rog_vanish_buff_AuraScript::HandleApply, EFFECT_0, SPELL_AURA_MOD_SHAPESHIFT, AURA_EFFECT_HANDLE_REAL);
             OnEffectRemove += AuraEffectRemoveFn(spell_rog_vanish_buff_AuraScript::HandleRemove, EFFECT_0, SPELL_AURA_MOD_SHAPESHIFT, AURA_EFFECT_HANDLE_REAL);
         }
     };
@@ -771,6 +779,43 @@ public:
     AuraScript *GetAuraScript() const
     {
         return new spell_rog_vanish_buff_AuraScript();
+    }
+};
+
+// sap aura
+class spell_rog_sap: public SpellScriptLoader 
+{
+public:
+    spell_rog_sap() : SpellScriptLoader("spell_rog_sap") 
+    { }
+
+    class spell_rog_sap_AuraScript: public AuraScript
+    {
+        PrepareAuraScript(spell_rog_sap_AuraScript);
+
+        void HandleRemove(AuraEffect const * aurEff, AuraEffectHandleModes mode) 
+        {
+            if (Unit* caster = GetCaster())
+                if(Unit* target = this->GetTarget())
+                {
+                    int32 bp0 = 0;
+                    if(caster->HasAura(79123))
+                        bp0 = -35;
+                    else if(caster->HasAura(79125))
+                        bp0 = -70;
+                    caster->CastCustomSpell(target, 79124, &bp0, NULL, NULL, true);
+                }
+        }
+        
+        void Register()
+        {
+            OnEffectRemove += AuraEffectRemoveFn(spell_rog_sap_AuraScript::HandleRemove, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    AuraScript *GetAuraScript() const
+    {
+        return new spell_rog_sap_AuraScript();
     }
 };
 
@@ -790,4 +835,5 @@ void AddSC_rogue_spell_scripts()
     new spell_rog_tricks_of_the_trade_proc();
     new spell_rog_smoke_bomb();
     new spell_rog_vanish_buff();
+    new spell_rog_sap();
 }

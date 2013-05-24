@@ -58,11 +58,28 @@ enum DeathKnightSpellIcons
     DK_ICON_ID_IMPROVED_DEATH_STRIKE            = 2751
 };
 
+Unit* necroticStrikeTarget = NULL;
+
 // 73975 - Necrotic Strike
 class spell_dk_necrotic_strike : public SpellScriptLoader
 {
     public:
         spell_dk_necrotic_strike() : SpellScriptLoader("spell_dk_necrotic_strike") { }
+        
+        class spell_dk_necrotic_strike_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dk_necrotic_strike_SpellScript)
+
+            void HandleOnHit()
+            {
+                necroticStrikeTarget = GetExplTargetUnit();
+            }
+
+            void Register()
+            {
+                BeforeHit += SpellHitFn(spell_dk_necrotic_strike_SpellScript::HandleOnHit);
+            }
+        };
 
         class spell_dk_necrotic_strike_AuraScript : public AuraScript
         {
@@ -72,11 +89,14 @@ class spell_dk_necrotic_strike : public SpellScriptLoader
             {
                 Unit* caster = GetCaster();
 
-                if (caster)
+                if (caster && necroticStrikeTarget)
                 {
                     canBeRecalculated = false;
 
                     amount = caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.70f;
+
+                    // Amount absorbed scales with resilience
+                    amount -= necroticStrikeTarget->GetDamageReduction(amount);
                 }
             }
 
@@ -85,6 +105,11 @@ class spell_dk_necrotic_strike : public SpellScriptLoader
                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dk_necrotic_strike_AuraScript::HandleEffectCalcAmount, EFFECT_0, SPELL_AURA_SCHOOL_HEAL_ABSORB);
             }
         };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dk_necrotic_strike_SpellScript();
+        }
 
         AuraScript *GetAuraScript() const
         {
@@ -314,10 +339,19 @@ class spell_dk_anti_magic_zone : public SpellScriptLoader
 
             void CalculateAmount(AuraEffect const* /*aurEff*/, int32 & amount, bool & /*canBeRecalculated*/)
             {
-                SpellInfo const* talentSpell = sSpellMgr->GetSpellInfo(SPELL_DK_ANTI_MAGIC_SHELL_TALENT);
-                amount = talentSpell->Effects[EFFECT_0].CalcValue(GetCaster());
-                if (Player* player = GetCaster()->ToPlayer())
-                     amount += int32(2 * player->GetTotalAttackPowerValue(BASE_ATTACK));
+                if(Unit* npc = GetCaster())
+                {
+                    SpellInfo const* talentSpell = sSpellMgr->GetSpellInfo(SPELL_DK_ANTI_MAGIC_SHELL_TALENT);
+                    amount = talentSpell->Effects[EFFECT_0].CalcValue(npc);
+
+                    if (Unit* unit = npc->GetCharmerOrOwner())
+                    {
+                        if(Player* player = unit->ToPlayer())
+                        {   
+                            amount += int32(4 * player->GetStat(STAT_STRENGTH));
+                        }
+                    }
+                }
             }
 
             void Absorb(AuraEffect* /*aurEff*/, DamageInfo & dmgInfo, uint32 & absorbAmount)
@@ -934,38 +968,6 @@ class spell_dk_scourge_strike : public SpellScriptLoader
                 return true;
             }
 
-            void HandleDummy(SpellEffIndex /*effIndex*/)
-            {
-                if (Unit* caster = GetCaster())
-                {
-                    if (Unit* target = GetHitUnit())
-                    {
-                        int32 bp = int32(0.2f * caster->GetDamageTakenInPastSecs(5));
-
-                        // Improved Death Strike
-                        if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, 2751, 0))
-                            AddPct(bp, caster->CalculateSpellDamage(caster, aurEff->GetSpellInfo(), 2));
-
-                        if (bp < int32(caster->CountPctFromMaxHealth(7)))
-                            return;
-
-                        if (Player* player = caster->ToPlayer())
-                        {
-                            if (player->HasAuraType(SPELL_AURA_MASTERY))
-                            {
-                                if (player->GetPrimaryTalentTree(player->GetActiveSpec()) == BS_DEATH_KNIGHT_BLOOD)
-                                {
-                                    int32 shieldAmount = 0;
-                                    shieldAmount = bp * (6.25f * player->GetMasteryPoints()) / 100;
-                                    player->CastCustomSpell(player, 77535, &shieldAmount, NULL, NULL, true);
-                                }
-                            }
-                        }
-                        caster->CastCustomSpell(caster, 45470, &bp, NULL, NULL, false);
-                    }
-                }
-            }
-
             void HandleAfterHit()
             {
                 Unit* caster = GetCaster();
@@ -984,7 +986,6 @@ class spell_dk_scourge_strike : public SpellScriptLoader
 
             void Register()
             {
-                OnEffectHitTarget += SpellEffectFn(spell_dk_scourge_strike_SpellScript::HandleDummy, EFFECT_2, SPELL_EFFECT_DUMMY);
                 AfterHit += SpellHitFn(spell_dk_scourge_strike_SpellScript::HandleAfterHit);
             }
         };

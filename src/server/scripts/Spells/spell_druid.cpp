@@ -317,40 +317,6 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
         }
 };
 
-// 52610 - Form aura state check
-class spell_dru_form_aura_state_check : public SpellScriptLoader
-{
-    public:
-        spell_dru_form_aura_state_check() : SpellScriptLoader("spell_dru_form_aura_state_check") { }
-
-        class spell_dru_form_aura_state_check_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_dru_form_aura_state_check_SpellScript);
-
-            SpellCastResult CheckCast()
-            {
-                Unit* caster = GetCaster();
-                {
-                    if (caster->HasAuraType(SPELL_AURA_MOD_SILENCE) 
-                        || caster->HasAuraType(SPELL_AURA_MOD_PACIFY) 
-                        || caster->HasAuraType(SPELL_AURA_MOD_PACIFY_SILENCE))
-                        return SPELL_FAILED_SILENCED;
-                }
-                return SPELL_CAST_OK;
-            }
-
-            void Register()
-            {
-                OnCheckCast += SpellCheckCastFn(spell_dru_form_aura_state_check_SpellScript::CheckCast);
-            }
-        };
-
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_dru_form_aura_state_check_SpellScript();
-        }
-};
-
 class spell_dru_istant_rejuvenation : public SpellScriptLoader
 {
     public:
@@ -828,6 +794,10 @@ class spell_dru_eclipse_energize : public SpellScriptLoader
                             caster->RemoveAurasDueToSpell(SPELL_DRUID_SOLAR_ECLIPSE);
                             caster->RemoveAura(94338);
                         }
+
+                        // Glyph of Starsurge
+                        if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 1957, EFFECT_0))
+                            caster->ToPlayer()->ReduceSpellCooldown(48505, aurEff->GetAmount()*IN_MILLISECONDS);
                         break;
                     }
                 }
@@ -1633,12 +1603,13 @@ public:
     {
         PrepareSpellScript(spell_dru_ferocious_bite_SpellScript)
 
-            void BloodInTheWater()
+            void HandleOnHit()
             {
                 if (Unit* caster=GetCaster())
                 {
                     if (Unit* target=GetHitUnit())
                     {
+                        // Blood in the Water
                         if (caster->GetAuraEffect(SPELL_AURA_DUMMY,SPELLFAMILY_DRUID, 4399, EFFECT_0))
                         {
                             if (target->HealthBelowPct(25))
@@ -1655,7 +1626,7 @@ public:
 
             void Register() 
             {
-                OnHit += SpellHitFn(spell_dru_ferocious_bite_SpellScript::BloodInTheWater);
+                OnHit += SpellHitFn(spell_dru_ferocious_bite_SpellScript::HandleOnHit);
             }
         };
 
@@ -2239,11 +2210,76 @@ class spell_dru_survival_instincts : public SpellScriptLoader
         }
 };
 
+class spell_dru_skull_bash : public SpellScriptLoader
+{
+    public:
+        spell_dru_skull_bash() : SpellScriptLoader("spell_dru_skull_bash") { }
+
+        class spell_dru_skull_bash_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dru_skull_bash_SpellScript);
+
+            SpellCastResult CheckCast()
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if (caster->HasUnitState(UNIT_STATE_ROOT))
+                    {
+                        SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_CANT_DO_WHILE_ROOTED);
+                        return SPELL_FAILED_CUSTOM_ERROR;
+                    }
+                }
+
+                return SPELL_CAST_OK;
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_dru_skull_bash_SpellScript::CheckCast);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dru_skull_bash_SpellScript;
+        }
+};
+
+class spell_dru_regrowth : public SpellScriptLoader
+{
+public:
+    spell_dru_regrowth() : SpellScriptLoader("spell_dru_regrowth") { }
+
+    class spell_dru_regrowth_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_dru_regrowth_AuraScript);
+
+        void OnPeriodic(AuraEffect const* aurEff)
+        {
+            // Glyph of Regrowth
+            if(Unit* caster = GetCaster())
+                if(Unit* target = GetTarget())
+                    if(AuraEffect *aurGlyph = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 197, EFFECT_0))
+                        if(target->HealthBelowPct(aurGlyph->GetAmount()))
+                            aurEff->GetBase()->RefreshDuration();
+        }
+
+        void Register()
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_dru_regrowth_AuraScript::OnPeriodic, EFFECT_1, SPELL_AURA_PERIODIC_HEAL);
+        }
+    };
+
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_dru_regrowth_AuraScript();
+    }
+};
+
 void AddSC_druid_spell_scripts()
 {
     new spell_dru_wild_mushroom();
     new spell_dru_wild_mushroom_detonate();
-    new spell_dru_form_aura_state_check();
     new spell_dru_istant_rejuvenation();
     new spell_dru_rejuvenation();
     new spell_dru_efflorescence();
@@ -2284,4 +2320,6 @@ void AddSC_druid_spell_scripts()
     new spell_dru_lacerate();
     new spell_dru_lunar_shower();
     new spell_dru_survival_instincts();
+    new spell_dru_skull_bash();
+    new spell_dru_regrowth();
 }

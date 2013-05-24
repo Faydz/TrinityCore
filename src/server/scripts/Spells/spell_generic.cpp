@@ -3682,6 +3682,34 @@ class spell_gen_searing_bolt : public SpellScriptLoader
         }
 };
 
+class spell_gen_ring_of_frost : public SpellScriptLoader
+{
+public:
+   spell_gen_ring_of_frost() : SpellScriptLoader("spell_gen_ring_of_frost")
+   { }
+
+   class spell_gen_ring_of_frost_AuraScript: public AuraScript
+   {
+       PrepareAuraScript(spell_gen_ring_of_frost_AuraScript)
+
+       void HandleAfterEffect(AuraEffect const* aurEff, AuraEffectHandleModes mode)
+       {
+           if (Unit* target = GetTarget())
+               target->AddAura(91264, target);
+       }
+
+       void Register()
+       {
+           AfterEffectRemove += AuraEffectRemoveFn(spell_gen_ring_of_frost_AuraScript::HandleAfterEffect, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL);
+       }
+   };
+
+   AuraScript *GetAuraScript() const
+   {
+       return new spell_gen_ring_of_frost_AuraScript();
+   }
+};
+
 void AddSC_generic_spell_scripts()
 {
     new spell_gen_absorb0_hitlimit1();
@@ -3771,4 +3799,5 @@ void AddSC_generic_spell_scripts()
     new spell_gen_darkflight();
     new spell_gen_vengeance();
     new spell_gen_searing_bolt();
+    new spell_gen_ring_of_frost();
 }

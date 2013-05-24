@@ -136,7 +136,7 @@ class boss_rajh : public CreatureScript
                 DoCastAOE(SPELL_BLESSING_OF_THE_SUN);
             }
 
-            void UpdateAI(uint32 const diff)
+            void UpdateAI(uint32 diff)
             {
                 if (!UpdateVictim())
                     return;

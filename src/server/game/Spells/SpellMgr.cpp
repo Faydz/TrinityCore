@@ -100,6 +100,9 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
             // Deep Freeze
             else if (spellproto->SpellIconID == 2939 && spellproto->SpellVisual[0] == 9963)
                 return DIMINISHING_CONTROLLED_STUN;
+            // Ring of Frost
+            else if (spellproto->SpellIconID == 5279 && spellproto->SpellVisual[0] == 4499)
+                return DIMINISHING_CONTROLLED_STUN;
             // Frost Nova / Freeze (Water Elemental)
             else if (spellproto->SpellIconID == 193)
                 return DIMINISHING_CONTROLLED_ROOT;
@@ -3134,6 +3137,9 @@ void SpellMgr::LoadSpellCustomAttr()
             case 84593: // Stone grip
                 spellInfo->Effects[0].Amplitude = 12000;
                 break;
+            case 83609: // Atrophic Poison
+                spellInfo->Effects[0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ENEMY);
+                break;
             // CORREZIONI ITEM PROFESSIONI --- DA VICIOUS 377 A BLOODTHIRSTY 358
             case 78457:
                 spellInfo->Effects[0].ItemType = 70044;
@@ -3583,6 +3589,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Frost Strike
+                    case 49143:
+                        spellInfo->Effects[EFFECT_1].BasePoints = 143;
+                        break;
                     // Dark Simulacrum dummy aura
                     case 94984:
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
@@ -3664,9 +3674,24 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                 }
                 break;
+            case SPELLFAMILY_MAGE:
+                switch(spellInfo->Id)
+                {
+                case 44614:
+                    spellInfo->StackAmount = 1;
+                    break;
+                }
+                break;
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Heroic Strike
+                    case 78:
+                        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_NORMALIZED_WEAPON_DMG;
+                        spellInfo->Effects[EFFECT_0].BasePoints = 549;
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
+                        spellInfo->Effects[EFFECT_1].BasePoints = 110;
+                        break;
 					// Demoralizing Shout
 					case 1160:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
@@ -3748,6 +3773,18 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
                 {
+                    // Innervate (Glyph of Innervate)
+                    case 54833:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_PERIODIC_ENERGIZE;
+                        break;
+                    // Glyph of Innervate
+                    case 54832:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 10;
+                        break;
+                    // Solar Beam
+                    case 78675:
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_SILENCE;
+                        break;
 					// Demoralizing Roar
 					case 99:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
@@ -3831,6 +3868,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_HUNTER:
                 switch(spellInfo->Id)
                 {
+                    // Glyph of Silencing Shot
+                    case 56836:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName= SPELL_AURA_DUMMY;
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+                        break;
                     // bestial discipline all ranks
                     case 19590:
                     case 19592:
@@ -3884,6 +3926,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_ROGUE:
                 switch(spellInfo->Id)
                 {
+                    case 79140:
+                    case 76577:
+                        spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
+                        break;
+                    case 39666:
+                        spellInfo->Effects[0].BasePoints = -200;
+                        break;
 					// Shadow Dance
 					case 51713:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
