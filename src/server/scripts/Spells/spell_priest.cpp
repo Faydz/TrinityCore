@@ -934,7 +934,7 @@ class spell_pri_power_word_shield : public SpellScriptLoader
                 if (caster && target && GetEffect(EFFECT_0))
                 {
                     // Glyph of Power Word Shield
-                    if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, PRIEST_ICON_ID_GLYPH_OF_POWER_WORD_SHIELD, 0))
+                    if (AuraEffect* aurEff = caster->GetAuraEffect(55672, EFFECT_0, caster->GetGUID()))
                     {
                         int32 bp0 = CalculatePct(GetEffect(EFFECT_0)->GetAmount(), aurEff->GetAmount());
                         caster->CastCustomSpell(target, SPELL_PRIEST_GLYPH_OF_POWER_WORD_SHIELD_HEAL, &bp0, NULL, NULL, true);
