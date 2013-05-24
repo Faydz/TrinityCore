@@ -51,8 +51,6 @@ enum PaladinSpells
     SPELL_PALADIN_LAY_ON_HANDS                   = 633,
     SPELL_PALADIN_DIVINE_SHIELD                  = 642,
     SPELL_PALADIN_FORBEARANCE                    = 25771,
-    SPELL_PALADIN_AVENGING_WRATH_MARKER          = 61987,
-    SPELL_PALADIN_IMMUNE_SHIELD_MARKER           = 61988,
 
     SPELL_PALADIN_HAND_OF_SACRIFICE              = 6940,
     SPELL_PALADIN_DIVINE_SACRIFICE               = 64205,
@@ -65,6 +63,9 @@ enum PaladinSpells
     SPELL_PALADIN_DIVINE_PURPOSE_PROC            = 90174,
 
     SPELL_PALADIN_GLYPH_OF_SALVATION             = 63225,
+
+    SPELL_PALADIN_GLYPH_OF_DIVINITY             = 54939,
+    SPELL_PALADIN_GLYPH_OF_DIVINITY_ENERGIZE    = 54986,
 
     SPELL_PALADIN_AVENGER_S_SHIELD               = 31935,
 
@@ -1576,10 +1577,6 @@ class spell_pal_lay_on_hands : public SpellScriptLoader
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_PALADIN_FORBEARANCE))
                     return false;
-                if (!sSpellMgr->GetSpellInfo(SPELL_PALADIN_AVENGING_WRATH_MARKER))
-                    return false;
-                if (!sSpellMgr->GetSpellInfo(SPELL_PALADIN_IMMUNE_SHIELD_MARKER))
-                    return false;
                 return true;
             }
 
@@ -1588,7 +1585,7 @@ class spell_pal_lay_on_hands : public SpellScriptLoader
                 Unit* caster = GetCaster();
                 if (Unit* target = GetExplTargetUnit())
                     if (caster == target)
-                        if (target->HasAura(SPELL_PALADIN_FORBEARANCE) || target->HasAura(SPELL_PALADIN_AVENGING_WRATH_MARKER) || target->HasAura(SPELL_PALADIN_IMMUNE_SHIELD_MARKER))
+                        if (target->HasAura(SPELL_PALADIN_FORBEARANCE))
                             return SPELL_FAILED_TARGET_AURASTATE;
 
                 return SPELL_CAST_OK;
@@ -1599,9 +1596,10 @@ class spell_pal_lay_on_hands : public SpellScriptLoader
                 Unit* caster = GetCaster();
                 if (caster == GetHitUnit())
                 {
-                    caster->CastSpell(caster, SPELL_PALADIN_FORBEARANCE, true);
-                    caster->CastSpell(caster, SPELL_PALADIN_AVENGING_WRATH_MARKER, true);
-                    caster->CastSpell(caster, SPELL_PALADIN_IMMUNE_SHIELD_MARKER, true);
+                    if(caster->HasAura(SPELL_PALADIN_GLYPH_OF_DIVINITY))
+                    {
+                        caster->CastSpell(caster, SPELL_PALADIN_GLYPH_OF_DIVINITY_ENERGIZE, true);
+                    }
                 }
             }
 
