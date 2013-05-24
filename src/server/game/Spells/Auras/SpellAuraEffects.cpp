@@ -4942,7 +4942,7 @@ void AuraEffect::HandleModSpellPowerPct(AuraApplication const* aurApp, uint8 mod
             else
             {
                 int32 sp = target->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC);
-                sp = sp / int32(1 + GetAmount() / 100);
+                sp /= 1.0 + (GetAmount() / 100.0);
                 tPlayer->ApplySpellPowerBonus(int32(CalculatePct(sp, GetAmount())), apply);
             }
         }

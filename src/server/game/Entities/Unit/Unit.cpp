@@ -14356,6 +14356,22 @@ bool Unit::HandleStatModifier(UnitMods unitMod, UnitModifierType modifierType, f
     {
         case BASE_VALUE:
         case TOTAL_VALUE:
+            // I think  that this is not the proper way... but it works. 
+            // Search if there are exploit similar to this
+            switch (unitMod)
+            {
+                case UNIT_MOD_STAT_STRENGTH:
+                case UNIT_MOD_STAT_AGILITY:
+                case UNIT_MOD_STAT_STAMINA:
+                case UNIT_MOD_STAT_INTELLECT:
+                case UNIT_MOD_STAT_SPIRIT:
+                {
+                    int32 mod = GetTotalAuraModifier(SPELL_AURA_MOD_SPELL_POWER_PCT);
+                    if (mod > 0)
+                        amount *= 1.0 + mod / 100.0f;
+                }
+                break;
+            }
             m_auraModifiersGroup[unitMod][modifierType] += apply ? amount : -amount;
             break;
         case BASE_PCT:
@@ -14404,7 +14420,6 @@ bool Unit::HandleStatModifier(UnitMods unitMod, UnitModifierType modifierType, f
         default:
             break;
     }
-
     return true;
 }
 
