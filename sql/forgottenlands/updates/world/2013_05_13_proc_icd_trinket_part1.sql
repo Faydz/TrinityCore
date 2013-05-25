@@ -1,4 +1,4 @@
-DELETE FROM `spell_proc_event` WHERE `entry` IN (91193, 91048, 89183, 89088, 92234, 92105, 91811, 92350, 92125, 91031, 92326, 92127, 92353, 91025, 92322, 91817, 92346, 91011, 92319, 92236, 92356, 91186, 92333, 75171, 75174, 75177, 92054, 92088, 90886, 90888, 92209, 92207, 92095, 92097, 90990, 90993, 91148, 91150, 91361, 91365, 90998, 91003, 91137, 91140, 92180, 92185, 90897, 90899, 92070, 92093, 92164, 92175, 91822, 92343, 92114, 109995, 92054, 91142, 91144, 95713, 94747, 94746, 95653);
+DELETE FROM `spell_proc_event` WHERE `entry` IN (91193, 91048, 89183, 89088, 92234, 92105, 91811, 92350, 92125, 91031, 92326, 92127, 92353, 91025, 92322, 91817, 92346, 91011, 92319, 92236, 92356, 91186, 92333, 75174, 75177, 92054, 92088, 90886, 90888, 92209, 92207, 92095, 92097, 90990, 90993, 91148, 91150, 91361, 91365, 90998, 91003, 91137, 91140, 92180, 92185, 90897, 90899, 92070, 92093, 92164, 92175, 91822, 92343, 92114, 109995, 92054, 91142, 91144, 95713);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (91193, 10, 60);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (91048, 10, 80);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (89183, 80, 8);
@@ -22,7 +22,6 @@ INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (922
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (92356, 100, 30);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (91186, 10, 45);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (92333, 10, 45);
-INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (75171, 25, 60);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (75174, 15, 50);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (75177, 15, 50);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (92054, 10, 100);
@@ -58,6 +57,3 @@ INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (109
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (91142, 10, 90);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (91144, 10, 90);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (95713, 10, 45);
-INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (94747, 15, 60);
-INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (94746, 10, 45);
-INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (95653, 25, 20);
