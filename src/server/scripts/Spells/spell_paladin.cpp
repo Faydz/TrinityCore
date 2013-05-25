@@ -331,7 +331,6 @@ class spell_pal_selfless : public SpellScriptLoader
 
                 if (Unit* caster = GetCaster())
                 {
-                    //if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_PALADIN, 3924, EFFECT_1))
                     if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3924, EFFECT_1))
                     {
                         if(int32 woGHP = caster->GetWordOfGloryHolyPower())
@@ -341,26 +340,10 @@ class spell_pal_selfless : public SpellScriptLoader
                     }
                 }       
             }
-            
-            void ChangeAmountHealing(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
-            {
-                canBeRecalculated = false;
-
-                if (Unit* caster = GetCaster())
-                {
-                    //if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_PALADIN, 3924, EFFECT_0))
-                    if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3924, EFFECT_0))
-                    {
-                        amount = aurEff->GetAmount();
-                    }
-                }       
-            }
 
             void Register()
             {
                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_pal_selfless_AuraScript::ChangeAmountDamage, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
-                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_pal_selfless_AuraScript::ChangeAmountHealing, EFFECT_1, SPELL_AURA_ADD_PCT_MODIFIER);
-                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_pal_selfless_AuraScript::ChangeAmountHealing, EFFECT_2, SPELL_AURA_ADD_PCT_MODIFIER);
             }
         };
 

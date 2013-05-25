@@ -11989,6 +11989,15 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                             AddPct(DoneTotalMod, aurEff->GetAmount());
                         }
                     }
+                    
+                    // Selfless Healer
+                    if(AuraEffect* aurEff = this->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3924, EFFECT_0))
+                    {
+                        if(this != victim)
+                        {
+                            AddPct(DoneTotalMod, aurEff->GetAmount());
+                        }
+                    }
                     break;
             }
             break;
