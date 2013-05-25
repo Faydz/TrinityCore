@@ -8869,6 +8869,25 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Symbiotic Worm trinkets
+        case 92356:
+        case 92236:
+            victim = this;
+
+        // Sorrowsong trinkets
+        case 90998:
+        case 91003:
+            {
+                if(!victim)
+                    return false;
+
+                float calcHealthPct = 100.f * (victim->GetHealthPct(), victim->GetHealth() - damage) / victim->GetMaxHealth();
+                calcHealthPct = calcHealthPct <= 100.0f ? calcHealthPct : 0.0f;
+
+                if(calcHealthPct > 35.0f)
+				    return false;
+            }
+            break;
 		// Victory Rush activator
 		case 32215:
 			if(!victim)
