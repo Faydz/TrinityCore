@@ -653,9 +653,19 @@ class spell_dk_death_grip : public SpellScriptLoader
                 }
             }
 
+            void HandleOnCast()
+            {
+                // Glyph of Resilient Grip
+                if(Unit * caster = GetCaster())
+                    if (Unit* target = caster->ToPlayer()->GetSelectedUnit())
+                        if(target->IsImmunedToSpell(sSpellMgr->GetSpellInfo(49560)))
+                            caster->ToPlayer()->RemoveSpellCooldown(49576, true);
+            }
+
             void Register()
             {
                 OnEffectHitTarget += SpellEffectFn(spell_dk_death_grip_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+                OnCast += SpellCastFn(spell_dk_death_grip_SpellScript::HandleOnCast);
             }
 
         };

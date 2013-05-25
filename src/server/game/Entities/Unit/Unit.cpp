@@ -9330,14 +9330,6 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 return false;
             break;
         }
-        // Glyph of Death Grip
-        case 58628:
-        {
-            // remove cooldown of Death Grip
-            if (GetTypeId() == TYPEID_PLAYER)
-                ToPlayer()->RemoveSpellCooldown(49576, true);
-            return true;
-        }
         // Savage Defense
         case 62606:
         {
