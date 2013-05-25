@@ -853,6 +853,35 @@ class spell_rog_revealing_strike : public SpellScriptLoader
         }
 };
 
+class spell_rog_combat_readiness : public SpellScriptLoader
+{
+    public:
+        spell_rog_combat_readiness() : SpellScriptLoader("spell_rog_combat_readiness") { }
+
+        class spell_rog_combat_readiness_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_rog_combat_readiness_AuraScript);
+
+            void HandleProc(AuraEffect const* aurEff)
+            {
+                if(Unit* pl = GetTarget())
+                    if(Aura* aur = pl->GetAura(GetSpellInfo()->Id, pl->GetGUID()))
+                        if(aur->GetDuration()<= 10500 && !(pl->HasAura(74002)))
+                            aur->Remove();
+            }
+
+            void Register()
+            {
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_rog_combat_readiness_AuraScript::HandleProc, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_rog_combat_readiness_AuraScript();
+        }
+};
+
 void AddSC_rogue_spell_scripts()
 {
 	new spell_rog_blind();
@@ -871,4 +900,5 @@ void AddSC_rogue_spell_scripts()
     new spell_rog_vanish_buff();
     new spell_rog_sap();
     new spell_rog_revealing_strike();
+    new spell_rog_combat_readiness();
 }
