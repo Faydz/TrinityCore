@@ -903,6 +903,12 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
 
             SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(petlevel - (petlevel / 4)));
             SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(petlevel + (petlevel / 4)));
+            
+            // Fixed energy value for DK's Ghoul
+            if (IsPetGhoul())
+            {
+                SetCreateMana(100);
+            }
 
             //SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(cinfo->attackpower));
             break;
