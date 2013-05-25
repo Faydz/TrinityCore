@@ -835,7 +835,10 @@ class spell_rog_revealing_strike : public SpellScriptLoader
                     if(Unit* tar = dmg->GetVictim())
                         if(dmg->GetAttacker())
                             if(Aura* ks = tar->GetAura(408, dmg->GetAttacker()->GetGUID()))
-                                ks->SetDuration(ks->GetDuration()+ks->GetDuration()*0.35);
+                                if(dmg->GetAttacker()->HasAura(57293))
+                                    ks->SetDuration(ks->GetDuration()+ks->GetDuration()*0.45);
+                                else
+                                    ks->SetDuration(ks->GetDuration()+ks->GetDuration()*0.35);
             }
 
             void Register()
