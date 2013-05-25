@@ -43,6 +43,7 @@ enum HunterSpells
     SPELL_HUNTER_GLYPH_OF_ASPECT_OF_THE_VIPER       = 56851,
     SPELL_HUNTER_GLYPH_OF_SILENCING_SHOT            = 56836,
     SPELL_HUNTER_INVIGORATION_TRIGGERED             = 53398,
+    SPELL_HUNTER_KILL_SHOT                          = 53351,
     SPELL_HUNTER_MASTERS_CALL_TRIGGERED             = 62305,
     SPELL_HUNTER_MISDIRECTION_PROC                  = 35079,
     SPELL_HUNTER_PET_LAST_STAND_TRIGGERED           = 53479,
@@ -1106,6 +1107,44 @@ class spell_hun_cobra_shot : public SpellScriptLoader
         }
 };
 
+class spell_hun_kill_shot : public SpellScriptLoader
+{
+    public:
+        spell_hun_kill_shot() : SpellScriptLoader("spell_hun_kill_shot") { }
+
+        class spell_hun_kill_shot_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_kill_shot_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellEntry*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_HUNTER_KILL_SHOT))
+                    return false;
+                return true;
+            }
+
+            void HandleScript()
+            {
+                // Glyph of Kill Shot
+                if(Unit * caster = GetCaster())
+                    if(caster->HasAura(63067))
+                        if(Unit * target = GetHitUnit())
+                            if(target->isAlive())
+                                caster->ToPlayer()->RemoveSpellCooldown(53351, true);
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_hun_kill_shot_SpellScript::HandleScript);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_kill_shot_SpellScript();
+        }
+};
+
 void AddSC_hunter_spell_scripts()
 {
     new spell_hun_silencing_shot();
@@ -1132,4 +1171,5 @@ void AddSC_hunter_spell_scripts()
     new spell_hun_chimera_shot();
     new spell_hun_trap_launcher_trap();
     new spell_hun_cobra_shot();
+    new spell_hun_kill_shot();
 }
