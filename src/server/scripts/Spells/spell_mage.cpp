@@ -365,6 +365,42 @@ public:
     }
 };
 
+class spell_mage_polymorph : public SpellScriptLoader
+{
+    public:
+        spell_mage_polymorph() : SpellScriptLoader("spell_mage_polymorph") { }
+
+        class spell_mage_polymorph_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_mage_polymorph_AuraScript);
+
+            void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetTarget();
+                if (!caster || !target || !(caster->ToPlayer()) || !caster->HasAura(56375))
+                    return;
+
+				Unit::AuraEffectList auras = target->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+                for (Unit::AuraEffectList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                {
+                    if ((*itr)->GetBase())
+                        (*itr)->GetBase()->Remove();
+                }
+
+            }
+            void Register()
+            {
+                AfterEffectApply += AuraEffectApplyFn(spell_mage_polymorph_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_MOD_CONFUSE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_mage_polymorph_AuraScript();
+        }
+};
+
 class spell_mage_blast_wave : public SpellScriptLoader
 {
     public:
@@ -1391,6 +1427,7 @@ void AddSC_mage_spell_scripts()
     new spell_mage_ring_of_frost();
     new spell_mage_arcane_blast();
     new spell_mage_blast_wave();
+    new spell_mage_polymorph();
     new spell_pyromaniac();
     new spell_mage_cold_snap();
     new spell_mage_cone_of_cold();
