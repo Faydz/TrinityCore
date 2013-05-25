@@ -369,9 +369,16 @@ class spell_paladin_word_of_glory : public SpellScriptLoader
                 if(Unit* caster = GetCaster())
                 {
                     if (caster->HasAura(SPELL_PALADIN_DIVINE_PURPOSE_PROC))
+                    {
+                        restoreHolyPower = true;
+                        realHolyPower = caster->GetPower(POWER_HOLY_POWER);
                         caster->SetWordOfGloryHolyPower(3);
+                    }
                     else
+                    {
+                        restoreHolyPower = false;
                         caster->SetWordOfGloryHolyPower(caster->GetPower(POWER_HOLY_POWER));
+                    }
                 }
             }
 
@@ -379,6 +386,7 @@ class spell_paladin_word_of_glory : public SpellScriptLoader
             {
                 if(Unit* caster = GetCaster())
                 {
+                    // Eternal Glory
                     if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 2944, EFFECT_0))
                     {
                         if(roll_chance_i(aurEff->GetAmount()))
@@ -386,6 +394,13 @@ class spell_paladin_word_of_glory : public SpellScriptLoader
                             int32 bp0 = caster->GetWordOfGloryHolyPower();
                             caster->SetPower(POWER_HOLY_POWER, bp0);
                         }
+                    }
+
+                    // Restore Holy Power from Divine Purpose
+                    if(restoreHolyPower && realHolyPower)
+                    {
+                        sLog->outError(LOG_FILTER_GENERAL, "realHolyPower %d", realHolyPower);
+                        caster->SetPower(POWER_HOLY_POWER, realHolyPower);
                     }
                 }
             }
@@ -409,6 +424,10 @@ class spell_paladin_word_of_glory : public SpellScriptLoader
                     }
                 }
             }
+
+        private:
+            bool restoreHolyPower;
+            int8 realHolyPower;
 
             void Register()
             {
@@ -1732,6 +1751,36 @@ class spell_pal_templar_s_verdict : public SpellScriptLoader
                 return true;
             }
 
+            void HandleBeforeCast()
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    if (caster->HasAura(SPELL_PALADIN_DIVINE_PURPOSE_PROC))
+                    {
+                        restoreHolyPower = true;
+                        realHolyPower = caster->GetPower(POWER_HOLY_POWER);
+                        caster->SetWordOfGloryHolyPower(3);
+                    }
+                    else
+                    {
+                        restoreHolyPower = false;
+                    }
+                }
+            }
+            
+            void HandleAfterCast()
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    // Restore Holy Power from Divine Purpose
+                    if(restoreHolyPower && realHolyPower)
+                    {
+                        sLog->outError(LOG_FILTER_GENERAL, "realHolyPower %d", realHolyPower);
+                        caster->SetPower(POWER_HOLY_POWER, realHolyPower);
+                    }
+                }
+            }
+            
             void ChangeDamage(SpellEffIndex /*effIndex*/)
             {
                 Unit* caster = GetCaster();
@@ -1766,9 +1815,15 @@ class spell_pal_templar_s_verdict : public SpellScriptLoader
 
                 SetHitDamage(damage);
             }
+            
+        private:
+            bool restoreHolyPower;
+            int8 realHolyPower;
 
             void Register()
             {
+                BeforeCast += SpellCastFn(spell_pal_templar_s_verdict_SpellScript::HandleBeforeCast);
+                AfterCast += SpellCastFn(spell_pal_templar_s_verdict_SpellScript::HandleAfterCast);
                 OnEffectHitTarget += SpellEffectFn(spell_pal_templar_s_verdict_SpellScript::ChangeDamage, EFFECT_0, SPELL_EFFECT_WEAPON_PERCENT_DAMAGE);
             }
         };
