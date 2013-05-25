@@ -55,7 +55,6 @@ INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (918
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (92343, 10, 60);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (92114, 10, 50);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (109995, 20, 45);
-INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (92054, 10, 100);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (91142, 10, 90);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (91144, 10, 90);
 INSERT INTO `spell_proc_event` (`entry`, `CustomChance`, `Cooldown`) VALUES (95713, 10, 45);
