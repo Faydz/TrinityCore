@@ -7024,6 +7024,12 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Selfless Healer
+                case 85803:
+                case 85804:
+                    if(!victim || this == victim)
+                        return false;
+                    break;
                 // Ancient Crusader
                 case 86701:
                     triggered_spell_id = 86700;
