@@ -903,7 +903,11 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                 case 49998:
                 {
                     int32 bp;
-                    uint32 healthPct = m_caster->CountPctFromMaxHealth(7);
+                    uint32 healthPct;
+                    if (m_caster->HasAura(101568)) // Glyph of Dark Succor
+                        healthPct = m_caster->CountPctFromMaxHealth(20);
+                    else
+                        healthPct = m_caster->CountPctFromMaxHealth(7);
                     uint32 damageTaken = m_caster->GetDamageTakenInPastSecs(5) * 0.20f;
 
                     if (healthPct > damageTaken)
