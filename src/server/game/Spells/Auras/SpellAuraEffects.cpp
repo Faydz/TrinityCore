@@ -6116,7 +6116,8 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
                 case 43265: // Death and Decay
                     if (caster)
                     {
-                        caster->CastSpell(target, 52212, true);
+                        if(DynamicObject* dynObj = GetCaster()->GetDynObject(43265))
+                            caster->CastSpell(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ(), 52212, true);
                     }
                     break;
             }
