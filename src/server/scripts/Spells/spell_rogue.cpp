@@ -43,7 +43,7 @@ enum RogueSpellIcons
     ICON_ROGUE_IMPROVED_RECUPERATE               = 4819
 };
 
-// 2094 - Bling
+// 2094 - Blind
 class spell_rog_blind : public SpellScriptLoader
 {
     public:
@@ -67,6 +67,7 @@ class spell_rog_blind : public SpellScriptLoader
 
             void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
+                // Glyph of Blind
 				if(GetCaster() && GetCaster()->HasAura(SPELL_ROGUE_GLYPH_OF_BLIND))
 				{
 					if(Unit* target = GetTarget())
