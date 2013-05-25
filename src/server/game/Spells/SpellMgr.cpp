@@ -3367,6 +3367,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case 99539:
                 spellInfo->Effects[0].ItemType = 70071;
                 break;
+            // Judgement of the Bold
+            case 89906:
+                spellInfo->Effects[EFFECT_0].BasePoints = 3;
+                break;
             default:
                 break;
         }

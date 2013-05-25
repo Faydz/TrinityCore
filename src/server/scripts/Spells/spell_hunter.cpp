@@ -1127,10 +1127,19 @@ class spell_hun_kill_shot : public SpellScriptLoader
             {
                 // Glyph of Kill Shot
                 if(Unit * caster = GetCaster())
-                    if(caster->HasAura(63067))
+                {
+                    if(caster->HasAura(63067) && !caster->HasAura(90967))
+                    {
                         if(Unit * target = GetHitUnit())
+                        {
                             if(target->isAlive())
+                            {
                                 caster->ToPlayer()->RemoveSpellCooldown(53351, true);
+                                caster->AddAura(90967, caster);
+                            }
+                        }
+                    }
+                }
             }
 
             void Register()

@@ -655,9 +655,11 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
         case SPELL_AURA_PERIODIC_ENERGIZE:
             switch (m_spellInfo->Id)
             {
-            case 31930: // Judgements of the Wise
             case 89906: // Judgements of the Bold
-                amount = int32(GetBase()->GetUnitOwner()->GetCreateMana() * amount /100);
+                amount = int32(GetBase()->GetUnitOwner()->GetMaxPower(POWER_MANA) * amount / 100);
+                break;
+            case 31930: // Judgements of the Wise
+                amount = int32(GetBase()->GetUnitOwner()->GetCreateMana() * amount / 100);
                 break;
             case 57669: // Replenishment (0.2% from max)
                 amount = CalculatePct(GetBase()->GetUnitOwner()->GetMaxPower(POWER_MANA), amount);
@@ -6114,7 +6116,8 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
                 case 43265: // Death and Decay
                     if (caster)
                     {
-                        caster->CastSpell(target, 52212, true);
+                        if(DynamicObject* dynObj = GetCaster()->GetDynObject(43265))
+                            caster->CastSpell(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ(), 52212, true);
                     }
                     break;
             }
