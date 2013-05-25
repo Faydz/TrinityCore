@@ -3926,6 +3926,14 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_ROGUE:
                 switch(spellInfo->Id)
                 {
+                    // combat readiness
+                    case 74001:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                        spellInfo->Effects[EFFECT_1].TargetB = SpellImplicitTargetInfo();
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_PERIODIC_DUMMY;
+                        spellInfo->Effects[EFFECT_1].Amplitude = 500;
+                        break;
                     case 79140:
                     case 76577:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
