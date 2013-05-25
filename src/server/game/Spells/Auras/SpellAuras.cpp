@@ -1480,7 +1480,10 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
 
                     // Lava Flows
                     if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 3087, 0))
-                        caster->CastSpell(caster, 65264, true);
+                    {
+                        int32 bp0 = aurEff->GetAmount();
+                        caster->CastCustomSpell(caster, 65264, &bp0, NULL, NULL, true);
+                    }
                 }
                 break;
         }
