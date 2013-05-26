@@ -483,7 +483,7 @@ public:
     }
 };
 
-// 5185 8936 50464 Empowered Touch
+// 5185/50464 Empowered Touch
 class spell_dru_empowered_touch: public SpellScriptLoader 
 {
 public:
@@ -2249,6 +2249,30 @@ class spell_dru_regrowth : public SpellScriptLoader
 {
 public:
     spell_dru_regrowth() : SpellScriptLoader("spell_dru_regrowth") { }
+    
+    class spell_dru_regrowth_SpellScript: public SpellScript 
+    {
+        PrepareSpellScript(spell_dru_regrowth_SpellScript);
+
+        void BeforeEffect(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetHitUnit();
+
+            if (!target || !caster)
+                return;
+
+            if (Aura* aur = target->GetAura(SPELL_DRUID_LIFEBLOOM_HOT))
+                if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2251, EFFECT_1))
+                    if (roll_chance_i(aurEff->GetAmount()))
+                        aur->RefreshDuration();
+        }
+
+        void Register() 
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_dru_regrowth_SpellScript::BeforeEffect, EFFECT_0, SPELL_EFFECT_HEAL);
+        }
+    };
 
     class spell_dru_regrowth_AuraScript : public AuraScript
     {
@@ -2269,6 +2293,11 @@ public:
             OnEffectPeriodic += AuraEffectPeriodicFn(spell_dru_regrowth_AuraScript::OnPeriodic, EFFECT_1, SPELL_AURA_PERIODIC_HEAL);
         }
     };
+
+    SpellScript* GetSpellScript() const 
+    {
+        return new spell_dru_regrowth_SpellScript();
+    }
 
     AuraScript* GetAuraScript() const
     {
