@@ -3398,11 +3398,14 @@ public:
 		}
 
 		void CheckIfMoveInRing(Unit *who) {
-			if (who->isAlive() && me->IsInRange(who, 2.0f, 4.7f)
+            if (who->isAlive() && who->IsInRange(me, 2.0f, 4.7f, false)
 					&& !who->HasAura(82691)/*<= target already frozen*/
 					&& !who->HasAura(91264)/*<= target is immune*/
 					&& me->IsWithinLOSInMap(who) && Isready)
+            {
 				me->CastSpell(who, 82691, true);
+                me->AddAura(91264,who);
+            }
 		}
 
 		void UpdateAI(const uint32 diff) {
