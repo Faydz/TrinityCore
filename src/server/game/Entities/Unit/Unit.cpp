@@ -11184,11 +11184,9 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 								calcAP *= 0.455f;
 								break;
 						}
-
 						int32 member = ((536 * comboPoints) + calcAP);
 
 						DoneTotal += uint32(177 + member - 529 + member);
-						
                         // Eviscerate and Envenom Bonus Damage (item set effect)
                         if (this->HasAura(37169))
                             DoneTotal += comboPoints * 40;
@@ -12501,9 +12499,11 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
 
                             if((mainItem && mainItem->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER) 
                                 || (offItem && offItem->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER))
+                            {
                                 mod = 1.447f;
-
-                            int32 weaponDmg = this->CalculateDamage(BASE_ATTACK, true, true) * (1.9f * mod);
+                                add = 1011;
+                            }
+                            int32 weaponDmg = this->CalculateDamage(BASE_ATTACK, true, true) * (1.9f * mod) + add;
 
                             pdamage = uint32(weaponDmg + (367 * mod));
                         }
@@ -12512,9 +12512,9 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                     case 53:
                         // 2.0*WeapDMG + (310 * 2)
                         {
-                            int32 weaponDmg = CalculatePct(this->CalculateDamage(BASE_ATTACK, true, true), 200);
+                            int32 weaponDmg = CalculatePct(this->CalculateDamage(BASE_ATTACK, true, true), 240);
 
-                            pdamage = uint32(weaponDmg + 620);
+                            pdamage = uint32(weaponDmg + 828);
                         }
                         break;
                 }
