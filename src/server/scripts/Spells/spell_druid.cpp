@@ -373,7 +373,7 @@ public:
     {
         PrepareAuraScript(spell_dru_rejuvenation_AuraScript);
 
-        void OnApplyAndReapply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+        void OnApplyAndReapply(AuraEffect const* aurEff, AuraEffectHandleModes mode)
         {
             Unit* caster = GetCaster();
             Unit* target = GetTarget();
@@ -387,31 +387,24 @@ public:
                 // Casts istant heal
                 caster->CastSpell(target, SPELL_DRUID_REJUVENATION_ISTANT_SPELL, true);
             }
-        }
 
-        void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            Unit* caster = GetCaster();
-            Unit* target = GetTarget();
-
-            if(!caster || !target)
-                return;
-
-            // Update the rejvenation counter for the druid caster
-            // Due to AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK this new function has been created
-            caster->ModRejuvenationCounter(true);
-
-            // Nature's Bounty calculation (add)
-            if(AuraEffect* naturesBounty = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DRUID, 197, EFFECT_1))
+            if(mode == AURA_EFFECT_HANDLE_REAL)
             {
-                if(caster->GetRejuvenationCounter() >= 3)
-                {
-                    // Here the miscValueB is used like a variable for keeping the real basepoint to change is 3 rej are present
-                    int32 newAmount = naturesBounty->GetSpellInfo()->Effects[EFFECT_1].MiscValueB;
+                // Update the rejvenation counter for the druid caster
+                caster->ModRejuvenationCounter(true);
 
-                    if(naturesBounty->GetAmount() != newAmount)
+                // Nature's Bounty calculation (add)
+                if(AuraEffect* naturesBounty = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DRUID, 197, EFFECT_1))
+                {
+                    if(caster->GetRejuvenationCounter() >= 3)
                     {
-                        naturesBounty->ChangeAmount(newAmount);
+                        // Here the miscValueB is used like a variable for keeping the real basepoint to change is 3 rej are present
+                        int32 newAmount = naturesBounty->GetSpellInfo()->Effects[EFFECT_1].MiscValueB;
+
+                        if(naturesBounty->GetAmount() != newAmount)
+                        {
+                            naturesBounty->ChangeAmount(newAmount);
+                        }
                     }
                 }
             }
@@ -439,7 +432,6 @@ public:
         void Register()
         {
             OnEffectApply += AuraEffectApplyFn(spell_dru_rejuvenation_AuraScript::OnApplyAndReapply, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
-            OnEffectApply += AuraEffectApplyFn(spell_dru_rejuvenation_AuraScript::OnApply, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
             AfterEffectRemove += AuraEffectRemoveFn(spell_dru_rejuvenation_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
         }
     };

@@ -2168,7 +2168,7 @@ class Unit : public WorldObject
             m_darkIntentUnit = target;
         }
 
-        int GetRejuvenationCounter(){ return 1; }
+        int GetRejuvenationCounter(){ return m_rejuvenationCounter; }
         void SetRejuvenationCounter(int counter){ m_rejuvenationCounter = counter; }
         void ModRejuvenationCounter(bool add){ add ? m_rejuvenationCounter++ : m_rejuvenationCounter--; }
         
