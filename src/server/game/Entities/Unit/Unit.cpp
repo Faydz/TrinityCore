@@ -11944,6 +11944,13 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
 						}
 
                         healamount = uint32(0.45f * victim->GetCreateHealth());
+
+                        // Glyph of Healthstone
+                        if(this->HasAura(56224))
+                        {
+                            AddPct(healamount, 30);
+                        }
+
                         return healamount;
                     }
                     break;
