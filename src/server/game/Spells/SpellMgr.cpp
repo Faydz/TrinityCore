@@ -3619,10 +3619,6 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 49028:
                         spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
                         break;
-                    // Necrotic Strike
-                    case 73975:
-                        spellInfo->StackAmount = 20;
-                        break;
                     // Ebon Plaguebringer
                     case 51099:
                     case 51160:
