@@ -4540,10 +4540,10 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     if(!caster)
                         return;
 
-                    // Frost Fever, Chains of Ice, Blood Plague
-                    int ids[3] = {55095, 45524, 55078};
+                    // Frost Fever, Chains of Ice, Blood Plague, Ebon Plague
+                    int ids[4] = {55095, 45524, 55078, 65142};
 
-                    for(int i = 0; i < 3; i++)
+                    for(int i = 0; i < 4; i++)
                     {
                         Aura* aura = unitTarget->GetAura(ids[i], caster->GetGUID());
 
