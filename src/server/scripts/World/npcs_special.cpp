@@ -3744,7 +3744,6 @@ public:
                 && me->IsWithinLOSInMap(who) && Isready)
             {
                 who->AddAura(82691, who);
-                me->AddAura(91264,who);
             }
         }
 
