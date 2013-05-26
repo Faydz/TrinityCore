@@ -668,7 +668,8 @@ class spell_pal_holy_wrath : public SpellScriptLoader
             bool CheckAreaTarget(Unit* target)
             {
                 if(target &&
-                    !(target->GetCreatureType() == CREATURE_TYPE_DEMON || target->GetCreatureType() == CREATURE_TYPE_UNDEAD))
+                    !(target->GetCreatureType() == CREATURE_TYPE_DEMON || target->GetCreatureType() == CREATURE_TYPE_UNDEAD)
+                    && target->HasAuraType(SPELL_AURA_MOD_STEALTH))
                 {
                     return false;
                 }

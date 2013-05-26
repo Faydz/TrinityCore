@@ -1154,6 +1154,35 @@ class spell_hun_kill_shot : public SpellScriptLoader
         }
 };
 
+class spell_hun_multi_shot : public SpellScriptLoader
+{
+    public:
+        spell_hun_multi_shot() : SpellScriptLoader("spell_hun_multi_shot") { }
+
+        class spell_hun_multi_shot_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_multi_shot_SpellScript);
+
+            void FilterTargets(std::list<WorldObject*>& targets)
+            {
+                for (std::list<WorldObject*>::const_iterator itr = targets.begin(); itr != targets.end(); ++itr)
+                    if(Unit* pl = (*itr)->ToUnit())
+                        if(pl->HasAuraType(SPELL_AURA_MOD_STEALTH))
+                            targets.remove(*itr);
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_hun_multi_shot_SpellScript::FilterTargets, EFFECT_1, TARGET_UNIT_DEST_AREA_ENEMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_multi_shot_SpellScript();
+        }
+};
+
 void AddSC_hunter_spell_scripts()
 {
     new spell_hun_silencing_shot();
@@ -1181,4 +1210,5 @@ void AddSC_hunter_spell_scripts()
     new spell_hun_trap_launcher_trap();
     new spell_hun_cobra_shot();
     new spell_hun_kill_shot();
+    new spell_hun_multi_shot();
 }
