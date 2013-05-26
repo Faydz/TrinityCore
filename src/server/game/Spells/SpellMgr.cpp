@@ -3050,6 +3050,12 @@ void SpellMgr::LoadSpellCustomAttr()
             case 29725:
                 spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
                 break;
+            case 32612://invisibility, effect used for glyph
+                spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_INCREASE_SPEED;
+                break;
+            case 91264:// ring of frost immunity
+                spellInfo->DurationEntry= sSpellDurationStore.LookupEntry(29); // 12 sec, wrong dbc?
+                break;
             default:
                 break;
         }
