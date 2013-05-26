@@ -703,6 +703,18 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             {
                 switch (m_spellInfo->Id)
                 {
+                    // Chains of Ice
+                    case 45524:
+                    {
+                        if(!damage)
+                            return;
+
+                        if (Unit* caster = GetCaster())
+                        {
+                            damage += caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.1f;
+                        }
+                    }
+                    break;
                     // Icy Touch
                     case 45477:
                     {
