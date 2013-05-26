@@ -807,9 +807,18 @@ public:
                     caster->CastCustomSpell(target, 79124, &bp0, NULL, NULL, true);
                 }
         }
+        void HandleApply (AuraEffect const* aurEff, AuraEffectHandleModes mode)
+        {         
+            if(!GetTarget())
+                return;
+            
+            Unit* target = GetTarget();
+            target->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
+        }
         
         void Register()
         {
+            OnEffectApply += AuraEffectApplyFn(spell_rog_sap_AuraScript::HandleApply, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL);
             OnEffectRemove += AuraEffectRemoveFn(spell_rog_sap_AuraScript::HandleRemove, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL);
         }
     };
