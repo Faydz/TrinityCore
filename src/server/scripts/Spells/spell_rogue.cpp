@@ -895,6 +895,40 @@ class spell_rog_combat_readiness : public SpellScriptLoader
         }
 };
 
+class spell_rog_smoke_bomb_inv : public SpellScriptLoader
+{
+    public:
+        spell_rog_smoke_bomb_inv() : SpellScriptLoader("spell_rog_smoke_bomb_inv") { }
+
+        class spell_rog_smoke_bomb_inv_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_rog_smoke_bomb_inv_SpellScript);
+
+            void FilterTargets(std::list<WorldObject*>& targets)
+            {
+                for (std::list<WorldObject*>::const_iterator itr = targets.begin(); itr != targets.end(); ++itr)
+                {
+                    if((*itr)->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        Player* pl = (*itr)->ToPlayer();
+                        if(!pl->IsFriendlyTo(GetCaster()))
+                            pl->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_rog_smoke_bomb_inv_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENTRY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_rog_smoke_bomb_inv_SpellScript();
+        }
+};
+
 void AddSC_rogue_spell_scripts()
 {
 	new spell_rog_blind();
@@ -914,4 +948,5 @@ void AddSC_rogue_spell_scripts()
     new spell_rog_sap();
     new spell_rog_revealing_strike();
     new spell_rog_combat_readiness();
+    new spell_rog_smoke_bomb_inv();
 }
