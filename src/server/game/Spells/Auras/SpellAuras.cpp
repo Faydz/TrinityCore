@@ -1471,21 +1471,6 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                     if (caster && caster->HasAura(56845))
                         target->CastSpell(target, 61394, true);
                 break;
-            case SPELLFAMILY_SHAMAN:
-                // Flame Shock
-                if (removeMode == AURA_REMOVE_BY_ENEMY_SPELL && GetSpellInfo()->Id == 8050)
-                {
-                    if (!caster)
-                        return;
-
-                    // Lava Flows
-                    if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 3087, EFFECT_0))
-                    {
-                        int32 bp0 = aurEff->GetAmount();
-                        caster->CastCustomSpell(caster, 65264, &bp0, NULL, NULL, true);
-                    }
-                }
-                break;
         }
     }
 
