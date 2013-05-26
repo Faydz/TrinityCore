@@ -98,6 +98,46 @@ enum PaladinGuardianOfAncientKingsSpells
     SPELL_PALADIN_GOAK_ANCIENT_FURY              = 86704,
 };
 
+// 4987 - Cleanse
+class spell_pal_cleanse : public SpellScriptLoader
+{
+    public:
+        spell_pal_cleanse() : SpellScriptLoader("spell_pal_cleanse") { }
+
+        class spell_pal_cleanse_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_pal_cleanse_SpellScript);
+            
+            void HandleOnHit()
+            {
+                Unit* target = GetHitUnit();
+                Unit* caster = GetCaster();
+
+                if(!caster || !target)
+                    return;
+                    
+                if(caster == target)
+                {
+                    // Acts of Sacrifice
+                    if(caster->HasAura(85446) || caster->HasAura(85795))
+                    {
+                        caster->RemoveRandomAuraWithMechanic((1<<MECHANIC_ROOT));
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnHit += SpellHitFn(spell_pal_cleanse_SpellScript::HandleOnHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pal_cleanse_SpellScript();
+        }
+};
+
 // 86698  - Guardian of Ancient Kings Retribution
 class spell_pal_guardian_of_ancient_kings_retri : public SpellScriptLoader
 {
@@ -1934,6 +1974,7 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 
 void AddSC_paladin_spell_scripts()
 {
+    new spell_pal_cleanse();
     new spell_pal_guardian_of_ancient_kings_retri();
     new spell_pal_guardian_of_ancient_kings();
     new spell_pal_ardent_defender();
