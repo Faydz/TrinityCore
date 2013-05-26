@@ -80,7 +80,52 @@ enum WarlockSpells
     SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117,
 };
 
+enum WarlockGlyphs
+{
+    SPELL_WARLOCK_GLYPH_OF_SEDUCTION                = 56250,
+};
+
 bool _SeedOfCorruptionFlag = false;
+
+// 6358 - Seduction
+class spell_warl_seduction : public SpellScriptLoader
+{
+    public:
+        spell_warl_seduction() : SpellScriptLoader("spell_warl_seduction") { }
+
+        class spell_warl_seduction_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warl_seduction_AuraScript);
+
+            void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                Unit* pet = GetCaster();
+                Unit* target = GetTarget();
+
+                if (!pet || !pet->GetCharmerOrOwner() || !target || !pet->GetCharmerOrOwner()->HasAura(SPELL_WARLOCK_GLYPH_OF_SEDUCTION))
+                    return;
+                
+                Unit::AuraEffectList auras = target->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+                for (Unit::AuraEffectList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                {
+                    if ((*itr)->GetBase())
+                    {
+                        (*itr)->GetBase()->Remove();
+                    }
+                }
+
+            }
+            void Register()
+            {
+                AfterEffectApply += AuraEffectApplyFn(spell_warl_seduction_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_warl_seduction_AuraScript();
+        }
+};
 
 // 71521 spell_warl_Hand_of_Guldan
 class spell_warl_hand_of_guldan: public SpellScriptLoader 
@@ -1476,6 +1521,7 @@ class spell_warl_unstable_affliction : public SpellScriptLoader
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_seduction();
 	new spell_warl_hand_of_guldan();
     new spell_warl_armor_nether_ward_ignore();
     new spell_warl_fel_flame();
