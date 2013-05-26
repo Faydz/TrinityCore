@@ -859,8 +859,8 @@ class spell_dk_improved_blood_presence : public SpellScriptLoader
                     // Improved Blood Presence
                     if(AuraEffect* aura = caster->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2636, EFFECT_2))
                     {
-                        int32 basePoints1 = aura->GetAmount();
-                        caster->CastCustomSpell(caster, SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED, NULL, &basePoints1, NULL, true, 0, aura);
+                        int32 basePoints0 = aura->GetAmount();
+                        caster->CastCustomSpell(caster, SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED, &basePoints0, NULL, NULL, true, 0, aura);
                         caster->ToPlayer()->UpdateAllRunesRegen();
                     }
                 }

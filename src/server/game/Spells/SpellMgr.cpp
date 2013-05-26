@@ -3593,6 +3593,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Improved Blood Presence
+                    case 63611:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_POWER_REGEN_PERCENT;
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_DUMMY;
+                        break;
                     // Frost Strike
                     case 49143:
                         spellInfo->Effects[EFFECT_1].BasePoints = 143;
