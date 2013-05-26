@@ -7024,6 +7024,12 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Selfless Healer
+                case 85803:
+                case 85804:
+                    if(!victim || this == victim)
+                        return false;
+                    break;
                 // Ancient Crusader
                 case 86701:
                     triggered_spell_id = 86700;
@@ -8869,6 +8875,25 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Symbiotic Worm trinkets
+        case 92356:
+        case 92236:
+            victim = this;
+
+        // Sorrowsong trinkets
+        case 90998:
+        case 91003:
+            {
+                if(!victim)
+                    return false;
+
+                float calcHealthPct = 100.f * (victim->GetHealthPct(), victim->GetHealth() - damage) / victim->GetMaxHealth();
+                calcHealthPct = calcHealthPct <= 100.0f ? calcHealthPct : 0.0f;
+
+                if(calcHealthPct > 35.0f)
+				    return false;
+            }
+            break;
 		// Victory Rush activator
 		case 32215:
 			if(!victim)
@@ -9304,14 +9329,6 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
             if (!procSpell || !(procSpell->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT && procSpell->SpellFamilyFlags[0] == 0x80002000))
                 return false;
             break;
-        }
-        // Glyph of Death Grip
-        case 58628:
-        {
-            // remove cooldown of Death Grip
-            if (GetTypeId() == TYPEID_PLAYER)
-                ToPlayer()->RemoveSpellCooldown(49576, true);
-            return true;
         }
         // Savage Defense
         case 62606:
@@ -11167,11 +11184,9 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 								calcAP *= 0.455f;
 								break;
 						}
-
 						int32 member = ((536 * comboPoints) + calcAP);
 
 						DoneTotal += uint32(177 + member - 529 + member);
-						
                         // Eviscerate and Envenom Bonus Damage (item set effect)
                         if (this->HasAura(37169))
                             DoneTotal += comboPoints * 40;
@@ -11964,6 +11979,15 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                             AddPct(DoneTotalMod, aurEff->GetAmount());
                         }
                     }
+                    
+                    // Selfless Healer
+                    if(AuraEffect* aurEff = this->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3924, EFFECT_0))
+                    {
+                        if(this != victim)
+                        {
+                            AddPct(DoneTotalMod, aurEff->GetAmount());
+                        }
+                    }
                     break;
             }
             break;
@@ -12469,15 +12493,18 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                         if(Player * player = this->ToPlayer())
                         {
                             float mod = 1.0f;
+                            float add = 966.0f;
 
                             Item* mainItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
                             Item* offItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
 
                             if((mainItem && mainItem->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER) 
                                 || (offItem && offItem->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER))
+                            {
                                 mod = 1.447f;
-
-                            int32 weaponDmg = this->CalculateDamage(BASE_ATTACK, true, true) * (1.9f * mod);
+                                add = 1011;
+                            }
+                            int32 weaponDmg = this->CalculateDamage(BASE_ATTACK, true, true) * (1.9f * mod) + add;
 
                             pdamage = uint32(weaponDmg + (367 * mod));
                         }
@@ -12486,9 +12513,9 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                     case 53:
                         // 2.0*WeapDMG + (310 * 2)
                         {
-                            int32 weaponDmg = CalculatePct(this->CalculateDamage(BASE_ATTACK, true, true), 200);
+                            int32 weaponDmg = CalculatePct(this->CalculateDamage(BASE_ATTACK, true, true), 240);
 
-                            pdamage = uint32(weaponDmg + 620);
+                            pdamage = uint32(weaponDmg + 828);
                         }
                         break;
                 }

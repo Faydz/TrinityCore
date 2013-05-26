@@ -43,7 +43,7 @@ enum RogueSpellIcons
     ICON_ROGUE_IMPROVED_RECUPERATE               = 4819
 };
 
-// 2094 - Bling
+// 2094 - Blind
 class spell_rog_blind : public SpellScriptLoader
 {
     public:
@@ -67,6 +67,7 @@ class spell_rog_blind : public SpellScriptLoader
 
             void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
+                // Glyph of Blind
 				if(GetCaster() && GetCaster()->HasAura(SPELL_ROGUE_GLYPH_OF_BLIND))
 				{
 					if(Unit* target = GetTarget())
@@ -806,9 +807,18 @@ public:
                     caster->CastCustomSpell(target, 79124, &bp0, NULL, NULL, true);
                 }
         }
+        void HandleApply (AuraEffect const* aurEff, AuraEffectHandleModes mode)
+        {         
+            if(!GetTarget())
+                return;
+            
+            Unit* target = GetTarget();
+            target->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
+        }
         
         void Register()
         {
+            OnEffectApply += AuraEffectApplyFn(spell_rog_sap_AuraScript::HandleApply, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL);
             OnEffectRemove += AuraEffectRemoveFn(spell_rog_sap_AuraScript::HandleRemove, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL);
         }
     };
@@ -817,6 +827,106 @@ public:
     {
         return new spell_rog_sap_AuraScript();
     }
+};
+
+
+class spell_rog_revealing_strike : public SpellScriptLoader
+{
+    public:
+        spell_rog_revealing_strike() : SpellScriptLoader("spell_rog_revealing_strike") { }
+
+        class spell_rog_revealing_strike_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_rog_revealing_strike_AuraScript);
+
+            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+            {
+                if(DamageInfo* dmg = eventInfo.GetDamageInfo())
+                    if(Unit* tar = dmg->GetVictim())
+                        if(dmg->GetAttacker())
+                            if(Aura* ks = tar->GetAura(408, dmg->GetAttacker()->GetGUID()))
+                                if(dmg->GetAttacker()->HasAura(57293))
+                                    ks->SetDuration(ks->GetDuration()+ks->GetDuration()*0.45);
+                                else
+                                    ks->SetDuration(ks->GetDuration()+ks->GetDuration()*0.35);
+            }
+
+            void Register()
+            {
+                OnEffectProc += AuraEffectProcFn(spell_rog_revealing_strike_AuraScript::HandleProc, EFFECT_2, SPELL_AURA_DUMMY);
+            }
+
+        private:
+            Unit* _redirectTarget;
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_rog_revealing_strike_AuraScript();
+        }
+};
+
+class spell_rog_combat_readiness : public SpellScriptLoader
+{
+    public:
+        spell_rog_combat_readiness() : SpellScriptLoader("spell_rog_combat_readiness") { }
+
+        class spell_rog_combat_readiness_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_rog_combat_readiness_AuraScript);
+
+            void HandleProc(AuraEffect const* aurEff)
+            {
+                if(Unit* pl = GetTarget())
+                    if(Aura* aur = pl->GetAura(GetSpellInfo()->Id, pl->GetGUID()))
+                        if(aur->GetDuration()<= 10500 && !(pl->HasAura(74002)))
+                            aur->Remove();
+            }
+
+            void Register()
+            {
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_rog_combat_readiness_AuraScript::HandleProc, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_rog_combat_readiness_AuraScript();
+        }
+};
+
+class spell_rog_smoke_bomb_inv : public SpellScriptLoader
+{
+    public:
+        spell_rog_smoke_bomb_inv() : SpellScriptLoader("spell_rog_smoke_bomb_inv") { }
+
+        class spell_rog_smoke_bomb_inv_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_rog_smoke_bomb_inv_SpellScript);
+
+            void FilterTargets(std::list<WorldObject*>& targets)
+            {
+                for (std::list<WorldObject*>::const_iterator itr = targets.begin(); itr != targets.end(); ++itr)
+                {
+                    if((*itr)->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        Player* pl = (*itr)->ToPlayer();
+                        if(!pl->IsFriendlyTo(GetCaster()))
+                            pl->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_rog_smoke_bomb_inv_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENTRY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_rog_smoke_bomb_inv_SpellScript();
+        }
 };
 
 void AddSC_rogue_spell_scripts()
@@ -836,4 +946,7 @@ void AddSC_rogue_spell_scripts()
     new spell_rog_smoke_bomb();
     new spell_rog_vanish_buff();
     new spell_rog_sap();
+    new spell_rog_revealing_strike();
+    new spell_rog_combat_readiness();
+    new spell_rog_smoke_bomb_inv();
 }

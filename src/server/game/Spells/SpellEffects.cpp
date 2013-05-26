@@ -703,6 +703,18 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             {
                 switch (m_spellInfo->Id)
                 {
+                    // Chains of Ice
+                    case 45524:
+                    {
+                        if(!damage)
+                            return;
+
+                        if (Unit* caster = GetCaster())
+                        {
+                            damage += caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.1f;
+                        }
+                    }
+                    break;
                     // Icy Touch
                     case 45477:
                     {
@@ -903,7 +915,11 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                 case 49998:
                 {
                     int32 bp;
-                    uint32 healthPct = m_caster->CountPctFromMaxHealth(7);
+                    uint32 healthPct;
+                    if (m_caster->HasAura(101568)) // Glyph of Dark Succor
+                        healthPct = m_caster->CountPctFromMaxHealth(20);
+                    else
+                        healthPct = m_caster->CountPctFromMaxHealth(7);
                     uint32 damageTaken = m_caster->GetDamageTakenInPastSecs(5) * 0.20f;
 
                     if (healthPct > damageTaken)
@@ -2854,22 +2870,6 @@ void Spell::EffectDispel(SpellEffIndex effIndex)
                 if (Unit* owner = m_caster->GetOwner())
                     if (owner->GetAura(56249))
                         owner->CastCustomSpell(owner, 19658, &heal_amount, NULL, NULL, true);
-            }
-            break;
-        case SPELLFAMILY_PALADIN:
-            switch (m_spellInfo->Id)
-            {
-                // Cleanse
-                case 4987:
-                    if(m_caster == unitTarget)
-                    {
-                        // Acts of Sacrifice
-                        if(m_caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_PALADIN, 3022, EFFECT_0))
-                        {
-                            m_caster->RemoveRandomAuraWithMechanic((1<<MECHANIC_ROOT));
-                        }
-                    }
-                    break;
             }
             break;
         case SPELLFAMILY_SHAMAN:

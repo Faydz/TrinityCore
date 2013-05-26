@@ -25129,7 +25129,7 @@ void Player::SetRuneCooldown(uint8 index, uint32 cooldown)
 void Player::SetRandomRuneAvailable()
 {      
     uint32 cooldownrunes[MAX_RUNES];  // Questo array contiene le rune che hanno cooldown
-    uint8 runescount = 0;             
+    uint32 runescount = 0;             
 
     for (uint32 j = 0; j < MAX_RUNES; ++j) 
     {
@@ -25139,10 +25139,12 @@ void Player::SetRandomRuneAvailable()
             runescount++;
         }
     }
+
     if (runescount > 0)
     {
-        uint8 rndrune = uint8(urand(0, runescount - 1));  // Pesco una posizione dall'array
-        SetRuneCooldown(cooldownrunes[rndrune], 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
+        uint32 rndrune = uint32(urand(0, runescount - 1));  // Pesco una posizione dall'array
+        uint32 porcodio = 1;
+        SetRuneCooldown(porcodio, 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
     }
     else
         return;
@@ -26622,20 +26624,31 @@ void Player::UpdateSpecCount(uint8 count)
 
 // Custom function used to force some effects to be reactivated after teleporting.
 void Player::ForceAuraEffectReactivation(){
-    // Blood of the North
-    if(this->HasAura(54637)){
-        if(AuraEffect *aurEff = this->GetAuraEffect(54637,0)){
-            for(uint8 i = 0;i<MAX_RUNES;i++){
-                if(this->GetBaseRune(i) == RUNE_BLOOD){
-                    this->AddRuneByAuraEffect(i, RUNE_DEATH, aurEff);
+
+    // CLASS: DEATH KNIGHT
+    if(getClass() == CLASS_DEATH_KNIGHT){
+
+        // Blood of the North
+        if(this->HasAura(54637)){
+            if(AuraEffect *aurEff = this->GetAuraEffect(54637,0)){
+                for(uint8 i = 0;i<MAX_RUNES;i++){
+                    if(this->GetBaseRune(i) == RUNE_BLOOD){
+                        this->AddRuneByAuraEffect(i, RUNE_DEATH, aurEff);
+                    }
                 }
             }
         }
+
     }
+
+    
+
     // Unstuck Player
     for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i){
+        if(i!=5 && i!=8){
             SetSpeed(UnitMoveType(i), this->GetSpeedRate(UnitMoveType(i)), true);
             UpdateSpeed(UnitMoveType(i),true);
+        }
     }
 }
 

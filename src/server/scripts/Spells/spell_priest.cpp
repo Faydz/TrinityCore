@@ -48,6 +48,8 @@ enum PriestSpells
     SPELL_PRIEST_SHADOWFORM_VISUAL_WITHOUT_GLYPH    = 107903,
     SPELL_PRIEST_SHADOWFORM_VISUAL_WITH_GLYPH       = 107904,
     SPELL_PRIEST_SHADOW_WORD_DEATH                  = 32409,
+    SPELL_PRIEST_SHADOW_WORD_DEATH_TARGET_DAMAGE    = 32379,
+    SPELL_PRIEST_SHADOW_WORD_DEATH_GLYPH            = 55682,
     SPELL_PRIEST_T9_HEALING_2P                      = 67201,
     SPELL_PRIEST_VAMPIRIC_TOUCH_DISPEL              = 64085,
     SPELL_PRIEST_GLYPH_OF_POWER_WORD_SHIELD_HEAL    = 56160,
@@ -67,6 +69,7 @@ enum PriestSpellIcons
     PRIEST_ICON_ID_EMPOWERED_RENEW_TALENT           = 3021,
     PRIEST_ICON_ID_REFLECTIVE_SHIELD                = 4880,
     PRIEST_ICON_ID_GLYPH_OF_POWER_WORD_SHIELD       = 566,
+    PRIEST_ICON_ID_GLYPH_OF_SHADOW_WORD_DEATH       = 1980,
 };
 
 // 15290 - Vampiric Embrace
@@ -671,11 +674,46 @@ class spell_pri_shadow_word_death : public SpellScriptLoader
                 }
 
                 GetCaster()->CastCustomSpell(GetCaster(), SPELL_PRIEST_SHADOW_WORD_DEATH, &damage, 0, 0, true);
+
+                if(Unit* target = GetHitUnit())
+                {
+                    // Used for Glyph of Shadow Word: Death
+                    healthBelow25Pct = target->GetHealthPct() <= 25.0f ? true : false;
+                }
             }
+            
+            void HandleAfterHit()
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetHitUnit();
+                
+                if(caster && target)
+                {
+                    // Glyph of Shadow Word: Death
+                    if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, PRIEST_ICON_ID_GLYPH_OF_SHADOW_WORD_DEATH, EFFECT_0))
+                    {
+                        if (Player* player = caster->ToPlayer())
+                        {
+                            if (!player->HasSpellCooldown(SPELL_PRIEST_SHADOW_WORD_DEATH_GLYPH))
+                            {
+                                if (healthBelow25Pct && target->isDead())
+                                {
+                                    player->RemoveSpellCooldown(SPELL_PRIEST_SHADOW_WORD_DEATH_TARGET_DAMAGE, true);
+                                    player->AddSpellCooldown(SPELL_PRIEST_SHADOW_WORD_DEATH_GLYPH, 0, time(NULL) + 6);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        private:
+            bool healthBelow25Pct;
 
             void Register()
             {
                 OnHit += SpellHitFn(spell_pri_shadow_word_death_SpellScript::HandleDamage);
+                AfterHit += SpellHitFn(spell_pri_shadow_word_death_SpellScript::HandleAfterHit);
             }
         };
 

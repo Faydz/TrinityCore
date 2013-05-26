@@ -58,7 +58,7 @@ enum DeathKnightSpellIcons
     DK_ICON_ID_IMPROVED_DEATH_STRIKE            = 2751
 };
 
-Unit* necroticStrikeTarget = NULL;
+int32 necroAmount = 0;
 
 // 73975 - Necrotic Strike
 class spell_dk_necrotic_strike : public SpellScriptLoader
@@ -72,7 +72,20 @@ class spell_dk_necrotic_strike : public SpellScriptLoader
 
             void HandleOnHit()
             {
-                necroticStrikeTarget = GetExplTargetUnit();
+                Unit* caster = GetCaster();
+                Unit* target = GetExplTargetUnit();
+
+                if(caster && target)
+                {
+                    if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_DK_NECROTIC_STRIKE, EFFECT_0, caster->GetGUID()))
+                    {
+                        necroAmount = aurEff->GetAmount();
+                    }
+                    else
+                    {
+                        necroAmount = 0;
+                    }
+                }
             }
 
             void Register()
@@ -88,15 +101,18 @@ class spell_dk_necrotic_strike : public SpellScriptLoader
             void HandleEffectCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
             {
                 Unit* caster = GetCaster();
+                Unit* target = GetUnitOwner();
 
-                if (caster && necroticStrikeTarget)
+                if (caster && target)
                 {
                     canBeRecalculated = false;
 
-                    amount = caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.70f;
+                    int32 toAdd = caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.70f;
 
                     // Amount absorbed scales with resilience
-                    amount -= necroticStrikeTarget->GetDamageReduction(amount);
+                    toAdd -= target->GetDamageReduction(amount);
+
+                    amount = necroAmount + toAdd;
                 }
             }
 
@@ -653,9 +669,19 @@ class spell_dk_death_grip : public SpellScriptLoader
                 }
             }
 
+            void HandleOnCast()
+            {
+                // Glyph of Resilient Grip
+                if(Unit * caster = GetCaster())
+                    if (Unit* target = caster->ToPlayer()->GetSelectedUnit())
+                        if(target->IsImmunedToSpell(sSpellMgr->GetSpellInfo(49560)))
+                            caster->ToPlayer()->RemoveSpellCooldown(49576, true);
+            }
+
             void Register()
             {
                 OnEffectHitTarget += SpellEffectFn(spell_dk_death_grip_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+                OnCast += SpellCastFn(spell_dk_death_grip_SpellScript::HandleOnCast);
             }
 
         };
