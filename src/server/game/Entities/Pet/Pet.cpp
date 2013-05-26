@@ -1986,7 +1986,7 @@ bool Pet::IsPetAura(Aura const* aura)
     // if the owner has that pet aura, return true
     for (PetAuraSet::const_iterator itr = owner->m_petAuras.begin(); itr != owner->m_petAuras.end(); ++itr)
     {
-        if ((*itr)->GetAura(GetEntry()) == aura->GetId())
+        if ((*itr) && (*itr)->GetAura(GetEntry()) == aura->GetId())
             return true;
     }
     return false;
