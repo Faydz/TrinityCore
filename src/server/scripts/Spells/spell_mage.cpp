@@ -75,6 +75,10 @@ enum MageSpells
     SPELL_MAGE_RING_OF_FROST_OBJ_ENTRY           = 44199,
 
     SPELL_MAGE_FROSTFIRE_BOLT                    = 44614,
+    
+    SPELL_MAGE_TEMPORAL_DISPLACEMENT            = 80354,
+    SPELL_SHAMAN_EXHAUSTION                     = 57723,
+    SPELL_SHAMAN_SATED                          = 57724,
 };
 
 enum MageIcons
@@ -91,6 +95,51 @@ enum ArcaneBlastSpells
 {
     SPELL_ARCANE_BLAST                      = 30451,    
     SPELL_SLOW                              = 31589,
+};
+
+// 80353 - Time Warp
+class spell_mage_time_warp : public SpellScriptLoader
+{
+    public:
+        spell_mage_time_warp() : SpellScriptLoader("spell_mage_time_warp") { }
+
+        class spell_mage_time_warp_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_mage_time_warp_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_MAGE_TEMPORAL_DISPLACEMENT))
+                    return false;
+                return true;
+            }
+
+            void RemoveInvalidTargets(std::list<WorldObject*>& targets)
+            {
+                targets.remove_if(Trinity::UnitAuraCheck(true, SPELL_SHAMAN_EXHAUSTION));
+                targets.remove_if(Trinity::UnitAuraCheck(true, SPELL_SHAMAN_SATED));
+                targets.remove_if(Trinity::UnitAuraCheck(true, SPELL_MAGE_TEMPORAL_DISPLACEMENT));
+            }
+
+            void ApplyDebuff()
+            {
+                if (Unit* target = GetHitUnit())
+                    target->CastSpell(target, SPELL_MAGE_TEMPORAL_DISPLACEMENT, true);
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_mage_time_warp_SpellScript::RemoveInvalidTargets, EFFECT_0, TARGET_UNIT_CASTER_AREA_RAID);
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_mage_time_warp_SpellScript::RemoveInvalidTargets, EFFECT_1, TARGET_UNIT_CASTER_AREA_RAID);
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_mage_time_warp_SpellScript::RemoveInvalidTargets, EFFECT_2, TARGET_UNIT_CASTER_AREA_RAID);
+                AfterHit += SpellHitFn(spell_mage_time_warp_SpellScript::ApplyDebuff);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_mage_time_warp_SpellScript();
+        }
 };
 
 // 44544 - Fingers of Frost
@@ -1421,6 +1470,7 @@ class spell_mage_ignite : public SpellScriptLoader
 
 void AddSC_mage_spell_scripts()
 {
+    new spell_mage_time_warp();
     new spell_fingers_of_frost();
     new spell_mage_frostfire_bolt();
     new spell_mage_piercing_chill();
