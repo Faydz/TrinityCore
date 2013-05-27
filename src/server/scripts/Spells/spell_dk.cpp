@@ -1219,14 +1219,12 @@ public:
 
             if (Unit *caster = GetCaster())
             {
-                if(caster->isPet()){
                     if (caster->HasAura(63560))
                     {
                         caster->CastSpell(GetHitUnit(), 91778, true);
                     } else
                         caster->CastSpell(GetHitUnit(), 91776, true);   
-                }
-            }   
+            }  
         }
 
         void Register()
@@ -1258,15 +1256,13 @@ public:
 
             if (Unit *caster = GetCaster())
             {
-                if(caster->isPet())
-                {
                     if (caster->HasAura(63560))
                     {
                         caster->CastSpell(GetHitUnit(), 91802, true);
                     } else
                         caster->CastSpell(GetHitUnit(), 91809, true);                    
-                }   
-            }
+            }   
+
         }
 
         void Register()
