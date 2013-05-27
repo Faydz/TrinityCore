@@ -718,7 +718,6 @@ class spell_pal_holy_wrath : public SpellScriptLoader
                             // No-stealthed unit are saved
                             if(!unit->HasAuraType(SPELL_AURA_MOD_STEALTH))
                             {
-                                //targets.erase(iter--);
                                 toAdd.push_back((*iter));
                             }
                         }
