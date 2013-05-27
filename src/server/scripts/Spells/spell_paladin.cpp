@@ -121,7 +121,7 @@ class spell_pal_cleanse : public SpellScriptLoader
                     // Acts of Sacrifice
                     if(caster->HasAura(85446) || caster->HasAura(85795))
                     {
-                        caster->RemoveRandomAuraWithMechanic((1<<MECHANIC_ROOT));
+                        caster->RemoveRandomAuraWithMechanic((1<<MECHANIC_SNARE)|(1<<MECHANIC_ROOT));
                     }
                 }
             }
