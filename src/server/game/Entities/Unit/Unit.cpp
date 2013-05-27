@@ -6912,6 +6912,64 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Crouching Tiger, Hidden Chimera
+                case 82898:
+                case 82899:
+                    if(Player* player = this->ToPlayer())
+                    {
+                        if(!player->HasSpellCooldown(dummySpell->Id))
+                        {
+                            // Melee attack
+                            if(procFlag & 0x28)
+                            {
+                                if(triggeredByAura->GetEffIndex() != EFFECT_0)
+                                    return false;
+
+                                if(player->HasSpellCooldown(781))
+                                {
+                                    uint32 newCooldownDelay = player->GetSpellCooldownDelay(781);
+                                    if (newCooldownDelay <= uint32(triggerAmount / IN_MILLISECONDS))
+                                        newCooldownDelay = 0;
+                                    else
+                                        newCooldownDelay -= triggerAmount / IN_MILLISECONDS;
+                            
+                                    player->AddSpellCooldown(781, 0, uint32(time(NULL) + newCooldownDelay));
+                            
+                                    WorldPacket data(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
+                                    data << uint32(781);                      // Spell ID
+                                    data << uint64(GetGUID());                // Player GUID
+                                    data << int32(-triggerAmount);            // Cooldown mod in milliseconds
+                                    player->GetSession()->SendPacket(&data);
+                                }
+                            }
+                            // Ranged attack or spell
+                            else
+                            {
+                                if(triggeredByAura->GetEffIndex() != EFFECT_1)
+                                    return false;
+                                
+                                if(player->HasSpellCooldown(19263))
+                                {
+                                    uint32 newCooldownDelay = player->GetSpellCooldownDelay(19263);
+                                    if (newCooldownDelay <= uint32(triggerAmount / IN_MILLISECONDS))
+                                        newCooldownDelay = 0;
+                                    else
+                                        newCooldownDelay -= triggerAmount / IN_MILLISECONDS;
+                            
+                                    player->AddSpellCooldown(19263, 0, uint32(time(NULL) + newCooldownDelay));
+                            
+                                    WorldPacket data(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
+                                    data << uint32(19263);                      // Spell ID
+                                    data << uint64(GetGUID());                  // Player GUID
+                                    data << int32(-triggerAmount);              // Cooldown mod in milliseconds
+                                    player->GetSession()->SendPacket(&data);
+                                }
+                            }
+
+                            this->ToPlayer()->AddSpellCooldown(dummySpell->Id, 0, time(NULL) + 2);
+                        }
+                    }
+                    break;
                 // Serpent Spread Rank 1
                 case 87934:
                     triggered_spell_id = 88453;
