@@ -3460,6 +3460,9 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    case 36946:
+                        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(1);
+                        break;
                     // Holy Wrath
                     case 2812:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
