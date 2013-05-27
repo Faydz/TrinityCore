@@ -11232,11 +11232,11 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 			switch(spellProto->Id)
 			{
 				// Eviscerate
-				// 1 point : 177+((536 * 1) + AP * 0.091)*1-529+((536 * 1) + AP * 0.091)*1 damage
-				// 2 points: 177+((536 * 2) + AP * 0.182)*1-529+((536 * 2) + AP * 0.182)*1 damage
-				// 3 points: 177+((536 * 3) + AP * 0.273)*1-529+((536 * 3) + AP * 0.273)*1 damage
-				// 4 points: 177+((536 * 4) + AP * 0.364)*1-529+((536 * 4) + AP * 0.364)*1 damage
-				// 5 points: 177+((536 * 5) + AP * 0.455)*1-529+((536 * 5) + AP * 0.455)*1 damage
+				// 1 point : from 177+((536 * 1) + AP * 0.091)*1 to 529+((536 * 1) + AP * 0.091)*1 damage
+				// 2 points: from 177+((536 * 2) + AP * 0.182)*1 to 529+((536 * 2) + AP * 0.182)*1 damage
+				// 3 points: from 177+((536 * 3) + AP * 0.273)*1 to 529+((536 * 3) + AP * 0.273)*1 damage
+				// 4 points: from 177+((536 * 4) + AP * 0.364)*1 to 529+((536 * 4) + AP * 0.364)*1 damage
+				// 5 points: from 177+((536 * 5) + AP * 0.455)*1 to 529+((536 * 5) + AP * 0.455)*1 damage
 				case 2098:
 				{
 					if(Player const* player = this->ToPlayer())
@@ -11264,7 +11264,8 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 						}
 						int32 member = ((536 * comboPoints) + calcAP);
 
-						DoneTotal += uint32(177 + member - 529 + member);
+						DoneTotal += urand(177 + member, 529 + member);
+
                         // Eviscerate and Envenom Bonus Damage (item set effect)
                         if (this->HasAura(37169))
                             DoneTotal += comboPoints * 40;
