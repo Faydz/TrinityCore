@@ -701,6 +701,44 @@ class spell_pal_holy_wrath : public SpellScriptLoader
     public:
         spell_pal_holy_wrath() : SpellScriptLoader("spell_pal_holy_wrath") { }
         
+        class spell_pal_holy_wrath_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_pal_holy_wrath_SpellScript);
+
+            void FilterTargets(std::list<WorldObject*>& targets)
+            {
+                std::list<WorldObject*> toAdd;
+
+                for (std::list<WorldObject*>::iterator iter = targets.begin(); iter != targets.end(); ++iter)
+                {
+                    if ((*iter))
+                    {
+                        if (Unit* unit = (*iter)->ToUnit())
+                        {
+                            // No-stealthed unit are saved
+                            if(!unit->HasAuraType(SPELL_AURA_MOD_STEALTH))
+                            {
+                                //targets.erase(iter--);
+                                toAdd.push_back((*iter));
+                            }
+                        }
+                    }
+                }
+
+                targets.clear();
+                
+                for (std::list<WorldObject*>::iterator iter = toAdd.begin(); iter != toAdd.end(); ++iter)
+                {
+                    targets.push_back((*iter));
+                }
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_holy_wrath_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
+            }
+        };
+
         class spell_pal_holy_wrath_AuraScript : public AuraScript
         {
             PrepareAuraScript(spell_pal_holy_wrath_AuraScript);
@@ -709,7 +747,7 @@ class spell_pal_holy_wrath : public SpellScriptLoader
             {
                 if(target &&
                     !(target->GetCreatureType() == CREATURE_TYPE_DEMON || target->GetCreatureType() == CREATURE_TYPE_UNDEAD)
-                    && target->HasAuraType(SPELL_AURA_MOD_STEALTH))
+                    || target->HasAuraType(SPELL_AURA_MOD_STEALTH))
                 {
                     return false;
                 }
@@ -721,6 +759,11 @@ class spell_pal_holy_wrath : public SpellScriptLoader
                 DoCheckAreaTarget += AuraCheckAreaTargetFn(spell_pal_holy_wrath_AuraScript::CheckAreaTarget);
             }
         };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pal_holy_wrath_SpellScript();
+        }
 
         AuraScript* GetAuraScript() const
         {

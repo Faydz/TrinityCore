@@ -3460,6 +3460,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    // Holy Wrath
+                    case 2812:
+                        spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
+                        break;
                     // Ancient Healer
                     case 86674: 
                         spellInfo->ProcCharges = 5;
