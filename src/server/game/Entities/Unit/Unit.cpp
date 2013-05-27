@@ -6925,6 +6925,11 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                // Aspect of the Fox
+                case 82661:
+                    if(Player* caster = ToPlayer())
+                        caster->ModifyPower(POWER_FOCUS, 2);
+                    break;
                 // Crouching Tiger, Hidden Chimera
                 case 82898:
                 case 82899:
