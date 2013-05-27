@@ -3699,45 +3699,45 @@ public:
 class npc_ring_of_frost: public CreatureScript
 {
 public:
-	npc_ring_of_frost() : CreatureScript("npc_ring_of_frost")
+    npc_ring_of_frost() : CreatureScript("npc_ring_of_frost")
     { }
 
-	struct npc_ring_of_frostAI: public ScriptedAI 
+    struct npc_ring_of_frostAI: public ScriptedAI 
     {
-		npc_ring_of_frostAI(Creature *c) : ScriptedAI(c)
+        npc_ring_of_frostAI(Creature *c) : ScriptedAI(c)
         { }
 
-		bool Isready;
-		uint32 timer;
+        bool Isready;
+        uint32 timer;
 
-		void Reset() 
+        void Reset() 
         {
-			timer = 3000; // 3sec
-			Isready = false;
-		}
+            timer = 3000; // 3sec
+            Isready = false;
+        }
 
-		void InitializeAI()
+        void InitializeAI()
         {
-			ScriptedAI::InitializeAI();
-			Unit * owner = me->GetOwner();
+            ScriptedAI::InitializeAI();
+            Unit * owner = me->GetOwner();
 
-			if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
-				return;
+            if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
+                return;
 
-			me->SetReactState(REACT_PASSIVE);
-			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-		}
+            me->SetReactState(REACT_PASSIVE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        }
 
-		void EnterEvadeMode() 
+        void EnterEvadeMode() 
         {
-			return;
-		}
+            return;
+        }
 
-		void CheckIfMoveInRing(Unit *who)
+        void CheckIfMoveInRing(Unit *who)
         {
             // Check if targets are alive, between 0.8y and 4.6y, not already frozen, not immune or in LOS
-            if (who->isAlive() && me->IsInRange(who, 0.8f, 4.6f)
+            if (who->isAlive() && me->IsInRange(who, 0.8f, 4.6f, false)
                 && !who->HasAura(82691)/*<= target already frozen*/
                 && !who->HasAura(91264)/*<= target is immune*/
                 && !who->HasAuraState(AURA_STATE_FROZEN)
@@ -3762,19 +3762,19 @@ public:
             else
                 timer -= diff;
 
-			// Find all the enemies
-			std::list<Unit*> targets;
-			Trinity::AnyUnfriendlyUnitInObjectRangeCheck u_check(me, me, 5.0f);
-			Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, u_check);
-			me->VisitNearbyObject(5.0f, searcher);
-			for (std::list<Unit*>::const_iterator iter = targets.begin(); iter != targets.end(); ++iter)
-				CheckIfMoveInRing(*iter);
-		}
-	};
+            // Find all the enemies
+            std::list<Unit*> targets;
+            Trinity::AnyUnfriendlyUnitInObjectRangeCheck u_check(me, me, 5.0f);
+            Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, u_check);
+            me->VisitNearbyObject(5.0f, searcher);
+            for (std::list<Unit*>::const_iterator iter = targets.begin(); iter != targets.end(); ++iter)
+                CheckIfMoveInRing(*iter);
+        }
+    };
 
-	CreatureAI* GetAI(Creature* pCreature) const {
-		return new npc_ring_of_frostAI(pCreature);
-	}
+    CreatureAI* GetAI(Creature* pCreature) const {
+        return new npc_ring_of_frostAI(pCreature);
+    }
 };
 
 void AddSC_npcs_special()

@@ -4517,6 +4517,33 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
             break;
         case SPELLFAMILY_HUNTER:
         {
+            // Invigoration
+            case 53397:
+                {
+                    Unit* owner = m_caster->GetCharmerOrOwner();
+
+                    if(!m_caster || !owner)
+                        return;
+
+                    AuraEffect* aurEff;
+
+                    // Have to do this due to duplicate icon id for class hunter
+                    if(owner->HasAura(53252))
+                    {
+                        aurEff = owner->GetAuraEffect(53252, EFFECT_0);
+                    }
+                    else if(owner->HasAura(53253))
+                    {
+                        aurEff = owner->GetAuraEffect(53253, EFFECT_0);
+                    }
+
+                    if(aurEff)
+                    {
+                        int32 bp0 = aurEff->GetAmount();
+                        owner->CastCustomSpell(owner, 53398, &bp0, NULL, NULL, true);
+                    }
+                }
+                break;
             // Cobra Shot Focus Regen
             case 77767:
             {                

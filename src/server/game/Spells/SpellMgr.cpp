@@ -3371,6 +3371,9 @@ void SpellMgr::LoadSpellCustomAttr()
             case 89906:
                 spellInfo->Effects[EFFECT_0].BasePoints = 3;
                 break;
+            case 32612: //invisibility, effect used for glyph
+                spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_INCREASE_SPEED;
+                break;
             default:
                 break;
         }
