@@ -1175,10 +1175,29 @@ class spell_hun_multi_shot : public SpellScriptLoader
 
             void FilterTargets(std::list<WorldObject*>& targets)
             {
-                for (std::list<WorldObject*>::const_iterator itr = targets.begin(); itr != targets.end(); ++itr)
-                    if(Unit* pl = (*itr)->ToUnit())
-                        if(pl->HasAuraType(SPELL_AURA_MOD_STEALTH))
-                            targets.remove(*itr);
+                std::list<WorldObject*> toAdd;
+
+                for (std::list<WorldObject*>::iterator iter = targets.begin(); iter != targets.end(); ++iter)
+                {
+                    if ((*iter))
+                    {
+                        if (Unit* unit = (*iter)->ToUnit())
+                        {
+                            // No-stealthed unit are saved
+                            if(!unit->HasAuraType(SPELL_AURA_MOD_STEALTH))
+                            {
+                                toAdd.push_back((*iter));
+                            }
+                        }
+                    }
+                }
+
+                targets.clear();
+                
+                for (std::list<WorldObject*>::iterator iter = toAdd.begin(); iter != toAdd.end(); ++iter)
+                {
+                    targets.push_back((*iter));
+                }
             }
 
             void Register()
