@@ -11175,7 +11175,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             {
                 // Damaging Death Coil
                 case 47632:
-                    DoneTotal += CalculatePct(this->GetTotalAttackPowerValue(BASE_ATTACK), 23);
+                    DoneTotal += CalculatePct(this->GetTotalAttackPowerValue(BASE_ATTACK), 30);
                     break;
                 // Blood Plague
                 case 55078:
