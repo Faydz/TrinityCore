@@ -6851,9 +6851,22 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         if (!caster->ToPlayer())
                             return false;
                         
-                        if (Unit* target = caster->ToPlayer()->GetSelectedUnit()){
-                            caster->CastSpell(target, 51699, true);
-                            return true;
+                        uint8 cd;
+                        if(dummySpell->Id == 51698)
+                            cd = 4;
+                        else if(dummySpell->Id == 51700)
+                            cd = 3;
+                        else
+                            cd = 2;
+
+                        if (Unit* target = caster->ToPlayer()->GetSelectedUnit())
+                        {
+                            if(!caster->ToPlayer()->HasSpellCooldown(51699))
+                            {
+                                caster->CastSpell(target, 51699, true);
+                                caster->ToPlayer()->AddSpellCooldown(51699, 0, time(NULL) + cd);
+                                return true;
+                            }
                         }
                         else
                             return false;
