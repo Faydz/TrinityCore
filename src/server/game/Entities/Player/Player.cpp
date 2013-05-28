@@ -25137,18 +25137,14 @@ void Player::SetRandomRuneAvailable()
         if (GetRuneCooldown(j) > 0 ) 
         {
             cooldownrunes[runescount] = j;     //Se una runa ha cooldown, me la segno, dopo pesco da questo array
-            sLog->outError(LOG_FILTER_PLAYER, "Character %u running rune_cooldown check: index %u on rune %u", GetGUIDLow(),runescount,j);
             runescount++;
         }
     }
 
     if (runescount > 0)
     {
-        int randindex = rand() % (runescount-1);  // Pesco una posizione random dall'array
-        uint8 rndrune = cooldownrunes[randindex];  // La mia random rune è pronta
-        SetRuneCooldown(rndrune, 0);  // Resetto cooldown alla runa
-        RuneType rune = GetCurrentRune(rndrune);
-        sLog->outError(LOG_FILTER_PLAYER, "Character %u refreshing cooldown on rune %u", GetGUIDLow(), rndrune);
+        uint32 rndrune = uint32(urand(0, runescount - 1));  // Pesco una posizione dall'array
+        SetRuneCooldown(rndrune, 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
     }
     else
         return;
