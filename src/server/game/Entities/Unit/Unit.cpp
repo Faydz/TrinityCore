@@ -7990,7 +7990,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                             else
                             {
                                 player->SetRandomRuneAvailable();
-                                player->ResyncRunes(MAX_RUNES);
                             }
                         }
                     }
