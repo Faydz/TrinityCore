@@ -8126,44 +8126,51 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
     switch (dummySpell->Id)
     {
         // Vengeance (Pally - Warrior - Druid - Death Knight)
+        case 50720:
         case 84839:
         case 84840:
         case 93098:
         case 93099:
-            // For druid don't proc if we aren't in bear form
-            if (dummySpell->Id == 84840 && GetShapeshiftForm() != FORM_BEAR)
-                return false;
-
-            if (!ToPlayer())
-                return false;
-
-            // Disale vengeance in BG/Arena
-            if (ToPlayer()->InArena() || ToPlayer()->InBattleground())
-                return false;
-
-            // Disable vengeance in duels
-            if (ToPlayer()->duel)
-                return false;
-
-            int32 bp = int32(damage * 0.05f);
-            if (AuraApplication* aurApp = GetAuraApplication(76691, GetGUID(), 0, 0, 0))
+        {
+            if(Unit * player = triggeredByAura->GetCaster()->ToPlayer())
             {
-                bp += aurApp->GetBase()->GetEffect(0)->GetAmount();
-                if (bp <= (GetMaxHealth() / 10.0f))
+                // For druid don't proc if we aren't in bear form
+                if (dummySpell->Id == 84840 && GetShapeshiftForm() != FORM_BEAR)
+                    return false;
+
+                // Disale vengeance in BG/Arena
+                if (player->ToPlayer()->InArena() || ToPlayer()->InBattleground())
+                    return false;
+
+                // Disable vengeance in duels
+                if (player->ToPlayer()->duel)
+                    return false;
+                int32 bp;
+                if(dummySpell->Id == 50720)
+                    bp = int32(damage * 0.2f);
+                else
+                    bp = int32(damage * 0.05f);
+
+                if (AuraApplication* aurApp = player->GetAuraApplication(76691, player->GetGUID(), 0, 0, 0))
                 {
-                    aurApp->GetBase()->GetEffect(0)->ChangeAmount(bp,  false);
-                    aurApp->GetBase()->GetEffect(1)->ChangeAmount(bp,  false);
-                    aurApp->ClientUpdate(false);
-                    return true;
+                    bp += aurApp->GetBase()->GetEffect(0)->GetAmount();
+                    if (bp <= (player->GetMaxHealth() / 10.0f))
+                    {
+                        aurApp->GetBase()->GetEffect(0)->ChangeAmount(bp,  false);
+                        aurApp->GetBase()->GetEffect(1)->ChangeAmount(bp,  false);
+                        aurApp->ClientUpdate(false);
+                        return true;
+                    }
+
+                    return false;
                 }
 
-                return false;
+                if (bp <= (player->GetMaxHealth() / 10.0f) )
+                    player->CastCustomSpell(player, 76691, &bp, &bp, 0, true);
+                return true;
             }
-
-            if (bp <= (GetMaxHealth() / 10.0f))
-                CastCustomSpell(this, 76691, &bp, &bp, 0, true);
-            return true;
             break;
+        }
     }
 
     // if not handled by custom case, get triggered spell from dummySpell proto

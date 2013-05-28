@@ -3374,6 +3374,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case 32612: //invisibility, effect used for glyph
                 spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_INCREASE_SPEED;
                 break;
+            // Vigilance
+            case 50720:
+                spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
+                break;
             default:
                 break;
         }
