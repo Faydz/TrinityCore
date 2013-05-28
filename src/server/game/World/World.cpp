@@ -3225,6 +3225,6 @@ void World::ReloadRBAC()
 void World::ManualResetCurrencyWeekCap()
 {
     std::string str = "-- FLUSH PUNTI ARENA / CONQUEST / CAP SETTIMANALI --";
-	SendServerMessage(SERVER_MSG_STRING, str.c_str());
+    SendServerMessage(SERVER_MSG_STRING, str.c_str());
     ResetCurrencyWeekCap();
 }

@@ -173,6 +173,7 @@ struct PlayerCurrency
    PlayerCurrencyState state;
    uint32 totalCount;
    uint32 weekCount;
+   uint32 seasonCount;
 };
 
 typedef UNORDERED_MAP<uint32, PlayerTalent*> PlayerTalentMap;
@@ -1452,6 +1453,8 @@ class Player : public Unit, public GridObject<Player>
         uint32 GetCurrencyWeekCap(uint32 id, bool usePrecision) const;
         /// return presence related currency
         bool HasCurrency(uint32 id, uint32 count) const;
+        /// return if players has earned count currency during the season
+        bool HasCurrencySeasonCount(uint32 id, uint32 count) const;
         /// initialize currency count for custom initialization at create character
         void SetCurrency(uint32 id, uint32 count, bool printLog = true);
         void ResetCurrencyWeekCap();
