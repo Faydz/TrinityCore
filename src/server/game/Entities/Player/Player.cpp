@@ -22042,7 +22042,7 @@ inline bool Player::_StoreOrEquipNewItem(uint32 vendorslot, uint32 item, uint8 c
                 continue;
 
             // Skip check only currencies.. 
-            if (iece->RequiredCurrencyCount[i] * stacks > entry->TotalCap)
+            if (entry->TotalCap > 0 && iece->RequiredCurrencyCount[i] * stacks > entry->TotalCap)
                 continue;
 
             if (iece->RequiredCurrency[i])
