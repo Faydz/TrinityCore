@@ -22291,7 +22291,7 @@ bool Player::BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 
             }
 
             // See if we mush check CurrentAmount or TotalSeasonAmount
-            if (iece->RequiredCurrencyCount[i] * stacks > entry->TotalCap)
+            if (entry->TotalCap != 0 && iece->RequiredCurrencyCount[i] * stacks > entry->TotalCap)
             {
                 // Check for total season amount
                 if (!HasCurrencySeasonCount(iece->RequiredCurrency[i], iece->RequiredCurrencyCount[i] * stacks))
