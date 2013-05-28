@@ -11745,13 +11745,17 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                     case SPELLFAMILY_PALADIN:
                         switch(spellProto->Id)
                         {
-                            // World of Glory
+                            // Word of Glory
                             case 85673:
                                 if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
                                 {
                                     if (AuraEffect* aurEff = this->GetAuraEffect(SPELL_AURA_DUMMY,SPELLFAMILY_PALADIN , 2139, EFFECT_0))
                                     {
-                                        crit_chance += aurEff->GetAmount();
+                                        // Duplicate IconID
+                                        if(aurEff->GetId() != 44183)
+                                        {
+                                            crit_chance += aurEff->GetAmount();
+                                        }
                                     }
                                 }
                                 break;
