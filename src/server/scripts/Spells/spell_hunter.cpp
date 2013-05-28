@@ -319,16 +319,6 @@ class spell_hun_masters_call : public SpellScriptLoader
         class spell_hun_masters_call_SpellScript : public SpellScript
         {
             PrepareSpellScript(spell_hun_masters_call_SpellScript);
-            
-            SpellCastResult CheckCast(){
-                Unit* caster = GetCaster();
-                Pet* pet = caster->ToPlayer()->GetPet();
-
-                if (!pet || pet->isDead())
-                    return SPELL_FAILED_NO_PET;
-
-                return SPELL_CAST_OK;
-            }
 
             bool Validate(SpellInfo const* spellInfo)
             {
@@ -339,28 +329,28 @@ class spell_hun_masters_call : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
-                if (Player* caster = GetCaster()->ToPlayer())
-                {
-                    if (Pet* pet = caster->GetPet())
-                    {
-                        if (Unit * ally = GetHitUnit())
+                if (Unit* ally = GetHitUnit())
+                    if (Player* caster = GetCaster()->ToPlayer())
+                        if (Pet* target = caster->GetPet())
                         {
-                            pet->RemoveMovementImpairingAuras();
-                            pet->CastSpell(ally, GetEffectValue(), true);
+                            TriggerCastFlags castMask = TriggerCastFlags(TRIGGERED_FULL_MASK & ~TRIGGERED_IGNORE_CASTER_AURASTATE);
+                            target->CastSpell(ally, GetEffectValue(), castMask);
+                            target->CastSpell(ally, GetSpellInfo()->Effects[EFFECT_0].CalcValue(), castMask);
                         }
-                    }
-                }
             }
 
             void HandleScriptEffect(SpellEffIndex /*effIndex*/)
             {
-                if (Unit* pet = GetHitUnit())
-                    pet->CastSpell(pet, SPELL_HUNTER_MASTERS_CALL_TRIGGERED, true);
+                if (Unit* target = GetHitUnit())
+                {
+                    // Cannot be processed while pet is dead
+                    TriggerCastFlags castMask = TriggerCastFlags(TRIGGERED_FULL_MASK & ~TRIGGERED_IGNORE_CASTER_AURASTATE);
+                    target->CastSpell(target, SPELL_HUNTER_MASTERS_CALL_TRIGGERED, castMask);
+                }
             }
 
             void Register()
             {
-                OnCheckCast += SpellCheckCastFn(spell_hun_masters_call_SpellScript::CheckCast);
                 OnEffectHitTarget += SpellEffectFn(spell_hun_masters_call_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
                 OnEffectHitTarget += SpellEffectFn(spell_hun_masters_call_SpellScript::HandleScriptEffect, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
             }
