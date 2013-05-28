@@ -2063,14 +2063,6 @@ void Spell::prepareDataForTriggerSystem(AuraEffect const* /*triggeredByAura*/)
             // For other spells trigger procflags are set in Spell::DoAllEffectOnTarget
             // Because spell positivity is dependant on target
     }
-    
-    // Add apply aura proc flag for melee/ranged spells
-    if(m_spellInfo->HasAnyAura() && (m_spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MELEE || m_spellInfo->DmgClass == SPELL_DAMAGE_CLASS_RANGED))
-    {
-        m_procAttacker |= m_spellInfo->IsPositive() ? PROC_FLAG_DONE_APPLY_AURA_POS : PROC_FLAG_DONE_APPLY_AURA_NEG;
-        m_procVictim   |= m_spellInfo->IsPositive() ? PROC_FLAG_TAKEN_APPLY_AURA_POS : PROC_FLAG_TAKEN_APPLY_AURA_NEG;
-    }
-
     m_procEx = PROC_EX_NONE;
 
     // Hunter trap spells - activation proc for Lock and Load, Entrapment and Misdirection
