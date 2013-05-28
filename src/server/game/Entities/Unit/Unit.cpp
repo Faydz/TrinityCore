@@ -12065,9 +12065,13 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                 case 85673:
                     // Divine Purpose check
                     if (this->HasAura(90174))
-                        DoneTotalMod += 3;
+                    {
+                        AddPct(DoneTotalMod, 300);
+                    }
                     else
-                        DoneTotalMod += this->GetPower(POWER_HOLY_POWER);
+                    {
+                        AddPct(DoneTotalMod, this->GetPower(POWER_HOLY_POWER) * 100);
+                    }
 
                     // Guarded by the Light check
                     if(AuraEffect* aurEff = this->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3026, EFFECT_0))

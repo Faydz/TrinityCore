@@ -439,7 +439,6 @@ class spell_paladin_word_of_glory : public SpellScriptLoader
                     // Restore Holy Power from Divine Purpose
                     if(restoreHolyPower && realHolyPower)
                     {
-                        sLog->outError(LOG_FILTER_GENERAL, "realHolyPower %d", realHolyPower);
                         caster->SetPower(POWER_HOLY_POWER, realHolyPower);
                     }
                 }
@@ -1872,7 +1871,6 @@ class spell_pal_templar_s_verdict : public SpellScriptLoader
                     // Restore Holy Power from Divine Purpose
                     if(restoreHolyPower && realHolyPower)
                     {
-                        sLog->outError(LOG_FILTER_GENERAL, "realHolyPower %d", realHolyPower);
                         caster->SetPower(POWER_HOLY_POWER, realHolyPower);
                     }
                 }
