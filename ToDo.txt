@@ -18,3 +18,4 @@ Questo documento tiene traccia delle ottimizzazioni da fare una volta stabilizza
 9 Sistemare l'hackfix di Dual Wield (Player::RemoveSpell, if con id 86629) e controllare che lo stesso non si ripeta per le altre classi (vedi mantis ticket #348).
 10 Sistemare il tooltip con il giusto valore di attack power dato quando si passa il cursore sulla stat agility o strenght in Cat e Bear Form (l'attack power dato realmente funziona).
 11 Riabilitare la spell Wild Mushroom e fixare il crash che ne consegue, quando utilizzata.
+12 Migliorare la gestione del filtro dei target in stealth per gli script Multi Shot e Holy Wrath
