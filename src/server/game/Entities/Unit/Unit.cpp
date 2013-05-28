@@ -11339,7 +11339,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             // Fulmination Bonus
             if (spellProto->Id == 88767)
             {
-                DoneAdvertisedBenefit = 0;
                 DoneTotalMod = 1.0f;
                 DoneTotal = 0;
             }
