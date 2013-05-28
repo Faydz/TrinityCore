@@ -3751,11 +3751,11 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
                         break;
                     // Deep Wounds Rank 1
-                    case 12162:
+                    case 12834:
                         spellInfo->Effects[EFFECT_0].BasePoints = 16;
                         break;
                     // Deep Wounds Rank 2
-                    case 12850:
+                    case 12849:
                         spellInfo->Effects[EFFECT_0].BasePoints = 32;
                         break;
                     // Deep Wounds Rank 3
