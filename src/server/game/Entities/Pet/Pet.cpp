@@ -213,18 +213,16 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
     {
         case SUMMON_PET:
             petlevel = owner->getLevel();
-
             SetUInt32Value(UNIT_FIELD_BYTES_0, 0x800); // class = mage
-            SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
-                                                            // this enables popup window (pet dismiss, cancel)
+            SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);   // this enables popup window (pet dismiss, cancel)
+            if(IsPetGhoul())
+                setPowerType(POWER_ENERGY);                                       
             break;
         case HUNTER_PET:
             SetUInt32Value(UNIT_FIELD_BYTES_0, 0x02020100); // class = warrior, gender = none, power = focus
             SetSheath(SHEATH_STATE_MELEE);
             SetByteFlag(UNIT_FIELD_BYTES_2, 2, fields[9].GetBool() ? UNIT_CAN_BE_ABANDONED : UNIT_CAN_BE_RENAMED | UNIT_CAN_BE_ABANDONED);
-
-            SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
-                                                            // this enables popup window (pet abandon, cancel)
+            SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);   // this enables popup window (pet abandon, cancel)                                       
             setPowerType(POWER_FOCUS);
             break;
         default:
@@ -244,8 +242,17 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
     SetReactState(ReactStates(fields[6].GetUInt8()));
     SetCanModifyStats(true);
 
-    if (getPetType() == SUMMON_PET && !current)              //all (?) summon pets come with full health when called, but not when they are current
-        SetPower(POWER_MANA, GetMaxPower(POWER_MANA));
+    if (getPetType() == SUMMON_PET && !current) {   //all (?) summon pets come with full health when called, but not when they are current
+        if(!IsPetGhoul())
+        {
+            SetPower(POWER_MANA, GetMaxPower(POWER_MANA));
+        }
+        else
+        {
+            SetPower(POWER_ENERGY, GetMaxPower(POWER_ENERGY));
+        }
+    }
+        
     else
     {
         uint32 savedhealth = fields[10].GetUInt32();
@@ -588,8 +595,8 @@ void Pet::Update(uint32 diff)
                 }
             }
 
-            if (IsPetGhoul())
-                setPowerType(POWER_ENERGY);
+            //if (IsPetGhoul())
+            //    setPowerType(POWER_ENERGY);
 
             //regenerate focus for hunter pets or energy for deathknight's ghoul
             if (m_regenTimer)
@@ -603,18 +610,21 @@ void Pet::Update(uint32 diff)
                         case POWER_FOCUS:
                             Regenerate(POWER_FOCUS);
                             m_regenTimer += PET_FOCUS_REGEN_INTERVAL - diff;
-                            if (!m_regenTimer) ++m_regenTimer;
-
+                            if (!m_regenTimer) 
+                                ++m_regenTimer;
                             // Reset if large diff (lag) causes focus to get 'stuck'
                             if (m_regenTimer > PET_FOCUS_REGEN_INTERVAL)
                                 m_regenTimer = PET_FOCUS_REGEN_INTERVAL;
-
                             break;
                         // in creature::update
                         case POWER_ENERGY:
+                            Regenerate(POWER_ENERGY);
+                            m_regenTimer += CREATURE_REGEN_INTERVAL - diff;
+                            if (!m_regenTimer) 
+                                ++m_regenTimer;
                             // Reset if large diff (lag) causes focus to get 'stuck'
-                            if (m_regenTimer > PET_FOCUS_REGEN_INTERVAL)
-                                m_regenTimer = PET_FOCUS_REGEN_INTERVAL;
+                            if (m_regenTimer > CREATURE_REGEN_INTERVAL)
+                                m_regenTimer = CREATURE_REGEN_INTERVAL;
                             break;
                         default:
                             m_regenTimer = 0;
@@ -907,6 +917,7 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
             // Fixed energy value for DK's Ghoul
             if (IsPetGhoul())
             {
+                setPowerType(POWER_ENERGY);
                 SetCreateMana(100);
             }
 
