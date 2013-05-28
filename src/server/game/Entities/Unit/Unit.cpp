@@ -7990,6 +7990,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                             else
                             {
                                 player->SetRandomRuneAvailable();
+                                player->ResyncRunes(MAX_RUNES);
                             }
                         }
                     }
@@ -11335,14 +11336,20 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                    DoneTotalMod *= 1 + pct;
                }
             }
-
-            // Fulmination Bonus
+            // fulmination double dipping prevention
             if (spellProto->Id == 88767)
             {
-                DoneTotalMod = 1.0f;
-                DoneTotal = 0;
-            }
+                // this is for elemental precision
+                if (AuraEffect* aurEff = GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_SHAMAN, 2017, EFFECT_0))
+                {
+                    float pct = aurEff->GetAmount() / 100.0f;
+                    DoneTotalMod /= 1.0f + pct;
+                }
 
+                // here for improved shields
+                if (AuraEffect* aurEff = GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_SHAMAN, 19, EFFECT_0))
+                    DoneTotalMod /= 1.0f + float(aurEff->GetAmount() / 100);
+            }
             break;
         case SPELLFAMILY_HUNTER:
             switch (spellProto->Id)
