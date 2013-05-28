@@ -8601,8 +8601,16 @@ void Player::_ApplyItemBonuses(ItemTemplate const* proto, uint8 slot, bool apply
                 ApplyRatingMod(CR_ARMOR_PENETRATION, int32(val), apply);
                 break;
             case ITEM_MOD_SPELL_POWER:
+            {
+                // I think  that this is not the proper way... but it works. 
+                // Search if there are exploit similar to this
+                int32 mod = GetTotalAuraModifier(SPELL_AURA_MOD_SPELL_POWER_PCT);
+                if (mod > 0)
+                    val *= 1.0 + mod / 100.0f;
+
                 ApplySpellPowerBonus(int32(val), apply);
                 break;
+            }
             case ITEM_MOD_HEALTH_REGEN:
                 ApplyHealthRegenBonus(int32(val), apply);
                 break;

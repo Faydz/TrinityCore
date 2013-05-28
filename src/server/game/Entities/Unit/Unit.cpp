@@ -11572,12 +11572,11 @@ int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask) const
         {
             if ((*i)->GetSpellInfo()->EquippedItemClass == -1) // -1 == any item class (not wand then)
             { 
-                if ((*i)->GetSpellInfo()->EquippedItemInventoryTypeMask == -1)  // -1 == any inventory type (not wand then)
+                if ((*i)->GetSpellInfo()->EquippedItemInventoryTypeMask == -1 || (*i)->GetSpellInfo()->EquippedItemInventoryTypeMask == 0)  // any inventory type (not wand then)
                     DoneAdvertisedBenefit += (*i)->GetAmount();
             }
         }
     }
-
     if (GetTypeId() == TYPEID_PLAYER)
     {
         // Base value
@@ -14498,11 +14497,7 @@ bool Unit::HandleStatModifier(UnitMods unitMod, UnitModifierType modifierType, f
             // Search if there are exploit similar to this
             switch (unitMod)
             {
-                case UNIT_MOD_STAT_STRENGTH:
-                case UNIT_MOD_STAT_AGILITY:
-                case UNIT_MOD_STAT_STAMINA:
                 case UNIT_MOD_STAT_INTELLECT:
-                case UNIT_MOD_STAT_SPIRIT:
                 {
                     int32 mod = GetTotalAuraModifier(SPELL_AURA_MOD_SPELL_POWER_PCT);
                     if (mod > 0)
@@ -14510,6 +14505,7 @@ bool Unit::HandleStatModifier(UnitMods unitMod, UnitModifierType modifierType, f
                 }
                 break;
             }
+            
             m_auraModifiersGroup[unitMod][modifierType] += apply ? amount : -amount;
             break;
         case BASE_PCT:
