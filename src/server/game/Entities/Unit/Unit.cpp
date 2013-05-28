@@ -8480,8 +8480,8 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 /*damage*/, Aura* triggeredByAura
                     }
                     break;
                 // Deep Wounds
-                case 12834:
-                case 12849:
+                case 12162:
+                case 12850:
                 case 12867:
                     if(victim)
                     {

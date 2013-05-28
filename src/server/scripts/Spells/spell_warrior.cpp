@@ -32,6 +32,9 @@ enum WarriorSpells
     SPELL_WARRIOR_BLOODTHIRST_DAMAGE                = 23881,
     SPELL_WARRIOR_CHARGE                            = 34846,
     SPELL_WARRIOR_CHARGE_SPELLBOOK_SPELL            = 100,
+    SPELL_WARRIOR_DEEP_WOUNDS_RANK_1                = 12162,
+    SPELL_WARRIOR_DEEP_WOUNDS_RANK_2                = 12850,
+    SPELL_WARRIOR_DEEP_WOUNDS_RANK_3                = 12868,
     SPELL_WARRIOR_DEEP_WOUNDS_RANK_PERIODIC         = 12721,
     SPELL_WARRIOR_EXECUTE                           = 20647,
     SPELL_WARRIOR_GLYPH_OF_EXECUTION                = 58367,
@@ -63,8 +66,6 @@ enum WarriorSpellIcons
     WARRIOR_ICON_ID_SUDDEN_DEATH                    = 1989,
     WARRIOR_ICON_ID_IMPROVED_HAMSTRING              = 23,
 };
-
-int32 deepWoundsAmount;
 
 // Unshackled Fury calculation with no-damaging abilities
 class spell_warr_fury_mastery_calculation : public SpellScriptLoader
@@ -488,71 +489,46 @@ class spell_warr_deep_wounds : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellInfo*/)
             {
-                if (!sSpellMgr->GetSpellInfo(SPELL_WARRIOR_DEEP_WOUNDS_RANK_PERIODIC))
+                if (!sSpellMgr->GetSpellInfo(SPELL_WARRIOR_DEEP_WOUNDS_RANK_1) || !sSpellMgr->GetSpellInfo(SPELL_WARRIOR_DEEP_WOUNDS_RANK_2) || !sSpellMgr->GetSpellInfo(SPELL_WARRIOR_DEEP_WOUNDS_RANK_3))
                     return false;
                 return true;
             }
 
-            void HandleBeforeCast()
+            void HandleDummy(SpellEffIndex /*effIndex*/)
             {
+                int32 damage = GetEffectValue();
                 Unit* caster = GetCaster();
-                Unit* target = GetExplTargetUnit();
-                
-                if(caster && target)
+                if (Unit* target = GetHitUnit())
                 {
-                    int32 basepoints0 = 0;
+                    // apply percent damage mods
+                    damage = caster->SpellDamageBonusDone(target, GetSpellInfo(), damage, SPELL_DIRECT_DAMAGE);
 
-                    if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_WARRIOR, 243, EFFECT_0))
-                    {
-                        basepoints0 = CalculatePct(caster->CalculateDamage(BASE_ATTACK, true, true), aurEff->GetAmount());
+                    ApplyPct(damage, 16 * sSpellMgr->GetSpellRank(GetSpellInfo()->Id));
 
-                        // Check for IconId duplicate
-                        if(aurEff->GetBase() && aurEff->GetBase()->GetId() != 84919)
-                        {
-                            // * 6 because I need the total remaind periodic amount
-                            basepoints0 += (target->GetRemainingPeriodicAmount(caster->GetGUID(), SPELL_WARRIOR_DEEP_WOUNDS_RANK_PERIODIC, SPELL_AURA_PERIODIC_DAMAGE) * 6);
-                        }
-                    }
+                    damage = target->SpellDamageBonusTaken(caster, GetSpellInfo(), damage, SPELL_DIRECT_DAMAGE);
 
-                    // Per tick damage
-                    if(basepoints0)
-                    {
-                        deepWoundsAmount = basepoints0 / 6;
-                    }
+                    SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(SPELL_WARRIOR_DEEP_WOUNDS_RANK_PERIODIC);
+                    uint32 ticks = spellInfo->GetDuration() / spellInfo->Effects[EFFECT_0].Amplitude;
+
+                    // Add remaining ticks to damage done
+                    if (AuraEffect const* aurEff = target->GetAuraEffect(SPELL_WARRIOR_DEEP_WOUNDS_RANK_PERIODIC, EFFECT_0, caster->GetGUID()))
+                        damage += aurEff->GetAmount() * (ticks - aurEff->GetTickNumber());
+
+                    damage /= ticks;
+
+                    caster->CastCustomSpell(target, SPELL_WARRIOR_DEEP_WOUNDS_RANK_PERIODIC, &damage, NULL, NULL, true);
                 }
             }
 
             void Register()
             {
-                BeforeCast += SpellCastFn(spell_warr_deep_wounds_SpellScript::HandleBeforeCast);
-            }
-        };
-        
-        class spell_warr_deep_wounds_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_warr_deep_wounds_AuraScript);
-
-            void CalculateAmount(AuraEffect const* /*aurEff*/, int32 &amount, bool& canBeRecalculated)
-            {
-                canBeRecalculated = false;
-
-                amount = deepWoundsAmount;
-            }
-
-            void Register()
-            {
-                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_deep_wounds_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+                OnEffectHitTarget += SpellEffectFn(spell_warr_deep_wounds_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
             }
         };
 
         SpellScript* GetSpellScript() const
         {
             return new spell_warr_deep_wounds_SpellScript();
-        }
-        
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_warr_deep_wounds_AuraScript();
         }
 };
 
