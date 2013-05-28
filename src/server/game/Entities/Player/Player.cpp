@@ -25143,8 +25143,12 @@ void Player::SetRandomRuneAvailable()
 
     if (runescount > 0)
     {
-        uint32 rndrune = uint32(urand(0, runescount - 1));  // Pesco una posizione dall'array
-        SetRuneCooldown(rndrune, 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
+        if(runescount > 1){
+            uint32 rndrune = uint32(urand(0, runescount - 1));  // Pesco una posizione dall'array
+            SetRuneCooldown(rndrune, 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
+        }
+        else 
+            SetRuneCooldown(0, 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
     }
     else
         return;
