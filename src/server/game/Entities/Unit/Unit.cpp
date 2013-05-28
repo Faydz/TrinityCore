@@ -11225,7 +11225,9 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             if (victim && this->getClass() == CLASS_DEATH_KNIGHT && spellProto->SpellFamilyFlags & flag96(0x2, 0x2, 0x0))
                 if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2656, EFFECT_0))
                     if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
-                        DoneTotalMod += float(aurEff->GetAmount() / 100.0f);
+                    {
+                        AddPct(DoneTotalMod, aurEff->GetAmount());
+                    }
             break;
         case SPELLFAMILY_ROGUE:
 			switch(spellProto->Id)
@@ -12654,7 +12656,9 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                 if (victim && this->getClass() == CLASS_DEATH_KNIGHT && spellProto->SpellFamilyFlags & flag96(0x0, 0x20004, 0x0))
                     if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2656, EFFECT_0))
                         if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
-                            DoneTotalMod += float(aurEff->GetAmount() / 100.0f);
+                        {
+                            AddPct(DoneTotalMod, aurEff->GetAmount());
+                        }
                 break;
             case SPELLFAMILY_WARRIOR:
                 // Single-Minded Fury check
