@@ -7621,7 +7621,7 @@ bool Player::HasCurrencySeasonCount(uint32 id, uint32 count) const
     return itr != _currencyStorage.end() && itr->second.seasonCount >= count;
 }
 
-void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bool ignoreMultipliers/* = false*/)
+void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bool ignoreMultipliers/* = false*/, bool refund/* = false*/)
 {
     if (!count)
         return;
@@ -7656,7 +7656,7 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
     }
 
     // seasonCount
-    int32 newSeasonCount = int32(oldSeasonCount) + (count > 0 ? count : 0);
+    int32 newSeasonCount = int32(oldSeasonCount) + !refund ? (count > 0 ? count : 0) : 0;
 
     // count can't be more then weekCap if used (weekCap > 0)
     uint32 weekCap = GetCurrencyWeekCap(currency);
@@ -27138,7 +27138,7 @@ void Player::RefundItem(Item* item)
         uint32 currencyid = iece->RequiredCurrency[i];
 
         if (count && currencyid)
-            ModifyCurrency(currencyid, count, false, true);
+            ModifyCurrency(currencyid, count, false, true, true);
     }
 
     // Grant back money
