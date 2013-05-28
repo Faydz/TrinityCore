@@ -11336,28 +11336,15 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                    DoneTotalMod *= 1 + pct;
                }
             }
+
+            // Fulmination Bonus
             if (spellProto->Id == 88767)
-            {//fulmination double dipping prevention
-                if (owner->ToPlayer())
-                {//this is for elemental precision
-                    if (owner->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_SHAMAN, 2017, EFFECT_0))
-                    {
-                        uint32 prec = GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_SHAMAN, 2017, EFFECT_0)->GetBase()->GetId();
-                        float pct = 0.03f;
-                        if (prec== 30673)
-                            pct = 0.02f;
-                        else if (prec == 30672)
-                            pct = 0.01f;
-                        DoneTotalMod /= 1 + pct;
-                    }
-                }//here for improved shields
-                if (owner->HasAura(51881))
-                    DoneTotalMod /= 1 + 0.15f;
-                else if (owner->HasAura(16290))
-                    DoneTotalMod /= 1 + 0.10f;
-                else if (owner->HasAura(16261))
-                    DoneTotalMod /= 1 + 0.05f;
+            {
+                DoneAdvertisedBenefit = 0;
+                DoneTotalMod = 1.0f;
+                DoneTotal = 0;
             }
+
             break;
         case SPELLFAMILY_HUNTER:
             switch (spellProto->Id)
