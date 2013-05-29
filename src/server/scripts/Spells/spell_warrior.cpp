@@ -51,6 +51,7 @@ enum WarriorSpells
     SPELL_WARRIOR_UNRELENTING_ASSAULT_TRIGGER_2     = 64850,
     SPELL_WARRIOR_VIGILANCE_PROC                    = 50725,
     SPELL_WARRIOR_VIGILANCE_REDIRECT_THREAT         = 59665,
+    SPELL_WARRIOR_SHIELD_SLAM                       = 23922,
 
     SPELL_PALADIN_BLESSING_OF_SANCTUARY             = 20911,
     SPELL_PALADIN_GREATER_BLESSING_OF_SANCTUARY     = 25899,
@@ -1029,6 +1030,34 @@ class spell_warr_heroic_leap : public SpellScriptLoader
         }
 };
 
+// 50227 - Sword and Board
+class spell_warr_sword_and_board : public SpellScriptLoader
+{
+    public:
+        spell_warr_sword_and_board() : SpellScriptLoader("spell_warr_sword_and_board") { }
+
+        class spell_warr_sword_and_board_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warr_sword_and_board_AuraScript);
+
+            void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if(Unit * caster = GetCaster())
+                    caster->ToPlayer()->RemoveSpellCooldown(SPELL_WARRIOR_SHIELD_SLAM, true);
+            }
+
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_warr_sword_and_board_AuraScript::HandleApply, EFFECT_0, SPELL_AURA_ADD_PCT_MODIFIER, AURA_EFFECT_HANDLE_REAL);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_warr_sword_and_board_AuraScript();
+        }
+};
+
 void AddSC_warrior_spell_scripts()
 {
     new spell_warr_fury_mastery_calculation();
@@ -1053,4 +1082,5 @@ void AddSC_warrior_spell_scripts()
     new spell_warr_slam();
     new spell_warr_sweeping_strikes();
     new spell_warr_heroic_leap();
+    new spell_warr_sword_and_board();
 }
