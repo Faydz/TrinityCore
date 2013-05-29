@@ -3971,6 +3971,15 @@ void SpellMgr::LoadSpellCustomAttr()
 						break;
 				}
 				break;
+            case SPELLFAMILY_SHAMAN:
+                switch(spellInfo->Id)
+                {
+                    // Tremor Totem
+                    case 8143:
+                        spellInfo->PreventionType = SPELL_PREVENTION_TYPE_SILENCE;
+                        break;
+                }
+                break;
             default:
                 break;
         }
