@@ -319,6 +319,16 @@ class spell_hun_masters_call : public SpellScriptLoader
         class spell_hun_masters_call_SpellScript : public SpellScript
         {
             PrepareSpellScript(spell_hun_masters_call_SpellScript);
+            
+            SpellCastResult CheckCast(){
+                Unit* caster = GetCaster();
+                Pet* pet = caster->ToPlayer()->GetPet();
+
+                if (!pet || pet->isDead())
+                    return SPELL_FAILED_NO_PET;
+
+                return SPELL_CAST_OK;
+            }
 
             bool Validate(SpellInfo const* spellInfo)
             {
@@ -329,28 +339,28 @@ class spell_hun_masters_call : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
-                if (Unit* ally = GetHitUnit())
-                    if (Player* caster = GetCaster()->ToPlayer())
-                        if (Pet* target = caster->GetPet())
+                if (Player* caster = GetCaster()->ToPlayer())
+                {
+                    if (Pet* pet = caster->GetPet())
+                    {
+                        if (Unit * ally = GetHitUnit())
                         {
-                            TriggerCastFlags castMask = TriggerCastFlags(TRIGGERED_FULL_MASK & ~TRIGGERED_IGNORE_CASTER_AURASTATE);
-                            target->CastSpell(ally, GetEffectValue(), castMask);
-                            target->CastSpell(ally, GetSpellInfo()->Effects[EFFECT_0].CalcValue(), castMask);
+                            pet->RemoveMovementImpairingAuras();
+                            pet->CastSpell(ally, GetEffectValue(), true);
                         }
+                    }
+                }
             }
 
             void HandleScriptEffect(SpellEffIndex /*effIndex*/)
             {
-                if (Unit* target = GetHitUnit())
-                {
-                    // Cannot be processed while pet is dead
-                    TriggerCastFlags castMask = TriggerCastFlags(TRIGGERED_FULL_MASK & ~TRIGGERED_IGNORE_CASTER_AURASTATE);
-                    target->CastSpell(target, SPELL_HUNTER_MASTERS_CALL_TRIGGERED, castMask);
-                }
+                if (Unit* pet = GetHitUnit())
+                    pet->CastSpell(pet, SPELL_HUNTER_MASTERS_CALL_TRIGGERED, true);
             }
 
             void Register()
             {
+                OnCheckCast += SpellCheckCastFn(spell_hun_masters_call_SpellScript::CheckCast);
                 OnEffectHitTarget += SpellEffectFn(spell_hun_masters_call_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
                 OnEffectHitTarget += SpellEffectFn(spell_hun_masters_call_SpellScript::HandleScriptEffect, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
             }
@@ -1165,10 +1175,29 @@ class spell_hun_multi_shot : public SpellScriptLoader
 
             void FilterTargets(std::list<WorldObject*>& targets)
             {
-                for (std::list<WorldObject*>::const_iterator itr = targets.begin(); itr != targets.end(); ++itr)
-                    if(Unit* pl = (*itr)->ToUnit())
-                        if(pl->HasAuraType(SPELL_AURA_MOD_STEALTH))
-                            targets.remove(*itr);
+                std::list<WorldObject*> toAdd;
+
+                for (std::list<WorldObject*>::iterator iter = targets.begin(); iter != targets.end(); ++iter)
+                {
+                    if ((*iter))
+                    {
+                        if (Unit* unit = (*iter)->ToUnit())
+                        {
+                            // No-stealthed unit are saved
+                            if(!unit->HasAuraType(SPELL_AURA_MOD_STEALTH))
+                            {
+                                toAdd.push_back((*iter));
+                            }
+                        }
+                    }
+                }
+
+                targets.clear();
+                
+                for (std::list<WorldObject*>::iterator iter = toAdd.begin(); iter != toAdd.end(); ++iter)
+                {
+                    targets.push_back((*iter));
+                }
             }
 
             void Register()

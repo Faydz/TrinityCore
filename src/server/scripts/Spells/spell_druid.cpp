@@ -373,7 +373,7 @@ public:
     {
         PrepareAuraScript(spell_dru_rejuvenation_AuraScript);
 
-        void OnApplyAndReapply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+        void OnApplyAndReapply(AuraEffect const* aurEff, AuraEffectHandleModes mode)
         {
             Unit* caster = GetCaster();
             Unit* target = GetTarget();
@@ -387,31 +387,24 @@ public:
                 // Casts istant heal
                 caster->CastSpell(target, SPELL_DRUID_REJUVENATION_ISTANT_SPELL, true);
             }
-        }
 
-        void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            Unit* caster = GetCaster();
-            Unit* target = GetTarget();
-
-            if(!caster || !target)
-                return;
-
-            // Update the rejvenation counter for the druid caster
-            // Due to AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK this new function has been created
-            caster->ModRejuvenationCounter(true);
-
-            // Nature's Bounty calculation (add)
-            if(AuraEffect* naturesBounty = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DRUID, 197, EFFECT_1))
+            if(mode == AURA_EFFECT_HANDLE_REAL)
             {
-                if(caster->GetRejuvenationCounter() >= 3)
-                {
-                    // Here the miscValueB is used like a variable for keeping the real basepoint to change is 3 rej are present
-                    int32 newAmount = naturesBounty->GetSpellInfo()->Effects[EFFECT_1].MiscValueB;
+                // Update the rejvenation counter for the druid caster
+                caster->ModRejuvenationCounter(true);
 
-                    if(naturesBounty->GetAmount() != newAmount)
+                // Nature's Bounty calculation (add)
+                if(AuraEffect* naturesBounty = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DRUID, 197, EFFECT_1))
+                {
+                    if(caster->GetRejuvenationCounter() >= 3)
                     {
-                        naturesBounty->ChangeAmount(newAmount);
+                        // Here the miscValueB is used like a variable for keeping the real basepoint to change is 3 rej are present
+                        int32 newAmount = naturesBounty->GetSpellInfo()->Effects[EFFECT_1].MiscValueB;
+
+                        if(naturesBounty->GetAmount() != newAmount)
+                        {
+                            naturesBounty->ChangeAmount(newAmount);
+                        }
                     }
                 }
             }
@@ -439,7 +432,6 @@ public:
         void Register()
         {
             OnEffectApply += AuraEffectApplyFn(spell_dru_rejuvenation_AuraScript::OnApplyAndReapply, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
-            OnEffectApply += AuraEffectApplyFn(spell_dru_rejuvenation_AuraScript::OnApply, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
             AfterEffectRemove += AuraEffectRemoveFn(spell_dru_rejuvenation_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
         }
     };
@@ -483,7 +475,7 @@ public:
     }
 };
 
-// 5185 8936 50464 Empowered Touch
+// 5185/50464 Empowered Touch
 class spell_dru_empowered_touch: public SpellScriptLoader 
 {
 public:
@@ -2249,6 +2241,30 @@ class spell_dru_regrowth : public SpellScriptLoader
 {
 public:
     spell_dru_regrowth() : SpellScriptLoader("spell_dru_regrowth") { }
+    
+    class spell_dru_regrowth_SpellScript: public SpellScript 
+    {
+        PrepareSpellScript(spell_dru_regrowth_SpellScript);
+
+        void BeforeEffect(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetHitUnit();
+
+            if (!target || !caster)
+                return;
+
+            if (Aura* aur = target->GetAura(SPELL_DRUID_LIFEBLOOM_HOT))
+                if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 2251, EFFECT_1))
+                    if (roll_chance_i(aurEff->GetAmount()))
+                        aur->RefreshDuration();
+        }
+
+        void Register() 
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_dru_regrowth_SpellScript::BeforeEffect, EFFECT_0, SPELL_EFFECT_HEAL);
+        }
+    };
 
     class spell_dru_regrowth_AuraScript : public AuraScript
     {
@@ -2269,6 +2285,11 @@ public:
             OnEffectPeriodic += AuraEffectPeriodicFn(spell_dru_regrowth_AuraScript::OnPeriodic, EFFECT_1, SPELL_AURA_PERIODIC_HEAL);
         }
     };
+
+    SpellScript* GetSpellScript() const 
+    {
+        return new spell_dru_regrowth_SpellScript();
+    }
 
     AuraScript* GetAuraScript() const
     {

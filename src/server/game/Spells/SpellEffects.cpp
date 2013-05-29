@@ -1768,6 +1768,13 @@ void Spell::EffectHeal(SpellEffIndex /*effIndex*/)
                 addhealth *= (6.0f / count);
         }
 
+        // Reduce Healing in Bg or Arena
+        if (m_caster->ToPlayer())
+        {
+            if (m_caster->ToPlayer()->InBattleground() || m_caster->ToPlayer()->InArena())
+                addhealth *= 0.9f;
+        }
+
         m_damage -= addhealth;
     }
 }
@@ -3893,53 +3900,61 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
         {
             switch (m_spellInfo->Id)
             {
+                // Vigilance
+                case 50725:
+                    if (!unitTarget || !GetCaster())
+                        return;
+                    
+                    if(Unit* warrior = GetCaster()->GetAura(50720)->GetCaster())
+                        warrior->ToPlayer()->RemoveSpellCooldown(355, true);
+                    break;
                 // Impact
-            case 12355:
-                if (!unitTarget || !GetCaster()){
-                    return;
-                }
-
-                if (Unit* stunned = m_targets.GetUnitTarget())
-                {
-                    Unit::AuraEffectList const& dotList = stunned->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
-                    if (unitTarget->GetGUID() !=  stunned->GetGUID())
-                    {
-                        Unit* nearby = m_caster->SelectNearbyTarget(unitTarget, 15.0f);
-                        if (nearby && nearby->GetGUID() !=  stunned->GetGUID())
-                        {     // Hackfix to give pyromaniac if impact share dots between at least 3 targets
-                            if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_MAGE, 2128, 0))
-                            {
-                                int32 bh=10;
-                                if (aurEff->GetId() == 34293)
-                                    bh=5;
-                                m_caster->CastCustomSpell(m_caster, 83582, &bh, NULL, NULL, true);
-                                if(m_caster->GetAura(83582)){
-                                    m_caster->GetAura(83582)->SetDuration(10000);
-                                }
-                            }
-                        }
-                        for (Unit::AuraEffectList::const_iterator itr = dotList.begin(); itr != dotList.end(); ++itr)
-                        {
-                            if (!(*itr) || !(*itr)->GetBase() ||!(*itr)->GetBase()->GetSpellInfo()){
-                                return;
-                            }
-
-                            if ((*itr)->GetBase()->GetCasterGUID() == m_caster->GetGUID() && (*itr)->GetId() != 2120){ //2120 is flamestrike, spreading it would cause a crash
-                                uint32 dur = (*itr)->GetBase()->GetDuration();
-                                uint32 ids = (*itr)->GetId();
-                                int32 dam = (*itr)->GetAmount();
-                                if (ids == 92315 || ids == 11366 || ids == 44614) //only cast the dot from pyroblast!, pyroblast and firefrost bolt
-                                    m_caster->AddAura(ids, unitTarget);
-                                else
-                                    m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
-                                if (unitTarget->GetAura(ids)){        //this should prevent crashing if target was immune to the casting
-                                    unitTarget->GetAura(ids)->SetDuration(dur);
-                                }
-                            }
-                        }
+                case 12355:
+                    if (!unitTarget || !GetCaster()){
+                        return;
                     }
-                } 
-                break;
+
+                    if (Unit* stunned = m_targets.GetUnitTarget())
+                    {
+                        Unit::AuraEffectList const& dotList = stunned->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+                        if (unitTarget->GetGUID() !=  stunned->GetGUID())
+                        {
+                            Unit* nearby = m_caster->SelectNearbyTarget(unitTarget, 15.0f);
+                            if (nearby && nearby->GetGUID() !=  stunned->GetGUID())
+                            {     // Hackfix to give pyromaniac if impact share dots between at least 3 targets
+                                if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_MAGE, 2128, 0))
+                                {
+                                    int32 bh=10;
+                                    if (aurEff->GetId() == 34293)
+                                        bh=5;
+                                    m_caster->CastCustomSpell(m_caster, 83582, &bh, NULL, NULL, true);
+                                    if(m_caster->GetAura(83582)){
+                                        m_caster->GetAura(83582)->SetDuration(10000);
+                                    }
+                                }
+                            }
+                            for (Unit::AuraEffectList::const_iterator itr = dotList.begin(); itr != dotList.end(); ++itr)
+                            {
+                                if (!(*itr) || !(*itr)->GetBase() ||!(*itr)->GetBase()->GetSpellInfo()){
+                                    return;
+                                }
+
+                                if ((*itr)->GetBase()->GetCasterGUID() == m_caster->GetGUID() && (*itr)->GetId() != 2120){ //2120 is flamestrike, spreading it would cause a crash
+                                    uint32 dur = (*itr)->GetBase()->GetDuration();
+                                    uint32 ids = (*itr)->GetId();
+                                    int32 dam = (*itr)->GetAmount();
+                                    if (ids == 92315 || ids == 11366 || ids == 44614) //only cast the dot from pyroblast!, pyroblast and firefrost bolt
+                                        m_caster->AddAura(ids, unitTarget);
+                                    else
+                                        m_caster->CastCustomSpell(unitTarget, ids, &dam, NULL, NULL, true);
+                                    if (unitTarget->GetAura(ids)){        //this should prevent crashing if target was immune to the casting
+                                        unitTarget->GetAura(ids)->SetDuration(dur);
+                                    }
+                                }
+                            }
+                        }
+                    } 
+                    break;
                 // Glyph of Backstab
                 case 63975:
                 {
@@ -4517,6 +4532,33 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
             break;
         case SPELLFAMILY_HUNTER:
         {
+            // Invigoration
+            case 53397:
+                {
+                    Unit* owner = m_caster->GetCharmerOrOwner();
+
+                    if(!m_caster || !owner)
+                        return;
+
+                    AuraEffect* aurEff;
+
+                    // Have to do this due to duplicate icon id for class hunter
+                    if(owner->HasAura(53252))
+                    {
+                        aurEff = owner->GetAuraEffect(53252, EFFECT_0);
+                    }
+                    else if(owner->HasAura(53253))
+                    {
+                        aurEff = owner->GetAuraEffect(53253, EFFECT_0);
+                    }
+
+                    if(aurEff)
+                    {
+                        int32 bp0 = aurEff->GetAmount();
+                        owner->CastCustomSpell(owner, 53398, &bp0, NULL, NULL, true);
+                    }
+                }
+                break;
             // Cobra Shot Focus Regen
             case 77767:
             {                
@@ -4540,10 +4582,10 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     if(!caster)
                         return;
 
-                    // Frost Fever, Chains of Ice, Blood Plague
-                    int ids[3] = {55095, 45524, 55078};
+                    // Frost Fever, Chains of Ice, Blood Plague, Ebon Plague
+                    int ids[4] = {55095, 45524, 55078, 65142};
 
-                    for(int i = 0; i < 3; i++)
+                    for(int i = 0; i < 4; i++)
                     {
                         Aura* aura = unitTarget->GetAura(ids[i], caster->GetGUID());
 

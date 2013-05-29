@@ -1979,8 +1979,8 @@ void World::Update(uint32 diff)
     if (m_gameTime > m_NextGuildReset)
         ResetGuildCap();
 
-    if (m_gameTime > m_NextCurrencyReset)
-        ResetCurrencyWeekCap();
+    /*if (m_gameTime > m_NextCurrencyReset)
+        ResetCurrencyWeekCap();*/
 
     /// <ul><li> Handle auctions when the timer has passed
     if (m_timers[WUPDATE_AUCTIONS].Passed())
@@ -3220,4 +3220,11 @@ void World::ReloadRBAC()
     for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
         if (WorldSession* session = itr->second)
             session->InvalidateRBACData();
+}
+
+void World::ManualResetCurrencyWeekCap()
+{
+    std::string str = "-- FLUSH PUNTI ARENA / CONQUEST / CAP SETTIMANALI --";
+    SendServerMessage(SERVER_MSG_STRING, str.c_str());
+    ResetCurrencyWeekCap();
 }

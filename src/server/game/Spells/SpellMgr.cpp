@@ -3371,6 +3371,14 @@ void SpellMgr::LoadSpellCustomAttr()
             case 89906:
                 spellInfo->Effects[EFFECT_0].BasePoints = 3;
                 break;
+            case 32612: //invisibility, effect used for glyph
+                spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_INCREASE_SPEED;
+                break;
+            // Vigilance
+            case 50720:
+                spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
+                break;
             default:
                 break;
         }
@@ -3457,6 +3465,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    case 36946:
+                        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(1);
+                        break;
+                    // Holy Wrath
+                    case 2812:
+                        spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
+                        break;
                     // Ancient Healer
                     case 86674: 
                         spellInfo->ProcCharges = 5;
@@ -3593,6 +3608,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Improved Blood Presence
+                    case 63611:
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_POWER_REGEN_PERCENT;
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_DUMMY;
+                        break;
                     // Frost Strike
                     case 49143:
                         spellInfo->Effects[EFFECT_1].BasePoints = 143;
@@ -3736,11 +3756,11 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
                         break;
                     // Deep Wounds Rank 1
-                    case 12162:
+                    case 12834:
                         spellInfo->Effects[EFFECT_0].BasePoints = 16;
                         break;
                     // Deep Wounds Rank 2
-                    case 12850:
+                    case 12849:
                         spellInfo->Effects[EFFECT_0].BasePoints = 32;
                         break;
                     // Deep Wounds Rank 3
@@ -3951,6 +3971,15 @@ void SpellMgr::LoadSpellCustomAttr()
 						break;
 				}
 				break;
+            case SPELLFAMILY_SHAMAN:
+                switch(spellInfo->Id)
+                {
+                    // Tremor Totem
+                    case 8143:
+                        spellInfo->PreventionType = SPELL_PREVENTION_TYPE_SILENCE;
+                        break;
+                }
+                break;
             default:
                 break;
         }

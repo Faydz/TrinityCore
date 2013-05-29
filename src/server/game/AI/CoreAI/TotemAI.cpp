@@ -83,13 +83,13 @@ void TotemAI::UpdateAI(uint32 /*diff*/)
                 && me->IsWithinDistInMap((*iter), max_range)
                 && !me->IsFriendlyTo((*iter))
                 && me->canSeeOrDetect((*iter))
-                && (*iter)->HasAura(8050))
+                && ((*iter)->HasAura(8050)|| (*iter)->HasAura(17364)))
             {
                 i_victimGuid = (*iter)->GetGUID();
                 break;
             }
 
-            else if (!(*iter)->HasAura(8050))
+            else if (!(*iter)->HasAura(8050) && !(*iter)->HasAura(17364))
             {
                 Unit* victim = i_victimGuid ? ObjectAccessor::GetUnit(*me, i_victimGuid) : NULL;
                 Trinity::NearestAttackableUnitInObjectRangeCheck u_check(me, me, max_range);

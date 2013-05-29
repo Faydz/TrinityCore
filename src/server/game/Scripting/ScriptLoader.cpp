@@ -666,6 +666,16 @@ void AddSC_boss_halfus_wyrmbreaker();
 void AddSC_boss_theralion();
 void AddSC_instance_the_bastion_of_twilight();
 void AddSC_mob_trash_throne_of_tides();
+// Blackwing Descent
+void AddSC_boss_chimaeron();
+void AddSC_boss_atramedes();
+void AddSC_blackwing_descent();
+void AddSC_instance_blackwing_descent();
+void AddSC_boss_omnotron_defense_system();
+void AddSC_boss_bd_nefarian();
+void AddSC_boss_maloriak();
+void AddSC_boss_magmaw();
+
 // Events
 void AddSC_event_childrens_week();
 
@@ -803,6 +813,14 @@ void AddEasternKingdomsScripts()
     AddSC_boss_halfus_wyrmbreaker();
     AddSC_boss_theralion();
     AddSC_instance_the_bastion_of_twilight();
+    AddSC_boss_chimaeron();                 //Blackwing Descent
+    AddSC_boss_atramedes();
+    AddSC_blackwing_descent();
+    AddSC_instance_blackwing_descent();
+    AddSC_boss_omnotron_defense_system();
+    AddSC_boss_bd_nefarian();
+    AddSC_boss_maloriak();
+    AddSC_boss_magmaw();
     AddSC_blackrock_depths();               //Blackrock Depths
     AddSC_boss_ambassador_flamelash();
     AddSC_boss_anubshiah();
