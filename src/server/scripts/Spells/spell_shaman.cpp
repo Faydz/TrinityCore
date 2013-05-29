@@ -625,6 +625,10 @@ class spell_sha_lava_lash : public SpellScriptLoader
                                 target->RemoveAura(SHAMAN_TOTEM_SPELL_SEARING_FLAMES);
                             }
                         }
+
+                        // Improved Lava Lash
+                        if(AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 4780, EFFECT_0))
+                            caster->CastSpell(target, 105792, true);
                     }
                 }
 

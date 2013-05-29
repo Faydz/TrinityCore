@@ -4671,8 +4671,12 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     m_caster->RemoveAurasDueToSpell(87154);
                 }
             }
+            break;
+        case SPELLFAMILY_SHAMAN:
+            if (m_spellInfo->Id == 105792)
+                m_caster->CastSpell(unitTarget, 8050, true);
+            break;
         }
-        break;
     }
 
     // normal DB scripted effect
