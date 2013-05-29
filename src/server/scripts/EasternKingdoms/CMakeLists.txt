@@ -231,6 +231,15 @@ set(scripts_STAT_SRCS
   EasternKingdoms/BastionOfTwilight/boss_sinestra.cpp
   EasternKingdoms/BastionOfTwilight/boss_theralion_and_valiona.cpp
   EasternKingdoms/BastionOfTwilight/instance_bastion_of_twilight.cpp
+  EasternKingdoms/BlackwingDescent/blackwing_descent.h
+  EasternKingdoms/BlackwingDescent/blackwing_descent.cpp
+  EasternKingdoms/BlackwingDescent/boss_atramedes.cpp
+  EasternKingdoms/BlackwingDescent/boss_chimaeron.cpp
+  EasternKingdoms/BlackwingDescent/boss_magmaw.cpp
+  EasternKingdoms/BlackwingDescent/boss_maloriak.cpp
+  EasternKingdoms/BlackwingDescent/boss_nefarian.cpp
+  EasternKingdoms/BlackwingDescent/boss_omnotron_defense_system.cpp
+  EasternKingdoms/BlackwingDescent/instance_blackwing_descent.cpp
 )
 
 message("  -> Prepared: Eastern Kingdoms")
