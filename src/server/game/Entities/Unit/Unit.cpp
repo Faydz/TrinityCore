@@ -727,6 +727,24 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
     if (cleanDamage && damagetype == DIRECT_DAMAGE && this != victim && getPowerType() == POWER_RAGE)
     {
         uint32 rage = uint32(GetAttackTime(cleanDamage->attackType) / 1000 * 8.125f);
+
+        // Sentinel
+        if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_GENERIC, 1916, EFFECT_1))
+        {
+            if(victim->ToPlayer()) // Warrior is attacking a player
+            {
+                if(Unit* secondTarget = victim->ToPlayer()->GetSelectedUnit())
+                    if(secondTarget != this)
+                        AddPct(rage, aurEff->GetAmount());
+            }
+            else // Warrior is attacking a creature
+            {
+                if(Unit* secondTarget = victim->getVictim())
+                    if(secondTarget != this)
+                        AddPct(rage, aurEff->GetAmount());
+            }
+        }
+
         switch (cleanDamage->attackType)
         {
             case OFF_ATTACK:
