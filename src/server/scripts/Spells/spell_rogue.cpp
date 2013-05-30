@@ -72,7 +72,7 @@ class spell_rog_blind : public SpellScriptLoader
 				{
 					if(Unit* target = GetTarget())
 					{
-						target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
+                        target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE, 0, target->GetAura(32409)); // SW:D shall not be removed.
 						target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE_PERCENT);
 						target->RemoveAurasByType(SPELL_AURA_PERIODIC_LEECH);
 					}

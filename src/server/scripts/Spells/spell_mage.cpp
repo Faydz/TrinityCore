@@ -430,13 +430,9 @@ class spell_mage_polymorph : public SpellScriptLoader
                 if (!caster || !target || !(caster->ToPlayer()) || !caster->HasAura(56375))
                     return;
 
-				Unit::AuraEffectList auras = target->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
-                for (Unit::AuraEffectList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
-                {
-                    if ((*itr)->GetBase())
-                        (*itr)->GetBase()->Remove();
-                }
-
+                target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE, 0, target->GetAura(32409)); // SW:D shall not be removed.
+                target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE_PERCENT);
+                target->RemoveAurasByType(SPELL_AURA_PERIODIC_LEECH);
             }
             void Register()
             {
