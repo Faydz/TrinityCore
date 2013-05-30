@@ -3785,6 +3785,59 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
                 unitTarget->InterruptSpell(CurrentSpellTypes(i), false);
                 switch (m_spellInfo->SpellFamilyName)
                 {
+                case SPELLFAMILY_SHAMAN:
+                    // Invocation
+                    if (m_spellInfo->Id == 57994)
+                    {
+                        if(AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 2016, EFFECT_0))
+                        {
+                            int32 spellId;
+                            int32 bp0;
+                            int8 level = m_caster->getLevel();
+
+                            // Resistance formula based on the shaman level
+                            if(level <= 70)
+                            {
+                                bp0 = level;
+                            }
+                            else if(level <= 80)
+                            {
+                                bp0 = level + (level - 70) * 5;
+                            }
+                            else
+                            {
+                                bp0 = level + (level - 70) * 5 + (level - 80) * 7;
+                            }
+
+                            bp0 /= aurEff->GetAmount();
+
+                            // Different id for each spell school
+                            switch(curSpellInfo->SchoolMask)
+                            {
+                                case SPELL_SCHOOL_MASK_FIRE:
+                                    spellId = 97618;
+                                    break;
+                                case SPELL_SCHOOL_MASK_NATURE:
+                                    spellId = 97620;
+                                    break;
+                                case SPELL_SCHOOL_MASK_FROST:
+                                    spellId = 97619;
+                                    break;
+                                case SPELL_SCHOOL_MASK_SHADOW:
+                                    spellId = 97622;
+                                    break;
+                                case SPELL_SCHOOL_MASK_ARCANE:
+                                    spellId = 97621;
+                                    break;
+                            }
+
+                            if(spellId)
+                            {
+                                m_caster->CastCustomSpell(m_caster, spellId, &bp0, NULL, NULL, true);
+                            }
+                        }
+                    }
+                    break;
                 case SPELLFAMILY_MAGE:
                     // Invocation
                     if (m_spellInfo->Id == 2139) 

@@ -3974,6 +3974,14 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_SHAMAN:
                 switch(spellInfo->Id)
                 {
+                    // Seasoned Wind rank 1
+                    case 16086:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 2;
+                        break;
+                    // Seasoned Wind rank 2
+                    case 16544:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 1;
+                        break;
                     // Mental Quickness
                     case 30814:
 						spellInfo->Effects[EFFECT_2].SpellClassMask = flag96(0x20000400, 0x10848, 0xB9581418);
