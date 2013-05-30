@@ -1717,7 +1717,7 @@ void World::SetInitialWorldSettings()
 
     ///- Handle outdated emails (delete/return)
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Returning old mails...");
-    sObjectMgr->ReturnOrDeleteOldMails(false);
+    // sObjectMgr->ReturnOrDeleteOldMails(false);
 
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Loading Autobroadcasts...");
     LoadAutobroadcasts();
