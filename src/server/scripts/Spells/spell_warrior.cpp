@@ -52,6 +52,7 @@ enum WarriorSpells
     SPELL_WARRIOR_VIGILANCE_PROC                    = 50725,
     SPELL_WARRIOR_VIGILANCE_REDIRECT_THREAT         = 59665,
     SPELL_WARRIOR_SHIELD_SLAM                       = 23922,
+    SPELL_WARRIOR_WHIRLWIND                         = 1680,
 
     SPELL_PALADIN_BLESSING_OF_SANCTUARY             = 20911,
     SPELL_PALADIN_GREATER_BLESSING_OF_SANCTUARY     = 25899,
@@ -66,6 +67,66 @@ enum WarriorSpellIcons
 };
 
 int32 deepWoundsAmount;
+
+// 1680 - Whirlwind
+class spell_warr_whirlwind : public SpellScriptLoader
+{
+    public:
+        spell_warr_whirlwind() : SpellScriptLoader("spell_warr_whirlwind") { }
+
+        class spell_warr_whirlwind_SpellScript : public SpellScript
+        {   
+            PrepareSpellScript(spell_warr_whirlwind_SpellScript);
+            
+            void CheckTargets(std::list<WorldObject*>& targets)
+            {
+                // Reduces cooldown if targets are more than three
+                reduce = targets.size() >= 4 ? true : false;
+            }
+            
+            void HandleEffect(SpellEffIndex /*effIndex*/)
+            {
+                if(Unit* caster = GetCaster())
+                {
+                    if(GetCaster()->ToPlayer()->HasSpellCooldown(SPELL_WARRIOR_WHIRLWIND))
+                    {
+                        if (reduce) 
+                        {
+                            uint32 newCooldownDelay = GetCaster()->ToPlayer()->GetSpellCooldownDelay(SPELL_WARRIOR_WHIRLWIND);
+
+                            if (newCooldownDelay <= 6)
+                                newCooldownDelay = 0;
+                            else
+                                newCooldownDelay -= 6;
+
+                            GetCaster()->ToPlayer()->AddSpellCooldown(SPELL_WARRIOR_WHIRLWIND, 0,uint32(time(NULL) + newCooldownDelay));
+
+                            WorldPacket data(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
+                            data << uint32(SPELL_WARRIOR_WHIRLWIND);                        // Spell ID
+                            data << uint64(caster->GetGUID());                              // Player GUID
+                            data << int32(-6000);                                           // Cooldown mod in milliseconds
+                            GetCaster()->ToPlayer()->GetSession()->SendPacket(&data);
+                        }
+                    }       
+                }
+            }
+
+        private:
+            bool reduce;
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_warr_whirlwind_SpellScript::CheckTargets, EFFECT_1, TARGET_UNIT_SRC_AREA_ENEMY);
+                OnEffectHit += SpellEffectFn(spell_warr_whirlwind_SpellScript::HandleEffect, EFFECT_1, SPELL_EFFECT_WEAPON_PERCENT_DAMAGE);
+            }
+         
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warr_whirlwind_SpellScript();
+        }
+};
 
 // Unshackled Fury calculation with no-damaging abilities
 class spell_warr_fury_mastery_calculation : public SpellScriptLoader
@@ -1060,6 +1121,7 @@ class spell_warr_sword_and_board : public SpellScriptLoader
 
 void AddSC_warrior_spell_scripts()
 {
+    new spell_warr_whirlwind();
     new spell_warr_fury_mastery_calculation();
     new spell_warr_opportunity_strike();
     new spell_warr_stance_handler();
