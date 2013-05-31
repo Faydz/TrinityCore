@@ -3774,36 +3774,89 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
                 unitTarget->InterruptSpell(CurrentSpellTypes(i), false);
                 switch (m_spellInfo->SpellFamilyName)
                 {
-                case SPELLFAMILY_MAGE:
-                    // Invocation
-                    if (m_spellInfo->Id == 2139) 
-                        if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(84723)) 
-                            m_caster->AddAura(87098, m_caster); //rank 2
-                        else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(84722)){
-                            int32 basePoints = 5;  //rank 1
-                            m_caster->CastCustomSpell(m_caster, 87098, &basePoints, NULL, NULL, true);
+                    case SPELLFAMILY_SHAMAN:
+                        // Invocation
+                        if (m_spellInfo->Id == 57994)
+                        {
+                            if(AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 2016, EFFECT_0))                        
+                            {
+                                int32 spellId;
+                                int32 bp0;
+                                int8 level = m_caster->getLevel();
+
+                                // Resistance formula based on the shaman level
+                                if(level <= 70)
+                                {
+                                    bp0 = level;
+                                }
+                                else if(level <= 80)
+                                {
+                                    bp0 = level + (level - 70) * 5;
+                                }
+                                else
+                                {
+                                    bp0 = level + (level - 70) * 5 + (level - 80) * 7;
+                                }
+
+                                bp0 /= aurEff->GetAmount();
+
+                                // Different id for each spell school
+                                switch(curSpellInfo->SchoolMask)
+                                {
+                                    case SPELL_SCHOOL_MASK_FIRE:
+                                        spellId = 97618;
+                                        break;
+                                    case SPELL_SCHOOL_MASK_NATURE:
+                                        spellId = 97620;
+                                        break;
+                                    case SPELL_SCHOOL_MASK_FROST:
+                                        spellId = 97619;
+                                        break;
+                                    case SPELL_SCHOOL_MASK_SHADOW:
+                                        spellId = 97622;
+                                        break;
+                                    case SPELL_SCHOOL_MASK_ARCANE:
+                                        spellId = 97621;
+                                        break;
+                                }
+
+                                if(spellId)
+                                {
+                                    m_caster->CastCustomSpell(m_caster, spellId, &bp0, NULL, NULL, true);
+                                }
+                            }
                         }
-                    break;
-                case SPELLFAMILY_DRUID:
-                    // Skull Bash
-                    if (m_spellInfo->Id == 93985)
-                    {
-                        if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(16940)) // Brutal Impact (rank 1)
-                            m_caster->CastSpell(unitTarget,82364, true);
-                        else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(16941)) // Brutal Impact (rank 2)
-                            m_caster->CastSpell(unitTarget,82365, true);
-                    }
-                    break;
-                case SPELLFAMILY_WARRIOR:
-                    //Rude Interruption
-			        if (m_spellInfo->Id == 6552) 
-			        {
-				        if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61216))
-					        m_caster->AddAura(86662, m_caster); //Rank 1
-				        else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61221))
-					        m_caster->AddAura(86663, m_caster); //Rank 2
-                    }
-			        break;
+                        break;
+                    case SPELLFAMILY_MAGE:
+                        // Invocation
+                        if (m_spellInfo->Id == 2139) 
+                            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(84723)) 
+                                m_caster->AddAura(87098, m_caster); //rank 2
+                            else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(84722)){
+                                int32 basePoints = 5;  //rank 1
+                                m_caster->CastCustomSpell(m_caster, 87098, &basePoints, NULL, NULL, true);
+                            }
+                        break;
+                    case SPELLFAMILY_DRUID:
+                        // Skull Bash
+                        if (m_spellInfo->Id == 93985)
+                        {
+                            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(16940)) // Brutal Impact (rank 1)
+                                m_caster->CastSpell(unitTarget,82364, true);
+                            else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(16941)) // Brutal Impact (rank 2)
+                                m_caster->CastSpell(unitTarget,82365, true);
+                        }
+                        break;
+                    case SPELLFAMILY_WARRIOR:
+                        //Rude Interruption
+			            if (m_spellInfo->Id == 6552) 
+			            {
+				            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61216))
+					            m_caster->AddAura(86662, m_caster); //Rank 1
+				            else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61221))
+					            m_caster->AddAura(86663, m_caster); //Rank 2
+                        }
+			            break;
                 }
             }
         }
