@@ -7509,13 +7509,13 @@ void Player::SendNewCurrency(uint32 id) const
     packet.WriteBit(weekCount);
     packet.WriteBits(0, 4); // some flags
     packet.WriteBit(weekCap);
-    packet.WriteBit(0);     // season total earned
+    packet.WriteBit(itr->second.seasonCount > 0 ? 1 : 0);     // season total earned
 
     currencyData << uint32(itr->second.totalCount / precision);
     if (weekCap)
         currencyData << uint32(weekCap);
 
-    if (itr->second.seasonCount)
+    if (itr->second.seasonCount > 0)
         currencyData << uint32(itr->second.seasonCount / precision);
 
     currencyData << uint32(entry->ID);
@@ -7550,14 +7550,14 @@ void Player::SendCurrencies() const
         packet.WriteBit(weekCount);
         packet.WriteBits(0, 4); // some flags
         packet.WriteBit(weekCap);
-        packet.WriteBit(0);     // season total earned
+        packet.WriteBit(itr->second.seasonCount > 0 ? 1 : 0);     // season total earned
 
         currencyData << uint32(itr->second.totalCount / precision);
         if (weekCap)
             currencyData << uint32(weekCap);
 
-       /* if (itr->second.seasonCount)
-            currencyData << uint32(itr->second.seasonCount / precision);*/
+        if (itr->second.seasonCount > 0)
+            currencyData << uint32(itr->second.seasonCount / precision);
 
         currencyData << uint32(entry->ID);
         if (weekCount)
@@ -7621,7 +7621,7 @@ bool Player::HasCurrencySeasonCount(uint32 id, uint32 count) const
     return itr != _currencyStorage.end() && itr->second.seasonCount >= count;
 }
 
-void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bool ignoreMultipliers/* = false*/, bool refund/* = false*/)
+void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bool ignoreMultipliers/* = false*/, bool refund/* = false*/, bool ignoreCap/* = false*/)
 {
     if (!count)
         return;
@@ -7656,11 +7656,11 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
     }
 
     // seasonCount
-    int32 newSeasonCount = int32(oldSeasonCount) + !refund ? (count > 0 ? count : 0) : 0;
+    int32 newSeasonCount = int32(oldSeasonCount) + (!refund ? (count > 0 ? count : 0) : 0);
 
     // count can't be more then weekCap if used (weekCap > 0)
     uint32 weekCap = GetCurrencyWeekCap(currency);
-    if (weekCap && count > int32(weekCap))
+    if (!ignoreCap && weekCap && count > int32(weekCap))
         count = weekCap;
 
     // count can't be more then totalCap if used (totalCap > 0)
@@ -7681,7 +7681,8 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
     {
         newWeekCount = int32(weekCap);
         // weekCap - oldWeekCount always >= 0 as we set limit before!
-        newTotalCount = oldTotalCount + (weekCap - oldWeekCount);
+        if (!ignoreCap)
+            newTotalCount = oldTotalCount + (weekCap - oldWeekCount);
     }
 
     // if we get more then totalCap set to maximum;
@@ -7713,11 +7714,11 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
         WorldPacket packet(SMSG_UPDATE_CURRENCY, 12);
 
         packet.WriteBit(weekCap != 0);
-        packet.WriteBit(0); // hasSeasonCount
+        packet.WriteBit(itr->second.seasonCount > 0 ? 1 : 0); // hasSeasonCount
         packet.WriteBit(!printLog); // print in log
 
-       /* if (itr->second.seasonCount)
-            packet << uint32(itr->second.seasonCount);*/
+        if (itr->second.seasonCount > 0)
+            packet << uint32(itr->second.seasonCount / CURRENCY_PRECISION);
 
         packet << uint32(newTotalCount / precision);
         packet << uint32(id);
@@ -7785,10 +7786,12 @@ uint32 Player::GetCurrencyWeekCap(CurrencyTypesEntry const* currency) const
             return std::max(GetCurrencyWeekCap(CURRENCY_TYPE_CONQUEST_META_ARENA, false), GetCurrencyWeekCap(CURRENCY_TYPE_CONQUEST_META_RBG, false));
         case CURRENCY_TYPE_CONQUEST_META_ARENA:
             // should add precision mod = 100
-            return Trinity::Currency::ConquestRatingCalculator(_maxPersonalArenaRate) * CURRENCY_PRECISION;
+            return 1350 * CURRENCY_PRECISION;
+        // return Trinity::Currency::ConquestRatingCalculator(_maxPersonalArenaRate) * CURRENCY_PRECISION;
         case CURRENCY_TYPE_CONQUEST_META_RBG:
             // should add precision mod = 100
-            return Trinity::Currency::BgConquestRatingCalculator(GetRBGPersonalRating()) * CURRENCY_PRECISION;
+            return 1350 * CURRENCY_PRECISION;
+            //    return Trinity::Currency::BgConquestRatingCalculator(GetRBGPersonalRating()) * CURRENCY_PRECISION;
     }
 
     return currency->WeekCap;
@@ -22182,7 +22185,7 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
         }
     }
 
-    ModifyCurrency(currency, count, true, true);
+    ModifyCurrency(currency, count, true, true, false, true);
     return true;
 }
 
@@ -27146,7 +27149,7 @@ void Player::RefundItem(Item* item)
         uint32 currencyid = iece->RequiredCurrency[i];
 
         if (count && currencyid)
-            ModifyCurrency(currencyid, count, false, true, true);
+            ModifyCurrency(currencyid, count, false, true, true, true);
     }
 
     // Grant back money

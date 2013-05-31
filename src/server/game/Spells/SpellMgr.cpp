@@ -3379,6 +3379,10 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
                 spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
                 break;
+            // Shadow Orbs
+            case 77487:
+                spellInfo->Effects[EFFECT_0].BasePoints = 10;
+                break;
             default:
                 break;
         }
@@ -3974,6 +3978,18 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_SHAMAN:
                 switch(spellInfo->Id)
                 {
+                    // Seasoned Wind rank 1
+                    case 16086:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 2;
+                        break;
+                    // Seasoned Wind rank 2
+                    case 16544:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 1;
+                        break;
+                    // Mental Quickness
+                    case 30814:
+						spellInfo->Effects[EFFECT_2].SpellClassMask = flag96(0x20000400, 0x10848, 0xB9581418);
+                        break;
                     // Tremor Totem
                     case 8143:
                         spellInfo->PreventionType = SPELL_PREVENTION_TYPE_SILENCE;

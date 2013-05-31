@@ -11091,6 +11091,24 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                     DoneTotalMod *= 3.0f;
                 }
             }
+
+            // Mind blast and Mind Spike
+            if (spellProto->Id == 8092 || spellProto->Id == 73510)
+            {
+                // Shadow Orbs
+                if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_GENERIC, 4941, EFFECT_0))
+                {
+                    float bonus = aurEff->GetAmount();
+                    uint8 stack = GetAura(77487)->GetStackAmount();
+
+                    // Mastery Shadow Orb Power
+                    if (HasAuraType(SPELL_AURA_MASTERY))
+                        if (ToPlayer() && ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) == BS_PRIEST_SHADOW)
+                            bonus += (1.45 * ToPlayer()->GetMasteryPoints()) * stack;
+
+                    AddPct(DoneTotalMod, bonus);
+                }
+            }
             break;
         case SPELLFAMILY_WARLOCK:
             switch(spellProto->Id)
@@ -11714,10 +11732,6 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                                 break;
                             AddPct(crit_chance, (*i)->GetAmount()*20);
                             break;
-                        case 7917: // Glyph of Shadowburn
-                            if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, spellProto, this))
-                                crit_chance+=(*i)->GetAmount();
-                            break;
                         default:
                             break;
                     }
@@ -12093,15 +12107,15 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
             {
                 // Word of Glory
                 case 85673:
+
+                    healamount += CalculatePct(this->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC), 21);
+                    healamount += CalculatePct(int32(this->GetTotalAttackPowerValue(BASE_ATTACK)), 20);
+
                     // Divine Purpose check
                     if (this->HasAura(90174))
-                    {
-                        AddPct(DoneTotalMod, 300);
-                    }
+                        ApplyPct(healamount, 300);
                     else
-                    {
-                        AddPct(DoneTotalMod, this->GetPower(POWER_HOLY_POWER) * 100);
-                    }
+                        ApplyPct(healamount, this->GetPower(POWER_HOLY_POWER) * 100);
 
                     // Guarded by the Light check
                     if(AuraEffect* aurEff = this->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3026, EFFECT_0))

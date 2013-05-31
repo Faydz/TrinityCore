@@ -72,7 +72,7 @@ class spell_rog_blind : public SpellScriptLoader
 				{
 					if(Unit* target = GetTarget())
 					{
-						target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
+                        target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE, 0, target->GetAura(32409)); // SW:D shall not be removed.
 						target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE_PERCENT);
 						target->RemoveAurasByType(SPELL_AURA_PERIODIC_LEECH);
 					}
@@ -799,12 +799,10 @@ public:
             if (Unit* caster = GetCaster())
                 if(Unit* target = this->GetTarget())
                 {
-                    int32 bp0 = 0;
                     if(caster->HasAura(79123))
-                        bp0 = -35;
-                    else if(caster->HasAura(79125))
-                        bp0 = -70;
-                    caster->CastCustomSpell(target, 79124, &bp0, NULL, NULL, true);
+                        caster->CastSpell(target, 79124, true);
+                    if(caster->HasAura(79125))
+                        caster->CastSpell(target, 79126, true);
                 }
         }
         void HandleApply (AuraEffect const* aurEff, AuraEffectHandleModes mode)
