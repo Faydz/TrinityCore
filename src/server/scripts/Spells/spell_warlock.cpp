@@ -78,6 +78,7 @@ enum WarlockSpells
     SPELL_WARLOCK_SOULSHATTER                       = 32835,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION               = 30108,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117,
+    SPELL_WARLOCK_SHADOWBURN                        = 17877,
 };
 
 enum WarlockGlyphs
@@ -1514,6 +1515,53 @@ class spell_warl_unstable_affliction : public SpellScriptLoader
         }
 };
 
+class spell_warl_shadowburn : public SpellScriptLoader
+{
+    public:
+        spell_warl_shadowburn() : SpellScriptLoader("spell_warl_shadowburn") { }
+
+        class spell_warl_shadowburn_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warl_shadowburn_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellEntry*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_SHADOWBURN))
+                    return false;
+                return true;
+            }
+
+            void HandleAfter()
+            {
+                // Glyph of Shadowburn
+                if(Unit * caster = GetCaster())
+                {
+                    if(caster->HasAura(56229) && !caster->HasAura(91001))
+                    {
+                        if(Unit * target = GetHitUnit())
+                        {
+                            if(target->isAlive())
+                            {
+                                caster->ToPlayer()->RemoveSpellCooldown(SPELL_WARLOCK_SHADOWBURN, true);
+                                caster->AddAura(91001, caster);
+                            }
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_warl_shadowburn_SpellScript::HandleAfter);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warl_shadowburn_SpellScript();
+        }
+};
+
 void AddSC_warlock_spell_scripts()
 {
     new spell_warl_seduction();
@@ -1545,4 +1593,5 @@ void AddSC_warlock_spell_scripts()
     new spell_warl_unstable_affliction();
     new spell_warl_bane_of_doom();
     new spell_warl_health_funnel();
+    new spell_warl_shadowburn();
 }
