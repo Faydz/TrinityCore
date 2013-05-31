@@ -7621,7 +7621,7 @@ bool Player::HasCurrencySeasonCount(uint32 id, uint32 count) const
     return itr != _currencyStorage.end() && itr->second.seasonCount >= count;
 }
 
-void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bool ignoreMultipliers/* = false*/, bool refund/* = false*/)
+void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bool ignoreMultipliers/* = false*/, bool refund/* = false*/, bool ignoreCap/* = false*/)
 {
     if (!count)
         return;
@@ -7660,7 +7660,7 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
 
     // count can't be more then weekCap if used (weekCap > 0)
     uint32 weekCap = GetCurrencyWeekCap(currency);
-    if (weekCap && count > int32(weekCap))
+    if (!ignoreCap && weekCap && count > int32(weekCap))
         count = weekCap;
 
     // count can't be more then totalCap if used (totalCap > 0)
@@ -7681,7 +7681,8 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
     {
         newWeekCount = int32(weekCap);
         // weekCap - oldWeekCount always >= 0 as we set limit before!
-        newTotalCount = oldTotalCount + (weekCap - oldWeekCount);
+        if (!ignoreCap)
+            newTotalCount = oldTotalCount + (weekCap - oldWeekCount);
     }
 
     // if we get more then totalCap set to maximum;
@@ -22184,7 +22185,7 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
         }
     }
 
-    ModifyCurrency(currency, count, true, true);
+    ModifyCurrency(currency, count, true, true, false, true);
     return true;
 }
 
@@ -27148,7 +27149,7 @@ void Player::RefundItem(Item* item)
         uint32 currencyid = iece->RequiredCurrency[i];
 
         if (count && currencyid)
-            ModifyCurrency(currencyid, count, false, true, true);
+            ModifyCurrency(currencyid, count, false, true, true, true);
     }
 
     // Grant back money
