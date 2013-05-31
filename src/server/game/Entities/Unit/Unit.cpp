@@ -11091,6 +11091,24 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                     DoneTotalMod *= 3.0f;
                 }
             }
+
+            // Mind blast and Mind Spike
+            if (spellProto->Id == 8092 || spellProto->Id == 73510)
+            {
+                // Shadow Orbs
+                if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_GENERIC, 4941, EFFECT_0))
+                {
+                    float bonus = aurEff->GetAmount();
+                    uint8 stack = GetAura(77487)->GetStackAmount();
+
+                    // Mastery Shadow Orb Power
+                    if (HasAuraType(SPELL_AURA_MASTERY))
+                        if (ToPlayer() && ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) == BS_PRIEST_SHADOW)
+                            bonus += (1.45 * ToPlayer()->GetMasteryPoints()) * stack;
+
+                    AddPct(DoneTotalMod, bonus);
+                }
+            }
             break;
         case SPELLFAMILY_WARLOCK:
             switch(spellProto->Id)

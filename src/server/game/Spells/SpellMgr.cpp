@@ -3379,6 +3379,10 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
                 spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
                 break;
+            // Shadow Orbs
+            case 77487:
+                spellInfo->Effects[EFFECT_0].BasePoints = 10;
+                break;
             default:
                 break;
         }
