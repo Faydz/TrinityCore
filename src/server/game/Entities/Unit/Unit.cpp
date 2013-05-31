@@ -12112,17 +12112,14 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                 // Word of Glory
                 case 85673:
 
-                    healamount += CalculatePct(this->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC), 49);
+                    healamount += CalculatePct(this->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC), 21);
+                    healamount += CalculatePct(int32(this->GetTotalAttackPowerValue(BASE_ATTACK)), 20);
 
                     // Divine Purpose check
                     if (this->HasAura(90174))
-                    {
                         ApplyPct(healamount, 300);
-                    }
                     else
-                    {
                         ApplyPct(healamount, this->GetPower(POWER_HOLY_POWER) * 100);
-                    }
 
                     // Guarded by the Light check
                     if(AuraEffect* aurEff = this->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3026, EFFECT_0))

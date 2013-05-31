@@ -313,6 +313,7 @@ class spell_pal_inquisition : public SpellScriptLoader
                 {
                     calculatedDuration = caster->GetPower(POWER_HOLY_POWER) * 4;
                     
+                    // Inquiry of Faith
                     if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_PALADIN, 3025, EFFECT_1))
                         AddPct(calculatedDuration, float(aurEff->GetAmount()));
                     
