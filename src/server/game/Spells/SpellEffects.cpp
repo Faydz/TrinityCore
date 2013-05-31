@@ -555,34 +555,8 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             }
             case SPELLFAMILY_PRIEST:
             {
-                // Mind blast and Mind Spike
-                if (m_spellInfo->SpellFamilyFlags[0] & 0x00002000 || m_spellInfo->Id == 73510)
-                {
-                    // Shadow Orbs
-                    if (AuraEffect* aurEff = GetCaster()->GetAuraEffect(77487, 0, 0))
-                    {
-                        float pct = aurEff->GetAmount();
-                        
-                        // Mastery Shadow Orb Power
-                        if (GetCaster()->HasAuraType(SPELL_AURA_MASTERY))
-                            if (GetCaster()->ToPlayer() && GetCaster()->ToPlayer()->GetPrimaryTalentTree(GetCaster()->ToPlayer()->GetActiveSpec()) == BS_PRIEST_SHADOW)
-                                pct += 1.45 * GetCaster()->ToPlayer()->GetMasteryPoints();
-
-                        AddPct(damage, pct);
-                        GetCaster()->RemoveAurasDueToSpell(77487);
-                        GetCaster()->CastSpell(GetCaster(), 95799, true);
-                    }
-
-                    // Remove dots
-                    if (m_spellInfo->Id == 73510)
-                    {
-                        unitTarget->RemoveAurasDueToSpell(589, GetCaster()->GetGUID());
-                        unitTarget->RemoveAurasDueToSpell(2944, GetCaster()->GetGUID());
-                        unitTarget->RemoveAurasDueToSpell(34914, GetCaster()->GetGUID());
-                    }
-                }
                 // Mind Blast
-                if (m_spellInfo->SpellFamilyFlags[0] & 0x00002000)
+                if (m_spellInfo->Id == 8092)
                 {
                     // Improved Mind Blast (Mind Blast in shadow form bonus)
                     if (m_caster->GetShapeshiftForm() == FORM_SHADOW)
@@ -601,6 +575,21 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                             }
                         }
                     }
+                    // Shadow Orbs
+                    if (AuraEffect* aurEff = m_caster->GetAuraEffect(77487, 0, 0))
+                        m_caster->CastSpell(m_caster, 95799, true);
+                }
+                // Mind Spike
+                if (m_spellInfo->Id == 73510)
+                {
+                    // Shadow Orbs
+                    if (AuraEffect* aurEff = m_caster->GetAuraEffect(77487, 0, 0))
+                        m_caster->CastSpell(m_caster, 95799, true);
+
+                    // Remove dots
+                    unitTarget->RemoveAurasDueToSpell(589, m_caster->GetGUID());
+                    unitTarget->RemoveAurasDueToSpell(2944, m_caster->GetGUID());
+                    unitTarget->RemoveAurasDueToSpell(34914, m_caster->GetGUID());
                 }
                 break;
             }
@@ -3785,59 +3774,6 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
                 unitTarget->InterruptSpell(CurrentSpellTypes(i), false);
                 switch (m_spellInfo->SpellFamilyName)
                 {
-                case SPELLFAMILY_SHAMAN:
-                    // Invocation
-                    if (m_spellInfo->Id == 57994)
-                    {
-                        if(AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 2016, EFFECT_0))
-                        {
-                            int32 spellId;
-                            int32 bp0;
-                            int8 level = m_caster->getLevel();
-
-                            // Resistance formula based on the shaman level
-                            if(level <= 70)
-                            {
-                                bp0 = level;
-                            }
-                            else if(level <= 80)
-                            {
-                                bp0 = level + (level - 70) * 5;
-                            }
-                            else
-                            {
-                                bp0 = level + (level - 70) * 5 + (level - 80) * 7;
-                            }
-
-                            bp0 /= aurEff->GetAmount();
-
-                            // Different id for each spell school
-                            switch(curSpellInfo->SchoolMask)
-                            {
-                                case SPELL_SCHOOL_MASK_FIRE:
-                                    spellId = 97618;
-                                    break;
-                                case SPELL_SCHOOL_MASK_NATURE:
-                                    spellId = 97620;
-                                    break;
-                                case SPELL_SCHOOL_MASK_FROST:
-                                    spellId = 97619;
-                                    break;
-                                case SPELL_SCHOOL_MASK_SHADOW:
-                                    spellId = 97622;
-                                    break;
-                                case SPELL_SCHOOL_MASK_ARCANE:
-                                    spellId = 97621;
-                                    break;
-                            }
-
-                            if(spellId)
-                            {
-                                m_caster->CastCustomSpell(m_caster, spellId, &bp0, NULL, NULL, true);
-                            }
-                        }
-                    }
-                    break;
                 case SPELLFAMILY_MAGE:
                     // Invocation
                     if (m_spellInfo->Id == 2139) 
