@@ -912,6 +912,9 @@ void Battleground::EndBattleground(uint32 winner)
                 player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_WIN_ARENA, GetMapId());
                 player->ModifyCurrency(CURRENCY_TYPE_CONQUEST_META_ARENA, sWorld->getIntConfig(CONFIG_CURRENCY_CONQUEST_POINTS_ARENA_REWARD));
 
+                // Update max week rating
+                player->UpdateMaxWeekRating(CP_SOURCE_ARENA, winnerArenaTeam->GetSlot());
+
                 winnerArenaTeam->MemberWon(player, loserMatchmakerRating, winnerMatchmakerChange);
             }
             else
