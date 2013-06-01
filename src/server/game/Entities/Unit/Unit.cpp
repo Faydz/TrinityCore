@@ -35,7 +35,6 @@
 #include "Log.h"
 #include "MapManager.h"
 #include "MoveSpline.h"
-#include "MoveSplineInit.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Opcodes.h"
@@ -11732,10 +11731,6 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                                 break;
                             AddPct(crit_chance, (*i)->GetAmount()*20);
                             break;
-                        case 7917: // Glyph of Shadowburn
-                            if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, spellProto, this))
-                                crit_chance+=(*i)->GetAmount();
-                            break;
                         default:
                             break;
                     }
@@ -12112,17 +12107,14 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                 // Word of Glory
                 case 85673:
 
-                    healamount += CalculatePct(this->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC), 49);
+                    healamount += CalculatePct(this->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC), 21);
+                    healamount += CalculatePct(int32(this->GetTotalAttackPowerValue(BASE_ATTACK)), 20);
 
                     // Divine Purpose check
                     if (this->HasAura(90174))
-                    {
                         ApplyPct(healamount, 300);
-                    }
                     else
-                    {
                         ApplyPct(healamount, this->GetPower(POWER_HOLY_POWER) * 100);
-                    }
 
                     // Guarded by the Light check
                     if(AuraEffect* aurEff = this->GetDummyAuraEffect(SPELLFAMILY_PALADIN, 3026, EFFECT_0))
@@ -19919,6 +19911,40 @@ void Unit::SendMovementSwimming()
         Movement::PacketSender(this, SMSG_SPLINE_MOVE_START_SWIM, NULL_OPCODE).Send();
     else
         Movement::PacketSender(this, SMSG_SPLINE_MOVE_STOP_SWIM, NULL_OPCODE).Send();
+}
+
+void Unit::SendSetPlayHoverAnim(bool enable)
+{
+    ObjectGuid guid = GetGUID();
+    WorldPacket data(SMSG_SET_PLAY_HOVER_ANIM, 10);
+    data.WriteBit(guid[4]);
+    data.WriteBit(guid[0]);
+    data.WriteBit(guid[1]);
+    data.WriteBit(enable);
+    data.WriteBit(guid[3]);
+    data.WriteBit(guid[7]);
+    data.WriteBit(guid[5]);
+    data.WriteBit(guid[2]);
+    data.WriteBit(guid[6]);
+
+    data.WriteByteSeq(guid[3]);
+    data.WriteByteSeq(guid[2]);
+    data.WriteByteSeq(guid[1]);
+    data.WriteByteSeq(guid[7]);
+    data.WriteByteSeq(guid[0]);
+    data.WriteByteSeq(guid[5]);
+    data.WriteByteSeq(guid[4]);
+    data.WriteByteSeq(guid[6]);
+
+    SendMessageToSet(&data, true);
+}
+
+void Unit::SendMovementSetSplineAnim(Movement::AnimType anim)
+{
+    WorldPacket data(SMSG_SPLINE_MOVE_SET_ANIM, 8 + 4);
+    data.append(GetPackGUID());
+    data << uint32(anim);
+    SendMessageToSet(&data, false);
 }
 
 bool Unit::IsSplineEnabled() const

@@ -3986,10 +3986,6 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 16544:
                         spellInfo->Effects[EFFECT_0].BasePoints = 1;
                         break;
-                    // Mental Quickness
-                    case 30814:
-						spellInfo->Effects[EFFECT_2].SpellClassMask = flag96(0x20000400, 0x10848, 0xB9581418);
-                        break;
                     // Tremor Totem
                     case 8143:
                         spellInfo->PreventionType = SPELL_PREVENTION_TYPE_SILENCE;

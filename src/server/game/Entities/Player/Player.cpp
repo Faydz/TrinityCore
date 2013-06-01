@@ -18511,11 +18511,12 @@ void Player::_LoadVoidStorage(PreparedQueryResult result)
             continue;
         }
 
-        /*if (!sObjectMgr->GetPlayerByLowGUID(creatorGuid))
+        std::string name;
+        if (creatorGuid && !sObjectMgr->GetPlayerNameByGUID(creatorGuid, name))
         {
             sLog->outError(LOG_FILTER_PLAYER, "Player::_LoadVoidStorage - Player (GUID: %u, name: %s) has an item with an invalid creator guid, set to 0 (item id: " UI64FMTD ", entry: %u, creatorGuid: %u).", GetGUIDLow(), GetName().c_str(), itemId, itemEntry, creatorGuid);
             creatorGuid = 0;
-        }*/
+        }
 
         _voidStorageItems[slot] = new VoidStorageItem(itemId, itemEntry, creatorGuid, randomProperty, suffixFactor);
     }

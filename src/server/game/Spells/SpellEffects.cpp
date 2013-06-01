@@ -527,7 +527,7 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         break;
                     // Cleave
                     case 845:
-                        damage += int32(m_caster->CalculateDamage(BASE_ATTACK, true, false) * 1.15f);
+                        damage += int32(6 + m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.45f);
                         break;
                     // Shockwave
                     case 46968: 
@@ -578,6 +578,11 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     // Shadow Orbs
                     if (AuraEffect* aurEff = m_caster->GetAuraEffect(77487, 0, 0))
                         m_caster->CastSpell(m_caster, 95799, true);
+
+                    // Remove Mind Spike Debuff
+                    if(AuraEffect* aurEff = unitTarget->GetAuraEffect(87178, EFFECT_0, m_caster->GetGUID()))
+                        unitTarget->RemoveAura(87178);
+
                 }
                 // Mind Spike
                 if (m_spellInfo->Id == 73510)
