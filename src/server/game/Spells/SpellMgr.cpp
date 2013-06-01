@@ -109,6 +109,8 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
             // Dragon's Breath
             else if (spellproto->SpellFamilyFlags[0] & 0x800000)
                 return DIMINISHING_DRAGONS_BREATH;
+            else if (spellproto->Id == 83302)
+                return DIMINISHING_ROOT;
             break;
         }
         case SPELLFAMILY_WARRIOR:
