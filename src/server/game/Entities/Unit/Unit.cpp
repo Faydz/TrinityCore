@@ -11079,7 +11079,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 {
                     // Mind Melt
                     if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_PRIEST, 3139, 0))
-                        DoneTotalMod *= 1.0f + (aurEff->GetAmount() / 100);
+                        AddPct(DoneTotalMod, aurEff->GetAmount());
 
                     // Always x3 damage under 25% hp
                     DoneTotalMod *= 3.0f;
