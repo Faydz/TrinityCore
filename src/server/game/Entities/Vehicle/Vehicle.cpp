@@ -353,8 +353,9 @@ SeatMap::const_iterator Vehicle::GetNextEmptySeat(int8 seatId, bool next) const
         }
         else
         {
-            if (seat-- == Seats.begin())
+            if (seat == Seats.begin())
                 seat = Seats.end();
+            --seat;
         }
 
         // Make sure we don't loop indefinetly
@@ -417,7 +418,7 @@ void Vehicle::InstallAccessory(uint32 entry, int8 seatId, bool minion, uint8 typ
  * @author Machiavelli
  * @date 17-2-2013
  *
- * @param [in,out] The prospective passenger.
+ * @param [in, out] The prospective passenger.
  * @param seatId        Identifier for the seat. Value of -1 indicates the next available seat.
  *
  * @return true if it succeeds, false if it fails.
@@ -492,7 +493,7 @@ bool Vehicle::AddPassenger(Unit* unit, int8 seatId)
  * @author Machiavelli
  * @date 17-2-2013
  *
- * @param [in,out] unit The passenger to remove.
+ * @param [in, out] unit The passenger to remove.
  */
 
 void Vehicle::RemovePassenger(Unit* unit)
@@ -556,7 +557,7 @@ void Vehicle::RelocatePassengers()
 
             float px, py, pz, po;
             passenger->m_movementInfo.t_pos.GetPosition(px, py, pz, po);
-            CalculatePassengerPosition(px, py, pz, po);
+            CalculatePassengerPosition(px, py, pz, &po);
             passenger->UpdatePosition(px, py, pz, po);
         }
     }
@@ -615,7 +616,7 @@ void Vehicle::InitMovementInfoForBase()
  * @author Machiavelli
  * @date 17-2-2013
  *
- * @param [in,out] The passenger for which we check the seat info.
+ * @param [in, out] The passenger for which we check the seat info.
  *
  * @return null if passenger not found on vehicle, else the DBC record for the seat.
  */
@@ -637,7 +638,7 @@ VehicleSeatEntry const* Vehicle::GetSeatForPassenger(Unit const* passenger) cons
  * @author Machiavelli
  * @date 17-2-2013
  *
- * @param [in,out] passenger Passenger to look up.
+ * @param [in, out] passenger Passenger to look up.
  *
  * @return The seat iterator for specified passenger if it's found on the vehicle. Otherwise Seats.end() (invalid iterator).
  */
@@ -674,24 +675,28 @@ uint8 Vehicle::GetAvailableSeatCount() const
     return ret;
 }
 
-void Vehicle::CalculatePassengerPosition(float& x, float& y, float& z, float& o) const
+void Vehicle::CalculatePassengerPosition(float& x, float& y, float& z, float* o /*= NULL*/) const
 {
-    float inx = x, iny = y, inz = z, ino = o;
-    o = GetBase()->GetOrientation() + ino;
+    float inx = x, iny = y, inz = z;
+    if (o)
+        *o = Position::NormalizeOrientation(GetBase()->GetOrientation() + *o);
+
     x = GetBase()->GetPositionX() + inx * std::cos(GetBase()->GetOrientation()) - iny * std::sin(GetBase()->GetOrientation());
     y = GetBase()->GetPositionY() + iny * std::cos(GetBase()->GetOrientation()) + inx * std::sin(GetBase()->GetOrientation());
     z = GetBase()->GetPositionZ() + inz;
 }
 
-void Vehicle::CalculatePassengerOffset(float& x, float& y, float& z, float& o) const
+void Vehicle::CalculatePassengerOffset(float& x, float& y, float& z, float* o /*= NULL*/) const
 {
-    o -= GetBase()->GetOrientation();
+    if (o)
+        *o = Position::NormalizeOrientation(*o - GetBase()->GetOrientation());
+
     z -= GetBase()->GetPositionZ();
     y -= GetBase()->GetPositionY();    // y = searchedY * std::cos(o) + searchedX * std::sin(o)
     x -= GetBase()->GetPositionX();    // x = searchedX * std::cos(o) + searchedY * std::sin(o + pi)
     float inx = x, iny = y;
-    y = (iny - inx * tan(GetBase()->GetOrientation())) / (cos(GetBase()->GetOrientation()) + std::sin(GetBase()->GetOrientation()) * tan(GetBase()->GetOrientation()));
-    x = (inx + iny * tan(GetBase()->GetOrientation())) / (cos(GetBase()->GetOrientation()) + std::sin(GetBase()->GetOrientation()) * tan(GetBase()->GetOrientation()));
+    y = (iny - inx * std::tan(GetBase()->GetOrientation())) / (std::cos(GetBase()->GetOrientation()) + std::sin(GetBase()->GetOrientation()) * std::tan(GetBase()->GetOrientation()));
+    x = (inx + iny * std::tan(GetBase()->GetOrientation())) / (std::cos(GetBase()->GetOrientation()) + std::sin(GetBase()->GetOrientation()) * std::tan(GetBase()->GetOrientation()));
 }
 
 /**

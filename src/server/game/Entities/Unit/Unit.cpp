@@ -414,7 +414,7 @@ void Unit::UpdateSplineMovement(uint32 t_diff)
             pos.m_orientation = loc.orientation;
 
             if (TransportBase* transport = GetDirectTransport())
-                transport->CalculatePassengerPosition(loc.x, loc.y, loc.z, loc.orientation);
+                transport->CalculatePassengerPosition(loc.x, loc.y, loc.z, &loc.orientation);
         }
 
         if (HasUnitState(UNIT_STATE_CANNOT_TURN))
@@ -7493,7 +7493,7 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 damage, Aura* triggeredByAura, Sp
         case SPELLFAMILY_PALADIN:
         {
             // Infusion of Light
-            if (dummySpell->SpellIconID == 3021)
+            if (procSpell && dummySpell->SpellIconID == 3021)
             {
                 // Flash of Light HoT on Flash of Light when Sacred Shield active
                 if (procSpell->SpellFamilyFlags[0] & 0x40000000 && procSpell->SpellIconID == 242)
@@ -7524,6 +7524,8 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 damage, Aura* triggeredByAura, Sp
             // Glyph of Divinity
             else if (dummySpell->Id == 54939)
             {
+                if (!procSpell)
+                    return false;
                 *handled = true;
                 // Check if we are the target and prevent mana gain
                 if (victim && triggeredByAura->GetCasterGUID() == victim->GetGUID())
@@ -10479,6 +10481,7 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                 default:
                     return false;
             }
+            break;
         case SPELL_DAMAGE_CLASS_MAGIC:
         {
             if (schoolMask & SPELL_SCHOOL_MASK_NORMAL)
@@ -10625,6 +10628,7 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                     break;
                 }
             }
+        /// Intentional fallback. Calculate critical strike chance for both Ranged and Melee spells
         case SPELL_DAMAGE_CLASS_RANGED:
         {
             if (victim)
@@ -12470,7 +12474,7 @@ void Unit::setDeathState(DeathState s)
         SetPower(getPowerType(), 0);
 
         // players in instance don't have ZoneScript, but they have InstanceScript
-        if (ZoneScript* zoneScript = GetZoneScript() ? GetZoneScript() : (ZoneScript*)GetInstanceScript())
+        if (ZoneScript* zoneScript = GetZoneScript() ? GetZoneScript() : GetInstanceScript())
             zoneScript->OnUnitDeath(this);
     }
     else if (s == JUST_RESPAWNED)
@@ -16817,12 +16821,9 @@ bool Unit::HandleSpellClick(Unit* clicker, int8 seatId)
         result = true;
     }
 
-    if (result)
-    {
-        Creature* creature = ToCreature();
-        if (creature && creature->IsAIEnabled)
-            creature->AI()->OnSpellClick(clicker);
-    }
+    Creature* creature = ToCreature();
+    if (creature && creature->IsAIEnabled)
+        creature->AI()->OnSpellClick(clicker, result);
 
     return result;
 }
@@ -16857,7 +16858,7 @@ void Unit::_EnterVehicle(Vehicle* vehicle, int8 seatId, AuraApplication const* a
         }
     }
 
-    if (aurApp && aurApp->GetRemoveMode())
+    if (!aurApp || aurApp->GetRemoveMode())
         return;
 
     if (Player* player = ToPlayer())
