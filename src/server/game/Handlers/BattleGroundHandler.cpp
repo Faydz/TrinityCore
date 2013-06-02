@@ -852,7 +852,7 @@ void WorldSession::HandleRequestRatedBgStats(WorldPacket& /*recvData*/)
     WorldPacket data(SMSG_BATTLEFIELD_RATED_INFO, 29);
     data << uint32(0);  // Reward
     data << uint8(3);   // unk
-    data << uint32(0);  // unk
+    data << uint32(0);  // Rating
     data << uint32(0);  // unk
     data << _player->GetCurrencyWeekCap(CURRENCY_TYPE_CONQUEST_META_RBG, true);
     data << uint32(0);  // unk
