@@ -12,6 +12,49 @@
 class LuaUnit
 {
 public:
+    // SummonPlayer(player, map, x, y, z, zoneId[, delay])
+    static int SummonPlayer(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+        
+        Player* target = sEluna->CHECK_PLAYER(L, 1);
+        uint32 map = luaL_checkunsigned(L, 2);
+        float x = luaL_checknumber(L, 3);
+        float y = luaL_checknumber(L, 4);
+        float z = luaL_checknumber(L, 5);
+        float zoneId = luaL_checkunsigned(L, 6);
+        uint32 delay = luaL_optunsigned(L, 7, 0);
+        if(!target || !MapManager::IsValidMapCoord(map, x, y, z))
+            return 0;
+
+        target->SetSummonPoint(map, x, y, z);
+        WorldPacket data(SMSG_SUMMON_REQUEST, 8+4+4);
+        data << uint64(player->GetGUID());
+        data << uint32(zoneId);
+        data << uint32(delay ? delay*IN_MILLISECONDS : MAX_PLAYER_SUMMON_DELAY*IN_MILLISECONDS);
+        target->GetSession()->SendPacket(&data);
+        return 0;
+    }
+
+    // Mute(time[, reason])
+    static int Mute(lua_State* L, Unit* unit)
+    {
+        TO_PLAYER();
+
+        uint32 muteseconds = luaL_checkunsigned(L, 1);
+        const char* reason = luaL_checkstring(L, 2);
+
+        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_MUTE_TIME);
+        int64 muteTime = time(NULL) + muteseconds;
+        player->GetSession()->m_muteTime = muteTime;
+        stmt->setInt64(0, muteTime);
+        stmt->setString(1, reason ? reason : "");
+        stmt->setString(2, "Eluna");
+        stmt->setUInt32(3, player->GetSession()->GetAccountId());
+        LoginDatabase.Execute(stmt);
+        return 0;
+    }
+
     // GetHeight(X, Y)
     static int GetHeight(lua_State* L, Unit* unit)
     {
@@ -826,7 +869,7 @@ public:
     {
         TO_PLAYER_BOOL();
 
-        sEluna->PushBoolean(L, player->GetSession()->IsARecruiter());
+        sEluna->PushBoolean(L, player->GetSession()->IsARecruiter() || (player->GetSession()->GetRecruiterId() != 0));
         return 1;
     }
 
@@ -3651,7 +3694,7 @@ public:
             str = "Priest";
             break;
         case 6:
-            str = "DeathKnight";
+            str = "Death Knight";
             break;
         case 7:
             str = "Shaman";

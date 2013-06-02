@@ -331,7 +331,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetHealth", &LuaUnit::GetHealth},                             // :GetHealth()
     {"GetDisplayId", &LuaUnit::GetDisplayId},                       // :GetDisplayId()
     {"GetNativeDisplayId", &LuaUnit::GetNativeDisplayId},           // :GetNativeDisplayId()
-    {"GetGUID", &LuaUnit::GetGUID},                                 // :GetGUID()
+    {"GetGUID", &LuaUnit::GetGUID},                                 // :GetGUID() - Returns uint64 guid as hex string
     {"GetMapId", &LuaUnit::GetMapId},                               // :GetMapId()
     {"GetX", &LuaUnit::GetX},                                       // :GetX()
     {"GetY", &LuaUnit::GetY},                                       // :GetY()
@@ -486,8 +486,10 @@ ElunaRegister<Unit> UnitMethods[] =
     {"Emote", &LuaUnit::Emote},                                     // :Emote(emote) -- UNDOCUMENTED
     {"CountPctFromCurHealth", &LuaUnit::CountPctFromCurHealth},     // :CountPctFromCurHealth(int32 pct) -- UNDOCUMENTED
     {"CountPctFromMaxHealth", &LuaUnit::CountPctFromMaxHealth},     // :CountPctFromMaxHealth() -- UNDOCUMENTED
-    {"Dismount", &LuaUnit::Dismount},								// :Dismount() - Dismounts the unit. UNDOCUMENTED
-    {"Mount", &LuaUnit::Mount},								        // :Mount(displayId) - Mounts the unit on the specified displayId. UNDOCUMENTED
+    {"Dismount", &LuaUnit::Dismount},                               // :Dismount() - Dismounts the unit. UNDOCUMENTED
+    {"Mount", &LuaUnit::Mount},                                     // :Mount(displayId) - Mounts the unit on the specified displayId. UNDOCUMENTED
+    {"Mute", &LuaUnit::Mute},                                       // :Mute(time[, reason]) - Mutes the player for given time in seconds. UNDOCUMENTED
+    {"SummonPlayer", &LuaUnit::SummonPlayer},                       // :SummonPlayer(player, map, x, y, z, zoneId[, delay]) - Sends a popup to the player asking if he wants to be summoned if yes, teleported to coords. ZoneID defines the location name shown in the popup Delay is the time until the popup closes automatically. UNDOCUMENTED
 
     /* Vehicle */
     {"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger},         // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
@@ -508,7 +510,7 @@ ElunaRegister<GameObject> GameObjectMethods[] =
 {
     // Getters
     {"GetUnitType", &LuaGameObject::GetUnitType},                   // :GetUnitType() - Returns unit type Ex. GameObject
-    {"GetGUID", &LuaGameObject::GetGUID},                           // :GetGUID() - returns object guid (string)
+    {"GetGUID", &LuaGameObject::GetGUID},                           // :GetGUID() - Returns uint64 guid as hex string
     {"GetName", &LuaGameObject::GetName},                           // :GetName() -
     {"GetDisplayId", &LuaGameObject::GetDisplayId},                 // :GetDisplayId() -
     {"GetScale", &LuaGameObject::GetScale},                         // :GetScale() -
@@ -568,7 +570,7 @@ ElunaRegister<Item> ItemMethods[] =
 {
     // Getters
     {"GetUnitType", &LuaItem::GetUnitType},                                 // :GetUnitType() - Returns object type, IE: Item, Creature
-    {"GetGUID", &LuaItem::GetGUID},                                         // :GetGUID() - Returns object guid (string)
+    {"GetGUID", &LuaItem::GetGUID},                                         // :GetGUID() - Returns uint64 guid as hex string
     {"GetOwnerGUID", &LuaItem::GetOwnerGUID},                               // :GetOwnerGUID() - Returns the owner's guid
     {"GetOwner", &LuaItem::GetOwner},                                       // :GetOwner() - Returns the owner object (player)
     {"GetCount", &LuaItem::GetCount},                                       // :GetCount() - Returns item stack count

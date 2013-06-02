@@ -326,7 +326,7 @@ void Eluna::PushULong(lua_State* L, uint64 l)
 {
     if (!L) L = LuaState;
     std::ostringstream ss;
-    ss << l;
+    ss << std::hex << l;
     sEluna->PushString(L, ss.str().c_str());
 }
 
@@ -334,7 +334,7 @@ void Eluna::PushLong(lua_State* L, int64 l)
 {
     if (!L) L = LuaState;
     std::ostringstream ss;
-    ss << l;
+    ss << std::hex << l;
     sEluna->PushString(L, ss.str().c_str());
 }
 
@@ -467,36 +467,44 @@ void Eluna::PushPacket(lua_State* L, WorldPacket* packet)
         lua_pushnil(L);
 }
 
-Player * Eluna::CHECK_PLAYER(lua_State* L, int narg)
+WorldObject* Eluna::CHECK_WORLDOBJECT(lua_State* L, int narg)
 {
     if (!L)
-        return ElunaTemplate<Player>::check(LuaState, narg);
+        return ElunaTemplate<WorldObject>::check(LuaState, narg);
     else
-        return ElunaTemplate<Player>::check(L, narg);
+        return ElunaTemplate<WorldObject>::check(L, narg);
 }
 
 Unit * Eluna::CHECK_UNIT(lua_State* L, int narg)
 {
-    if (!L)
-        return ElunaTemplate<Unit>::check(LuaState, narg);
-    else
-        return ElunaTemplate<Unit>::check(L, narg);
+    WorldObject* obj = CHECK_WORLDOBJECT(L, narg);
+    if(!obj)
+        return NULL;
+    return obj->ToUnit();
+}
+
+Player * Eluna::CHECK_PLAYER(lua_State* L, int narg)
+{
+    WorldObject* obj = CHECK_WORLDOBJECT(L, narg);
+    if(!obj)
+        return NULL;
+    return obj->ToPlayer();
 }
 
 Creature * Eluna::CHECK_CREATURE(lua_State* L, int narg)
 {
-    if (!L)
-        return ElunaTemplate<Creature>::check(LuaState, narg);
-    else
-        return ElunaTemplate<Creature>::check(L, narg);
+    WorldObject* obj = CHECK_WORLDOBJECT(L, narg);
+    if(!obj)
+        return NULL;
+    return obj->ToCreature();
 }
 
 GameObject* Eluna::CHECK_OBJECT(lua_State* L, int narg)
 {
-    if (!L)
-        return ElunaTemplate<GameObject>::check(LuaState, narg);
-    else
-        return ElunaTemplate<GameObject>::check(L, narg);
+    WorldObject* obj = CHECK_WORLDOBJECT(L, narg);
+    if(!obj)
+        return NULL;
+    return obj->ToGameObject();
 }
 
 WorldPacket* Eluna::CHECK_PACKET(lua_State* L, int narg)
@@ -505,14 +513,6 @@ WorldPacket* Eluna::CHECK_PACKET(lua_State* L, int narg)
         return ElunaTemplate<WorldPacket>::check(LuaState, narg);
     else
         return ElunaTemplate<WorldPacket>::check(L, narg);
-}
-
-WorldObject* Eluna::CHECK_WORLDOBJECT(lua_State* L, int narg)
-{
-    if (!L)
-        return ElunaTemplate<WorldObject>::check(LuaState, narg);
-    else
-        return ElunaTemplate<WorldObject>::check(L, narg);
 }
 
 Quest* Eluna::CHECK_QUEST(lua_State* L, int narg)
@@ -538,9 +538,7 @@ uint64 Eluna::CHECK_ULONG(lua_State* L, int narg)
         c_str = luaL_optstring(LuaState, narg, "0");
     else
         c_str = luaL_optstring(L, narg, "0");
-    uint64 guid;
-    std::istringstream(c_str) >> guid;
-    return guid;
+    return strtoul(c_str, NULL, 0);
 }
 
 int64 Eluna::CHECK_LONG(lua_State* L, int narg)
@@ -550,9 +548,7 @@ int64 Eluna::CHECK_LONG(lua_State* L, int narg)
         c_str = luaL_optstring(LuaState, narg, "0");
     else
         c_str = luaL_optstring(L, narg, "0");
-    int64 guid;
-    std::istringstream(c_str) >> guid;
-    return guid;
+    return strtol(c_str, NULL, 0);
 }
 
 // Saves the function reference ID given to the register type's store for given entry under the given event

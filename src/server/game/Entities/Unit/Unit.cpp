@@ -11756,6 +11756,8 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
         if (!(creature->GetCreatureTemplate()->type_flags & CREATURE_TYPEFLAGS_MOUNTED_COMBAT))
             Dismount();
     }
+    else if(Player* player = ToPlayer())
+        sScriptMgr->OnPlayerEnterCombat(player, enemy);
 
     for (Unit::ControlList::iterator itr = m_Controlled.begin(); itr != m_Controlled.end(); ++itr)
     {
@@ -11789,8 +11791,11 @@ void Unit::ClearInCombat()
         else if (!isCharmed())
             return;
     }
-    else
-        ToPlayer()->UpdatePotionCooldown();
+    else if(Player* player = ToPlayer())
+    {
+        player->UpdatePotionCooldown();
+        sScriptMgr->OnPlayerLeaveCombat(player);
+    }
 
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
 }
