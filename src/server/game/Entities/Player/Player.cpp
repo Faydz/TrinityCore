@@ -27404,8 +27404,6 @@ VoidStorageItem* Player::GetVoidStorageItem(uint64 id, uint8& slot) const
     for (uint8 i = 0; i < VOID_STORAGE_MAX_SLOT; ++i)
     {
         if (_voidStorageItems[i]){
-            sLog->outError(LOG_FILTER_NETWORKIO, "VOIDSTORAGE: - Player (GUID: %u, name: %s) - GetVoidStorage looking for id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
-            sLog->outError(LOG_FILTER_NETWORKIO, "VOIDSTORAGE: - Player (GUID: %u, name: %s) - GetVoidStorage passing through id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(_voidStorageItems[i]->ItemId));
             if(_voidStorageItems[i]->ItemId == id)
             {
                 sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) withdrawing item (id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
