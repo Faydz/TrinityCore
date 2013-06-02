@@ -1,0 +1,2 @@
+DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=91264 AND `spell_effect`=-82691;
+INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (91264, -82691, 2, 'Ring of frost immunity (3 sec)');
