@@ -475,7 +475,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
     // default amount calculation
 	int32 amount = 0;
     if (this){
-	    if(GetBase() && GetBase()->GetOwner() && GetBase()->GetOwner()->ToUnit()){
+        if(GetBase()->GetOwner()){
 		    amount = m_spellInfo->Effects[m_effIndex].CalcValue(caster, &m_baseAmount, GetBase()->GetOwner()->ToUnit());
         }
     }
