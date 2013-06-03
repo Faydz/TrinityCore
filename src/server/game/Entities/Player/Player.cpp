@@ -25223,11 +25223,7 @@ uint32 Player::GetRuneTypeBaseCooldown(RuneType runeType) const
 {
     float cooldown = RUNE_BASE_COOLDOWN;
     float hastePct = 0.0f;
-
-    AuraEffectList const& regenAura = GetAuraEffectsByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
-    for (AuraEffectList::const_iterator i = regenAura.begin();i != regenAura.end(); ++i)
-        if ((*i)->GetMiscValue() == POWER_RUNES && (*i)->GetMiscValueB() == runeType)
-            cooldown *= 1.0f - (*i)->GetAmount() / 100.0f;
+    float additionalPct = 0.0f;
 
     // Runes cooldown are now affected by player's haste from equipment ...
     hastePct = GetRatingBonusValue(CR_HASTE_MELEE);
@@ -25235,9 +25231,12 @@ uint32 Player::GetRuneTypeBaseCooldown(RuneType runeType) const
     // ... and some auras.
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE);
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE_2);
-    hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_RANGED_HASTE);    
-
+    hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_RANGED_HASTE);
+    // first recalc of haste is happening -- VERIFIED
     cooldown *=  1.0f - (hastePct / 100.0f);
+    // second recalc due to the SPELL_AURA_MOD_POWER_PERCENTAGE (RUNIC EMPOWERMENT)
+    additionalPct += GetTotalAuraModifier(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
+    cooldown = (cooldown / (1 + additionalPct/100));
     return cooldown;
 }
 
