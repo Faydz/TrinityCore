@@ -3749,7 +3749,7 @@ public:
                 if(who->ToPlayer())
                 {
                     if (Aura* ring = who->GetAura(82691))
-                        aura->SetDuration(8000);
+                        ring->SetDuration(8000);
                 }
             }
         }
