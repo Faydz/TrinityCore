@@ -25250,26 +25250,23 @@ void Player::SetRuneCooldown(uint8 index, uint32 cooldown)
 
 void Player::SetRandomRuneAvailable()
 {      
-    uint32 cooldownrunes[MAX_RUNES];  // Questo array contiene le rune che hanno cooldown
-    uint32 runescount = 0;             
+    uint8 cooldownrunes[MAX_RUNES];  // Define an array containing rules in cooldown
+    uint8 runescount = 0;             
 
-    for (uint32 j = 0; j < MAX_RUNES; ++j) 
+    for (uint8 j = 0; j < MAX_RUNES; ++j) 
     {
         if (GetRuneCooldown(j) > 0 ) 
         {
-            cooldownrunes[runescount] = j;     //Se una runa ha cooldown, me la segno, dopo pesco da questo array
+            cooldownrunes[runescount] = j;     //If a rune is in cooldown, i just insert it in my array.
             runescount++;
         }
     }
-
-    if (runescount > 0)
+    
+    if (runescount > 0) // If at least one rune is in cooldown I refresh it
     {
-        if(runescount > 1){
-            uint32 rndrune = uint32(urand(0, runescount - 1));  // Pesco una posizione dall'array
-            SetRuneCooldown(rndrune, 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
-        }
-        else 
-            SetRuneCooldown(0, 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
+            uint8 index = uint8(urand(0, runescount - 1));
+            SetRuneCooldown(cooldownrunes[index], 0);
+            ResyncRunes(MAX_RUNES);  // this function is  not refreshing runes correctly (same problem with blood tap) -> NEEDS TO BE CORRECTED
     }
     else
         return;
