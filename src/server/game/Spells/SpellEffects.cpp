@@ -4604,11 +4604,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
             // Cobra Shot Focus Regen
             case 77767:
             {                
-                int32 bp0 = 9;
-                if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, 0))
-                    bp0 += aurEff->GetAmount();
-
-                m_caster->CastCustomSpell(m_caster, 91954, &bp0, NULL, NULL, true);                
                 break;
             }
         }
