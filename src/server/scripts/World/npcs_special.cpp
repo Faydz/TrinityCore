@@ -3747,7 +3747,10 @@ public:
 
                 // PvP duration of 8 seconds
                 if(who->ToPlayer())
-                    who->GetAura(82691)->SetDuration(8000);
+                {
+                    if (Aura* ring = who->GetAura(82691))
+                        aura->SetDuration(8000);
+                }
             }
         }
 
