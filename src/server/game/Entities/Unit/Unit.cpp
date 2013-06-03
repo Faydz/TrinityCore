@@ -1588,13 +1588,8 @@ uint32 Unit::CalcArmorReducedDamage(Unit* victim, const uint32 damage, SpellInfo
     if (armor < 0.0f)
         armor = 0.0f;
 
-    float levelModifier = getLevel();
-    if (levelModifier > 59)
-        levelModifier = levelModifier + (4.5f * (levelModifier - 59));
-
-    float tmpvalue = 0.1f * armor / (8.5f * levelModifier + 40);
-    tmpvalue = tmpvalue / (1.0f + tmpvalue);
-
+    float tmpvalue = armor / (armor + (float(getLevel())* 2167.5 - 158167.5));
+    
     if (tmpvalue < 0.0f)
         tmpvalue = 0.0f;
     if (tmpvalue > 0.75f)
@@ -11084,7 +11079,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 {
                     // Mind Melt
                     if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_PRIEST, 3139, 0))
-                        DoneTotalMod *= 1.0f + (aurEff->GetAmount() / 100);
+                        AddPct(DoneTotalMod, aurEff->GetAmount());
 
                     // Always x3 damage under 25% hp
                     DoneTotalMod *= 3.0f;
