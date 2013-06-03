@@ -66,6 +66,7 @@ enum WarlockSpells
     SPELL_WARLOCK_MANA_FEED_ICON_ID                 = 1982,
     SPELL_WARLOCK_NETHER_WARD                       = 91711,
     SPELL_WARLOCK_NETHER_WARD_TALENT                = 91713,
+    SPELL_WARLOCK_SHADOWBURN                        = 17877,
     SPELL_WARLOCK_SHADOW_WARD                       = 6229,
     SPELL_WARLOCK_SIPHON_LIFE_HEAL                  = 63106,
     SPELL_WARLOCK_SOUL_SHARD_ENERGIZE               = 87388,
@@ -78,7 +79,6 @@ enum WarlockSpells
     SPELL_WARLOCK_SOULSHATTER                       = 32835,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION               = 30108,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117,
-    SPELL_WARLOCK_SHADOWBURN                        = 17877,
 };
 
 enum WarlockGlyphs
@@ -87,6 +87,53 @@ enum WarlockGlyphs
 };
 
 bool _SeedOfCorruptionFlag = false;
+
+class spell_warl_shadowburn : public SpellScriptLoader
+{
+    public:
+        spell_warl_shadowburn() : SpellScriptLoader("spell_warl_shadowburn") { }
+
+        class spell_warl_shadowburn_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warl_shadowburn_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellEntry*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_SHADOWBURN))
+                    return false;
+                return true;
+            }
+
+            void HandleAfter()
+            {
+                // Glyph of Shadowburn
+                if(Unit * caster = GetCaster())
+                {
+                    if(caster->HasAura(56229) && !caster->HasAura(91001))
+                    {
+                        if(Unit * target = GetHitUnit())
+                        {
+                            if(target->isAlive())
+                            {
+                                caster->ToPlayer()->RemoveSpellCooldown(SPELL_WARLOCK_SHADOWBURN, true);
+                                caster->AddAura(91001, caster);
+                            }
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_warl_shadowburn_SpellScript::HandleAfter);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warl_shadowburn_SpellScript();
+        }
+};
 
 // 6358 - Seduction
 class spell_warl_seduction : public SpellScriptLoader
@@ -1512,53 +1559,6 @@ class spell_warl_unstable_affliction : public SpellScriptLoader
         AuraScript* GetAuraScript() const
         {
             return new spell_warl_unstable_affliction_AuraScript();
-        }
-};
-
-class spell_warl_shadowburn : public SpellScriptLoader
-{
-    public:
-        spell_warl_shadowburn() : SpellScriptLoader("spell_warl_shadowburn") { }
-
-        class spell_warl_shadowburn_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_warl_shadowburn_SpellScript);
-
-            bool Validate(SpellInfo const* /*spellEntry*/)
-            {
-                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_SHADOWBURN))
-                    return false;
-                return true;
-            }
-
-            void HandleAfter()
-            {
-                // Glyph of Shadowburn
-                if(Unit * caster = GetCaster())
-                {
-                    if(caster->HasAura(56229) && !caster->HasAura(91001))
-                    {
-                        if(Unit * target = GetHitUnit())
-                        {
-                            if(target->isAlive())
-                            {
-                                caster->ToPlayer()->RemoveSpellCooldown(SPELL_WARLOCK_SHADOWBURN, true);
-                                caster->AddAura(91001, caster);
-                            }
-                        }
-                    }
-                }
-            }
-
-            void Register()
-            {
-                AfterHit += SpellHitFn(spell_warl_shadowburn_SpellScript::HandleAfter);
-            }
-        };
-
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_warl_shadowburn_SpellScript();
         }
 };
 
