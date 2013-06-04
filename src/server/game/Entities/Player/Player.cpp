@@ -25236,7 +25236,8 @@ uint32 Player::GetRuneTypeBaseCooldown(RuneType runeType) const
     cooldown *=  1.0f - (hastePct / 100.0f);
     // second recalc due to the SPELL_AURA_MOD_POWER_PERCENTAGE (RUNIC EMPOWERMENT)
     additionalPct += GetTotalAuraModifier(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
-    cooldown = (cooldown / (1 + additionalPct/100));
+    cooldown = (cooldown / (1.0f + additionalPct / 100.0f));
+
     return cooldown;
 }
 
