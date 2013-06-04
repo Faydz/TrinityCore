@@ -30,30 +30,7 @@ INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comm
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (30808, -19506, 2, 'Unleashed Rage (rank 2) - Trueshot Aura');
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (30808, -79102, 2, 'Unleashed Rage (rank 2) - Blessing of Might');
 
-DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=79102 AND `spell_effect` IN (-53137, -53138, -19506, -30802, -30808);
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (79102, -53137, 2, 'Blessing of Might - Abomination\'s Might (rank 1)');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (79102, -53138, 2, 'Blessing of Might - Abomination\'s Might (rank 2)');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (79102, -19506, 2, 'Blessing of Might - Trueshot Aura');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (79102, -30802, 2, 'Blessing of Might - Unleashed Rage (rank 1)');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (79102, -30808, 2, 'Blessing of Might - Unleashed Rage (rank 2)');
-
--- Agility and Strength Buff
-DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=6673 AND `spell_effect` = -93435;
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (6673, -93435, 2, 'Battle Shout - Roar of Courage');
-
-DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=93435 AND `spell_effect` = -6673;
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (93435, -6673, 2, 'Roar of Courage - Battle Shout');
-
 -- Critical Buff
-DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=24604 AND `spell_effect` IN (-24932, -51698, -51700, -51701, -29801, -51466, -51470);
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (24604, -24932, 2, 'Furious Howl - Leader of the Pack');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (24604, -51698, 2, 'Furious Howl - Honor Among Thieves (rank 1)');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (24604, -51700, 2, 'Furious Howl - Honor Among Thieves (rank 2)');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (24604, -51701, 2, 'Furious Howl - Honor Among Thieves (rank 3)');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (24604, -29801, 2, 'Furious Howl - Rampage');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (24604, -51466, 2, 'Furious Howl - Elemental Oath (rank 1)');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (24604, -51470, 2, 'Furious Howl - Elemental Oath (rank 2)');
-
 DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=24932 AND `spell_effect` IN (-24604, -51698, -51700, -51701, -29801, -51466, -51470);
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (24932, -24604, 2, 'Leader of the Pack - Furious Howl');
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (24932, -51698, 2, 'Leader of the Pack - Honor Among Thieves (rank 1)');
@@ -108,30 +85,3 @@ INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comm
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (51470, -51701, 2, 'Elemental Oath (rank 2) - Honor Among Thieves (rank 3)');
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (51470, -24932, 2, 'Elemental Oath (rank 2) - Leader of the Pack');
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (51470, -29801, 2, 'Elemental Oath (rank 2) - Rampage');
-
--- Water walking (ends in combat)
-DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=3714 AND `spell_effect` IN (-546, -1706);
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (3714, -546, 2, 'Path of Frost - Water Walking');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (3714, -1706, 2, 'Path of Frost - Levitate');
-
-DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=546 AND `spell_effect` IN (-3714, -1706);
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (546, -3714, 2, 'Water Walking - Path of Frost');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (546, -1706, 2, 'Water Walking - Levitate');
-
-DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=1706 AND `spell_effect` IN (-3714, -546);
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (1706, -3714, 2, 'Levitate - Path of Frost');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (1706, -546, 2, 'Levitate - Water Walking');
-
--- Mana
-DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=54424 AND `spell_effect` IN (-79058);
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (54424, -79058, 2, 'Fel Intelligence - Arcane Brilliance');
-
-DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=79058 AND `spell_effect` IN (-54424);
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (79058, -54424, 2, 'Arcane Brilliance - Fel Intelligence');
-
--- Spell Power buff
-DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=79058 AND `spell_effect` IN (-52109);
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (79058, -52109, 2, 'Arcane Brilliance - Flametongue Totem');
-
-DELETE FROM `spell_linked_spell` WHERE `spell_trigger`=52109 AND `spell_effect` IN (-79058);
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (52109, -79058, 2, 'Flametongue Totem - Arcane Brilliance');
