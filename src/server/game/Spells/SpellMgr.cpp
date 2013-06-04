@@ -3471,6 +3471,9 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    case 31930:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 3;
+                        break;
                     case 36946:
                         spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(1);
                         break;
