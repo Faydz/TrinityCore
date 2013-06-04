@@ -66,6 +66,7 @@ enum WarlockSpells
     SPELL_WARLOCK_MANA_FEED_ICON_ID                 = 1982,
     SPELL_WARLOCK_NETHER_WARD                       = 91711,
     SPELL_WARLOCK_NETHER_WARD_TALENT                = 91713,
+    SPELL_WARLOCK_SHADOWBURN                        = 17877,
     SPELL_WARLOCK_SHADOW_WARD                       = 6229,
     SPELL_WARLOCK_SIPHON_LIFE_HEAL                  = 63106,
     SPELL_WARLOCK_SOUL_SHARD_ENERGIZE               = 87388,
@@ -78,15 +79,102 @@ enum WarlockSpells
     SPELL_WARLOCK_SOULSHATTER                       = 32835,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION               = 30108,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117,
-    SPELL_WARLOCK_SHADOWBURN                        = 17877,
 };
 
 enum WarlockGlyphs
 {
     SPELL_WARLOCK_GLYPH_OF_SEDUCTION                = 56250,
+    SPELL_WARLOCK_GLYPH_OF_SOUL_LINK                = 173,
 };
 
 bool _SeedOfCorruptionFlag = false;
+
+// 25228 - Soul Link
+class spell_warl_soul_link : public SpellScriptLoader 
+{
+    public:
+        spell_warl_soul_link() : SpellScriptLoader("spell_warl_soul_link") { }
+
+        class spell_warl_soul_link_AuraScript: public AuraScript
+        {
+            PrepareAuraScript(spell_warl_soul_link_AuraScript);
+
+            void OnEffectCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = false;
+
+                if(!GetCaster())
+                    return;
+
+                if(Unit* caster = GetCaster()->GetCharmerOrOwner())
+                {
+                    // Glyph of Soul Link
+                    if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, SPELL_WARLOCK_GLYPH_OF_SOUL_LINK, EFFECT_0))
+                    {
+                        amount += aurEff->GetAmount();
+                    }
+                }
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warl_soul_link_AuraScript::OnEffectCalcAmount, EFFECT_0, SPELL_AURA_SPLIT_DAMAGE_PCT);
+            }
+        };
+
+        AuraScript* GetAuraScript() const 
+        {
+            return new spell_warl_soul_link_AuraScript();
+        }
+};
+
+// 17877 - Shadowburn
+class spell_warl_shadowburn : public SpellScriptLoader
+{
+    public:
+        spell_warl_shadowburn() : SpellScriptLoader("spell_warl_shadowburn") { }
+
+        class spell_warl_shadowburn_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warl_shadowburn_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellEntry*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_SHADOWBURN))
+                    return false;
+                return true;
+            }
+
+            void HandleAfter()
+            {
+                // Glyph of Shadowburn
+                if(Unit * caster = GetCaster())
+                {
+                    if(caster->HasAura(56229) && !caster->HasAura(91001))
+                    {
+                        if(Unit * target = GetHitUnit())
+                        {
+                            if(target->isAlive())
+                            {
+                                caster->ToPlayer()->RemoveSpellCooldown(SPELL_WARLOCK_SHADOWBURN, true);
+                                caster->AddAura(91001, caster);
+                            }
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_warl_shadowburn_SpellScript::HandleAfter);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warl_shadowburn_SpellScript();
+        }
+};
 
 // 6358 - Seduction
 class spell_warl_seduction : public SpellScriptLoader
@@ -1515,55 +1603,10 @@ class spell_warl_unstable_affliction : public SpellScriptLoader
         }
 };
 
-class spell_warl_shadowburn : public SpellScriptLoader
-{
-    public:
-        spell_warl_shadowburn() : SpellScriptLoader("spell_warl_shadowburn") { }
-
-        class spell_warl_shadowburn_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_warl_shadowburn_SpellScript);
-
-            bool Validate(SpellInfo const* /*spellEntry*/)
-            {
-                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_SHADOWBURN))
-                    return false;
-                return true;
-            }
-
-            void HandleAfter()
-            {
-                // Glyph of Shadowburn
-                if(Unit * caster = GetCaster())
-                {
-                    if(caster->HasAura(56229) && !caster->HasAura(91001))
-                    {
-                        if(Unit * target = GetHitUnit())
-                        {
-                            if(target->isAlive())
-                            {
-                                caster->ToPlayer()->RemoveSpellCooldown(SPELL_WARLOCK_SHADOWBURN, true);
-                                caster->AddAura(91001, caster);
-                            }
-                        }
-                    }
-                }
-            }
-
-            void Register()
-            {
-                AfterHit += SpellHitFn(spell_warl_shadowburn_SpellScript::HandleAfter);
-            }
-        };
-
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_warl_shadowburn_SpellScript();
-        }
-};
-
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_soul_link();
+    new spell_warl_shadowburn();
     new spell_warl_seduction();
 	new spell_warl_hand_of_guldan();
     new spell_warl_armor_nether_ward_ignore();
@@ -1593,5 +1636,4 @@ void AddSC_warlock_spell_scripts()
     new spell_warl_unstable_affliction();
     new spell_warl_bane_of_doom();
     new spell_warl_health_funnel();
-    new spell_warl_shadowburn();
 }

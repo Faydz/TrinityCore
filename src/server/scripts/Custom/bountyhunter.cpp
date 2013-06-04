@@ -269,7 +269,7 @@ class npc_b_hunter : public CreatureScript
                                    
                                    // CREO LA BOUNTY
                                    // Levo il cash al player che crea la bounty
-								   player->ModifyMoney(-(bountygold));
+								   player->ModifyMoney(-int64(bountygold));
                                    //ASSEGNO NELL'ARRAY DELLE BOUNTY, I PARAMETRI PER LA NUOVA BOUNTY
                                    Bounty[hunted->GetGUID()].hunted = hunted->GetGUID();
                                    Bounty[hunted->GetGUID()].hunter = player->GetGUID();
@@ -439,7 +439,7 @@ class bounty_chat : public CommandScript
                             }
                         }
                         
-                        player->ModifyMoney(-(bountygold));
+                        player->ModifyMoney(-int64(bountygold));
                         Bounty[hunted->GetGUID()].hunted = hunted->GetGUID();
                         Bounty[hunted->GetGUID()].hunter = player->GetGUID();
                         Bounty[hunted->GetGUID()].gold = bountygold;

@@ -578,11 +578,6 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     // Shadow Orbs
                     if (AuraEffect* aurEff = m_caster->GetAuraEffect(77487, 0, 0))
                         m_caster->CastSpell(m_caster, 95799, true);
-
-                    // Remove Mind Spike Debuff
-                    if(AuraEffect* aurEff = unitTarget->GetAuraEffect(87178, EFFECT_0, m_caster->GetGUID()))
-                        unitTarget->RemoveAura(87178);
-
                 }
                 // Mind Spike
                 if (m_spellInfo->Id == 73510)
@@ -4609,11 +4604,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
             // Cobra Shot Focus Regen
             case 77767:
             {                
-                int32 bp0 = 9;
-                if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, 0))
-                    bp0 += aurEff->GetAmount();
-
-                m_caster->CastCustomSpell(m_caster, 91954, &bp0, NULL, NULL, true);                
                 break;
             }
         }

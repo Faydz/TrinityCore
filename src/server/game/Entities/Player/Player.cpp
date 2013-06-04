@@ -25223,11 +25223,7 @@ uint32 Player::GetRuneTypeBaseCooldown(RuneType runeType) const
 {
     float cooldown = RUNE_BASE_COOLDOWN;
     float hastePct = 0.0f;
-
-    AuraEffectList const& regenAura = GetAuraEffectsByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
-    for (AuraEffectList::const_iterator i = regenAura.begin();i != regenAura.end(); ++i)
-        if ((*i)->GetMiscValue() == POWER_RUNES && (*i)->GetMiscValueB() == runeType)
-            cooldown *= 1.0f - (*i)->GetAmount() / 100.0f;
+    float additionalPct = 0.0f;
 
     // Runes cooldown are now affected by player's haste from equipment ...
     hastePct = GetRatingBonusValue(CR_HASTE_MELEE);
@@ -25236,9 +25232,12 @@ uint32 Player::GetRuneTypeBaseCooldown(RuneType runeType) const
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE);
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE_2);
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_RANGED_HASTE);
-    hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
-
+    // first recalc of haste is happening -- VERIFIED
     cooldown *=  1.0f - (hastePct / 100.0f);
+    // second recalc due to the SPELL_AURA_MOD_POWER_PERCENTAGE (RUNIC EMPOWERMENT)
+    additionalPct += GetTotalAuraModifier(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
+    cooldown = (cooldown / (1.0f + additionalPct / 100.0f));
+
     return cooldown;
 }
 
@@ -25250,26 +25249,23 @@ void Player::SetRuneCooldown(uint8 index, uint32 cooldown)
 
 void Player::SetRandomRuneAvailable()
 {      
-    uint32 cooldownrunes[MAX_RUNES];  // Questo array contiene le rune che hanno cooldown
-    uint32 runescount = 0;             
+    uint8 cooldownrunes[MAX_RUNES];  // Define an array containing rules in cooldown
+    uint8 runescount = 0;             
 
-    for (uint32 j = 0; j < MAX_RUNES; ++j) 
+    for (uint8 j = 0; j < MAX_RUNES; ++j) 
     {
         if (GetRuneCooldown(j) > 0 ) 
         {
-            cooldownrunes[runescount] = j;     //Se una runa ha cooldown, me la segno, dopo pesco da questo array
+            cooldownrunes[runescount] = j;     //If a rune is in cooldown, i just insert it in my array.
             runescount++;
         }
     }
-
-    if (runescount > 0)
+    
+    if (runescount > 0) // If at least one rune is in cooldown I refresh it
     {
-        if(runescount > 1){
-            uint32 rndrune = uint32(urand(0, runescount - 1));  // Pesco una posizione dall'array
-            SetRuneCooldown(rndrune, 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
-        }
-        else 
-            SetRuneCooldown(0, 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
+            uint8 index = uint8(urand(0, runescount - 1));
+            SetRuneCooldown(cooldownrunes[index], 0);
+            ResyncRunes(MAX_RUNES);  // this function is  not refreshing runes correctly (same problem with blood tap) -> NEEDS TO BE CORRECTED
     }
     else
         return;

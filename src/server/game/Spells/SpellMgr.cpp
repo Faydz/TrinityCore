@@ -3077,11 +3077,6 @@ void SpellMgr::LoadSpellCustomAttr()
             case 56641:
                 spellInfo->Effects[2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
                 break;
-            // Cobra Shot
-            case 77767:
-                spellInfo->Effects[1].Effect = SPELL_EFFECT_DUMMY;
-                spellInfo->Effects[1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
-                break;
             // Master Marksman
             case 82926:
                 spellInfo->Effects[0].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
@@ -3394,6 +3389,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Fel Intelligence
+                    case 54424:
+                        spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_100_YARDS);
+                        spellInfo->Effects[EFFECT_1].MaxRadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_100_YARDS);
+                        break;
                     // Soul Harvest
                     case 79268:
                         spellInfo->Effects[EFFECT_0].Amplitude = 3000;
@@ -3944,11 +3944,6 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->Effects[0].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
                         spellInfo->Effects[1].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
                         spellInfo->Effects[2].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
-                        break;
-                    // Cobra Shot
-                    case 77767:
-                        spellInfo->Effects[1].TargetA = TARGET_UNIT_TARGET_ENEMY;
-                        spellInfo->Effects[1].Effect = SPELL_EFFECT_SCRIPT_EFFECT;
                         break;
                 }
                 break;
