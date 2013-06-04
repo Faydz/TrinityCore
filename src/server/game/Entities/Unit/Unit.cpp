@@ -6065,29 +6065,33 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 // Nether Protection
                 case 30299:
                 case 30301:
-                    if(!procSpell)
-                        return false;
-
-                    switch(procSpell->SchoolMask)
                     {
-                        case SPELL_SCHOOL_MASK_HOLY:
-                            this->CastSpell(this, 54370, true);
-                            break;
-                        case SPELL_SCHOOL_MASK_FIRE:
-                            this->CastSpell(this, 54371, true);
-                            break;
-                        case SPELL_SCHOOL_MASK_FROST:
-                            this->CastSpell(this, 54372, true);
-                            break;
-                        case SPELL_SCHOOL_MASK_ARCANE:
-                            this->CastSpell(this, 54373, true);
-                            break;
-                        case SPELL_SCHOOL_MASK_SHADOW:
-                            this->CastSpell(this, 54374, true);
-                            break;
-                        case SPELL_SCHOOL_MASK_NATURE:
-                            this->CastSpell(this, 54375, true);
-                            break;
+                        if(!procSpell)
+                            return false;
+                    
+                        int32 bp0 = -triggerAmount;
+
+                        switch(procSpell->SchoolMask)
+                        {
+                            case SPELL_SCHOOL_MASK_HOLY:
+                                this->CastCustomSpell(this, 54370, &bp0, NULL, NULL, true);
+                                break;
+                            case SPELL_SCHOOL_MASK_FIRE:
+                                this->CastCustomSpell(this, 54371, &bp0, NULL, NULL, true);
+                                break;
+                            case SPELL_SCHOOL_MASK_FROST:
+                                this->CastCustomSpell(this, 54372, &bp0, NULL, NULL, true);
+                                break;
+                            case SPELL_SCHOOL_MASK_ARCANE:
+                                this->CastCustomSpell(this, 54373, &bp0, NULL, NULL, true);
+                                break;
+                            case SPELL_SCHOOL_MASK_SHADOW:
+                                this->CastCustomSpell(this, 54374, &bp0, NULL, NULL, true);
+                                break;
+                            case SPELL_SCHOOL_MASK_NATURE:
+                                this->CastCustomSpell(this, 54375, &bp0, NULL, NULL, true);
+                                break;
+                        }
                     }
                     break;
                 // Burning Embers

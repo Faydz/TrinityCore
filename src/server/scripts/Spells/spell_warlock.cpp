@@ -66,6 +66,7 @@ enum WarlockSpells
     SPELL_WARLOCK_MANA_FEED_ICON_ID                 = 1982,
     SPELL_WARLOCK_NETHER_WARD                       = 91711,
     SPELL_WARLOCK_NETHER_WARD_TALENT                = 91713,
+    SPELL_WARLOCK_SACRIFICE                         = 7812,
     SPELL_WARLOCK_SHADOWBURN                        = 17877,
     SPELL_WARLOCK_SHADOW_WARD                       = 6229,
     SPELL_WARLOCK_SIPHON_LIFE_HEAL                  = 63106,
@@ -88,6 +89,38 @@ enum WarlockGlyphs
 };
 
 bool _SeedOfCorruptionFlag = false;
+bool _CanProcNetherProtection = false;
+
+// 30299-30301 - Nether Protection
+class spell_warl_nether_protection : public SpellScriptLoader
+{
+    public:
+        spell_warl_nether_protection() : SpellScriptLoader("spell_warl_nether_protection") { }
+
+        class spell_warl_nether_protection_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warl_nether_protection_AuraScript);
+
+            bool CheckProc(ProcEventInfo& eventInfo)
+            {
+                bool toReturn = _CanProcNetherProtection;
+
+                _CanProcNetherProtection = false;
+
+                return toReturn;
+            }
+
+            void Register()
+            {
+                DoCheckProc += AuraCheckProcFn(spell_warl_nether_protection_AuraScript::CheckProc);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_warl_nether_protection_AuraScript();
+        }
+};
 
 // 25228 - Soul Link
 class spell_warl_soul_link : public SpellScriptLoader 
@@ -904,7 +937,7 @@ class spell_warl_seed_of_corruption_dot : public SpellScriptLoader
         }
 };
 
-// 6229 - Shadow Ward
+// 6229/91711/7812 - Shadow Ward/Nether Ward/Sacrifice
 class spell_warl_shadow_ward : public SpellScriptLoader
 {
     public:
@@ -916,6 +949,10 @@ class spell_warl_shadow_ward : public SpellScriptLoader
 
             void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
             {
+                // Voidwalker's Sacrifice has not sp benefit
+                if(GetId() == SPELL_WARLOCK_SACRIFICE)
+                    return;
+
                 canBeRecalculated = false;
                 if (Unit* caster = GetCaster())
                 {
@@ -928,10 +965,16 @@ class spell_warl_shadow_ward : public SpellScriptLoader
                     amount += int32(bonus);
                 }
             }
+            
+            void Absorb(AuraEffect * /*aurEff*/, DamageInfo &/*dmgInfo*/, uint32 &/*absorbAmount*/) 
+            {
+                _CanProcNetherProtection = true;
+            }
 
             void Register()
             {
                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warl_shadow_ward_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
+                OnEffectAbsorb += AuraEffectAbsorbFn(spell_warl_shadow_ward_AuraScript::Absorb, EFFECT_0);
             }
         };
 
@@ -1605,6 +1648,7 @@ class spell_warl_unstable_affliction : public SpellScriptLoader
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_nether_protection();
     new spell_warl_soul_link();
     new spell_warl_shadowburn();
     new spell_warl_seduction();
