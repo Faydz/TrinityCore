@@ -49,6 +49,7 @@ enum WarlockSpells
     SPELL_WARLOCK_DEMON_SOUL_SUCCUBUS               = 79463,
     SPELL_WARLOCK_DEMON_SOUL_VOIDWALKER             = 79464,
     SPELL_WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE        = 89653,
+    SPELL_WARLOCK_GLYPH_OF_SHADOWBURN_BUFF          = 91001,
     SPELL_WARLOCK_HAND_OF_GUL_DAN_AURA              = 86000,
     SPELL_WARLOCK_HAND_OF_GUL_DAN_GRAPHIC           = 85526,
     SPELL_WARLOCK_HAUNT                             = 48181,
@@ -66,6 +67,7 @@ enum WarlockSpells
     SPELL_WARLOCK_MANA_FEED_ICON_ID                 = 1982,
     SPELL_WARLOCK_NETHER_WARD                       = 91711,
     SPELL_WARLOCK_NETHER_WARD_TALENT                = 91713,
+    SPELL_WARLOCK_NIGHTFALL                         = 91713,
     SPELL_WARLOCK_SACRIFICE                         = 7812,
     SPELL_WARLOCK_SHADOWBURN                        = 17877,
     SPELL_WARLOCK_SHADOW_WARD                       = 6229,
@@ -85,11 +87,46 @@ enum WarlockSpells
 enum WarlockGlyphs
 {
     SPELL_WARLOCK_GLYPH_OF_SEDUCTION                = 56250,
+    SPELL_WARLOCK_GLYPH_OF_SHADOWBURN               = 56229,
     SPELL_WARLOCK_GLYPH_OF_SOUL_LINK                = 173,
 };
 
 bool _SeedOfCorruptionFlag = false;
 bool _CanProcNetherProtection = false;
+
+// 686 - Shadow Bolt
+class spell_warl_shadow_bolt : public SpellScriptLoader
+{
+    public:
+        spell_warl_shadow_bolt() : SpellScriptLoader("spell_warl_shadow_bolt") { }
+
+        class spell_warl_shadow_bolt_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warl_shadow_bolt_SpellScript);
+
+            void HandleAfter()
+            {
+                Unit * caster = GetCaster();
+                Spell* spell = GetSpell();
+
+                // Nightfall is removed only with instant Shadow Bolt
+                if(caster && spell && caster->HasAura(SPELL_WARLOCK_NIGHTFALL) && spell->GetCastTime() == 0)
+                {
+                    caster->RemoveAurasDueToSpell(SPELL_WARLOCK_NIGHTFALL);
+                }
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_warl_shadow_bolt_SpellScript::HandleAfter);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warl_shadow_bolt_SpellScript();
+        }
+};
 
 // 30299-30301 - Nether Protection
 class spell_warl_nether_protection : public SpellScriptLoader
@@ -183,14 +220,14 @@ class spell_warl_shadowburn : public SpellScriptLoader
                 // Glyph of Shadowburn
                 if(Unit * caster = GetCaster())
                 {
-                    if(caster->HasAura(56229) && !caster->HasAura(91001))
+                    if(caster->HasAura(SPELL_WARLOCK_GLYPH_OF_SHADOWBURN) && !caster->HasAura(SPELL_WARLOCK_GLYPH_OF_SHADOWBURN_BUFF))
                     {
                         if(Unit * target = GetHitUnit())
                         {
                             if(target->isAlive())
                             {
                                 caster->ToPlayer()->RemoveSpellCooldown(SPELL_WARLOCK_SHADOWBURN, true);
-                                caster->AddAura(91001, caster);
+                                caster->AddAura(SPELL_WARLOCK_GLYPH_OF_SHADOWBURN_BUFF, caster);
                             }
                         }
                     }
@@ -1648,6 +1685,7 @@ class spell_warl_unstable_affliction : public SpellScriptLoader
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_shadow_bolt();
     new spell_warl_nether_protection();
     new spell_warl_soul_link();
     new spell_warl_shadowburn();
