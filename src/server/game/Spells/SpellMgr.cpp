@@ -115,7 +115,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
         }
         case SPELLFAMILY_WARRIOR:
         {
-            // Hamstring - limit duration to 10s in PvP
+            // Hamstring - limit duration to 8s in PvP
             if (spellproto->SpellFamilyFlags[0] & 0x2)
                 return DIMINISHING_LIMITONLY;
             // Charge Stun (own diminishing)
@@ -161,7 +161,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
             // Blind
             else if (spellproto->SpellFamilyFlags[0] & 0x1000000)
                 return DIMINISHING_FEAR;
-            // Crippling poison - Limit to 10 seconds in PvP (No SpellFamilyFlags)
+            // Crippling poison - Limit to 8 seconds in PvP (No SpellFamilyFlags)
             else if (spellproto->SpellIconID == 163)
                 return DIMINISHING_LIMITONLY;
             break;
@@ -187,7 +187,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
         }
         case SPELLFAMILY_PALADIN:
         {
-            // Judgement of Justice - limit duration to 10s in PvP
+            // Judgement of Justice - limit duration to 8s in PvP
             if (spellproto->SpellFamilyFlags[0] & 0x100000)
                 return DIMINISHING_LIMITONLY;
             // Turn Evil
