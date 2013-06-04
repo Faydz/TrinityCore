@@ -848,7 +848,7 @@ public:
 
             SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(SHAMAN_SPELL_LIGHTNING_SHIELD_PROC);
             int32 basePoints = caster->CalculateSpellDamage(target, spellInfo, 0);
-            uint32 damage = usedCharges * caster->SpellDamageBonusDone(target, spellInfo, basePoints, SPELL_DIRECT_DAMAGE);
+            uint32 damage = caster->SpellDamageBonusDone(target, spellInfo, basePoints, SPELL_DIRECT_DAMAGE, usedCharges);
             caster->CastCustomSpell(SHAMAN_SPELL_FULMINATION_TRIGGERED, SPELLVALUE_BASE_POINT0, damage, target, true, NULL, fulminationAura);
             lightningShield->SetCharges(lsCharges - usedCharges);
         }
