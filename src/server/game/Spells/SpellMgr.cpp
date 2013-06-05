@@ -3471,11 +3471,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
+                    // Hallowed Ground
+                    case 84631:
+                    case 84633:
+                        spellInfo->Effects[EFFECT_0].MiscValue = SPELLMOD_DOT;
+                        break;
                     case 31930:
                         spellInfo->Effects[EFFECT_0].BasePoints = 3;
-                        break;
-                    case 36946:
-                        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(1);
                         break;
                     // Holy Wrath
                     case 2812:
@@ -3491,7 +3493,12 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                     // Consecration
                     case 26573:
-                        spellInfo->Effects[EFFECT_2].TriggerSpell = 36946;
+                        spellInfo->SpellVisual[0] = 5600;
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_PERSISTENT_AREA_AURA;
+                        spellInfo->Effects[EFFECT_1].BasePoints = 81;
+                        spellInfo->Effects[EFFECT_1].TargetA = TARGET_DEST_CASTER;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_PERIODIC_DAMAGE;
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_DUMMY;
                         break;
                     // Zealotry
                     case 85696:

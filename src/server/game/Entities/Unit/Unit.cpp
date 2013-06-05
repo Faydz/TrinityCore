@@ -11204,6 +11204,10 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
         case SPELLFAMILY_PALADIN:
             switch(spellProto->Id)
             {
+                // Consecration
+                case 26573:
+                    DoneTotal += int32(this->GetTotalAttackPowerValue(BASE_ATTACK) * 0.027f + this->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_HOLY) * 0.027f);
+                    break;
                 // Judgement of Truth
                 case 31804:
                     // Get stacks of Censure on the target added by caster
