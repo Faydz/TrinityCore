@@ -2881,6 +2881,9 @@ void Spell::EffectDispel(SpellEffIndex effIndex)
                             trigger_id = 86958;
                         
                         m_caster->CastSpell(unitTarget, trigger_id, true);
+
+                        if(!m_caster->ToPlayer()->HasSpellCooldown(trigger_id))
+                            m_caster->ToPlayer()->AddSpellCooldown(trigger_id, 0, uint32(time(NULL) + 6));
                     }
                     break;
             }
