@@ -12122,6 +12122,10 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
         case SPELLFAMILY_PALADIN:
             switch(spellProto->Id)
             {
+                // Seal of Insight
+                case 20167:
+                    healamount += int32(this->GetTotalAttackPowerValue(BASE_ATTACK) * 0.15f + this->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_HOLY) * 0.15f);
+                    break;
                 // Word of Glory
                 case 85673:
 
