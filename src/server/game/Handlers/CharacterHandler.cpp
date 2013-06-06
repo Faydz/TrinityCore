@@ -46,7 +46,6 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
-#include "HookMgr.h"
 
 
 class LoginQueryHolder : public SQLQueryHolder
@@ -999,7 +998,6 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     }
 
     if (pCurrChar->HasAtLoginFlag(AT_LOGIN_FIRST))
-        sHookMgr->OnFirstLogin(pCurrChar);
 
     if (pCurrChar->HasAtLoginFlag(AT_LOGIN_FIRST))
         pCurrChar->RemoveAtLoginFlag(AT_LOGIN_FIRST);

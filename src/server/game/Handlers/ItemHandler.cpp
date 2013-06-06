@@ -27,7 +27,6 @@
 #include "UpdateData.h"
 #include "ObjectAccessor.h"
 #include "SpellInfo.h"
-#include "HookMgr.h"
 
 void WorldSession::HandleSplitItemOpcode(WorldPacket& recvData)
 {
@@ -171,7 +170,6 @@ void WorldSession::HandleAutoEquipItemOpcode(WorldPacket& recvData)
         _player->RemoveItem(srcbag, srcslot, true);
         _player->EquipItem(dest, pSrcItem, true);
         _player->AutoUnequipOffhandIfNeed();
-        sHookMgr->OnEquip(GetPlayer(), pSrcItem, dest, src);
     }
     else                                                    // have currently equipped item, not simple case
     {
@@ -233,7 +231,7 @@ void WorldSession::HandleAutoEquipItemOpcode(WorldPacket& recvData)
             _player->EquipItem(eSrc, pDstItem, true);
 
         _player->AutoUnequipOffhandIfNeed();
-        sHookMgr->OnEquip(GetPlayer(), pDstItem, dest, src);
+
     }
 }
 

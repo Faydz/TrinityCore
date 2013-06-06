@@ -3375,7 +3375,7 @@ class spell_icc_rocket_pack : public SpellScriptLoader
  {
 	return new spell_icc_rocket_pack_AuraScript();
  }
-}
+};
 
 void AddSC_boss_gunship_battle()
 {

@@ -79,7 +79,6 @@
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include "../../../scripts/Custom/Transmogrification.h"
-#include "HookMgr.h"
 
 #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
 
@@ -24484,7 +24483,6 @@ void Player::StoreLootItem(uint8 lootSlot, Loot* loot)
         if (loot->containerID > 0)
             loot->DeleteLootItemFromContainerItemDB(item->itemid);
 
-        sHookMgr->OnLootItem(this, newitem, item->count, this->GetLootGUID());
     }
     else
         SendEquipError(msg, NULL, NULL, item->itemid);

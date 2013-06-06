@@ -423,7 +423,6 @@ public:
                 stmt->setUInt32(1, GUID_LOPART(targetGuid));
                 CharacterDatabase.Execute(stmt);
             }
-            }
         }
 
         return true;
@@ -1018,5 +1017,3 @@ void AddSC_character_commandscript()
 {
     new character_commandscript();
 }
-
-

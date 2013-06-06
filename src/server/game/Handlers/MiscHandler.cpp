@@ -55,7 +55,6 @@
 #include "BattlegroundMgr.h"
 #include "Battlefield.h"
 #include "BattlefieldMgr.h"
-#include "HookMgr.h"
 
 void WorldSession::HandleRepopRequestOpcode(WorldPacket& recvData)
 {
@@ -103,8 +102,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
 
     if (IS_ITEM_GUID(guid) || IS_PLAYER_GUID(guid))
     {
-        sHookMgr->HandleGossipSelectOption(GetPlayer(), guid, GetPlayer()->PlayerTalkClass->GetGossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GetGossipOptionAction(gossipListId), code, menuId);
-        return;
+		return;
     }
 
     Creature* unit = NULL;

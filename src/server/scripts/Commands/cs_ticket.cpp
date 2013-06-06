@@ -239,10 +239,6 @@ public:
         ticket->SetCompleted();
         ticket->SaveToDB(trans);
 
-        SQLTransaction trans = SQLTransaction(NULL);
-        ticket->SetCompleted();
-        ticket->SaveToDB(trans);
-
         sTicketMgr->UpdateLastChange();
         return true;
     }

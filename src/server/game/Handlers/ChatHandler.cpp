@@ -39,7 +39,6 @@
 #include "Util.h"
 #include "ScriptMgr.h"
 #include "AccountMgr.h"
-#include "HookMgr.h"
 
 void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
 {
@@ -249,9 +248,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 return;
             }
 
-            if(!sHookMgr->OnChat(sender, type, lang, msg))
-                return;
-
             if (type == CHAT_MSG_SAY)
                 sender->Say(msg, lang);
             else if (type == CHAT_MSG_EMOTE)
@@ -315,7 +311,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 return;
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
-            if(!sHookMgr->OnChat(sender, type, lang, msg, group))
                 return;
 
             WorldPacket data;
@@ -329,7 +324,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 if (Guild* guild = sGuildMgr->GetGuildById(GetPlayer()->GetGuildId()))
                 {
                     sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, guild);
-                    if(!sHookMgr->OnChat(sender, type, lang, msg, guild))
                         return;
 
                     guild->BroadcastToGuild(this, false, msg, lang == LANG_ADDON ? LANG_ADDON : LANG_UNIVERSAL);
@@ -343,7 +337,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 if (Guild* guild = sGuildMgr->GetGuildById(GetPlayer()->GetGuildId()))
                 {
                     sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, guild);
-                    if(!sHookMgr->OnChat(sender, type, lang, msg, guild))
                         return;
 
                     guild->BroadcastToGuild(this, true, msg, lang == LANG_ADDON ? LANG_ADDON : LANG_UNIVERSAL);
@@ -362,7 +355,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
             }
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
-            if(!sHookMgr->OnChat(sender, type, lang, msg, group))
                 return;
 
             WorldPacket data;
@@ -381,7 +373,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
             }
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
-            if(!sHookMgr->OnChat(sender, type, lang, msg, group))
                 return;
 
             WorldPacket data;
@@ -395,7 +386,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 return;
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
-            if(!sHookMgr->OnChat(sender, type, lang, msg, group))
                 return;
 
             WorldPacket data;
@@ -411,7 +401,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 return;
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
-            if(!sHookMgr->OnChat(sender, type, lang, msg, group))
                 return;
 
             WorldPacket data;
@@ -426,7 +415,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 return;
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
-            if(!sHookMgr->OnChat(sender, type, lang, msg, group))
                 return;
 
             WorldPacket data;
@@ -449,7 +437,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 if (Channel* chn = cMgr->GetChannel(channel, _player))
                 {
                     sScriptMgr->OnPlayerChat(_player, type, lang, msg, chn);
-                    if(!sHookMgr->OnChat(sender, type, lang, msg, chn))
                         return;
 
                     chn->Say(_player->GetGUID(), msg.c_str(), lang);
@@ -478,7 +465,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 }
 
                 sScriptMgr->OnPlayerChat(_player, type, lang, msg);
-                if(!sHookMgr->OnChat(sender, type, lang, msg))
                     return;
             }
             break;
@@ -503,7 +489,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
             }
 
             sScriptMgr->OnPlayerChat(_player, type, lang, msg);
-            if(!sHookMgr->OnChat(sender, type, lang, msg))
                 return;
             break;
         }

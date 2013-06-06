@@ -127,7 +127,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/server/shared/Packets
   ${CMAKE_SOURCE_DIR}/src/server/shared/Threading
   ${CMAKE_SOURCE_DIR}/src/server/shared/Utilities
-  ${CMAKE_SOURCE_DIR}/src/server/LuaEngine
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Accounts
   ${CMAKE_CURRENT_SOURCE_DIR}/Achievements
@@ -209,17 +208,9 @@ include_directories(
 add_library(game STATIC
   ${game_STAT_SRCS}
   ${game_STAT_PCH_SRC}
-  ${lua_STAT_SRCS}
-  ${LuaEngine_STAT_SRCS}
 )
 
 add_dependencies(game revision.h)
-add_dependencies(game lua)
-
-target_link_libraries(game
- lua
- LuaEngine
-)
 
 # Generate precompiled header
 if (USE_COREPCH)

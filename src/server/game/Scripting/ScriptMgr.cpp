@@ -1,20 +1,20 @@
 /*
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+* Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+* Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+*
+* This program is free software; you can redistribute it and/or modify it
+* under the terms of the GNU General Public License as published by the
+* Free Software Foundation; either version 2 of the License, or (at your
+* option) any later version.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT
+* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+* more details.
+*
+* You should have received a copy of the GNU General Public License along
+* with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "ScriptMgr.h"
 #include "Config.h"
@@ -32,8 +32,6 @@
 #include "CreatureAI.h"
 #include "Player.h"
 #include "WorldPacket.h"
-#include "LuaEngine.h"
-#include "HookMgr.h"
 
 // This is the global static registry of scripts.
 template<class TScript>
@@ -139,28 +137,28 @@ class ScriptRegistry
 
 // Utility macros for looping over scripts.
 #define FOR_SCRIPTS(T, C, E) \
-    if (SCR_REG_LST(T).empty()) \
-        return; \
-    for (SCR_REG_ITR(T) C = SCR_REG_LST(T).begin(); \
-        C != SCR_REG_LST(T).end(); ++C)
+if (SCR_REG_LST(T).empty()) \
+return; \
+for (SCR_REG_ITR(T) C = SCR_REG_LST(T).begin(); \
+C != SCR_REG_LST(T).end(); ++C)
 #define FOR_SCRIPTS_RET(T, C, E, R) \
-    if (SCR_REG_LST(T).empty()) \
-        return R; \
-    for (SCR_REG_ITR(T) C = SCR_REG_LST(T).begin(); \
-        C != SCR_REG_LST(T).end(); ++C)
+if (SCR_REG_LST(T).empty()) \
+return R; \
+for (SCR_REG_ITR(T) C = SCR_REG_LST(T).begin(); \
+C != SCR_REG_LST(T).end(); ++C)
 #define FOREACH_SCRIPT(T) \
-    FOR_SCRIPTS(T, itr, end) \
-    itr->second
+FOR_SCRIPTS(T, itr, end) \
+itr->second
 
 // Utility macros for finding specific scripts.
 #define GET_SCRIPT(T, I, V) \
-    T* V = ScriptRegistry<T>::GetScriptById(I); \
-    if (!V) \
-        return;
+T* V = ScriptRegistry<T>::GetScriptById(I); \
+if (!V) \
+return;
 #define GET_SCRIPT_RET(T, I, V, R) \
-    T* V = ScriptRegistry<T>::GetScriptById(I); \
-    if (!V) \
-        return R;
+T* V = ScriptRegistry<T>::GetScriptById(I); \
+if (!V) \
+return R;
 
 
 
@@ -183,10 +181,8 @@ void ScriptMgr::Initialize()
 
     FillSpellSummary();
     AddScripts();
-	/* Eluna [Lua Engine] */
+
     TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded %u C++ scripts in %u ms", GetScriptCount(), GetMSTimeDiffToNow(oldMSTime));
-    sEluna->StartEluna(false);
-=======
 }
 
 void ScriptMgr::Unload()
@@ -233,8 +229,8 @@ void ScriptMgr::LoadDatabase()
 
 struct TSpellSummary
 {
-    uint8 Targets;                                          // set of enum SelectTarget
-    uint8 Effects;                                          // set of enum SelectEffect
+    uint8 Targets; // set of enum SelectTarget
+    uint8 Effects; // set of enum SelectEffect
 } *SpellSummary;
 
 void ScriptMgr::FillSpellSummary()
@@ -312,7 +308,7 @@ void ScriptMgr::FillSpellSummary()
             if (pTempSpell->Effects[j].Effect == SPELL_EFFECT_HEAL ||
                 pTempSpell->Effects[j].Effect == SPELL_EFFECT_HEAL_MAX_HEALTH ||
                 pTempSpell->Effects[j].Effect == SPELL_EFFECT_HEAL_MECHANICAL ||
-                (pTempSpell->Effects[j].Effect == SPELL_EFFECT_APPLY_AURA  && pTempSpell->Effects[j].ApplyAuraName == 8))
+                (pTempSpell->Effects[j].Effect == SPELL_EFFECT_APPLY_AURA && pTempSpell->Effects[j].ApplyAuraName == 8))
                 SpellSummary[i].Effects |= 1 << (SELECT_EFFECT_HEALING-1);
 
             // Make sure that this spell applies an aura.
@@ -493,21 +489,21 @@ void ScriptMgr::OnGroupRateCalculation(float& rate, uint32 count, bool isRaid)
 }
 
 #define SCR_MAP_BGN(M, V, I, E, C, T) \
-    if (V->GetEntry() && V->GetEntry()->T()) \
-    { \
-        FOR_SCRIPTS(M, I, E) \
-        { \
-            MapEntry const* C = I->second->GetEntry(); \
-            if (!C) \
-                continue; \
-            if (C->MapID == V->GetId()) \
-            {
+if (V->GetEntry() && V->GetEntry()->T()) \
+{ \
+FOR_SCRIPTS(M, I, E) \
+{ \
+MapEntry const* C = I->second->GetEntry(); \
+if (!C) \
+continue; \
+if (C->MapID == V->GetId()) \
+{
 
 #define SCR_MAP_END \
-                return; \
-            } \
-        } \
-    }
+return; \
+} \
+} \
+}
 
 void ScriptMgr::OnCreateMap(Map* map)
 {
@@ -650,9 +646,6 @@ bool ScriptMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffIndex effInd
     ASSERT(caster);
     ASSERT(target);
 
-    if(sHookMgr->OnDummyEffect(caster, spellId, effIndex, target))
-        return true;
-
     GET_SCRIPT_RET(ItemScript, target->GetScriptId(), tmpscript, false);
     return tmpscript->OnDummyEffect(caster, spellId, effIndex, target);
 }
@@ -662,9 +655,6 @@ bool ScriptMgr::OnQuestAccept(Player* player, Item* item, Quest const* quest)
     ASSERT(player);
     ASSERT(item);
     ASSERT(quest);
-
-    if(sHookMgr->OnQuestAccept(player, item, quest))
-        return true;
 
     GET_SCRIPT_RET(ItemScript, item->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
@@ -676,9 +666,6 @@ bool ScriptMgr::OnItemUse(Player* player, Item* item, SpellCastTargets const& ta
     ASSERT(player);
     ASSERT(item);
 
-    if(sHookMgr->OnUse(player, item, targets))
-        return true;
-
     GET_SCRIPT_RET(ItemScript, item->GetScriptId(), tmpscript, false);
     return tmpscript->OnUse(player, item, targets);
 }
@@ -687,9 +674,6 @@ bool ScriptMgr::OnItemExpire(Player* player, ItemTemplate const* proto)
 {
     ASSERT(player);
     ASSERT(proto);
-
-    if(sHookMgr->OnExpire(player, proto))
-        return true;
 
     GET_SCRIPT_RET(ItemScript, proto->ScriptId, tmpscript, false);
     return tmpscript->OnExpire(player, proto);
@@ -700,9 +684,6 @@ bool ScriptMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffIndex effInd
     ASSERT(caster);
     ASSERT(target);
 
-    if(sHookMgr->OnDummyEffect(caster, spellId, effIndex, target))
-        return true;
-
     GET_SCRIPT_RET(CreatureScript, target->GetScriptId(), tmpscript, false);
     return tmpscript->OnDummyEffect(caster, spellId, effIndex, target);
 }
@@ -711,9 +692,6 @@ bool ScriptMgr::OnGossipHello(Player* player, Creature* creature)
 {
     ASSERT(player);
     ASSERT(creature);
-
-    if(sHookMgr->OnGossipHello(player, creature))
-        return true;
 
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
@@ -725,9 +703,6 @@ bool ScriptMgr::OnGossipSelect(Player* player, Creature* creature, uint32 sender
     ASSERT(player);
     ASSERT(creature);
 
-    if(sHookMgr->OnGossipSelect(player, creature, sender, action))
-        return true;
-
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
     return tmpscript->OnGossipSelect(player, creature, sender, action);
 }
@@ -738,9 +713,6 @@ bool ScriptMgr::OnGossipSelectCode(Player* player, Creature* creature, uint32 se
     ASSERT(creature);
     ASSERT(code);
 
-    if(sHookMgr->OnGossipSelectCode(player, creature, sender, action, code))
-        return true;
-
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
     return tmpscript->OnGossipSelectCode(player, creature, sender, action, code);
 }
@@ -750,12 +722,6 @@ bool ScriptMgr::OnQuestAccept(Player* player, Creature* creature, Quest const* q
     ASSERT(player);
     ASSERT(creature);
     ASSERT(quest);
-
-    if(sHookMgr->OnQuestAccept(player, creature, quest))
-    {
-        player->PlayerTalkClass->ClearMenus();
-        return true;
-    }
 
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
@@ -768,12 +734,6 @@ bool ScriptMgr::OnQuestSelect(Player* player, Creature* creature, Quest const* q
     ASSERT(creature);
     ASSERT(quest);
 
-    if(sHookMgr->OnQuestSelect(player, creature, quest))
-    {
-        player->PlayerTalkClass->ClearMenus();
-        return true;
-    }
-
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
     return tmpscript->OnQuestSelect(player, creature, quest);
@@ -784,12 +744,6 @@ bool ScriptMgr::OnQuestComplete(Player* player, Creature* creature, Quest const*
     ASSERT(player);
     ASSERT(creature);
     ASSERT(quest);
-
-    if(sHookMgr->OnQuestComplete(player, creature, quest))
-    {
-        player->PlayerTalkClass->ClearMenus();
-        return true;
-    }
 
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
@@ -802,12 +756,6 @@ bool ScriptMgr::OnQuestReward(Player* player, Creature* creature, Quest const* q
     ASSERT(creature);
     ASSERT(quest);
 
-    if(sHookMgr->OnQuestReward(player, creature, quest, opt))
-    {
-        player->PlayerTalkClass->ClearMenus();
-        return true;
-    }
-
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
     return tmpscript->OnQuestReward(player, creature, quest, opt);
@@ -818,12 +766,7 @@ uint32 ScriptMgr::GetDialogStatus(Player* player, Creature* creature)
     ASSERT(player);
     ASSERT(creature);
 
-    if(uint32 dialogid = sHookMgr->GetDialogStatus(player, creature))
-    {
-        player->PlayerTalkClass->ClearMenus();
-        return dialogid;
-    }
-
+    /// @todo 100 is a funny magic number to have hanging around here...
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, 100);
     player->PlayerTalkClass->ClearMenus();
     return tmpscript->GetDialogStatus(player, creature);
@@ -833,9 +776,6 @@ CreatureAI* ScriptMgr::GetCreatureAI(Creature* creature)
 {
     ASSERT(creature);
 
-    if(CreatureAI* luaAI = sEluna->LuaCreatureAI->GetAI(creature))
-        return luaAI;
-
     GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, NULL);
     return tmpscript->GetAI(creature);
 }
@@ -843,9 +783,6 @@ CreatureAI* ScriptMgr::GetCreatureAI(Creature* creature)
 GameObjectAI* ScriptMgr::GetGameObjectAI(GameObject* gameobject)
 {
     ASSERT(gameobject);
-
-    if(GameObjectAI* luaAI = sEluna->LuaGameObjectAI->GetAI(gameobject))
-        return luaAI;
 
     GET_SCRIPT_RET(GameObjectScript, gameobject->GetScriptId(), tmpscript, NULL);
     return tmpscript->GetAI(gameobject);
@@ -864,9 +801,6 @@ bool ScriptMgr::OnGossipHello(Player* player, GameObject* go)
     ASSERT(player);
     ASSERT(go);
 
-    if(sHookMgr->OnGossipHello(player, go))
-        return true;
-
     GET_SCRIPT_RET(GameObjectScript, go->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
     return tmpscript->OnGossipHello(player, go);
@@ -876,9 +810,6 @@ bool ScriptMgr::OnGossipSelect(Player* player, GameObject* go, uint32 sender, ui
 {
     ASSERT(player);
     ASSERT(go);
-
-    if(sHookMgr->OnGossipSelect(player, go, sender, action))
-        return true;
 
     GET_SCRIPT_RET(GameObjectScript, go->GetScriptId(), tmpscript, false);
     return tmpscript->OnGossipSelect(player, go, sender, action);
@@ -890,9 +821,6 @@ bool ScriptMgr::OnGossipSelectCode(Player* player, GameObject* go, uint32 sender
     ASSERT(go);
     ASSERT(code);
 
-    if(sHookMgr->OnGossipSelectCode(player, go, sender, action, code))
-        return true;
-
     GET_SCRIPT_RET(GameObjectScript, go->GetScriptId(), tmpscript, false);
     return tmpscript->OnGossipSelectCode(player, go, sender, action, code);
 }
@@ -902,9 +830,6 @@ bool ScriptMgr::OnQuestAccept(Player* player, GameObject* go, Quest const* quest
     ASSERT(player);
     ASSERT(go);
     ASSERT(quest);
-
-    if(sHookMgr->OnQuestAccept(player, go, quest))
-        return true;
 
     GET_SCRIPT_RET(GameObjectScript, go->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
@@ -917,9 +842,6 @@ bool ScriptMgr::OnQuestReward(Player* player, GameObject* go, Quest const* quest
     ASSERT(go);
     ASSERT(quest);
 
-    if(sHookMgr->OnQuestReward(player, go, quest, opt))
-        return true;
-
     GET_SCRIPT_RET(GameObjectScript, go->GetScriptId(), tmpscript, false);
     player->PlayerTalkClass->ClearMenus();
     return tmpscript->OnQuestReward(player, go, quest, opt);
@@ -930,12 +852,7 @@ uint32 ScriptMgr::GetDialogStatus(Player* player, GameObject* go)
     ASSERT(player);
     ASSERT(go);
 
-    if(uint32 dialogid = sHookMgr->GetDialogStatus(player, go))
-    {
-        player->PlayerTalkClass->ClearMenus();
-        return dialogid;
-    }
-
+    /// @todo 100 is a funny magic number to have hanging around here...
     GET_SCRIPT_RET(GameObjectScript, go->GetScriptId(), tmpscript, 100);
     player->PlayerTalkClass->ClearMenus();
     return tmpscript->GetDialogStatus(player, go);
@@ -945,8 +862,6 @@ void ScriptMgr::OnGameObjectDestroyed(GameObject* go, Player* player)
 {
     ASSERT(go);
 
-    sHookMgr->OnDestroyed(go, player);
-
     GET_SCRIPT(GameObjectScript, go->GetScriptId(), tmpscript);
     tmpscript->OnDestroyed(go, player);
 }
@@ -954,8 +869,6 @@ void ScriptMgr::OnGameObjectDestroyed(GameObject* go, Player* player)
 void ScriptMgr::OnGameObjectDamaged(GameObject* go, Player* player)
 {
     ASSERT(go);
-
-    sHookMgr->OnDamaged(go, player);
 
     GET_SCRIPT(GameObjectScript, go->GetScriptId(), tmpscript);
     tmpscript->OnDamaged(go, player);
@@ -965,8 +878,6 @@ void ScriptMgr::OnGameObjectLootStateChanged(GameObject* go, uint32 state, Unit*
 {
     ASSERT(go);
 
-    sHookMgr->OnLootStateChanged(go, state, unit);
-
     GET_SCRIPT(GameObjectScript, go->GetScriptId(), tmpscript);
     tmpscript->OnLootStateChanged(go, state, unit);
 }
@@ -974,8 +885,6 @@ void ScriptMgr::OnGameObjectLootStateChanged(GameObject* go, uint32 state, Unit*
 void ScriptMgr::OnGameObjectStateChanged(GameObject* go, uint32 state)
 {
     ASSERT(go);
-
-    sHookMgr->OnGameObjectStateChanged(go, state);
 
     GET_SCRIPT(GameObjectScript, go->GetScriptId(), tmpscript);
     tmpscript->OnGameObjectStateChanged(go, state);
@@ -994,9 +903,6 @@ bool ScriptMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffIndex effInd
     ASSERT(caster);
     ASSERT(target);
 
-    if(sHookMgr->OnDummyEffect(caster, spellId, effIndex, target))
-        return true;
-
     GET_SCRIPT_RET(GameObjectScript, target->GetScriptId(), tmpscript, false);
     return tmpscript->OnDummyEffect(caster, spellId, effIndex, target);
 }
@@ -1005,9 +911,6 @@ bool ScriptMgr::OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger)
 {
     ASSERT(player);
     ASSERT(trigger);
-
-    if(sHookMgr->OnTrigger(player, trigger))
-        return true;
 
     GET_SCRIPT_RET(AreaTriggerScript, sObjectMgr->GetAreaTriggerScriptId(trigger->id), tmpscript, false);
     return tmpscript->OnTrigger(player, trigger);
@@ -1041,8 +944,6 @@ std::vector<ChatCommand*> ScriptMgr::GetChatCommands()
 void ScriptMgr::OnWeatherChange(Weather* weather, WeatherState state, float grade)
 {
     ASSERT(weather);
-
-    sHookMgr->OnChange(weather, state, grade);
 
     GET_SCRIPT(WeatherScript, weather->GetScriptId(), tmpscript);
     tmpscript->OnChange(weather, state, grade);
@@ -1091,9 +992,6 @@ void ScriptMgr::OnAuctionExpire(AuctionHouseObject* ah, AuctionEntry* entry)
 bool ScriptMgr::OnConditionCheck(Condition* condition, ConditionSourceInfo& sourceInfo)
 {
     ASSERT(condition);
-
-    if(sHookMgr->OnConditionCheck(condition, sourceInfo))
-        return true;
 
     GET_SCRIPT_RET(ConditionScript, condition->ScriptId, tmpscript, true);
     return tmpscript->OnConditionCheck(condition, sourceInfo);
@@ -1169,8 +1067,6 @@ void ScriptMgr::OnAddPassenger(Transport* transport, Player* player)
     ASSERT(transport);
     ASSERT(player);
 
-    sHookMgr->OnAddPassenger(transport, player);
-
     GET_SCRIPT(TransportScript, transport->GetScriptId(), tmpscript);
     tmpscript->OnAddPassenger(transport, player);
 }
@@ -1180,8 +1076,6 @@ void ScriptMgr::OnAddCreaturePassenger(Transport* transport, Creature* creature)
     ASSERT(transport);
     ASSERT(creature);
 
-    sHookMgr->OnAddCreaturePassenger(transport, creature);
-
     GET_SCRIPT(TransportScript, transport->GetScriptId(), tmpscript);
     tmpscript->OnAddCreaturePassenger(transport, creature);
 }
@@ -1190,8 +1084,6 @@ void ScriptMgr::OnRemovePassenger(Transport* transport, Player* player)
 {
     ASSERT(transport);
     ASSERT(player);
-
-    sHookMgr->OnRemovePassenger(transport, player);
 
     GET_SCRIPT(TransportScript, transport->GetScriptId(), tmpscript);
     tmpscript->OnRemovePassenger(transport, player);
@@ -1207,8 +1099,6 @@ void ScriptMgr::OnTransportUpdate(Transport* transport, uint32 diff)
 
 void ScriptMgr::OnRelocate(Transport* transport, uint32 waypointId, uint32 mapId, float x, float y, float z)
 {
-    sHookMgr->OnRelocate(transport, waypointId, mapId, x, y, z);
-
     GET_SCRIPT(TransportScript, transport->GetScriptId(), tmpscript);
     tmpscript->OnRelocate(transport, waypointId, mapId, x, y, z);
 }
@@ -1366,16 +1256,6 @@ void ScriptMgr::OnPlayerBindToInstance(Player* player, Difficulty difficulty, ui
 void ScriptMgr::OnPlayerUpdateZone(Player* player, uint32 newZone, uint32 newArea)
 {
     FOREACH_SCRIPT(PlayerScript)->OnUpdateZone(player, newZone, newArea);
-}
-
-void ScriptMgr::OnPlayerEnterCombat(Player* player, Unit* enemy)
-{
-    FOREACH_SCRIPT(PlayerScript)->OnPlayerEnterCombat(player, enemy);
-}
-
-void ScriptMgr::OnPlayerLeaveCombat(Player* player)
-{
-    FOREACH_SCRIPT(PlayerScript)->OnPlayerLeaveCombat(player);
 }
 
 // Guild
