@@ -895,12 +895,12 @@ bool Creature::isCanTrainingOf(Player* player, bool msg) const
                     player->PlayerTalkClass->ClearMenus();
                     switch (GetCreatureTemplate()->trainer_class)
                     {
-                        case CLASS_DRUID: player->PlayerTalkClass->SendGossipMenu(4913, GetGUID()); break;
+                        case CLASS_DRUID:  player->PlayerTalkClass->SendGossipMenu(4913, GetGUID()); break;
                         case CLASS_HUNTER: player->PlayerTalkClass->SendGossipMenu(10090, GetGUID()); break;
-                        case CLASS_MAGE: player->PlayerTalkClass->SendGossipMenu(328, GetGUID()); break;
+                        case CLASS_MAGE:   player->PlayerTalkClass->SendGossipMenu(328, GetGUID()); break;
                         case CLASS_PALADIN:player->PlayerTalkClass->SendGossipMenu(1635, GetGUID()); break;
                         case CLASS_PRIEST: player->PlayerTalkClass->SendGossipMenu(4436, GetGUID()); break;
-                        case CLASS_ROGUE: player->PlayerTalkClass->SendGossipMenu(4797, GetGUID()); break;
+                        case CLASS_ROGUE:  player->PlayerTalkClass->SendGossipMenu(4797, GetGUID()); break;
                         case CLASS_SHAMAN: player->PlayerTalkClass->SendGossipMenu(5003, GetGUID()); break;
                         case CLASS_WARLOCK:player->PlayerTalkClass->SendGossipMenu(5836, GetGUID()); break;
                         case CLASS_WARRIOR:player->PlayerTalkClass->SendGossipMenu(4985, GetGUID()); break;
@@ -925,16 +925,16 @@ bool Creature::isCanTrainingOf(Player* player, bool msg) const
                     player->PlayerTalkClass->ClearMenus();
                     switch (GetCreatureTemplate()->trainer_race)
                     {
-                        case RACE_DWARF: player->PlayerTalkClass->SendGossipMenu(5865, GetGUID()); break;
-                        case RACE_GNOME: player->PlayerTalkClass->SendGossipMenu(4881, GetGUID()); break;
-                        case RACE_HUMAN: player->PlayerTalkClass->SendGossipMenu(5861, GetGUID()); break;
-                        case RACE_NIGHTELF: player->PlayerTalkClass->SendGossipMenu(5862, GetGUID()); break;
-                        case RACE_ORC: player->PlayerTalkClass->SendGossipMenu(5863, GetGUID()); break;
-                        case RACE_TAUREN: player->PlayerTalkClass->SendGossipMenu(5864, GetGUID()); break;
-                        case RACE_TROLL: player->PlayerTalkClass->SendGossipMenu(5816, GetGUID()); break;
+                        case RACE_DWARF:        player->PlayerTalkClass->SendGossipMenu(5865, GetGUID()); break;
+                        case RACE_GNOME:        player->PlayerTalkClass->SendGossipMenu(4881, GetGUID()); break;
+                        case RACE_HUMAN:        player->PlayerTalkClass->SendGossipMenu(5861, GetGUID()); break;
+                        case RACE_NIGHTELF:     player->PlayerTalkClass->SendGossipMenu(5862, GetGUID()); break;
+                        case RACE_ORC:          player->PlayerTalkClass->SendGossipMenu(5863, GetGUID()); break;
+                        case RACE_TAUREN:       player->PlayerTalkClass->SendGossipMenu(5864, GetGUID()); break;
+                        case RACE_TROLL:        player->PlayerTalkClass->SendGossipMenu(5816, GetGUID()); break;
                         case RACE_UNDEAD_PLAYER:player->PlayerTalkClass->SendGossipMenu(624, GetGUID()); break;
-                        case RACE_BLOODELF: player->PlayerTalkClass->SendGossipMenu(5862, GetGUID()); break;
-                        case RACE_DRAENEI: player->PlayerTalkClass->SendGossipMenu(5864, GetGUID()); break;
+                        case RACE_BLOODELF:     player->PlayerTalkClass->SendGossipMenu(5862, GetGUID()); break;
+                        case RACE_DRAENEI:      player->PlayerTalkClass->SendGossipMenu(5864, GetGUID()); break;
                     }
                 }
                 return false;
@@ -952,7 +952,7 @@ bool Creature::isCanTrainingOf(Player* player, bool msg) const
             }
             break;
         default:
-            return false; // checked and error output at creature_template loading
+            return false;                                   // checked and error output at creature_template loading
     }
     return true;
 }
