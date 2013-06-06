@@ -1155,6 +1155,41 @@ class Theme_NPC : public CreatureScript
 		}
 };
 
+
+class Event_Blackboard : CreatureScript
+{
+	public:
+		Event_Blackboard() : CreatureScript("Event_Blackboard") {}
+
+		QueryResult result_id;
+		result_id = WorldDatabase.PQuery("SELECT `text_id` FROM `event_blackboard`");
+		QueryResult result_title;
+		QueryResult result_text;
+		result_title = WorldDatabase.PQuery("SELECT `event_title` FROM `event_blackboard` WHERE `text_id`= " + result_id);
+		result_text = WorldDatabase.PQuery("SELECT `text` FROM `event_blackboard` WHERE `text_id` = " + result_id);
+
+
+		OnGossipHello(Player * player, Creature * creature)
+		{
+			player->ADD_GOSSIP_ITEM(0, result_title, result_id);
+			player->SEND_GOSSIP_MENU(1,creature->GetGUID());
+		}
+
+		OnGossipSelect(Player * player, Creature * creature, uint32 sender, uint32 action)
+		{
+			if(action == result_id)
+			{
+				creature->MonsterSay(result_text, LANG_UNIVERSAL, player->GetGUID());
+			}
+
+			else
+			{
+				creature->MonsterSay("Ungueltige Eingabe", LANG_UNIVERSAL, player->GetGUID());
+			}
+			return true;
+		}
+};
+
 //class icc_buff_npc : public CreatureScript
 //{
 //public:
@@ -1197,5 +1232,6 @@ void AddSC_custom_misc()
 	new npc_startup();
 	new npc_donation();
 	new Theme_NPC();
+	new Event_Blackboard();
 	/*new icc_buff_npc();*/
 }
