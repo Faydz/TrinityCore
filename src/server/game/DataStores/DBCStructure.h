@@ -511,25 +511,27 @@ struct AchievementCriteriaEntry
         } raw;
     };
 
+    //uint32 unk;                                           // 5
+
     struct
     {
         uint32  additionalRequirement_type;
         uint32  additionalRequirement_value;
     } additionalRequirements[MAX_CRITERIA_REQUIREMENTS];
 
-    char*  name;                                            // 9        m_description_lang
-    uint32  completionFlag;                                 // 10       m_flags
-    uint32  timedCriteriaStartType;                         // 11       m_timer_start_event Only appears with timed achievements, seems to be the type of starting a timed Achievement, only type 1 and some of type 6 need manual starting
+    char*  name;                                            // 10        m_description_lang
+    uint32  completionFlag;                                 // 11       m_flags
+    uint32  timedCriteriaStartType;                         // 12       m_timer_start_event Only appears with timed achievements, seems to be the type of starting a timed Achievement, only type 1 and some of type 6 need manual starting
                                                             //              1: ByEventId(?) (serverside IDs),    2: ByQuestId,   5: ByCastSpellId(?)
                                                             //              6: BySpellIdTarget(some of these are unknown spells, some not, some maybe spells)
                                                             //              7: ByKillNpcId,  9: ByUseItemId
-    uint32  timedCriteriaMiscId;                            // 12       m_timer_asset_id Alway appears with timed events, used internally to start the achievement, store
-    uint32  timeLimit;                                      // 13       m_timer_time time limit in seconds
-    uint32  showOrder;                                      // 14       m_ui_order  also used in achievement shift-links as index in state bitmask
-    //uint32 unk1;                                          // 15 only one value, still unknown
-    //uint32 unk2;                                          // 16 all zeros
-    uint32 additionalConditionType[MAX_ADDITIONAL_CRITERIA_CONDITIONS];     // 17-19
-    uint32 additionalConditionValue[MAX_ADDITIONAL_CRITERIA_CONDITIONS];    // 20-22
+    uint32  timedCriteriaMiscId;                            // 13       m_timer_asset_id Alway appears with timed events, used internally to start the achievement, store
+    uint32  timeLimit;                                      // 14       m_timer_time time limit in seconds
+    uint32  showOrder;                                      // 15       m_ui_order  also used in achievement shift-links as index in state bitmask
+    //uint32 unk1;                                          // 16 only one value, still unknown
+    //uint32 unk2;                                          // 17 all zeros
+    uint32 additionalConditionType[MAX_ADDITIONAL_CRITERIA_CONDITIONS];      // 18-20
+    uint32 additionalConditionValue[MAX_ADDITIONAL_CRITERIA_CONDITIONS - 1]; // 21-22 WTF one column was cut off here in 4.3.4
 };
 
 struct AreaTableEntry
@@ -628,6 +630,15 @@ struct BankBagSlotPricesEntry
 {
     uint32  ID;
     uint32  price;
+};
+
+struct BannedAddOnsEntry
+{
+    uint32 Id;
+    // uint32 NameMD5[4];
+    // uint32 VersionMD5[4];
+    // uint32 Timestamp;
+    // uint32 State;
 };
 
 struct BarberShopStyleEntry
@@ -1082,6 +1093,11 @@ struct GtChanceToMeleeCritEntry
 struct GtChanceToSpellCritBaseEntry
 {
     float    base;
+};
+
+struct GtNPCManaCostScalerEntry
+{
+    float    ratio;
 };
 
 struct GtChanceToSpellCritEntry
@@ -2068,6 +2084,8 @@ struct TalentEntry
     //uint64  allowForPet;                                  // 17       m_categoryMask its a 64 bit mask for pet 1<<m_categoryEnumID in CreatureFamily.dbc
 };
 
+#define MAX_MASTERY_SPELLS 2
+
 struct TalentTabEntry
 {
     uint32  TalentTabID;                                    // 0
@@ -2079,7 +2097,7 @@ struct TalentTabEntry
     //char* internalname;                                   // 6        m_backgroundFile
     //char* description;                                    // 7
     //uint32 rolesMask;                                     // 8 4.0.0
-    //uint32 MasterySpells[2];                              // 9-10 passive mastery bonus spells?
+    uint32 MasterySpellId[MAX_MASTERY_SPELLS];              // 9-10 passive mastery bonus spells?
 };
 
 struct TalentTreePrimarySpellsEntry
@@ -2131,6 +2149,27 @@ struct TotemCategoryEntry
     //char*   name;                                         // 1        m_name_lang
     uint32    categoryType;                                 // 2        m_totemCategoryType (one for specialization)
     uint32    categoryMask;                                 // 3        m_totemCategoryMask (compatibility mask for same type: different for totems, compatible from high to low for rods)
+};
+
+struct UnitPowerBarEntry
+{
+    uint32  Id;
+    uint32  MinPower;
+    uint32  MaxPower;
+    //uint32  Unk0;
+    //uint32  Unk1;
+    //float   Unk2;
+    //float   Unk3;
+    //uint32  BarType;
+    //uint32  TextureFile[6];
+    //uint32  Unk4[6];
+    //uint32  DisplayFlags;
+    //char*   PowerName;
+    //char*   CostString;
+    //char*   EmptyMessage;
+    //char*   Tooltip;
+    //float   StartInset;
+    //float   EndInset;
 };
 
 #define MAX_VEHICLE_SEATS 8

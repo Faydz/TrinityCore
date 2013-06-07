@@ -28,6 +28,7 @@
 #include "Object.h"
 #include "SpellAuraDefines.h"
 #include "ThreatManager.h"
+#include "MoveSplineInit.h"
 
 #define WORLD_TRIGGER   12999
 
@@ -354,6 +355,11 @@ class Vehicle;
 class VehicleJoinEvent;
 class TransportBase;
 class SpellCastTargets;
+namespace Movement
+{
+    class ExtraMovementStatusElement;
+    class MoveSpline;
+}
 
 typedef std::list<Unit*> UnitList;
 typedef std::list< std::pair<Aura*, uint8> > DispelChargesList;
@@ -418,6 +424,7 @@ enum TriggerCastFlags
     TRIGGERED_DISALLOW_PROC_EVENTS                  = 0x00020000,   //! Disallows proc events from triggered spell (default)
     TRIGGERED_DONT_REPORT_CAST_ERROR                = 0x00040000,   //! Will return SPELL_FAILED_DONT_REPORT in CheckCast functions
     TRIGGERED_IGNORE_EQUIPPED_ITEM_REQUIREMENT      = 0x00080000,   //! Will ignore equipped item requirements
+    TRIGGERED_IGNORE_TARGET_CHECK                   = 0x00100000,   //! Will ignore most target checks (mostly DBC target checks)
     TRIGGERED_FULL_MASK                             = 0xFFFFFFFF
 };
 
@@ -785,10 +792,6 @@ enum UnitTypeMask
     UNIT_MASK_CONTROLABLE_GUARDIAN  = 0x00000100,
     UNIT_MASK_ACCESSORY             = 0x00000200
 };
-
-namespace Movement{
-    class MoveSpline;
-}
 
 struct DiminishingReturn
 {
@@ -1469,22 +1472,22 @@ class Unit : public WorldObject
         uint32 GetCritDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_RESILIENCE_CRIT_TAKEN, 2.2f, 33.0f, damage); }
         uint32 GetDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_RESILIENCE_PLAYER_DAMAGE_TAKEN, 2.0f, 100.0f, damage); }
 
-        void ApplyResilience(const Unit* victim, int32 * damage, bool isCrit) const;
+        void ApplyResilience(Unit const* victim, int32 * damage, bool isCrit) const;
 
-        float MeleeSpellMissChance(const Unit* victim, WeaponAttackType attType, uint32 spellId) const;
+        float MeleeSpellMissChance(Unit const* victim, WeaponAttackType attType, uint32 spellId) const;
         SpellMissInfo MeleeSpellHitResult(Unit* victim, SpellInfo const* spell);
         SpellMissInfo MagicSpellHitResult(Unit* victim, SpellInfo const* spell);
         SpellMissInfo SpellHitResult(Unit* victim, SpellInfo const* spell, bool canReflect = false);
 
-        float GetUnitDodgeChance()    const;
-        float GetUnitParryChance()    const;
-        float GetUnitBlockChance()    const;
-        float GetUnitMissChance(WeaponAttackType attType)     const;
+        float GetUnitDodgeChance() const;
+        float GetUnitParryChance() const;
+        float GetUnitBlockChance() const;
+        float GetUnitMissChance(WeaponAttackType attType) const;
         float GetUnitCriticalChance(WeaponAttackType attackType, const Unit* victim) const;
-        int32 GetMechanicResistChance(const SpellInfo* spell);
+        int32 GetMechanicResistChance(const SpellInfo* spell) const;
         bool CanUseAttackType(uint8 attacktype) const;
 
-        virtual uint32 GetBlockPercent() { return 30; }
+        virtual uint32 GetBlockPercent() const { return 30; }
 
         uint32 GetUnitMeleeSkill(Unit const* target = NULL) const;
 
@@ -1593,9 +1596,6 @@ class Unit : public WorldObject
         void JumpTo(WorldObject* obj, float speedZ);
 
         void MonsterMoveWithSpeed(float x, float y, float z, float speed, bool generatePath = false, bool forceDestination = false);
-        //void SetFacing(float ori, WorldObject* obj = NULL);
-        //void SendMonsterMove(float NewPosX, float NewPosY, float NewPosZ, uint8 type, uint32 MovementFlags, uint32 Time, Player* player = NULL);
-        void SendMovementFlagUpdate(bool self = false);
 
         /*! These methods send the same packet to the client in apply and unapply case.
             The client-side interpretation of this packet depends on the presence of relevant movementflags
@@ -1605,8 +1605,13 @@ class Unit : public WorldObject
         void SendMovementHover();
         void SendMovementFeatherFall();
         void SendMovementWaterWalking();
-        void SendMovementGravityChange();
         void SendMovementCanFlyChange();
+        void SendMovementDisableGravity();
+        void SendMovementWalkMode();
+        void SendMovementSwimming();
+
+        void SendSetPlayHoverAnim(bool enable);
+        void SendMovementSetSplineAnim(Movement::AnimType anim);
 
         bool IsLevitating() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_DISABLE_GRAVITY);}
         bool IsWalking() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_WALKING);}
@@ -1624,8 +1629,6 @@ class Unit : public WorldObject
         void SendThreatListUpdate();
 
         void SendClearTarget();
-
-        void BuildHeartBeatMsg(WorldPacket* data);
 
         bool isAlive() const { return (m_deathState == ALIVE); }
         bool isDying() const { return (m_deathState == JUST_DIED); }
@@ -1782,9 +1785,9 @@ class Unit : public WorldObject
         bool HasAuraTypeWithMiscvalue(AuraType auratype, int32 miscvalue) const;
         bool HasAuraTypeWithAffectMask(AuraType auratype, SpellInfo const* affectedSpell) const;
         bool HasAuraTypeWithValue(AuraType auratype, int32 value) const;
-        bool HasNegativeAuraWithInterruptFlag(uint32 flag, uint64 guid = 0);
-        bool HasNegativeAuraWithAttribute(uint32 flag, uint64 guid = 0);
-        bool HasAuraWithMechanic(uint32 mechanicMask);
+        bool HasNegativeAuraWithInterruptFlag(uint32 flag, uint64 guid = 0) const;
+        bool HasNegativeAuraWithAttribute(uint32 flag, uint64 guid = 0) const;
+        bool HasAuraWithMechanic(uint32 mechanicMask) const;
 
         AuraEffect* IsScriptOverriden(SpellInfo const* spell, int32 script) const;
         uint32 GetDiseasesByCaster(uint64 casterGUID, bool remove = false);
@@ -2111,8 +2114,7 @@ class Unit : public WorldObject
         void _ExitVehicle(Position const* exitPosition = NULL);
         void _EnterVehicle(Vehicle* vehicle, int8 seatId, AuraApplication const* aurApp = NULL);
 
-        void ReadMovementInfo(WorldPacket& data, MovementInfo* mi);
-        void WriteMovementInfo(WorldPacket& data);
+        void WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusElement* extras = NULL);
 
         bool isMoving() const   { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_MASK_MOVING); }
         bool isTurning() const  { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_MASK_TURNING); }

@@ -180,7 +180,7 @@ enum Opcodes
     CMSG_DECLINE_CHANNEL_INVITE                       = 0x0000,
     CMSG_DELETEEQUIPMENT_SET                          = 0x4D07,
     CMSG_DEL_FRIEND                                   = 0x6A15,
-    CMSG_DEL_IGNORE                                   = 0x4727,
+    CMSG_DEL_IGNORE                                   = 0x6D26,
     CMSG_DEL_VOICE_IGNORE                             = 0x0024,
     CMSG_DESTROY_ITEM                                 = 0x4A27,
     CMSG_DISMISS_CONTROLLED_VEHICLE                   = 0x3218,
@@ -596,10 +596,7 @@ enum Opcodes
     MSG_MINIMAP_PING                                  = 0x6635,
     MSG_MOVE_CHARM_TELEPORT_CHEAT                     = 0x7A08,
     MSG_MOVE_FALL_LAND                                = 0x380A,
-    MSG_MOVE_FEATHER_FALL                             = 0x0000,
-    MSG_MOVE_GRAVITY_CHNG                             = 0x0000,
     MSG_MOVE_HEARTBEAT                                = 0x3914,
-    MSG_MOVE_HOVER                                    = 0x0000,
     MSG_MOVE_JUMP                                     = 0x7A06,
     MSG_MOVE_SET_ALL_SPEED_CHEAT                      = 0x0000,
     MSG_MOVE_SET_COLLISION_HEIGHT                     = 0x0000,
@@ -639,12 +636,7 @@ enum Opcodes
     MSG_MOVE_TOGGLE_COLLISION_CHEAT                   = 0x7B04,
     MSG_MOVE_TOGGLE_FALL_LOGGING                      = 0x0000,
     MSG_MOVE_TOGGLE_LOGGING                           = 0x0000,
-    MSG_MOVE_UPDATE_CAN_FLY                           = 0x0000,
-    MSG_MOVE_UPDATE_FLIGHT_SPEED                      = 0x30B1,
     MSG_MOVE_UPDATE_MOUSE                             = 0x0000,
-    MSG_MOVE_UPDATE_RUN_SPEED                         = 0x14A6,
-    MSG_MOVE_UPDATE_TELEPORT                          = 0x50B2,
-    MSG_MOVE_WATER_WALK                               = 0x0000,
     MSG_MOVE_WORLDPORT_ACK                            = 0x2411,
     MSG_NOTIFY_PARTY_SQUELCH                          = 0x4D06,
     MSG_PARTY_ASSIGNMENT                              = 0x0424,
@@ -1065,10 +1057,6 @@ enum Opcodes
     SMSG_MOUNTSPECIAL_ANIM                            = 0x0217,
     SMSG_MOVE_COLLISION_DISABLE                       = 0x31B0,
     SMSG_MOVE_COLLISION_ENABLE                        = 0x11A7,
-    SMSG_MOVE_DISABLE_COLLISION                       = 0x0000,
-    SMSG_MOVE_DISABLE_GRAVITY                         = 0x0000,
-    SMSG_MOVE_ENABLE_COLLISION                        = 0x0000,
-    SMSG_MOVE_ENABLE_GRAVITY                          = 0x0000,
     SMSG_MOVE_FEATHER_FALL                            = 0x79B0,
     SMSG_MOVE_GRAVITY_DISABLE                         = 0x75B2,
     SMSG_MOVE_GRAVITY_ENABLE                          = 0x30B3,
@@ -1100,12 +1088,14 @@ enum Opcodes
     SMSG_MOVE_UNSET_WALK_IN_AIR                       = 0x0000,
     SMSG_MOVE_UPDATE_COLLISION_HEIGHT                 = 0x59A3,
     SMSG_MOVE_UPDATE_FLIGHT_BACK_SPEED                = 0x74A0,
+    SMSG_MOVE_UPDATE_FLIGHT_SPEED                     = 0x30B1,
     SMSG_MOVE_UPDATE_KNOCK_BACK                       = 0x3DB2,
     SMSG_MOVE_UPDATE_PITCH_RATE                       = 0x1DB5,
     SMSG_MOVE_UPDATE_RUN_BACK_SPEED                   = 0x3DA6,
+    SMSG_MOVE_UPDATE_RUN_SPEED                        = 0x14A6,
     SMSG_MOVE_UPDATE_SWIM_BACK_SPEED                  = 0x30B5,
     SMSG_MOVE_UPDATE_SWIM_SPEED                       = 0x59B5,
-    SMSG_MOVE_UPDATE_TELEPORT                         = 0x0000,
+    SMSG_MOVE_UPDATE_TELEPORT                         = 0x50B2,
     SMSG_MOVE_UPDATE_TURN_RATE                        = 0x5DA1,
     SMSG_MOVE_UPDATE_WALK_SPEED                       = 0x54A2,
     SMSG_MOVE_WATER_WALK                              = 0x75B1,
@@ -1260,6 +1250,7 @@ enum Opcodes
     SMSG_SHOWTAXINODES                                = 0x2A36,
     SMSG_SHOW_BANK                                    = 0x2627,
     SMSG_SHOW_RATINGS                                 = 0x11B4,
+    SMSG_SOCKET_GEMS_RESULT                           = 0x6014,
     SMSG_SOR_START_EXPERIENCE_INCOMPLETE              = 0x7CA7,
     SMSG_SPELLBREAKLOG                                = 0x6B17,
     SMSG_SPELLDAMAGESHIELD                            = 0x2927,
@@ -1287,6 +1278,7 @@ enum Opcodes
     SMSG_SPLINE_MOVE_GRAVITY_DISABLE                  = 0x5DB5,
     SMSG_SPLINE_MOVE_GRAVITY_ENABLE                   = 0x3CA6,
     SMSG_SPLINE_MOVE_ROOT                             = 0x51B4,
+    SMSG_SPLINE_MOVE_SET_ANIM                         = 0x4335,
     SMSG_SPLINE_MOVE_SET_FEATHER_FALL                 = 0x3DA5,
     SMSG_SPLINE_MOVE_SET_FLIGHT_BACK_SPEED            = 0x38B3,
     SMSG_SPLINE_MOVE_SET_FLIGHT_SPEED                 = 0x39A0,
@@ -1358,7 +1350,6 @@ enum Opcodes
     SMSG_UPDATE_DUNGEON_ENCOUNTER_FOR_LOOT            = 0x3CB5,
     SMSG_UPDATE_INSTANCE_ENCOUNTER_UNIT               = 0x4007,
     SMSG_UPDATE_INSTANCE_OWNERSHIP                    = 0x4915,
-    SMSG_UPDATE_ITEM_ENCHANTMENTS                     = 0x6014,
     SMSG_UPDATE_LAST_INSTANCE                         = 0x0437,
     SMSG_UPDATE_OBJECT                                = 0x4715,
     SMSG_UPDATE_SERVER_PLAYER_POSITION                = 0x74A3,
@@ -1422,12 +1413,12 @@ struct OpcodeHandler
 {
     OpcodeHandler() {}
     OpcodeHandler(char const* _name, SessionStatus _status, PacketProcessing _processing, pOpcodeHandler _handler)
-        : Name(_name), Status(_status), ProcessingPlace(_processing), Handler(_handler) {}
+        : Handler(_handler), Name(_name), Status(_status), ProcessingPlace(_processing) {}
 
+    pOpcodeHandler Handler;
     char const* Name;
     SessionStatus Status;
     PacketProcessing ProcessingPlace;
-    pOpcodeHandler Handler;
 };
 
 class OpcodeTable

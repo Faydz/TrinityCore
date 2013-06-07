@@ -113,6 +113,8 @@ struct PlayerTalent
     uint8 spec             : 8;
 };
 
+extern uint32 const MasterySpells[MAX_CLASSES];
+
 enum TalentTree // talent tabs
 {
     TALENT_TREE_WARRIOR_ARMS         = 746,
@@ -1740,6 +1742,7 @@ class Player : public Unit, public GridObject<Player>
         TrainerSpellState GetTrainerSpellState(TrainerSpell const* trainer_spell) const;
         bool IsSpellFitByClassAndRace(uint32 spell_id) const;
         bool IsNeedCastPassiveSpellAtLearn(SpellInfo const* spellInfo) const;
+        bool IsCurrentSpecMasterySpell(SpellInfo const* spellInfo) const;
 
         void SendProficiency(ItemClass itemClass, uint32 itemSubclassMask);
         void SendInitialSpells();
@@ -1959,6 +1962,8 @@ class Player : public Unit, public GridObject<Player>
         void ApplyRatingMod(CombatRating cr, int32 value, bool apply);
         void UpdateRating(CombatRating cr);
         void UpdateAllRatings();
+        void UpdateMastery();
+        bool CanUseMastery() const;
 
         void CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, bool addTotalPct, float& min_damage, float& max_damage);
 
@@ -2131,7 +2136,7 @@ class Player : public Unit, public GridObject<Player>
         void UpdateCorpseReclaimDelay();
         void SendCorpseReclaimDelay(bool load = false);
 
-        uint32 GetBlockPercent() { return GetUInt32Value(PLAYER_SHIELD_BLOCK); }
+        uint32 GetBlockPercent() const { return GetUInt32Value(PLAYER_SHIELD_BLOCK); }
         bool CanParry() const { return m_canParry; }
         void SetCanParry(bool value);
         bool CanBlock() const { return m_canBlock; }
@@ -2485,14 +2490,12 @@ class Player : public Unit, public GridObject<Player>
         bool IsInWhisperWhiteList(uint64 guid);
         void RemoveFromWhisperWhiteList(uint64 guid) { WhisperList.remove(guid); }
 
+        void ReadMovementInfo(WorldPacket& data, MovementInfo* mi, Movement::ExtraMovementStatusElement* extras = NULL);
+
         /*! These methods send different packets to the client in apply and unapply case.
             These methods are only sent to the current unit.
         */
-        void SendMovementSetCanFly(bool apply);
         void SendMovementSetCanTransitionBetweenSwimAndFly(bool apply);
-        void SendMovementSetHover(bool apply);
-        void SendMovementSetWaterWalking(bool apply);
-        void SendMovementSetFeatherFall(bool apply);
         void SendMovementSetCollisionHeight(float height);
 
         bool CanFly() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_CAN_FLY); }
