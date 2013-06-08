@@ -1352,7 +1352,7 @@ class Player : public Unit, public GridObject<Player>
         void UpdateInnerTime (time_t time) { time_inn_enter = time; }
 
         Pet* GetPet() const;
-        Pet* SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 despwtime);
+        Pet* SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 despwtime, PetSlot slot);
         void RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent = false);
         void HandlePetSummonState(PetType petType, PetSummonState petSummonState);
 
@@ -2376,6 +2376,50 @@ class Player : public Unit, public GridObject<Player>
         float m_homebindZ;
 
         WorldLocation GetStartPosition() const;
+
+        // current pet slot
+        PetSlot m_currentPetSlot;
+        uint32 m_petSlotUsed;
+
+        void setCurrentPetSlot(PetSlot slot) 
+        {
+            m_currentPetSlot = slot; 
+        }
+
+        void setPetSlotUsed(bool used)
+        {
+            if (used)
+                m_petSlotUsed++;
+            else
+                m_petSlotUsed--;
+        }
+
+        PetSlot getSlotForNewPet()
+        {
+            // Some changes here.
+            uint32 last_known = 0;
+
+            // Call Pet Spells.
+            // 883, 83242, 83243, 83244, 83245
+            //  1     2      3      4      5
+
+            if (HasSpell(83245))
+                last_known = 5;
+            else if (HasSpell(83244))
+                last_known = 4;
+            else if (HasSpell(83243))
+                last_known = 3;
+            else if (HasSpell(83242))
+                last_known = 2;
+            else if (HasSpell(883))
+                last_known = 1;
+
+            if (last_known > m_petSlotUsed)
+                return PetSlot(m_petSlotUsed);
+
+            // If there is no slots available, then we should point that out
+            return PET_SLOT_FULL_LIST; // (PetSlot)last_known;
+        }
 
         // currently visible objects at player client
         typedef std::set<uint64> ClientGUIDs;

@@ -3301,7 +3301,10 @@ void Spell::EffectTameCreature(SpellEffIndex /*effIndex*/)
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
     {
-        pet->SavePetToDB(PET_SAVE_AS_CURRENT);
+        // Calc current pet slot
+        pet->SavePetToDB(PetSaveMode(m_caster->ToPlayer()->getSlotForNewPet()));
+        m_caster->ToPlayer()->setPetSlotUsed(true);
+        m_caster->ToPlayer()->setCurrentPetSlot(PetSlot(m_caster->ToPlayer()->m_petSlotUsed -1));
         m_caster->ToPlayer()->PetSpellInitialize();
     }
 }
@@ -3320,6 +3323,10 @@ void Spell::EffectSummonPet(SpellEffIndex effIndex)
     }
 
     uint32 petentry = m_spellInfo->Effects[effIndex].MiscValue;
+
+    PetSlot slot = (PetSlot) m_spellInfo->Effects[effIndex].BasePoints;
+    if (petentry)
+        slot = PET_SLOT_UNK_SLOT;
 
     if (!owner)
     {
@@ -3366,7 +3373,7 @@ void Spell::EffectSummonPet(SpellEffIndex effIndex)
 
     float x, y, z;
     owner->GetClosePoint(x, y, z, owner->GetObjectSize());
-    Pet* pet = owner->SummonPet(petentry, x, y, z, owner->GetOrientation(), SUMMON_PET, 0);
+    Pet* pet = owner->SummonPet(petentry, x, y, z, owner->GetOrientation(), SUMMON_PET, 0, slot);
     if (!pet)
         return;
 
@@ -5654,7 +5661,7 @@ void Spell::EffectSummonDeadPet(SpellEffIndex /*effIndex*/)
     player->GetPosition(x, y, z);
     if (!pet)
     {
-        player->SummonPet(0, x, y, z, player->GetOrientation(), SUMMON_PET, 0);
+        player->SummonPet(0, x, y, z, player->GetOrientation(), SUMMON_PET, 0, PET_SLOT_ACTUAL_PET_SLOT);
         pet = player->GetPet();
     }
     if (!pet)
