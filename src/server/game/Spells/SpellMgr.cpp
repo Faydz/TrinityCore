@@ -3389,6 +3389,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Shadowflame
+                    case 47897:
+                        spellInfo->SchoolMask = SPELL_SCHOOL_MASK_FIRE | SPELL_SCHOOL_MASK_SHADOW;
+                        break;
                     // Spell Lock
                     case 19647:
                         spellInfo->Effects[EFFECT_0].Mechanic = MECHANIC_NONE;
