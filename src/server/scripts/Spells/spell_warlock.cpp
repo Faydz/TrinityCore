@@ -1009,8 +1009,7 @@ class spell_warl_shadow_ward : public SpellScriptLoader
                     // +80.68% from sp bonus
                     float bonus = 0.8068f;
 
-                    bonus *= caster->SpellBaseHealingBonusDone(GetSpellInfo()->GetSchoolMask());
-                    bonus *= caster->CalculateLevelPenalty(GetSpellInfo());
+                    bonus *= caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC);
 
                     amount += int32(bonus);
                 }
