@@ -707,41 +707,6 @@ class spell_rog_tricks_of_the_trade_proc : public SpellScriptLoader
         }
 };
 
-class spell_rog_smoke_bomb : public SpellScriptLoader
-{
-public:
-    spell_rog_smoke_bomb() : SpellScriptLoader("spell_rog_smoke_bomb") { }
-
-    class spell_rog_smoke_bomb_AuraScript : public AuraScript
-    {
-        PrepareAuraScript(spell_rog_smoke_bomb_AuraScript);
-       
-        void OnTick(AuraEffect const* aurEff)
-        {
-            if(!GetCaster())
-                return;
-
-            if (DynamicObject* dynObj = GetCaster()->GetDynObject(76577))
-            {
-                GetCaster()->CastSpell(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ(), 88611, true);
-            }
-        }
-
-        void Register()
-        {
-            OnEffectPeriodic += AuraEffectPeriodicFn(spell_rog_smoke_bomb_AuraScript::OnTick, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
-        }
-        
-        public:
-            std::list<Unit*> targetList;
-    };
-    
-    AuraScript* GetAuraScript() const
-    {
-        return new spell_rog_smoke_bomb_AuraScript();
-    }
-};
-
 // Vanish bugg (Improved stealth)
 class spell_rog_vanish_buff: public SpellScriptLoader 
 {
@@ -893,6 +858,7 @@ class spell_rog_combat_readiness : public SpellScriptLoader
         }
 };
 
+// 76577 - Smoke Bomb
 class spell_rog_smoke_bomb_inv : public SpellScriptLoader
 {
     public:
@@ -921,9 +887,38 @@ class spell_rog_smoke_bomb_inv : public SpellScriptLoader
             }
         };
 
+        class spell_rog_smoke_bomb_inv_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_rog_smoke_bomb_inv_AuraScript);
+       
+            void OnTick(AuraEffect const* aurEff)
+            {
+                Unit* caster = GetCaster();
+
+                if(!caster)
+                    return;
+
+                if (DynamicObject* dynObj = caster->GetDynObject(76577))
+                {   
+                    // Casts aoe interfere targetting aura
+                    caster->CastSpell(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ(), 88611, true);
+                }
+            }
+
+            void Register()
+            {
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_rog_smoke_bomb_inv_AuraScript::OnTick, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+            }
+        };
+
         SpellScript* GetSpellScript() const
         {
             return new spell_rog_smoke_bomb_inv_SpellScript();
+        }
+    
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_rog_smoke_bomb_inv_AuraScript();
         }
 };
 
@@ -941,7 +936,6 @@ void AddSC_rogue_spell_scripts()
     new spell_rog_shiv();
     new spell_rog_tricks_of_the_trade();
     new spell_rog_tricks_of_the_trade_proc();
-    new spell_rog_smoke_bomb();
     new spell_rog_vanish_buff();
     new spell_rog_sap();
     new spell_rog_revealing_strike();

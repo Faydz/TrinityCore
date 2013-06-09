@@ -4089,6 +4089,9 @@ void Unit::RemoveArenaAuras()
         else
             ++iter;
     }
+
+    // Removes Deserver in join
+    RemoveAura(26013);
 }
 
 void Unit::RemoveAllAurasOnDeath()
