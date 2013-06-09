@@ -514,6 +514,19 @@ public:
                         case CLASS_HUNTER:
                             caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_FOCUS, &bp0, NULL, NULL, true);
                             break;
+                        case CLASS_DRUID:
+                            target->RemoveAura(SPELL_WARLOCK_JINX_RAGE);
+                            target->RemoveAura(SPELL_WARLOCK_JINX_ENERGY);
+
+                            if(target->GetShapeshiftForm() == FORM_BEAR)
+                            {
+                                caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_RAGE, &bp0, NULL, NULL, true);
+                            }
+                            else if(target->GetShapeshiftForm() == FORM_CAT)
+                            {
+                                caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_ENERGY, &bp0, NULL, NULL, true);
+                            }
+                            break;
                     }
                 }
             }
