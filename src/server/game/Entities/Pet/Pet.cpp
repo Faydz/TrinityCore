@@ -408,7 +408,7 @@ void Pet::SavePetToDB(PetSaveMode mode)
     _SaveAuras(trans);
 
     // stable and not in slot saves
-    if (mode > PET_SLOT_HUNTER_LAST)
+    if (mode > PetSaveMode(PET_SLOT_HUNTER_LAST))
         RemoveAllAuras();
 
     _SaveSpells(trans);
