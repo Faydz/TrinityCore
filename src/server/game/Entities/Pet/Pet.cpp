@@ -497,6 +497,10 @@ void Pet::SavePetToDB(PetSaveMode mode)
             stmt->setUInt32(1, m_charmInfo->GetPetNumber());
             PreparedQueryResult resultPets = CharacterDatabase.Query(stmt);
 
+            // no offline pets
+            if (!resultPets)
+                return;
+
             uint8 curSlot = 0;
             do
             {
