@@ -514,6 +514,19 @@ public:
                         case CLASS_HUNTER:
                             caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_FOCUS, &bp0, NULL, NULL, true);
                             break;
+                        case CLASS_DRUID:
+                            target->RemoveAura(SPELL_WARLOCK_JINX_RAGE);
+                            target->RemoveAura(SPELL_WARLOCK_JINX_ENERGY);
+
+                            if(target->GetShapeshiftForm() == FORM_BEAR)
+                            {
+                                caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_RAGE, &bp0, NULL, NULL, true);
+                            }
+                            else if(target->GetShapeshiftForm() == FORM_CAT)
+                            {
+                                caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_ENERGY, &bp0, NULL, NULL, true);
+                            }
+                            break;
                     }
                 }
             }
@@ -996,8 +1009,7 @@ class spell_warl_shadow_ward : public SpellScriptLoader
                     // +80.68% from sp bonus
                     float bonus = 0.8068f;
 
-                    bonus *= caster->SpellBaseHealingBonusDone(GetSpellInfo()->GetSchoolMask());
-                    bonus *= caster->CalculateLevelPenalty(GetSpellInfo());
+                    bonus *= caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC);
 
                     amount += int32(bonus);
                 }

@@ -453,6 +453,7 @@ void LFGMgr::JoinLfg(Player* player, uint8 roles, LfgDungeonSet& dungeons, const
     uint64 guid = player->GetGUID();
     uint64 gguid = grp ? grp->GetGUID() : guid;
     LfgJoinResultData joinData;
+    LfgUpdateData updateData;
     LfgGuidSet players;
     uint32 rDungeonId = 0;
     bool isContinue = grp && grp->isLFGGroup() && GetState(gguid) != LFG_STATE_FINISHED_DUNGEON;
@@ -637,8 +638,9 @@ void LFGMgr::JoinLfg(Player* player, uint8 roles, LfgDungeonSet& dungeons, const
             SetSelectedDungeons(guid, dungeons);
         }
         // Send update to player
+        player->GetSession()->SendLfgUpdateStatus(LfgUpdateData(LFG_UPDATETYPE_JOIN_QUEUE, dungeons, comment));
         player->GetSession()->SendLfgJoinResult(joinData);
-        player->GetSession()->SendLfgUpdatePlayer(LfgUpdateData(LFG_UPDATETYPE_JOIN_QUEUE, dungeons, comment));
+        //player->GetSession()->SendLfgUpdatePlayer(LfgUpdateData(LFG_UPDATETYPE_JOIN_QUEUE, dungeons, comment));
         SetState(gguid, LFG_STATE_QUEUED);
         SetRoles(guid, roles);
         debugNames.append(player->GetName());

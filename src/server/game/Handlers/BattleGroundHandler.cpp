@@ -828,7 +828,7 @@ void WorldSession::HandleRequestPvpOptions(WorldPacket& /*recvData*/)
     /// @Todo: perfome research in this case
     WorldPacket data(SMSG_PVP_OPTIONS_ENABLED, 1);
     data.WriteBit(1);
-    data.WriteBit(1);       // WargamesEnabled
+    data.WriteBit(0);       // WargamesEnabled
     data.WriteBit(1);
     data.WriteBit(1);       // RatedBGsEnabled
     data.WriteBit(1);       // RatedArenasEnabled
@@ -850,7 +850,7 @@ void WorldSession::HandleRequestRatedBgStats(WorldPacket& /*recvData*/)
     sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: CMSG_REQUEST_RATED_BG_STATS");
 
     WorldPacket data(SMSG_BATTLEFIELD_RATED_INFO, 29);
-    data << uint32(0);  // Reward
+    data << uint32(400);  // Reward
     data << uint8(3);   // unk
     data << uint32(0);  // Rating
     data << uint32(0);  // unk

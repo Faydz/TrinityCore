@@ -95,7 +95,7 @@ void Pet::RemoveFromWorld()
     }
 }
 
-bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool current)
+bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool current, PetSlot slot)
 {
     m_loading = true;
 
@@ -103,6 +103,10 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
 
     PreparedStatement* stmt;
     PreparedQueryResult result;
+
+    // Set pet number to one.. example when we create a new hunter
+    if (owner && owner->m_petSlotUsed == 0)
+        owner->m_petSlotUsed = 1;
 
     if (petnumber)
     {
@@ -132,7 +136,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
         // Any current or other non-stabled pet (for hunter "call pet")
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_PET_BY_SLOT);
         stmt->setUInt32(0, ownerid);
-        stmt->setUInt8(1, uint8(PET_SAVE_AS_CURRENT));
+        stmt->setUInt8(1, uint8(slot));
         stmt->setUInt8(2, uint8(PET_SAVE_LAST_STABLE_SLOT));
     }
 
@@ -150,7 +154,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
     petEntry = fields[1].GetUInt32();
     if (!petEntry)
         return false;
-
+  
     uint32 summonSpellId = fields[14].GetUInt32();
     SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(summonSpellId);
 
@@ -162,7 +166,9 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
     if (petType == HUNTER_PET)
     {
         CreatureTemplate const* creatureInfo = sObjectMgr->GetCreatureTemplate(petEntry);
-        if (!creatureInfo || !creatureInfo->isTameable(owner->CanTameExoticPets()))
+        // We don't chek if creature is tameable, because some creature was in 406 but not in 434. 
+        // And we don't want that players loose thery lovely pets.. 
+        if (!creatureInfo)
             return false;
     }
 
@@ -269,7 +275,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
     // set current pet as current
     // 0=current
     // 1..MAX_PET_STABLES in stable slot
-    // PET_SAVE_NOT_IN_SLOT(100) = not stable slot (summoning))
+    /* PET_SAVE_NOT_IN_SLOT(100) = not stable slot (summoning))
     if (fields[7].GetUInt8())
     {
         SQLTransaction trans = CharacterDatabase.BeginTransaction();
@@ -288,7 +294,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
         trans->Append(stmt);
 
         CharacterDatabase.CommitTransaction(trans);
-    }
+    }*/
 
     // Send fake summon spell cast - this is needed for correct cooldown application for spells
     // Example: 46584 - without this cooldown (which should be set always when pet is loaded) isn't set clientside
@@ -402,7 +408,7 @@ void Pet::SavePetToDB(PetSaveMode mode)
     _SaveAuras(trans);
 
     // stable and not in slot saves
-    if (mode > PET_SAVE_AS_CURRENT)
+    if (mode > PET_SLOT_HUNTER_LAST)
         RemoveAllAuras();
 
     _SaveSpells(trans);
@@ -422,7 +428,7 @@ void Pet::SavePetToDB(PetSaveMode mode)
         stmt->setUInt32(0, m_charmInfo->GetPetNumber());
         trans->Append(stmt);
 
-        // prevent duplicate using slot (except PET_SAVE_NOT_IN_SLOT)
+        /* prevent duplicate using slot (except PET_SAVE_NOT_IN_SLOT)
         if (mode <= PET_SAVE_LAST_STABLE_SLOT)
         {
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_UDP_CHAR_PET_SLOT_BY_SLOT);
@@ -430,14 +436,15 @@ void Pet::SavePetToDB(PetSaveMode mode)
             stmt->setUInt32(1, ownerLowGUID);
             stmt->setUInt8(2, uint8(mode));
             trans->Append(stmt);
-        }
+        }*/
 
         // prevent existence another hunter pet in PET_SAVE_AS_CURRENT and PET_SAVE_NOT_IN_SLOT
-        if (getPetType() == HUNTER_PET && (mode == PET_SAVE_AS_CURRENT || mode > PET_SAVE_LAST_STABLE_SLOT))
+        // Remove pet of the same slot
+        if (getPetType() == HUNTER_PET && ((mode >= PET_SAVE_AS_CURRENT && mode < PET_SAVE_FIRST_STABLE_SLOT) || mode > PET_SAVE_LAST_STABLE_SLOT))
         {
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_PET_BY_SLOT);
             stmt->setUInt32(0, ownerLowGUID);
-            stmt->setUInt8(1, uint8(PET_SAVE_AS_CURRENT));
+            stmt->setUInt8(1, uint8(mode));
             stmt->setUInt8(2, uint8(PET_SAVE_LAST_STABLE_SLOT));
             trans->Append(stmt);
         }
@@ -477,7 +484,40 @@ void Pet::SavePetToDB(PetSaveMode mode)
     else
     {
         RemoveAllAuras();
+        if (GetOwner())
+            GetOwner()->setPetSlotUsed(false);
+        
         DeleteFromDB(m_charmInfo->GetPetNumber());
+        
+        // Recalculate pet slots for hunters
+        if (getPetType() == HUNTER_PET)
+        {
+            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_PET_ORDERED);
+            stmt->setUInt32(0, GetOwner()->GetGUIDLow());
+            stmt->setUInt32(1, m_charmInfo->GetPetNumber());
+            PreparedQueryResult resultPets = CharacterDatabase.Query(stmt);
+
+            uint8 curSlot = 0;
+            do
+            {
+                Field* fields = resultPets->Fetch();
+
+                uint32 id = fields[0].GetUInt32();
+                SQLTransaction trans_del = CharacterDatabase.BeginTransaction();
+
+                PreparedStatement* stmt_del = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_PET_SLOT_BY_ID);
+                stmt_del->setUInt8(0, uint8(curSlot));
+                stmt_del->setUInt32(1, GetOwner()->GetGUIDLow());
+                stmt_del->setUInt32(2, id);
+                trans_del->Append(stmt_del);
+
+                CharacterDatabase.CommitTransaction(trans_del);
+                curSlot++;
+            }
+            while (resultPets->NextRow());
+
+            GetOwner()->ToPlayer()->setCurrentPetSlot(PET_SLOT_HUNTER_FIRST);
+        }
     }
 }
 

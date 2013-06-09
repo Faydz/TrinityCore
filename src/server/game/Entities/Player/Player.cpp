@@ -691,6 +691,9 @@ Player::Player(WorldSession* session): Unit(true), phaseMgr(this)
     m_comboTarget = 0;
     m_comboPoints = 0;
 
+    m_petSlotUsed = 0;
+    m_currentPetSlot = PET_SLOT_DELETED;
+
     m_regenTimer = 0;
     m_regenTimerCount = 0;
     m_holyPowerRegenTimerCount = 0;
@@ -17429,8 +17432,8 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     //"totalKills, todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk, "
     // 46      47      48      49      50      51      52           53         54          55             56
     //"health, power1, power2, power3, power4, power5, instance_id, speccount, activespec, exploredZones, equipmentCache, "
-    // 57           58          59
-    //"knownTitles, actionBars, grantableLevels FROM characters WHERE guid = '%u'", guid);
+    // 57           58          59               60                61
+    //"knownTitles, actionBars, grantableLevels, current_pet_slot, pet_slot_used FROM characters WHERE guid = '%u'", guid);
     PreparedQueryResult result = holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_FROM);
     if (!result)
     {
@@ -17541,6 +17544,11 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
 
     // set which actionbars the client has active - DO NOT REMOVE EVER AGAIN (can be changed though, if it does change fieldwise)
     SetByteValue(PLAYER_FIELD_BYTES, 2, fields[58].GetUInt8());
+
+    // m_currentPetSlot = (PetSlot)fields[60].GetUInt32();
+    // Hardcoded for now
+    m_currentPetSlot = PET_SLOT_HUNTER_FIRST;
+    m_petSlotUsed = fields[61].GetUInt32();
 
     InitDisplayIds();
 
@@ -19796,6 +19804,11 @@ void Player::SaveToDB(bool create /*=false*/)
         stmt->setUInt8(index++, GetByteValue(PLAYER_FIELD_BYTES, 2));
         stmt->setUInt32(index++, m_grantableLevels);
 
+        // Pet slot
+        stmt->setUInt32(index++, m_currentPetSlot);
+        stmt->setUInt32(index++, m_petSlotUsed);
+
+        // Online
         stmt->setUInt8(index++, IsInWorld() && !GetSession()->PlayerLogout() ? 1 : 0);
         // Index
         stmt->setUInt32(index++, GetGUIDLow());
@@ -20966,6 +20979,10 @@ void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent)
                 break;
         }
     }
+
+    // If is hunter pet save with his slot, not alternative slot.
+    if (pet->getPetType() == HUNTER_PET && mode == PET_SAVE_NOT_IN_SLOT)
+        mode = PetSaveMode(m_currentPetSlot);
 
     // only if current pet in slot
     pet->SavePetToDB(mode);
@@ -22656,9 +22673,26 @@ void Player::AddSpellAndCategoryCooldowns(SpellInfo const* spellInfo, uint32 ite
         if (catrec > 0 && !(spellInfo->AttributesEx6 & SPELL_ATTR6_IGNORE_CATEGORY_COOLDOWN_MODS))
             ApplySpellMod(spellInfo->Id, SPELLMOD_COOLDOWN, catrec, spell);
 
+        // Apply SPELL_AURA_MOD_SPELL_CATEGORY_COOLDOWN modifiers
+        // Note: This aura applies its modifiers to all cooldowns of spells with set category, not to category cooldown only
+        if (cat)
+        {
+            if (int32 categoryModifier = GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_SPELL_CATEGORY_COOLDOWN, cat))
+            {
+                if (rec > 0)
+                    rec += categoryModifier;
+
+                if (catrec > 0)
+                    catrec += categoryModifier;
+            }
+        }
+
         // replace negative cooldowns by 0
-        if (rec < 0) rec = 0;
-        if (catrec < 0) catrec = 0;
+        if (rec < 0)
+            rec = 0;
+
+        if (catrec < 0)
+            catrec = 0;
 
         // no cooldown after applying spell mods
         if (rec == 0 && catrec == 0)
@@ -27466,14 +27500,17 @@ Guild* Player::GetGuild()
     return guildId ? sGuildMgr->GetGuildById(guildId) : NULL;
 }
 
-Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 duration)
+Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 duration, PetSlot slot)
 {
     Pet* pet = new Pet(this, petType);
 
     // Can it be placed in a better position ?
     HandlePetSummonState(petType, PETSUMMON_SUMMONING);
 
-    if (petType == SUMMON_PET && pet->LoadPetFromDB(this, entry))
+    // Set Slot used to this
+    m_currentPetSlot = slot;
+
+    if (petType == SUMMON_PET && pet->LoadPetFromDB(this, entry, 0, false, slot))
     {
         // Remove Demonic Sacrifice auras (known pet)
         Unit::AuraEffectList const& auraClassScripts = GetAuraEffectsByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
