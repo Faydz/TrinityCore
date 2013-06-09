@@ -27248,6 +27248,14 @@ void Player::RefundItem(Item* item)
         uint32 count = iece->RequiredCurrencyCount[i];
         uint32 currencyid = iece->RequiredCurrency[i];
 
+        CurrencyTypesEntry const* entry = sCurrencyTypesStore.LookupEntry(currencyid);
+        if (!entry)
+            continue;
+
+        // Skip check only currencies.. fucking lamers
+        if (entry->TotalCap > 0 && count > entry->TotalCap)
+            continue;
+
         if (count && currencyid)
             ModifyCurrency(currencyid, count, false, true, true, true);
     }
