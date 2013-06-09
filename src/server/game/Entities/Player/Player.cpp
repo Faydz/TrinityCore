@@ -22013,6 +22013,10 @@ void Player::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs)
         if (spellInfo->PreventionType != SPELL_PREVENTION_TYPE_SILENCE)
             continue;
 
+        // Not sent cooldown for multischool spells
+        if (spellInfo->IsMultiSchoolSpell())
+            continue;
+
         if ((idSchoolMask & spellInfo->GetSchoolMask()) && GetSpellCooldownDelay(unSpellId) < unTimeMs)
         {
             data << uint32(unSpellId);
