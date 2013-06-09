@@ -11184,8 +11184,12 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             {
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DEMONOLOGY)
                {
-                   float pct = float(0.023f * owner->ToPlayer()->GetMasteryPoints());
-                   DoneTotalMod *= 1 +  pct;
+                   // Mod applied either if is pet or if warlock is in Metamorphosis
+                   if(this->isPet() || owner->HasAura(47241))
+                   {
+                       float pct = float(0.023f * owner->ToPlayer()->GetMasteryPoints());
+                       DoneTotalMod *= 1 +  pct;
+                   }
                }
             }
 
