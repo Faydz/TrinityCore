@@ -2042,12 +2042,15 @@ class spell_dru_lacerate : public SpellScriptLoader
                 if(Unit* caster = GetCaster())
                 {
                     if (Player* player = caster->ToPlayer())
-                    {
+                    {   
                         // Berserk
-                        if(roll_chance_i(50))
+                        if(player->HasTalent(50334, player->GetActiveSpec()))
                         {
-                            player->RemoveSpellCooldown(33878, true);
-                            player->CastSpell(player, 93622, true);
+                            if(roll_chance_i(50))
+                            {
+                                player->RemoveSpellCooldown(33878, true);
+                                player->CastSpell(player, 93622, true);
+                            }
                         }
                     }
                 }
