@@ -1839,54 +1839,34 @@ class spell_dru_ravage : public SpellScriptLoader
         }
 };
 
-class spell_dru_feral_charge_bear : public SpellScriptLoader
+class spell_dru_feral_charge : public SpellScriptLoader
 {
     public:
-        spell_dru_feral_charge_bear() : SpellScriptLoader("spell_dru_feral_charge_bear") { }
+        spell_dru_feral_charge() : SpellScriptLoader("spell_dru_feral_charge") { }
 
-        class spell_dru_feral_charge_bear_SpellScript : public SpellScript
+        class spell_dru_feral_charge_SpellScript : public SpellScript
         {
-            PrepareSpellScript(spell_dru_feral_charge_bear_SpellScript);
+            PrepareSpellScript(spell_dru_feral_charge_SpellScript);
 
-            void OnHit()
+            SpellCastResult CheckCast()
             {
-                if (Unit* caster=GetCaster())
-                    if (Unit* target=GetHitUnit())
+                if (Unit* caster = GetCaster())
+                {
+                    if (caster->HasUnitState(UNIT_STATE_ROOT))
                     {
-                        if (caster->HasAura(78892))
-                            caster->CastSpell(caster,81016, true);
-
-                        if (caster->HasAura(78893))
-                            caster->CastSpell(caster,81017, true);
+                        SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_CANT_DO_WHILE_ROOTED);
+                        return SPELL_FAILED_CUSTOM_ERROR;
                     }
+                }
+
+                return SPELL_CAST_OK;
             }
-
-            void Register()
-            {
-                
-                AfterHit += SpellHitFn(spell_dru_feral_charge_bear_SpellScript::OnHit);
-            }
-        };
-
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_dru_feral_charge_bear_SpellScript();
-        }
-};
-
-class spell_dru_feral_charge_cat : public SpellScriptLoader
-{
-    public:
-        spell_dru_feral_charge_cat() : SpellScriptLoader("spell_dru_feral_charge_cat") { }
-
-        class spell_dru_feral_charge_cat_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_dru_feral_charge_cat_SpellScript);
 
             void OnHit()
             {
                 if (Unit* caster=GetCaster())
-                    if (Unit* target=GetHitUnit())
+                {
+                    if (caster->GetShapeshiftForm() == FORM_CAT)
                     {
                         if (caster->HasAura(78892))
                             caster->CastSpell(caster,81021, true);
@@ -1894,18 +1874,27 @@ class spell_dru_feral_charge_cat : public SpellScriptLoader
                         if (caster->HasAura(78893))
                             caster->CastSpell(caster,81022, true);
                     }
+                    else if (caster->GetShapeshiftForm() == FORM_BEAR)
+                    {
+                        if (caster->HasAura(78892))
+                            caster->CastSpell(caster,81016, true);
+
+                        if (caster->HasAura(78893))
+                            caster->CastSpell(caster,81017, true);
+                    }
+                }
             }
 
             void Register()
             {
-                
-                AfterHit += SpellHitFn(spell_dru_feral_charge_cat_SpellScript::OnHit);
+                OnCheckCast += SpellCheckCastFn(spell_dru_feral_charge_SpellScript::CheckCast);
+                AfterHit += SpellHitFn(spell_dru_feral_charge_SpellScript::OnHit);
             }
         };
 
         SpellScript* GetSpellScript() const
         {
-            return new spell_dru_feral_charge_cat_SpellScript();
+            return new spell_dru_feral_charge_SpellScript();
         }
 };
 
@@ -2334,8 +2323,7 @@ void AddSC_druid_spell_scripts()
     new spell_dru_harmony();
     new spell_dru_feral_swiftness();
     new spell_dru_ravage();
-    new spell_dru_feral_charge_bear();
-    new spell_dru_feral_charge_cat();
+    new spell_dru_feral_charge();
     new spell_dru_pulverize();
     new spell_dru_berserk();
     new spell_dru_lacerate();
