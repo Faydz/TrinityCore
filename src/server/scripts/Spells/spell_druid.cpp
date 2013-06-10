@@ -1748,16 +1748,9 @@ class spell_dru_feral_swiftness : public SpellScriptLoader
             {
                 if (Unit* caster=GetCaster())
                     if (Unit* target=GetHitUnit())
-                    {
-                        int32 chance = 0;
-                        if (target->HasAura(17002) || target->HasAura(24867))
-                            chance = 50;
-                        else if (target->HasAura(24866) || target->HasAura(24864))
-                            chance = 100;
-
-                        if(roll_chance_i(chance))
-                            target->RemoveMovementImpairingAuras();
-                    }
+                        if(AuraEffect * aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DRUID, 67, EFFECT_1))
+                            if(roll_chance_i(aurEff->GetAmount()))
+                                target->RemoveMovementImpairingAuras();
             }
 
             void Register()

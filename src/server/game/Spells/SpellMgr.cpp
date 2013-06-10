@@ -3822,7 +3822,13 @@ void SpellMgr::LoadSpellCustomAttr()
                 break;
             case SPELLFAMILY_DRUID:
                 switch(spellInfo->Id)
-                {
+                {   
+                    // Feral Swiftness
+                    case 17002:
+                    case 24866:
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
+                        break;
                     // Innervate (Glyph of Innervate)
                     case 54833:
                         spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_PERIODIC_ENERGIZE;
