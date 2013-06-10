@@ -902,53 +902,6 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
         case SPELLFAMILY_DEATHKNIGHT:
             switch (m_spellInfo->Id)
             {
-                // Death strike
-                case 49998:
-                {
-                    int32 bp;
-                    uint32 healthPct;
-                    if (m_caster->HasAura(101568)) // Glyph of Dark Succor
-                    {
-                        healthPct = m_caster->CountPctFromMaxHealth(20);
-                        m_caster->RemoveAura(101568);
-                    }
-                    else
-                    {
-                        healthPct = m_caster->CountPctFromMaxHealth(7);
-                    }
-                    uint32 damageTaken = m_caster->GetDamageTakenInPastSecs(5) * 0.20f;
-
-                    if (healthPct > damageTaken)
-                        bp = int32(healthPct);
-                    else 
-                        bp = int32(damageTaken);                
-
-                    // Improved Death Strike
-                    if (AuraEffect const * aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2751, EFFECT_2))
-                        AddPct(bp, aurEff->GetAmount());
-
-                    if (m_caster->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && m_caster->HasAura(48263))
-                    {
-                        if (m_caster->ToPlayer()->GetPrimaryTalentTree(m_caster->ToPlayer()->GetActiveSpec()) == BS_DEATH_KNIGHT_BLOOD)
-                        {
-                            int32 shield = int32(bp * (6.25f * m_caster->ToPlayer()->GetMasteryPoints()) / 100.0f);
-
-                            // This effect stacks
-                            if (Aura* aura = m_caster->GetAura(77535, m_caster->GetGUID()))
-                            {
-                                if(AuraEffect* aurEff = aura->GetEffect(EFFECT_0))
-                                {
-                                    shield += aurEff->GetAmount();
-                                }
-                            }
-
-                            m_caster->CastCustomSpell(m_caster, 77535, &shield, NULL, NULL, false);
-                        }
-                    }
-
-                    m_caster->CastCustomSpell(m_caster, 45470, &bp, NULL, NULL, false);
-                    break;
-                }
                 case 46584: // Raise Dead
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
                         return;

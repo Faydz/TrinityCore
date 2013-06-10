@@ -1317,6 +1317,81 @@ public:
     }
 };
 
+// 47482  Huddle
+class spell_dk_death_strike : public SpellScriptLoader
+{
+public:
+    spell_dk_death_strike() : SpellScriptLoader("spell_dk_death_strike") { }
+
+    class spell_dk_death_strike_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_dk_death_strike_SpellScript)
+
+        void HandleOnCast()
+        {
+            if(Unit * caster = GetCaster())
+            {
+                uint32 healthPct;
+                if (caster->HasAura(101568)) // Glyph of Dark Succor
+                {
+                    healthPct = caster->CountPctFromMaxHealth(20);
+                    caster->RemoveAura(101568);
+                }
+                else
+                {
+                    healthPct = caster->CountPctFromMaxHealth(7);
+                }
+                uint32 damageTaken = caster->GetDamageTakenInPastSecs(5) * 0.20f;
+
+                if (healthPct > damageTaken)
+                    bp = int32(healthPct);
+                else 
+                    bp = int32(damageTaken);                
+
+                // Improved Death Strike
+                if (AuraEffect const * aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_DEATHKNIGHT, 2751, EFFECT_2))
+                    AddPct(bp, aurEff->GetAmount());
+
+                caster->CastCustomSpell(caster, 45470, &bp, NULL, NULL, false);
+            }
+        }
+        void HandleHit(SpellEffIndex /*effIndex*/)
+        {
+            if(Unit * caster = GetCaster())
+            {
+                if (caster->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && caster->HasAura(48263))
+                {
+                    if (caster->ToPlayer()->GetPrimaryTalentTree(caster->ToPlayer()->GetActiveSpec()) == BS_DEATH_KNIGHT_BLOOD)
+                    {
+                        int32 shield = int32(bp * (6.25f * caster->ToPlayer()->GetMasteryPoints()) / 100.0f);
+
+                        // This effect stacks
+                        if (Aura* aura = caster->GetAura(77535, caster->GetGUID()))
+                            if(AuraEffect* aurEff = aura->GetEffect(EFFECT_0))
+                                shield += aurEff->GetAmount();
+
+                        caster->CastCustomSpell(caster, 77535, &shield, NULL, NULL, false);
+                    }
+                }
+            }
+        }
+
+    private:
+        int32 bp;
+
+        void Register()
+        {
+            OnCast += SpellCastFn(spell_dk_death_strike_SpellScript::HandleOnCast);
+            OnEffectHitTarget += SpellEffectFn(spell_dk_death_strike_SpellScript::HandleHit, EFFECT_1, SPELL_EFFECT_WEAPON_PERCENT_DAMAGE);
+        }
+    };
+
+    SpellScript* GetSpellScript() const
+    {
+        return new spell_dk_death_strike_SpellScript();
+    }
+};
+
 
 void AddSC_deathknight_spell_scripts()
 {
@@ -1348,5 +1423,6 @@ void AddSC_deathknight_spell_scripts()
     new spell_dk_claw();
     new spell_dk_leap();
     new spell_dk_huddle();
+    new spell_dk_death_strike();
 
 }
