@@ -1268,6 +1268,17 @@ bool SpellInfo::IsAutoRepeatRangedSpell() const
     return AttributesEx2 & SPELL_ATTR2_AUTOREPEAT_FLAG;
 }
 
+bool SpellInfo::IsMultiSchoolSpell() const
+{
+    int counter = 0;
+
+    for (int i = 0; i < MAX_SPELL_SCHOOL; ++i)
+        if (SchoolMask & (1 << i))
+            counter++;
+
+    return counter > 1 ? true : false;
+}
+
 bool SpellInfo::IsAffectedBySpellMods() const
 {
     return !(AttributesEx3 & SPELL_ATTR3_NO_DONE_BONUS);

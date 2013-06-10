@@ -475,7 +475,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
     // default amount calculation
 	int32 amount = 0;
     if (this){
-	    if(GetBase() && GetBase()->GetOwner() && GetBase()->GetOwner()->ToUnit()){
+        if(GetBase() && GetBase()->GetOwner()){
 		    amount = m_spellInfo->Effects[m_effIndex].CalcValue(caster, &m_baseAmount, GetBase()->GetOwner()->ToUnit());
         }
     }
@@ -6618,6 +6618,7 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
     uint32 procAttacker = PROC_FLAG_DONE_PERIODIC;
     uint32 procVictim   = PROC_FLAG_TAKEN_PERIODIC;
     uint32 procEx = (crit ? PROC_EX_CRITICAL_HIT : PROC_EX_NORMAL_HIT) | PROC_EX_INTERNAL_DOT;
+    procEx |= absorb ? PROC_EX_ABSORB : 0;
     damage = (damage <= absorb+resist) ? 0 : (damage-absorb-resist);
     if (damage)
         procVictim |= PROC_FLAG_TAKEN_DAMAGE;

@@ -691,6 +691,9 @@ Player::Player(WorldSession* session): Unit(true), phaseMgr(this)
     m_comboTarget = 0;
     m_comboPoints = 0;
 
+    m_petSlotUsed = 0;
+    m_currentPetSlot = PET_SLOT_DELETED;
+
     m_regenTimer = 0;
     m_regenTimerCount = 0;
     m_holyPowerRegenTimerCount = 0;
@@ -825,6 +828,12 @@ Player::Player(WorldSession* session): Unit(true), phaseMgr(this)
 
     // Honor System
     m_lastHonorUpdateTime = time(NULL);
+
+    // Currency Week Cap
+    m_maxWeekRating[CP_SOURCE_ARENA] = 0;
+    m_maxWeekRating[CP_SOURCE_RATED_BG] = 0;
+    m_conquestPointsWeekCap[CP_SOURCE_ARENA] = 1350;
+    m_conquestPointsWeekCap[CP_SOURCE_RATED_BG] = 1650;
 
     m_IsBGRandomWinner = false;
 
@@ -7451,6 +7460,28 @@ void Player::_LoadCurrency(PreparedQueryResult result)
     } while (result->NextRow());
 }
 
+void Player::_LoadCurrencyWeekCap(PreparedQueryResult result)
+{
+    //           0         1            2
+    // "SELECT source, maxWeekRating, weekCap FROM character_cp_weekcap WHERE guid = ?"
+
+    if (!result)
+        return;
+
+    do
+    {
+        Field *fields = result->Fetch();
+
+        uint16 source = fields[0].GetUInt16();
+        if (source != CP_SOURCE_ARENA && source != CP_SOURCE_RATED_BG)
+            continue;
+
+        m_maxWeekRating[source] = fields[1].GetUInt16();
+        m_conquestPointsWeekCap[source] = fields[2].GetUInt16();
+    } while (result->NextRow());
+}
+
+
 void Player::_SaveCurrency(SQLTransaction& trans)
 {
     PreparedStatement* stmt = NULL;
@@ -7485,6 +7516,21 @@ void Player::_SaveCurrency(SQLTransaction& trans)
         }
 
         itr->second.state = PLAYERCURRENCY_UNCHANGED;
+    }
+}
+
+void Player::_SaveCurrencyWeekCap(SQLTransaction& trans)
+{
+    PreparedStatement* stmt = NULL;
+
+    for (uint8 source = 0; source < CP_SOURCE_MAX; source++)
+    {
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_PLAYER_CURRENCY_WEEK_CAP);
+        stmt->setUInt32(0, GetGUIDLow());
+        stmt->setUInt8 (1, source);
+        stmt->setUInt16(2, m_maxWeekRating[source]);
+        stmt->setUInt16(3, m_conquestPointsWeekCap[source]);
+        trans->Append(stmt);
     }
 }
 
@@ -7756,6 +7802,22 @@ uint32 Player::GetCurrencyWeekCap(uint32 id, bool usePrecision) const
 
 void Player::ResetCurrencyWeekCap()
 {
+    // How nice it's this Formula ? *_*
+    uint32 newCap = Trinity::Currency::ConquestRatingCalculator(m_maxWeekRating[CP_SOURCE_ARENA]);
+    m_conquestPointsWeekCap[CP_SOURCE_ARENA] = uint16(newCap); 
+
+    // Our players must be skilled every week u.u
+    m_maxWeekRating[CP_SOURCE_ARENA] = 0;
+
+    // Update database!
+    SQLTransaction trans = CharacterDatabase.BeginTransaction();
+    _SaveCurrencyWeekCap(trans);
+    _SaveCurrency(trans);
+    CharacterDatabase.CommitTransaction(trans);
+
+    // Let know players what the fuck i'm doing :V
+    SendCurrencies();
+
     for (uint32 arenaSlot = 0; arenaSlot < MAX_ARENA_SLOT; arenaSlot++)
     {
         if (uint32 arenaTeamId = GetArenaTeamId(arenaSlot))
@@ -7786,12 +7848,10 @@ uint32 Player::GetCurrencyWeekCap(CurrencyTypesEntry const* currency) const
             return std::max(GetCurrencyWeekCap(CURRENCY_TYPE_CONQUEST_META_ARENA, false), GetCurrencyWeekCap(CURRENCY_TYPE_CONQUEST_META_RBG, false));
         case CURRENCY_TYPE_CONQUEST_META_ARENA:
             // should add precision mod = 100
-            return 1350 * CURRENCY_PRECISION;
-        // return Trinity::Currency::ConquestRatingCalculator(_maxPersonalArenaRate) * CURRENCY_PRECISION;
+            return m_conquestPointsWeekCap[CP_SOURCE_ARENA] * CURRENCY_PRECISION;
         case CURRENCY_TYPE_CONQUEST_META_RBG:
             // should add precision mod = 100
-            return 1350 * CURRENCY_PRECISION;
-            //    return Trinity::Currency::BgConquestRatingCalculator(GetRBGPersonalRating()) * CURRENCY_PRECISION;
+            return m_conquestPointsWeekCap[CP_SOURCE_RATED_BG] * CURRENCY_PRECISION;
     }
 
     return currency->WeekCap;
@@ -17372,8 +17432,8 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     //"totalKills, todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk, "
     // 46      47      48      49      50      51      52           53         54          55             56
     //"health, power1, power2, power3, power4, power5, instance_id, speccount, activespec, exploredZones, equipmentCache, "
-    // 57           58          59
-    //"knownTitles, actionBars, grantableLevels FROM characters WHERE guid = '%u'", guid);
+    // 57           58          59               60                61
+    //"knownTitles, actionBars, grantableLevels, current_pet_slot, pet_slot_used FROM characters WHERE guid = '%u'", guid);
     PreparedQueryResult result = holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_FROM);
     if (!result)
     {
@@ -17485,6 +17545,11 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     // set which actionbars the client has active - DO NOT REMOVE EVER AGAIN (can be changed though, if it does change fieldwise)
     SetByteValue(PLAYER_FIELD_BYTES, 2, fields[58].GetUInt8());
 
+    // m_currentPetSlot = (PetSlot)fields[60].GetUInt32();
+    // Hardcoded for now
+    m_currentPetSlot = PET_SLOT_HUNTER_FIRST;
+    m_petSlotUsed = fields[61].GetUInt32();
+
     InitDisplayIds();
 
     // cleanup inventory related item value fields (its will be filled correctly in _LoadInventory)
@@ -17551,7 +17616,12 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
             SetArenaTeamInfoField(arena_slot, ArenaTeamInfoType(j), 0);
     }
 
+    // Load Currency
     _LoadCurrency(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CURRENCY));
+
+    // Load Currency Week Cap
+    _LoadCurrencyWeekCap(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CURRENCY_WEEK_CAP));
+    
     SetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS, fields[40].GetUInt32());
     SetUInt16Value(PLAYER_FIELD_KILLS, 0, fields[41].GetUInt16());
     SetUInt16Value(PLAYER_FIELD_KILLS, 1, fields[42].GetUInt16());
@@ -18449,11 +18519,12 @@ void Player::_LoadVoidStorage(PreparedQueryResult result)
             continue;
         }
 
-        /*if (!sObjectMgr->GetPlayerByLowGUID(creatorGuid))
+        std::string name;
+        if (creatorGuid && !sObjectMgr->GetPlayerNameByGUID(creatorGuid, name))
         {
             sLog->outError(LOG_FILTER_PLAYER, "Player::_LoadVoidStorage - Player (GUID: %u, name: %s) has an item with an invalid creator guid, set to 0 (item id: " UI64FMTD ", entry: %u, creatorGuid: %u).", GetGUIDLow(), GetName().c_str(), itemId, itemEntry, creatorGuid);
             creatorGuid = 0;
-        }*/
+        }
 
         _voidStorageItems[slot] = new VoidStorageItem(itemId, itemEntry, creatorGuid, randomProperty, suffixFactor);
     }
@@ -19733,6 +19804,11 @@ void Player::SaveToDB(bool create /*=false*/)
         stmt->setUInt8(index++, GetByteValue(PLAYER_FIELD_BYTES, 2));
         stmt->setUInt32(index++, m_grantableLevels);
 
+        // Pet slot
+        stmt->setUInt32(index++, m_currentPetSlot);
+        stmt->setUInt32(index++, m_petSlotUsed);
+
+        // Online
         stmt->setUInt8(index++, IsInWorld() && !GetSession()->PlayerLogout() ? 1 : 0);
         // Index
         stmt->setUInt32(index++, GetGUIDLow());
@@ -19766,6 +19842,7 @@ void Player::SaveToDB(bool create /*=false*/)
     _SaveGlyphs(trans);
     _SaveInstanceTimeRestrictions(trans);
     _SaveCurrency(trans);
+    _SaveCurrencyWeekCap(trans);
     _SaveCUFProfiles(trans);
 
     // check if stats should only be saved on logout
@@ -19807,6 +19884,7 @@ void Player::SaveInventoryAndGoldToDB(SQLTransaction& trans)
 {
     _SaveInventory(trans);
     _SaveCurrency(trans);
+    _SaveCurrencyWeekCap(trans);
     SaveGoldToDB(trans);
 }
 
@@ -20902,6 +20980,10 @@ void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent)
         }
     }
 
+    // If is hunter pet save with his slot, not alternative slot.
+    if (pet->getPetType() == HUNTER_PET && mode == PET_SAVE_NOT_IN_SLOT)
+        mode = PetSaveMode(m_currentPetSlot);
+
     // only if current pet in slot
     pet->SavePetToDB(mode);
 
@@ -21931,6 +22013,10 @@ void Player::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs)
         if (spellInfo->PreventionType != SPELL_PREVENTION_TYPE_SILENCE)
             continue;
 
+        // Not sent cooldown for multischool spells
+        if (spellInfo->IsMultiSchoolSpell())
+            continue;
+
         if ((idSchoolMask & spellInfo->GetSchoolMask()) && GetSpellCooldownDelay(unSpellId) < unTimeMs)
         {
             data << uint32(unSpellId);
@@ -22591,9 +22677,26 @@ void Player::AddSpellAndCategoryCooldowns(SpellInfo const* spellInfo, uint32 ite
         if (catrec > 0 && !(spellInfo->AttributesEx6 & SPELL_ATTR6_IGNORE_CATEGORY_COOLDOWN_MODS))
             ApplySpellMod(spellInfo->Id, SPELLMOD_COOLDOWN, catrec, spell);
 
+        // Apply SPELL_AURA_MOD_SPELL_CATEGORY_COOLDOWN modifiers
+        // Note: This aura applies its modifiers to all cooldowns of spells with set category, not to category cooldown only
+        if (cat)
+        {
+            if (int32 categoryModifier = GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_SPELL_CATEGORY_COOLDOWN, cat))
+            {
+                if (rec > 0)
+                    rec += categoryModifier;
+
+                if (catrec > 0)
+                    catrec += categoryModifier;
+            }
+        }
+
         // replace negative cooldowns by 0
-        if (rec < 0) rec = 0;
-        if (catrec < 0) catrec = 0;
+        if (rec < 0)
+            rec = 0;
+
+        if (catrec < 0)
+            catrec = 0;
 
         // no cooldown after applying spell mods
         if (rec == 0 && catrec == 0)
@@ -23868,6 +23971,11 @@ void Player::ResetMonthlyQuestStatus()
     m_monthlyquests.clear();
     // DB data deleted in caller
     m_MonthlyQuestChanged = false;
+}
+
+void Player::UpdateMaxWeekRating(ConquestPointsSources source, uint8 slot)
+{
+    m_maxWeekRating[source] = std::max(m_maxWeekRating[source], (uint16) GetArenaPersonalRating(slot));
 }
 
 Battleground* Player::GetBattleground() const
@@ -25153,11 +25261,7 @@ uint32 Player::GetRuneTypeBaseCooldown(RuneType runeType) const
 {
     float cooldown = RUNE_BASE_COOLDOWN;
     float hastePct = 0.0f;
-
-    AuraEffectList const& regenAura = GetAuraEffectsByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
-    for (AuraEffectList::const_iterator i = regenAura.begin();i != regenAura.end(); ++i)
-        if ((*i)->GetMiscValue() == POWER_RUNES && (*i)->GetMiscValueB() == runeType)
-            cooldown *= 1.0f - (*i)->GetAmount() / 100.0f;
+    float additionalPct = 0.0f;
 
     // Runes cooldown are now affected by player's haste from equipment ...
     hastePct = GetRatingBonusValue(CR_HASTE_MELEE);
@@ -25166,9 +25270,12 @@ uint32 Player::GetRuneTypeBaseCooldown(RuneType runeType) const
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE);
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE_2);
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_RANGED_HASTE);
-    hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
-
+    // first recalc of haste is happening -- VERIFIED
     cooldown *=  1.0f - (hastePct / 100.0f);
+    // second recalc due to the SPELL_AURA_MOD_POWER_PERCENTAGE (RUNIC EMPOWERMENT)
+    additionalPct += GetTotalAuraModifier(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
+    cooldown = (cooldown / (1.0f + additionalPct / 100.0f));
+
     return cooldown;
 }
 
@@ -25180,26 +25287,23 @@ void Player::SetRuneCooldown(uint8 index, uint32 cooldown)
 
 void Player::SetRandomRuneAvailable()
 {      
-    uint32 cooldownrunes[MAX_RUNES];  // Questo array contiene le rune che hanno cooldown
-    uint32 runescount = 0;             
+    uint8 cooldownrunes[MAX_RUNES];  // Define an array containing rules in cooldown
+    uint8 runescount = 0;             
 
-    for (uint32 j = 0; j < MAX_RUNES; ++j) 
+    for (uint8 j = 0; j < MAX_RUNES; ++j) 
     {
         if (GetRuneCooldown(j) > 0 ) 
         {
-            cooldownrunes[runescount] = j;     //Se una runa ha cooldown, me la segno, dopo pesco da questo array
+            cooldownrunes[runescount] = j;     //If a rune is in cooldown, i just insert it in my array.
             runescount++;
         }
     }
-
-    if (runescount > 0)
+    
+    if (runescount > 0) // If at least one rune is in cooldown I refresh it
     {
-        if(runescount > 1){
-            uint32 rndrune = uint32(urand(0, runescount - 1));  // Pesco una posizione dall'array
-            SetRuneCooldown(rndrune, 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
-        }
-        else 
-            SetRuneCooldown(0, 0);  // Resetto cooldown alla posizione della runa dalla posizione dell'array
+            uint8 index = uint8(urand(0, runescount - 1));
+            SetRuneCooldown(cooldownrunes[index], 0);
+            ResyncRunes(MAX_RUNES);  // this function is  not refreshing runes correctly (same problem with blood tap) -> NEEDS TO BE CORRECTED
     }
     else
         return;
@@ -27148,6 +27252,14 @@ void Player::RefundItem(Item* item)
         uint32 count = iece->RequiredCurrencyCount[i];
         uint32 currencyid = iece->RequiredCurrency[i];
 
+        CurrencyTypesEntry const* entry = sCurrencyTypesStore.LookupEntry(currencyid);
+        if (!entry)
+            continue;
+
+        // Skip check only currencies.. fucking lamers
+        if (entry->TotalCap > 0 && count > entry->TotalCap)
+            continue;
+
         if (count && currencyid)
             ModifyCurrency(currencyid, count, false, true, true, true);
     }
@@ -27334,8 +27446,6 @@ VoidStorageItem* Player::GetVoidStorageItem(uint64 id, uint8& slot) const
     for (uint8 i = 0; i < VOID_STORAGE_MAX_SLOT; ++i)
     {
         if (_voidStorageItems[i]){
-            sLog->outError(LOG_FILTER_NETWORKIO, "VOIDSTORAGE: - Player (GUID: %u, name: %s) - GetVoidStorage looking for id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
-            sLog->outError(LOG_FILTER_NETWORKIO, "VOIDSTORAGE: - Player (GUID: %u, name: %s) - GetVoidStorage passing through id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(_voidStorageItems[i]->ItemId));
             if(_voidStorageItems[i]->ItemId == id)
             {
                 sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) withdrawing item (id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
@@ -27402,14 +27512,17 @@ Guild* Player::GetGuild()
     return guildId ? sGuildMgr->GetGuildById(guildId) : NULL;
 }
 
-Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 duration)
+Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 duration, PetSlot slot)
 {
     Pet* pet = new Pet(this, petType);
 
     // Can it be placed in a better position ?
     HandlePetSummonState(petType, PETSUMMON_SUMMONING);
 
-    if (petType == SUMMON_PET && pet->LoadPetFromDB(this, entry))
+    // Set Slot used to this
+    m_currentPetSlot = slot;
+
+    if (petType == SUMMON_PET && pet->LoadPetFromDB(this, entry, 0, false, slot))
     {
         // Remove Demonic Sacrifice auras (known pet)
         Unit::AuraEffectList const& auraClassScripts = GetAuraEffectsByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);

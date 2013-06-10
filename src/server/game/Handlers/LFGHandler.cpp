@@ -189,6 +189,7 @@ void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvData*
     data << uint8(randomDungeons.size());                  // Random Dungeon count
     for (lfg::LfgDungeonSet::const_iterator it = randomDungeons.begin(); it != randomDungeons.end(); ++it)
     {
+        sLog->outError(LOG_FILTER_GENERAL, "it randomDungeons = %u", uint32(*it));
         data << uint32(*it);                               // Dungeon Entry (id + type)
         lfg::LfgReward const* reward = sLFGMgr->GetRandomDungeonReward(*it, level);
         Quest const* quest = NULL;
@@ -206,6 +207,7 @@ void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvData*
 
         if (quest)
         {
+            //sLog->outError(LOG_FILTER_GENERAL, "MoneyRew = %i, Xp = %u, itemRew = %u, currencyRew = %u", quest->GetRewOrReqMoney(), quest->XPValue(GetPlayer()), quest->GetRewItemsCount(), quest->GetRewCurrencyCount());
             data << uint8(done);
             data << uint32(quest->GetRewOrReqMoney());
             data << uint32(quest->XPValue(GetPlayer()));
@@ -214,6 +216,7 @@ void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvData*
             data << uint8(quest->GetRewItemsCount());
             if (quest->GetRewItemsCount())
             {
+                sLog->outError(LOG_FILTER_GENERAL, "Item");
                 for (uint8 i = 0; i < QUEST_REWARDS_COUNT; ++i)
                     if (uint32 itemId = quest->RewardItemId[i])
                     {
@@ -223,6 +226,19 @@ void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvData*
                         data << uint32(quest->RewardItemIdCount[i]);
                     }
             }
+            /*if (quest->GetRewCurrencyCount())
+            {
+                sLog->outError(LOG_FILTER_GENERAL, "Currency");
+                data << uint8(quest->GetRewCurrencyCount());
+                for (uint8 i = 0; i < QUEST_REWARD_CURRENCY_COUNT; ++i)
+                    if (uint32 currencyId = quest->RewardCurrencyId[i])
+                    {
+                        ItemTemplate const* currency = sObjectMgr->GetItemTemplate(currencyId);
+                        data << uint32(currencyId);
+                        data << uint32(currency ? currency->DisplayInfoID : 0);
+                        data << uint32(quest->RewardCurrencyCount[i]);
+                    }
+            }*/
         }
         else
         {
@@ -359,6 +375,107 @@ void WorldSession::HandleLfgGetStatus(WorldPacket& /*recvData*/)
         updateData.dungeons.clear();
         SendLfgUpdateParty(updateData);
     }
+}
+
+void WorldSession::SendLfgUpdateStatus(lfg::LfgUpdateData const& updateData)
+{
+    uint32 queueId = GetPlayer()->GetTeam();
+    uint64 guid = GetPlayer()->GetGUID();
+    //ObjectGuid pguid = guid;
+
+    uint8 pguid[8];
+    memcpy(pguid, &guid, 8); // Fu
+
+    bool queued = false;
+    bool extrainfo = false;
+    bool join = false;
+
+    sLog->outError(LOG_FILTER_GENERAL,"updateData.updateType = %u, updateData.state = %u, updateData.dungeons = %u", updateData.updateType, updateData.state, updateData.dungeons);
+
+    switch (updateData.updateType)
+    {
+    case lfg::LFG_UPDATETYPE_JOIN_QUEUE:
+    case lfg::LFG_UPDATETYPE_ADDED_TO_QUEUE:
+        join = true;
+        queued = true;
+        extrainfo = true;
+        break;
+    case lfg::LFG_UPDATETYPE_REMOVED_FROM_QUEUE:
+        extrainfo = true;
+        queued = false;
+        join = false;
+        break;
+        //case LFG_UPDATETYPE_CLEAR_LOCK_LIST: // TODO: Sometimes has extrainfo - Check ocurrences...
+    case lfg::LFG_UPDATETYPE_PROPOSAL_BEGIN:
+        join = true;
+        queued = false;
+        extrainfo = true;
+        break;
+    default:
+        break;
+    }
+
+    uint8 size = uint8(updateData.dungeons.size());
+
+    sLog->outError(LOG_FILTER_GENERAL,"updateData.dungeons.size() = %u, getMSTime() = %u", uint8(updateData.dungeons.size()), getMSTime());
+
+    WorldPacket data(SMSG_LFG_UPDATE_STATUS);
+
+    data.WriteBit(pguid[1]);
+
+    data.WriteBit(0); // Unk Bit 65
+
+    data.WriteBits(size, 24);
+
+    data.WriteBit(pguid[6]);
+
+    data.WriteBit(join ? 1 : 0); // Joined
+
+    data.WriteBits(updateData.comment.length(), 9);
+
+    data.WriteBit(pguid[4]);
+    data.WriteBit(pguid[7]);
+    data.WriteBit(pguid[2]);
+
+    data.WriteBit(join ? 1 : 0); // LFGJoined
+
+    data.WriteBit(pguid[0]);
+    data.WriteBit(pguid[3]);
+    data.WriteBit(pguid[5]);
+
+    data.WriteBit(queued);
+    data << uint8(0); // Unk Byte 64
+
+    data.WriteString(updateData.comment);
+    data << uint32(queueId); // Queue Id
+    data << uint32(getMSTime());
+
+    data.WriteByteSeq(pguid[6]);
+
+    data << uint8(0); // Unk Byte
+    data << uint8(0); // Unk Byte
+    data << uint8(0); // Unk Byte
+
+    data.WriteByteSeq(pguid[1]);
+    data.WriteByteSeq(pguid[2]);
+    data.WriteByteSeq(pguid[4]);
+    data.WriteByteSeq(pguid[3]);
+    data.WriteByteSeq(pguid[5]);
+    data.WriteByteSeq(pguid[0]);
+
+    data << uint32(3);
+
+    data.WriteByteSeq(pguid[7]);
+
+    if (size)
+        for (lfg::LfgDungeonSet::const_iterator it = updateData.dungeons.begin(); it != updateData.dungeons.end(); ++it)
+        {
+            data << uint32(*it);
+            sLog->outError(LOG_FILTER_GENERAL, "dungeon = %u", (*it));
+        }
+
+
+    SendPacket(&data);
 }
 
 void WorldSession::SendLfgUpdatePlayer(lfg::LfgUpdateData const& updateData)

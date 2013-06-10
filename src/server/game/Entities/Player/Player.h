@@ -916,6 +916,7 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_VOID_STORAGE            = 33,
     PLAYER_LOGIN_QUERY_LOAD_CURRENCY                = 34,
     PLAYER_LOGIN_QUERY_LOAD_CUF_PROFILES            = 35,
+    PLAYER_LOGIN_QUERY_LOAD_CURRENCY_WEEK_CAP       = 36,
     MAX_PLAYER_LOGIN_QUERY
 };
 
@@ -1351,7 +1352,7 @@ class Player : public Unit, public GridObject<Player>
         void UpdateInnerTime (time_t time) { time_inn_enter = time; }
 
         Pet* GetPet() const;
-        Pet* SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 despwtime);
+        Pet* SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 despwtime, PetSlot slot);
         void RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent = false);
         void HandlePetSummonState(PetType petType, PetSummonState petSummonState);
 
@@ -1604,6 +1605,7 @@ class Player : public Unit, public GridObject<Player>
         void ResetWeeklyQuestStatus();
         void ResetMonthlyQuestStatus();
         void ResetSeasonalQuestStatus(uint16 event_id);
+        void UpdateMaxWeekRating(ConquestPointsSources source, uint8 slot);
 
         uint16 FindQuestSlot(uint32 quest_id) const;
         uint32 GetQuestSlotQuestId(uint16 slot) const;
@@ -2197,9 +2199,20 @@ class Player : public Unit, public GridObject<Player>
 
         // Mastery Functions
         void UpdateMastery();
-        float GetMasteryPoints() const {return 8.0f + CaclulateMasteryFromMasteryRating(m_baseRatingValue[CR_MASTERY]);}
-        float CaclulateMasteryFromMasteryRating(int32 curr_rating) const {return float(curr_rating * 0.0055779569892473f);}
-        int32 CaclulateMasteryRatingFromMastery(float curr_mastery) {return int32(curr_mastery / 0.0055779569892473f);}
+        float GetBaseMasteryPoints() const
+        {
+            switch(GetPrimaryTalentTree(GetActiveSpec()))
+            {
+                case BS_MAGE_FROST:
+                case BS_WARRIOR_FURY:
+                    return 2.0f;
+                default:
+                    return 8.0f;
+            }
+        }
+        float GetMasteryPoints() const {return GetBaseMasteryPoints() + CalculateMasteryFromMasteryRating(m_baseRatingValue[CR_MASTERY]);}
+        float CalculateMasteryFromMasteryRating(int32 curr_rating) const {return float(curr_rating * 0.0055779569892473f);}
+        int32 CalculateMasteryRatingFromMastery(float curr_mastery) {return int32(curr_mastery / 0.0055779569892473f);}
         void RemoveOrAddMasterySpells();
 
         void ResetAllPowers();
@@ -2374,6 +2387,50 @@ class Player : public Unit, public GridObject<Player>
         float m_homebindZ;
 
         WorldLocation GetStartPosition() const;
+
+        // current pet slot
+        PetSlot m_currentPetSlot;
+        uint32 m_petSlotUsed;
+
+        void setCurrentPetSlot(PetSlot slot) 
+        {
+            m_currentPetSlot = slot; 
+        }
+
+        void setPetSlotUsed(bool used)
+        {
+            if (used)
+                m_petSlotUsed++;
+            else
+                m_petSlotUsed--;
+        }
+
+        PetSlot getSlotForNewPet()
+        {
+            // Some changes here.
+            uint32 last_known = 0;
+
+            // Call Pet Spells.
+            // 883, 83242, 83243, 83244, 83245
+            //  1     2      3      4      5
+
+            if (HasSpell(83245))
+                last_known = 5;
+            else if (HasSpell(83244))
+                last_known = 4;
+            else if (HasSpell(83243))
+                last_known = 3;
+            else if (HasSpell(83242))
+                last_known = 2;
+            else if (HasSpell(883))
+                last_known = 1;
+
+            if (last_known > m_petSlotUsed)
+                return PetSlot(m_petSlotUsed);
+
+            // If there is no slots available, then we should point that out
+            return PET_SLOT_FULL_LIST; // (PetSlot)last_known;
+        }
 
         // currently visible objects at player client
         typedef std::set<uint64> ClientGUIDs;
@@ -2668,6 +2725,7 @@ class Player : public Unit, public GridObject<Player>
         void _LoadTalents(PreparedQueryResult result);
         void _LoadInstanceTimeRestrictions(PreparedQueryResult result);
         void _LoadCurrency(PreparedQueryResult result);
+        void _LoadCurrencyWeekCap(PreparedQueryResult result);
         void _LoadCUFProfiles(PreparedQueryResult result);
 
         /*********************************************************/
@@ -2693,6 +2751,7 @@ class Player : public Unit, public GridObject<Player>
         void _SaveStats(SQLTransaction& trans);
         void _SaveInstanceTimeRestrictions(SQLTransaction& trans);
         void _SaveCurrency(SQLTransaction& trans);
+        void _SaveCurrencyWeekCap(SQLTransaction& trans);
         void _SaveCUFProfiles(SQLTransaction& trans);
 
         /*********************************************************/
@@ -2742,6 +2801,10 @@ class Player : public Unit, public GridObject<Player>
          * @param  CurrencyTypesEntry for which to retrieve total cap
          */
         uint32 GetCurrencyTotalCap(CurrencyTypesEntry const* currency) const;
+
+        // Currency Week Cap 
+        uint16 m_maxWeekRating[CP_SOURCE_MAX];
+        uint16 m_conquestPointsWeekCap[CP_SOURCE_MAX];
 
         /// Updates weekly conquest point cap (dynamic cap)
         void UpdateConquestCurrencyCap(uint32 currency);

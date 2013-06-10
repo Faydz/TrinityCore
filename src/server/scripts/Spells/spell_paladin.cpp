@@ -547,20 +547,25 @@ class spell_pal_shield_of_the_righteous : public SpellScriptLoader
 
             void ChangeDamage(SpellEffIndex /*effIndex*/)
             {
-                if(!GetCaster())
-                    return;
+                if(Unit * caster = GetCaster()->ToPlayer())
+                {
+                    int32 damage = GetHitDamage();
 
-                int32 damage = GetHitDamage();
+                    // Because 1 Holy Power (HP) is consumed when casting spell,
+                    // GetPower(POWER_HOLY_POWER) will return 0 when player has 1 HP,
+                    // return 1 at 2 HP, and 2 at 3 HP
+                    int32 hp = caster->GetPower(POWER_HOLY_POWER);
 
-                // Because 1 Holy Power (HP) is consumed when casting spell,
-                // GetPower(POWER_HOLY_POWER) will return 0 when player has 1 HP,
-                // return 1 at 2 HP, and 2 at 3 HP
-                int32 hp = GetCaster()->GetPower(POWER_HOLY_POWER);
+                    
+                    // Holy Power Scaling: 3 times damage at 2 HP, 6 times at 3 HP
+                    int32 bonus = 0.5 * hp * hp + 1.5 * hp + 1;
+                    
+                    damage *= bonus;
+                    // 0.1 (1 hp) or 0.3 (2 hp) or 0.6 (3 hp) * AP
+                    damage += caster->GetTotalAttackPowerValue(BASE_ATTACK) * bonus / 10;
 
-                // Holy Power Scaling: 3 times damage at 2 HP, 6 times at 3 HP
-                damage *= 0.5 * hp * hp + 1.5 * hp + 1;
-
-                SetHitDamage(damage);
+                    SetHitDamage(damage);
+                }
             }
 
             void Register()
@@ -1803,9 +1808,7 @@ class spell_pal_divine_bulwark : public SpellScriptLoader
                 if (Player* caster = GetCaster()->ToPlayer())
                     if (caster->HasAuraType(SPELL_AURA_MASTERY))
                         if (caster->GetPrimaryTalentTree(caster->GetActiveSpec()) == BS_PALADIN_PROTECTION)
-                        {
                             amount += int32(2.25f * caster->GetMasteryPoints());
-                        }
                             
             }
 

@@ -40,6 +40,7 @@ enum HunterSpells
     SPELL_HUNTER_CHIMERA_SHOT_SCORPID               = 53359,
 	SPELL_HUNTER_CHIMERA_SHOT_SERPENT               = 53353,
     SPELL_HUNTER_COBRA_SHOT                         = 77767,
+    SPELL_HUNTER_COBRA_SHOT_ENERGIZE                = 91954,
     SPELL_HUNTER_GLYPH_OF_ASPECT_OF_THE_VIPER       = 56851,
     SPELL_HUNTER_GLYPH_OF_SILENCING_SHOT            = 56836,
     SPELL_HUNTER_INVIGORATION_TRIGGERED             = 53398,
@@ -1102,6 +1103,17 @@ class spell_hun_cobra_shot : public SpellScriptLoader
                         else
                             target->GetAura(SPELL_HUNTER_SERPENT_STING_DEBUFF)->SetDuration(actualDuration + 6000);
                     }
+                }
+                
+                if(Unit * caster = GetCaster())
+                {
+                    // Base focus regen
+                    int32 bp0 = 9;
+
+                    if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, EFFECT_0))
+                        bp0 += aurEff->GetAmount();
+
+                    caster->CastCustomSpell(caster, SPELL_HUNTER_COBRA_SHOT_ENERGIZE, &bp0, NULL, NULL, true);  
                 }
             }
 

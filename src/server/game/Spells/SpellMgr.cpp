@@ -109,11 +109,13 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
             // Dragon's Breath
             else if (spellproto->SpellFamilyFlags[0] & 0x800000)
                 return DIMINISHING_DRAGONS_BREATH;
+            else if (spellproto->Id == 83302)
+                return DIMINISHING_ROOT;
             break;
         }
         case SPELLFAMILY_WARRIOR:
         {
-            // Hamstring - limit duration to 10s in PvP
+            // Hamstring - limit duration to 8s in PvP
             if (spellproto->SpellFamilyFlags[0] & 0x2)
                 return DIMINISHING_LIMITONLY;
             // Charge Stun (own diminishing)
@@ -159,7 +161,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
             // Blind
             else if (spellproto->SpellFamilyFlags[0] & 0x1000000)
                 return DIMINISHING_FEAR;
-            // Crippling poison - Limit to 10 seconds in PvP (No SpellFamilyFlags)
+            // Crippling poison - Limit to 8 seconds in PvP (No SpellFamilyFlags)
             else if (spellproto->SpellIconID == 163)
                 return DIMINISHING_LIMITONLY;
             break;
@@ -185,7 +187,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
         }
         case SPELLFAMILY_PALADIN:
         {
-            // Judgement of Justice - limit duration to 10s in PvP
+            // Judgement of Justice - limit duration to 8s in PvP
             if (spellproto->SpellFamilyFlags[0] & 0x100000)
                 return DIMINISHING_LIMITONLY;
             // Turn Evil
@@ -3075,11 +3077,6 @@ void SpellMgr::LoadSpellCustomAttr()
             case 56641:
                 spellInfo->Effects[2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
                 break;
-            // Cobra Shot
-            case 77767:
-                spellInfo->Effects[1].Effect = SPELL_EFFECT_DUMMY;
-                spellInfo->Effects[1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
-                break;
             // Master Marksman
             case 82926:
                 spellInfo->Effects[0].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
@@ -3392,6 +3389,20 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Shadowflame
+                    case 47897:
+                        spellInfo->SchoolMask = SPELL_SCHOOL_MASK_FIRE | SPELL_SCHOOL_MASK_SHADOW;
+                        break;
+                    // Spell Lock
+                    case 19647:
+                        spellInfo->Effects[EFFECT_0].Mechanic = MECHANIC_NONE;
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_DUMMY;
+                        break;
+                    // Fel Intelligence
+                    case 54424:
+                        spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_100_YARDS);
+                        spellInfo->Effects[EFFECT_1].MaxRadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_100_YARDS);
+                        break;
                     // Soul Harvest
                     case 79268:
                         spellInfo->Effects[EFFECT_0].Amplitude = 3000;
@@ -3469,8 +3480,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_PALADIN:
                 switch(spellInfo->Id)
                 {
-                    case 36946:
-                        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(1);
+                    // Hallowed Ground
+                    case 84631:
+                    case 84633:
+                        spellInfo->Effects[EFFECT_0].MiscValue = SPELLMOD_DOT;
+                        break;
+                    case 31930:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 3;
                         break;
                     // Holy Wrath
                     case 2812:
@@ -3486,7 +3502,12 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                     // Consecration
                     case 26573:
-                        spellInfo->Effects[EFFECT_2].TriggerSpell = 36946;
+                        spellInfo->SpellVisual[0] = 5600;
+                        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_PERSISTENT_AREA_AURA;
+                        spellInfo->Effects[EFFECT_1].BasePoints = 81;
+                        spellInfo->Effects[EFFECT_1].TargetA = TARGET_DEST_CASTER;
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_PERIODIC_DAMAGE;
+                        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_DUMMY;
                         break;
                     // Zealotry
                     case 85696:
@@ -3940,11 +3961,6 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->Effects[1].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
                         spellInfo->Effects[2].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_PET);
                         break;
-                    // Cobra Shot
-                    case 77767:
-                        spellInfo->Effects[1].TargetA = TARGET_UNIT_TARGET_ENEMY;
-                        spellInfo->Effects[1].Effect = SPELL_EFFECT_SCRIPT_EFFECT;
-                        break;
                 }
                 break;
             case SPELLFAMILY_ROGUE:
@@ -3985,10 +4001,6 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Seasoned Wind rank 2
                     case 16544:
                         spellInfo->Effects[EFFECT_0].BasePoints = 1;
-                        break;
-                    // Mental Quickness
-                    case 30814:
-						spellInfo->Effects[EFFECT_2].SpellClassMask = flag96(0x20000400, 0x10848, 0xB9581418);
                         break;
                     // Tremor Totem
                     case 8143:

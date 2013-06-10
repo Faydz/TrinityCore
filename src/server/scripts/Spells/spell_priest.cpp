@@ -1182,6 +1182,70 @@ public:
     }
 };
 
+// 95799 - Empowered Shadow
+class spell_pri_empowered_shadow : public SpellScriptLoader
+{
+public:
+    spell_pri_empowered_shadow() : SpellScriptLoader("spell_pri_empowered_shadow") { }
+
+    class spell_pri_empowered_shadow_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_pri_empowered_shadow_AuraScript);
+       
+        void ChangeAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+        {
+            canBeRecalculated = true;
+
+            if(Unit * caster = GetCaster())
+            {
+                if (caster->HasAuraType(SPELL_AURA_MASTERY))
+                        if (caster->ToPlayer() && caster->ToPlayer()->GetPrimaryTalentTree(caster->ToPlayer()->GetActiveSpec()) == BS_PRIEST_SHADOW)
+                            amount += int32(1.45 * caster->ToPlayer()->GetMasteryPoints()); 
+            } 
+        }
+
+        void Register()
+        {
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_pri_empowered_shadow_AuraScript::ChangeAmount, EFFECT_1, SPELL_AURA_ADD_PCT_MODIFIER);
+        }
+        
+    };
+    
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_pri_empowered_shadow_AuraScript();
+    }
+};
+
+class spell_mind_blast : public SpellScriptLoader
+{
+public:
+    spell_mind_blast() : SpellScriptLoader("spell_mind_blast") { }
+
+    class spell_mind_blast_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_mind_blast_SpellScript);
+
+        void HandleAfterHit()
+        {
+            if(Unit* caster = GetCaster())
+                if(Unit* target = GetHitUnit())
+                    if(AuraEffect* aurEff = target->GetAuraEffect(87178, EFFECT_0, caster->GetGUID()))
+                        target->RemoveAura(87178); // Remove Mind Spike debuff
+        }
+
+        void Register()
+        {
+            AfterHit += SpellHitFn(spell_mind_blast_SpellScript::HandleAfterHit);
+        }
+    };
+
+    SpellScript* GetSpellScript() const
+    {
+        return new spell_mind_blast_SpellScript;
+    }
+};
+
 void AddSC_priest_spell_scripts()
 {
     new spell_pri_vampiric_embrace();
@@ -1209,4 +1273,6 @@ void AddSC_priest_spell_scripts()
     new spell_pri_fade();
     new spell_pri_vampiric_touch();
     new spell_pri_holy_word_sanctuary();
+    new spell_pri_empowered_shadow();
+    new spell_mind_blast();
 }

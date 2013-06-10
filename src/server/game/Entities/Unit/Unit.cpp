@@ -35,7 +35,6 @@
 #include "Log.h"
 #include "MapManager.h"
 #include "MoveSpline.h"
-#include "MoveSplineInit.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Opcodes.h"
@@ -1316,14 +1315,26 @@ void Unit::CalculateMeleeDamage(Unit* victim, uint32 damage, CalcDamageInfo* dam
             damageInfo->damage = 0;
             break;
         case MELEE_HIT_BLOCK:
+        {
             damageInfo->TargetState = VICTIMSTATE_HIT;
             damageInfo->HitInfo    |= HITINFO_BLOCK;
             damageInfo->procEx     |= PROC_EX_BLOCK | PROC_EX_NORMAL_HIT;
+
+            // Calculate further reduction from player's resilience at this point to avoid higher block amount calculation than normal
+            int32 resilienceReduction = damageInfo->damage;
+            int32 reductedDamage = damageInfo->damage;
+
+            ApplyResilience(victim, &resilienceReduction, damageInfo->hitOutCome == MELEE_HIT_CRIT);
+            resilienceReduction = damageInfo->damage - resilienceReduction;
+            damageInfo->damage -= resilienceReduction;
+            damageInfo->cleanDamage += resilienceReduction;
+
             // 30% damage blocked, double blocked amount if block is critical
             damageInfo->blocked_amount = CalculatePct(damageInfo->damage, damageInfo->target->isBlockCritical() ? damageInfo->target->GetBlockPercent() * 2 : damageInfo->target->GetBlockPercent());
             damageInfo->damage      -= damageInfo->blocked_amount;
             damageInfo->cleanDamage += damageInfo->blocked_amount;
             break;
+        }
         case MELEE_HIT_GLANCING:
         {
             damageInfo->HitInfo     |= HITINFO_GLANCING;
@@ -1352,11 +1363,14 @@ void Unit::CalculateMeleeDamage(Unit* victim, uint32 damage, CalcDamageInfo* dam
     if (!(damageInfo->HitInfo & HITINFO_MISS))
         damageInfo->HitInfo |= HITINFO_AFFECTS_VICTIM;
 
-    int32 resilienceReduction = damageInfo->damage;
-    ApplyResilience(victim, &resilienceReduction, damageInfo->hitOutCome == MELEE_HIT_CRIT);
-    resilienceReduction = damageInfo->damage - resilienceReduction;
-    damageInfo->damage      -= resilienceReduction;
-    damageInfo->cleanDamage += resilienceReduction;
+    if(damageInfo->hitOutCome != MELEE_HIT_BLOCK)
+    {
+        int32 resilienceReduction = damageInfo->damage;
+        ApplyResilience(victim, &resilienceReduction, damageInfo->hitOutCome == MELEE_HIT_CRIT);
+        resilienceReduction = damageInfo->damage - resilienceReduction;
+        damageInfo->damage      -= resilienceReduction;
+        damageInfo->cleanDamage += resilienceReduction;
+    }
 
     // Calculate absorb resist
     if (int32(damageInfo->damage) > 0)
@@ -1589,13 +1603,8 @@ uint32 Unit::CalcArmorReducedDamage(Unit* victim, const uint32 damage, SpellInfo
     if (armor < 0.0f)
         armor = 0.0f;
 
-    float levelModifier = getLevel();
-    if (levelModifier > 59)
-        levelModifier = levelModifier + (4.5f * (levelModifier - 59));
-
-    float tmpvalue = 0.1f * armor / (8.5f * levelModifier + 40);
-    tmpvalue = tmpvalue / (1.0f + tmpvalue);
-
+    float tmpvalue = armor / (armor + (float(getLevel())* 2167.5 - 158167.5));
+    
     if (tmpvalue < 0.0f)
         tmpvalue = 0.0f;
     if (tmpvalue > 0.75f)
@@ -4080,6 +4089,9 @@ void Unit::RemoveArenaAuras()
         else
             ++iter;
     }
+
+    // Removes Deserver in join
+    RemoveAura(26013);
 }
 
 void Unit::RemoveAllAurasOnDeath()
@@ -6071,29 +6083,33 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 // Nether Protection
                 case 30299:
                 case 30301:
-                    if(!procSpell)
-                        return false;
-
-                    switch(procSpell->SchoolMask)
                     {
-                        case SPELL_SCHOOL_MASK_HOLY:
-                            this->CastSpell(this, 54370, true);
-                            break;
-                        case SPELL_SCHOOL_MASK_FIRE:
-                            this->CastSpell(this, 54371, true);
-                            break;
-                        case SPELL_SCHOOL_MASK_FROST:
-                            this->CastSpell(this, 54372, true);
-                            break;
-                        case SPELL_SCHOOL_MASK_ARCANE:
-                            this->CastSpell(this, 54373, true);
-                            break;
-                        case SPELL_SCHOOL_MASK_SHADOW:
-                            this->CastSpell(this, 54374, true);
-                            break;
-                        case SPELL_SCHOOL_MASK_NATURE:
-                            this->CastSpell(this, 54375, true);
-                            break;
+                        if(!procSpell)
+                            return false;
+                    
+                        int32 bp0 = -triggerAmount;
+
+                        switch(procSpell->SchoolMask)
+                        {
+                            case SPELL_SCHOOL_MASK_HOLY:
+                                this->CastCustomSpell(this, 54370, &bp0, NULL, NULL, true);
+                                break;
+                            case SPELL_SCHOOL_MASK_FIRE:
+                                this->CastCustomSpell(this, 54371, &bp0, NULL, NULL, true);
+                                break;
+                            case SPELL_SCHOOL_MASK_FROST:
+                                this->CastCustomSpell(this, 54372, &bp0, NULL, NULL, true);
+                                break;
+                            case SPELL_SCHOOL_MASK_ARCANE:
+                                this->CastCustomSpell(this, 54373, &bp0, NULL, NULL, true);
+                                break;
+                            case SPELL_SCHOOL_MASK_SHADOW:
+                                this->CastCustomSpell(this, 54374, &bp0, NULL, NULL, true);
+                                break;
+                            case SPELL_SCHOOL_MASK_NATURE:
+                                this->CastCustomSpell(this, 54375, &bp0, NULL, NULL, true);
+                                break;
+                        }
                     }
                     break;
                 // Burning Embers
@@ -9500,7 +9516,6 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 uint8 stacks = shield->GetCharges();
                 if (stacks < 9)
                     shield->SetCharges(stacks + 1);
-                return false;
             }
             break;
         case 16246: // Elemental Focus
@@ -11085,7 +11100,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 {
                     // Mind Melt
                     if (AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_PRIEST, 3139, 0))
-                        DoneTotalMod *= 1.0f + (aurEff->GetAmount() / 100);
+                        AddPct(DoneTotalMod, aurEff->GetAmount());
 
                     // Always x3 damage under 25% hp
                     DoneTotalMod *= 3.0f;
@@ -11172,8 +11187,12 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             {
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DEMONOLOGY)
                {
-                   float pct = float(0.023f * owner->ToPlayer()->GetMasteryPoints());
-                   DoneTotalMod *= 1 +  pct;
+                   // Mod applied either if is pet or if warlock is in Metamorphosis
+                   if(this->isPet() || owner->HasAura(47241))
+                   {
+                       float pct = float(0.023f * owner->ToPlayer()->GetMasteryPoints());
+                       DoneTotalMod *= 1 +  pct;
+                   }
                }
             }
 
@@ -11191,6 +11210,10 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
         case SPELLFAMILY_PALADIN:
             switch(spellProto->Id)
             {
+                // Consecration
+                case 26573:
+                    DoneTotal += int32(this->GetTotalAttackPowerValue(BASE_ATTACK) * 0.027f + this->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_HOLY) * 0.027f);
+                    break;
                 // Judgement of Truth
                 case 31804:
                     // Get stacks of Censure on the target added by caster
@@ -11408,6 +11431,24 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                     }
                     break;
             }
+
+            /* PET'S COEFFICIENTS */
+            if(this->isPet())
+            {
+                if(Unit* owner = this->GetCharmerOrOwner())
+                {
+                    int32 ownerRAP = owner->GetTotalAttackPowerValue(RANGED_ATTACK);
+
+                    switch(spellProto->Id)
+                    {
+                        // Kill Command
+                        case 83381:
+                            DoneTotal += ownerRAP * 0.516f;
+                            break;
+                    }
+                }
+            }
+
             // Essence of the Viper (Survival Mastery)
             if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_SURVIVAL)
@@ -12105,6 +12146,10 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
         case SPELLFAMILY_PALADIN:
             switch(spellProto->Id)
             {
+                // Seal of Insight
+                case 20167:
+                    healamount += int32(this->GetTotalAttackPowerValue(BASE_ATTACK) * 0.15f + this->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_HOLY) * 0.15f);
+                    break;
                 // Word of Glory
                 case 85673:
 
@@ -19912,6 +19957,40 @@ void Unit::SendMovementSwimming()
         Movement::PacketSender(this, SMSG_SPLINE_MOVE_START_SWIM, NULL_OPCODE).Send();
     else
         Movement::PacketSender(this, SMSG_SPLINE_MOVE_STOP_SWIM, NULL_OPCODE).Send();
+}
+
+void Unit::SendSetPlayHoverAnim(bool enable)
+{
+    ObjectGuid guid = GetGUID();
+    WorldPacket data(SMSG_SET_PLAY_HOVER_ANIM, 10);
+    data.WriteBit(guid[4]);
+    data.WriteBit(guid[0]);
+    data.WriteBit(guid[1]);
+    data.WriteBit(enable);
+    data.WriteBit(guid[3]);
+    data.WriteBit(guid[7]);
+    data.WriteBit(guid[5]);
+    data.WriteBit(guid[2]);
+    data.WriteBit(guid[6]);
+
+    data.WriteByteSeq(guid[3]);
+    data.WriteByteSeq(guid[2]);
+    data.WriteByteSeq(guid[1]);
+    data.WriteByteSeq(guid[7]);
+    data.WriteByteSeq(guid[0]);
+    data.WriteByteSeq(guid[5]);
+    data.WriteByteSeq(guid[4]);
+    data.WriteByteSeq(guid[6]);
+
+    SendMessageToSet(&data, true);
+}
+
+void Unit::SendMovementSetSplineAnim(Movement::AnimType anim)
+{
+    WorldPacket data(SMSG_SPLINE_MOVE_SET_ANIM, 8 + 4);
+    data.append(GetPackGUID());
+    data << uint32(anim);
+    SendMessageToSet(&data, false);
 }
 
 bool Unit::IsSplineEnabled() const

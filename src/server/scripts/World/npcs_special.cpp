@@ -3744,6 +3744,13 @@ public:
                 && me->IsWithinLOSInMap(who) && Isready)
             {
                 who->AddAura(82691, who);
+
+                // PvP duration of 8 seconds
+                if(who->ToPlayer())
+                {
+                    if (Aura* ring = who->GetAura(82691))
+                        ring->SetDuration(8000);
+                }
             }
         }
 

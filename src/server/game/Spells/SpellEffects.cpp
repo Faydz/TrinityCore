@@ -578,11 +578,6 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     // Shadow Orbs
                     if (AuraEffect* aurEff = m_caster->GetAuraEffect(77487, 0, 0))
                         m_caster->CastSpell(m_caster, 95799, true);
-
-                    // Remove Mind Spike Debuff
-                    if(AuraEffect* aurEff = unitTarget->GetAuraEffect(87178, EFFECT_0, m_caster->GetGUID()))
-                        unitTarget->RemoveAura(87178);
-
                 }
                 // Mind Spike
                 if (m_spellInfo->Id == 73510)
@@ -911,9 +906,14 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                     int32 bp;
                     uint32 healthPct;
                     if (m_caster->HasAura(101568)) // Glyph of Dark Succor
+                    {
                         healthPct = m_caster->CountPctFromMaxHealth(20);
+                        m_caster->RemoveAura(101568);
+                    }
                     else
+                    {
                         healthPct = m_caster->CountPctFromMaxHealth(7);
+                    }
                     uint32 damageTaken = m_caster->GetDamageTakenInPastSecs(5) * 0.20f;
 
                     if (healthPct > damageTaken)
@@ -2886,6 +2886,9 @@ void Spell::EffectDispel(SpellEffIndex effIndex)
                             trigger_id = 86958;
                         
                         m_caster->CastSpell(unitTarget, trigger_id, true);
+
+                        if(!m_caster->ToPlayer()->HasSpellCooldown(trigger_id))
+                            m_caster->ToPlayer()->AddSpellCooldown(trigger_id, 0, uint32(time(NULL) + 6));
                     }
                     break;
             }
@@ -3303,7 +3306,10 @@ void Spell::EffectTameCreature(SpellEffIndex /*effIndex*/)
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
     {
-        pet->SavePetToDB(PET_SAVE_AS_CURRENT);
+        // Calc current pet slot
+        pet->SavePetToDB(PetSaveMode(m_caster->ToPlayer()->getSlotForNewPet()));
+        m_caster->ToPlayer()->setPetSlotUsed(true);
+        m_caster->ToPlayer()->setCurrentPetSlot(PetSlot(m_caster->ToPlayer()->m_petSlotUsed -1));
         m_caster->ToPlayer()->PetSpellInitialize();
     }
 }
@@ -3322,6 +3328,10 @@ void Spell::EffectSummonPet(SpellEffIndex effIndex)
     }
 
     uint32 petentry = m_spellInfo->Effects[effIndex].MiscValue;
+
+    PetSlot slot = (PetSlot) m_spellInfo->Effects[effIndex].BasePoints;
+    if (petentry)
+        slot = PET_SLOT_UNK_SLOT;
 
     if (!owner)
     {
@@ -3368,7 +3378,7 @@ void Spell::EffectSummonPet(SpellEffIndex effIndex)
 
     float x, y, z;
     owner->GetClosePoint(x, y, z, owner->GetObjectSize());
-    Pet* pet = owner->SummonPet(petentry, x, y, z, owner->GetOrientation(), SUMMON_PET, 0);
+    Pet* pet = owner->SummonPet(petentry, x, y, z, owner->GetOrientation(), SUMMON_PET, 0, slot);
     if (!pet)
         return;
 
@@ -4609,11 +4619,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
             // Cobra Shot Focus Regen
             case 77767:
             {                
-                int32 bp0 = 9;
-                if (AuraEffect* aurEff = m_caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, 0))
-                    bp0 += aurEff->GetAmount();
-
-                m_caster->CastCustomSpell(m_caster, 91954, &bp0, NULL, NULL, true);                
                 break;
             }
         }
@@ -5661,7 +5666,7 @@ void Spell::EffectSummonDeadPet(SpellEffIndex /*effIndex*/)
     player->GetPosition(x, y, z);
     if (!pet)
     {
-        player->SummonPet(0, x, y, z, player->GetOrientation(), SUMMON_PET, 0);
+        player->SummonPet(0, x, y, z, player->GetOrientation(), SUMMON_PET, 0, PET_SLOT_ACTUAL_PET_SLOT);
         pet = player->GetPet();
     }
     if (!pet)

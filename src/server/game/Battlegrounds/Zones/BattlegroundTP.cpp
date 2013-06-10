@@ -637,7 +637,7 @@ void BattlegroundTP::EventPlayerCapturedFlag(Player* source)
 
     /// Last but not least verify if score is max to end
     if (GetTeamScore(team) == BG_TP_MAX_TEAM_SCORE)
-        EndBattleground(team);
+        EndBattleground(team == TEAM_ALLIANCE ? ALLIANCE : HORDE);
     else
         _flagsTimer = BG_TP_FLAG_RESPAWN_TIME;
 }
