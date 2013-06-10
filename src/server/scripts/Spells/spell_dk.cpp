@@ -1317,7 +1317,7 @@ public:
     }
 };
 
-// 47482  Huddle
+// 49998 - Death Strike 
 class spell_dk_death_strike : public SpellScriptLoader
 {
 public:
