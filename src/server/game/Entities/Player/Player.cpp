@@ -17976,6 +17976,7 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
 
     // after spell and quest load
     InitTalentForLevel();
+        
     learnDefaultSpells();
 
     // must be before inventory (some items required reputation check)
@@ -18050,7 +18051,12 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
 
         uint32 talentTree = atol(talentTrees[i]);
         if (sTalentTabStore.LookupEntry(talentTree))
+        {
             SetPrimaryTalentTree(i, talentTree);
+
+            // Updates mastery for Frost Mage and Fury Warrior (2 base mastery points)
+            UpdateMastery();
+        }
         else if (i == GetActiveSpec() && talentTree != 0)
             SetAtLoginFlag(AT_LOGIN_RESET_TALENTS); // invalid tree, reset talents
     }
@@ -18121,7 +18127,7 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     _LoadEquipmentSets(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_EQUIPMENT_SETS));
 
     _LoadCUFProfiles(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CUF_PROFILES));
-
+    
     return true;
 }
 
