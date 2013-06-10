@@ -3287,6 +3287,9 @@ void Player::InitTalentForLevel()
 
     if (!GetSession()->PlayerLoading())
         SendTalentsInfoData(false);                         // update at client
+    
+    // Updates mastery for Frost Mage and Fury Warrior (2 base mastery points) at talent switching
+    UpdateMastery();
 }
 
 void Player::InitStatsForLevel(bool reapplyMods)
