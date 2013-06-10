@@ -11431,6 +11431,24 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                     }
                     break;
             }
+
+            /* PET'S COEFFICIENTS */
+            if(this->isPet())
+            {
+                if(Unit* owner = this->GetCharmerOrOwner())
+                {
+                    int32 ownerRAP = owner->GetTotalAttackPowerValue(RANGED_ATTACK);
+
+                    switch(spellProto->Id)
+                    {
+                        // Kill Command
+                        case 83381:
+                            DoneTotal += ownerRAP * 0.516f;
+                            break;
+                    }
+                }
+            }
+
             // Essence of the Viper (Survival Mastery)
             if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_SURVIVAL)
