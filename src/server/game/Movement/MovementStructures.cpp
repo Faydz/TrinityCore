@@ -1483,9 +1483,9 @@ MovementStatusElements MovementStopAscendSequence[] =
 //4.3.4
 MovementStatusElements MovementStopPitchSequence[] =
 {
-    MSEPositionY,
     MSEPositionX,
     MSEPositionZ,
+    MSEPositionY,
     MSEHasGuidByte0,
     MSEHasGuidByte5,
     MSEHasGuidByte3,
