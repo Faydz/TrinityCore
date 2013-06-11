@@ -22,6 +22,7 @@
 #include "Opcodes.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#include "GameEventMgr.h"
 
 void BuildPlayerLockDungeonBlock(WorldPacket& data, lfg::LfgLockMap const& lock)
 {
@@ -170,139 +171,150 @@ void WorldSession::HandleLfgTeleportOpcode(WorldPacket& recvData)
 void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvData*/)
 {
     uint64 guid = GetPlayer()->GetGUID();
-    sLog->outDebug(LOG_FILTER_LFG, "CMSG_LFG_PLAYER_LOCK_INFO_REQUEST %s",
-        GetPlayerInfo().c_str());
+    sLog->outDebug(LOG_FILTER_NETWORKIO, "CMSG_LFD_PLAYER_LOCK_INFO_REQUEST [" UI64FMTD "]", guid);
 
     // Get Random dungeons that can be done at a certain level and expansion
+    // FIXME - Should return seasonals (when not disabled)
     uint8 level = GetPlayer()->getLevel();
-    lfg::LfgDungeonSet const& randomDungeons =
-        sLFGMgr->GetRandomAndSeasonalDungeons(level, GetPlayer()->GetSession()->Expansion());
+    uint8 expansion = GetPlayer()->GetSession()->Expansion();
+    lfg::LfgDungeonSet /*const&*/ randomDungeons = sLFGMgr->GetRandomAndSeasonalDungeons(level, expansion);
+    for (uint32 i = 0; i < sLFGDungeonStore.GetNumRows(); ++i)
+    {
+        LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(i);
+        if (dungeon && dungeon->type == 6 && dungeon->expansion <= expansion && dungeon->minlevel <= level && level <= dungeon->maxlevel)
+            randomDungeons.insert(dungeon->Entry());
+        // Dungeons Seleccionables con el evento en el server correspondiente. (En Dungeon Finder)
+        if (dungeon && dungeon->grouptype == 11 && dungeon->expansion <= expansion && dungeon->minlevel <= level && level <= dungeon->maxlevel)
+        {
+            QueryResult result = WorldDatabase.Query("SELECT dungeonId, eventEntry FROM lfg_dungeon_event");
+
+            if (!result)
+                return;
+
+            Field* fields = NULL;
+            do
+            {
+                fields = result->Fetch();
+                uint32 dungeonId = fields[0].GetUInt32();
+                uint32 eventEntry = fields[1].GetUInt32();
+                if (dungeonId != dungeon->ID)
+                    continue;
+
+                if (eventEntry && sGameEventMgr->IsActiveEvent(eventEntry))
+                    randomDungeons.insert(dungeon->Entry());
+
+            }
+            while (result->NextRow());
+        }
+    }
 
     // Get player locked Dungeons
     lfg::LfgLockMap const& lock = sLFGMgr->GetLockedDungeons(guid);
     uint32 rsize = uint32(randomDungeons.size());
     uint32 lsize = uint32(lock.size());
 
-    sLog->outDebug(LOG_FILTER_LFG, "SMSG_LFG_PLAYER_INFO %s", GetPlayerInfo().c_str());
+    sLog->outDebug(LOG_FILTER_NETWORKIO, "SMSG_LFG_PLAYER_INFO [" UI64FMTD "]", guid);
     WorldPacket data(SMSG_LFG_PLAYER_INFO, 1 + rsize * (4 + 1 + 4 + 4 + 4 + 4 + 1 + 4 + 4 + 4) + 4 + lsize * (1 + 4 + 4 + 4 + 4 + 1 + 4 + 4 + 4));
 
     data << uint8(randomDungeons.size());                  // Random Dungeon count
     for (lfg::LfgDungeonSet::const_iterator it = randomDungeons.begin(); it != randomDungeons.end(); ++it)
     {
-        sLog->outError(LOG_FILTER_GENERAL, "it randomDungeons = %u", uint32(*it));
         data << uint32(*it);                               // Dungeon Entry (id + type)
         lfg::LfgReward const* reward = sLFGMgr->GetRandomDungeonReward(*it, level);
-        Quest const* quest = NULL;
-        bool done = false;
+        Quest const* qRew = NULL;
+        uint8 done = 0;
         if (reward)
         {
-            quest = sObjectMgr->GetQuestTemplate(reward->firstQuest);
-            if (quest)
+            qRew = sObjectMgr->GetQuestTemplate(reward->firstQuest);
+            if (qRew)
             {
-                done = !GetPlayer()->CanRewardQuest(quest, false);
+                done = GetPlayer()->CanRewardQuest(qRew, false);
                 if (done)
-                    quest = sObjectMgr->GetQuestTemplate(reward->otherQuest);
+                    qRew = sObjectMgr->GetQuestTemplate(reward->otherQuest);
             }
         }
 
-        if (quest)
+        if (qRew)
         {
-            //sLog->outError(LOG_FILTER_GENERAL, "MoneyRew = %i, Xp = %u, itemRew = %u, currencyRew = %u", quest->GetRewOrReqMoney(), quest->XPValue(GetPlayer()), quest->GetRewItemsCount(), quest->GetRewCurrencyCount());
-            data << uint8(done);
-            data << uint32(quest->GetRewOrReqMoney());
-            data << uint32(quest->XPValue(GetPlayer()));
-            data << uint32(0);
-            data << uint32(0);
-            data << uint8(quest->GetRewItemsCount());
-            if (quest->GetRewItemsCount())
+            data << uint8(done);                                        //First Completion
+            data << uint32(0);                                          //Base Money
+            data << uint32(0);                                          //Base XP
+            data << uint32(0);                                          //Variable Money
+            data << uint32(0);                                          //Variable XP
+
+            for(int j = 0; j < 9; j++)                                  //Unk 1,2,3,4,5,6,7,8,8.1
+                data << uint32(0);
+
+            data << uint8(0);                                           //Unk 9
+
+            // 4.3.4 Loot Slot Info
+            for(int j = 0; j < 3; j++)                                  //Unk 1 Array (index 0,1,2)
+                data << uint32(0);
+
+            data << uint32(qRew->GetRewOrReqMoney());                   //Unk 10 - Money rew
+            data << uint32(qRew->XPValue(GetPlayer()));                 //Unk 11 - Exp rew
+
+            if (qRew->GetRewItemsCount())
             {
-                sLog->outError(LOG_FILTER_GENERAL, "Item");
+                data << uint8(qRew->GetRewItemsCount());
+                ItemTemplate const* iProto = NULL;
                 for (uint8 i = 0; i < QUEST_REWARDS_COUNT; ++i)
-                    if (uint32 itemId = quest->RewardItemId[i])
-                    {
-                        ItemTemplate const* item = sObjectMgr->GetItemTemplate(itemId);
-                        data << uint32(itemId);
-                        data << uint32(item ? item->DisplayInfoID : 0);
-                        data << uint32(quest->RewardItemIdCount[i]);
-                    }
+                {
+                    if(!qRew->RewardItemId[i])
+                        continue;
+
+                    iProto = sObjectMgr->GetItemTemplate(qRew->RewardItemId[i]);
+
+                    data << uint32(qRew->RewardItemId[i]);
+                    data << uint32(iProto ? iProto->DisplayInfoID : 0);
+                    data << uint32(qRew->RewardItemIdCount[i]);
+
+                    data << uint8(iProto ? 0 : 1); // Is Currency
+                }
             }
-            /*if (quest->GetRewCurrencyCount())
+            if (qRew->GetRewCurrencyCount())
             {
-                sLog->outError(LOG_FILTER_GENERAL, "Currency");
-                data << uint8(quest->GetRewCurrencyCount());
-                for (uint8 i = 0; i < QUEST_REWARD_CURRENCY_COUNT; ++i)
-                    if (uint32 currencyId = quest->RewardCurrencyId[i])
-                    {
-                        ItemTemplate const* currency = sObjectMgr->GetItemTemplate(currencyId);
-                        data << uint32(currencyId);
-                        data << uint32(currency ? currency->DisplayInfoID : 0);
-                        data << uint32(quest->RewardCurrencyCount[i]);
-                    }
-            }*/
+                data << uint8(qRew->GetRewCurrencyCount());             //Reward Item/Currency Count
+                for(uint8 i = 0; i < 4; i++)
+                {
+                    if(!qRew->RewardCurrencyId[i])
+                        continue;
+
+                    data << uint32(qRew->RewardCurrencyId[i]);          //Reward Item Or Currency Id
+                    data << uint32(0);                                  //Reward Item Display ID
+                    data << uint32(qRew->RewardCurrencyCount[i]*100);   //Reward Item Stack Count
+                    data << uint8(1);                                   // Is Currency
+                }
+            }
         }
         else
         {
-            /*data << uint8(0);
+            data << uint8(0);
             data << uint32(0);
             data << uint32(0);
             data << uint32(0);
             data << uint32(0);
-            data << uint8(0);*/
 
-            data << uint32(200 * 100);
-            data << uint32(1000 * 100);
-            data << uint32(CURRENCY_TYPE_VALOR_POINTS);
-
-            data << uint32(0);                          //nuller      
-            data << uint32(1000 * 100);      //CapFirst
-
-            data << uint32(0);                          //nuller
-            data << uint32(1000 * 100);      //CapNth
-
-            data << uint32(0);                          //nuller  
-            data << uint32(1000 * 100);      //MaxCap
-
-            data << uint32(200 * 100);      //unk6
-            data << uint32(0);      //unk7
-
-            data << uint32(200 * 100);      //unk8
-            data << uint32(0);      //unk8.1
+            // New 4.3.4 15595
+            for(int j = 0; j < 8; j++)
+                data << uint32(1);
 
             data << uint8(1);
 
-            for(uint8 i = 0; i < 3; ++i)
-            {
-                uint8 controller = 0;
-                data << uint32(controller);                     // some controller, if != 0 then the code bellow is executed
-                if(controller != 0)
-                {
-                    data << uint32(0);
-                    data << uint32(0);
-                    uint8 counter1 = 0;
-                    data << counter1;
-                    for(uint8 j = 0; j < counter1; ++j)
-                    {
-                        data << uint32(0);
-                        data << uint32(0);
-                        data << uint32(0);
-                        data << uint8(0);
-                    }
-                }
-            }
+            // 4.3.4 Loot Slot Info
+            for(int j = 0; j < 3; j++)
+                data << uint32(0);
 
-            data << uint32(200000);
-            data << uint32(300000);
+            data << uint32(1);
+            data << uint32(1);
 
-            data << uint8(1);
-            data << uint32(CURRENCY_TYPE_VALOR_POINTS);
-            data << uint32(0);
-            data << uint32(300 * 100);
-            data << uint8(true);
+            data << uint8(0);
         }
     }
     BuildPlayerLockDungeonBlock(data, lock);
     SendPacket(&data);
 }
+
 
 void WorldSession::HandleLfgPartyLockInfoRequestOpcode(WorldPacket&  /*recvData*/)
 {
@@ -723,52 +735,50 @@ void WorldSession::SendLfgQueueStatus(lfg::LfgQueueStatusData const& queueData)
         queueData.waitTimeTank, queueData.waitTimeHealer, queueData.waitTimeDps,
         queueData.queuedTime, queueData.tanks, queueData.healers, queueData.dps);
 
-    uint32 queueId = GetPlayer()->GetTeam();
-    int32 joinTime = 0;
-    ObjectGuid playerGuid = GetPlayer()->GetGUID();
-
+    ObjectGuid pguid = GetPlayer()->GetGUID();
+ 
     WorldPacket data(SMSG_LFG_QUEUE_STATUS);
-    
-    data.WriteBit(playerGuid[3]);
-    data.WriteBit(playerGuid[2]);
-    data.WriteBit(playerGuid[0]);
-    data.WriteBit(playerGuid[6]);
-    data.WriteBit(playerGuid[5]);
-    data.WriteBit(playerGuid[7]);
-    data.WriteBit(playerGuid[1]);
-    data.WriteBit(playerGuid[4]);
-
-    data.FlushBits();
-
-    data.WriteByteSeq(playerGuid[0]);
-
-    data << uint8(queueData.tanks);                      //Tank Unk
-    data << int32(queueData.waitTimeTank); 
-    data << uint8(queueData.healers);                    //Healer Unk
-    data << int32(queueData.waitTimeHealer);
-    data << uint8(queueData.dps);                        //DPS Unk
-    data << int32(queueData.waitTimeDps);
-
-    data.WriteByteSeq(playerGuid[4]);
-    data.WriteByteSeq(playerGuid[6]);
-
-    data << int32(queueData.waitTimeAvg);               // Average Wait time
-    data << int32(queueData.waitTime);                  // Join Time
-    data << uint32(queueData.dungeonId);                  // Dungeon
-    data << int32(queueData.queuedTime);                // Player wait time in queue
-
-    data.WriteByteSeq(playerGuid[5]);
-    data.WriteByteSeq(playerGuid[7]);
-    data.WriteByteSeq(playerGuid[3]);
-
-    data << uint32(queueId);                 // queueId
-
-    data.WriteByteSeq(playerGuid[1]);
-    data.WriteByteSeq(playerGuid[2]);
-
-    data << int32(queueData.waitTime);                 // Wait Time, if == -1, it wont show average wait time and time in queue
-    data << int32(3);                        // Unk_UInt32_1
-
+ 
+    data.WriteBit(pguid[3]);
+    data.WriteBit(pguid[2]);
+    data.WriteBit(pguid[0]);
+    data.WriteBit(pguid[6]);
+    data.WriteBit(pguid[5]);
+    data.WriteBit(pguid[7]);
+    data.WriteBit(pguid[1]);
+    data.WriteBit(pguid[4]);
+ 
+    data.WriteByteSeq(pguid[0]);
+ 
+    data << uint8(queueData.tanks);
+    data << uint32(queueData.waitTimeTank);                         // Wait For Tank Time
+ 
+    data << uint8(queueData.healers);
+    data << uint32(queueData.waitTimeHealer);                       // Wait For Healer Time
+ 
+    data << uint8(queueData.dps);
+    data << uint32(queueData.waitTimeDps);                          // Wait For Damage Time
+ 
+    data.WriteByteSeq(pguid[4]);
+    data.WriteByteSeq(pguid[6]);
+ 
+    data << int32(queueData.waitTimeAvg);                           // Average Wait time
+    data << int32(queueData.queuedTime);
+    data << uint32(queueData.dungeonId);                            // Dungeon
+    data << uint32(queueData.queuedTime);                           // Wait Time
+ 
+    data.WriteByteSeq(pguid[5]);
+    data.WriteByteSeq(pguid[7]);
+    data.WriteByteSeq(pguid[3]);
+ 
+    data << uint32(0);                                              // Queue ID
+ 
+    data.WriteByteSeq(pguid[1]);
+    data.WriteByteSeq(pguid[2]);
+ 
+    data << int32(queueData.waitTime);
+    data << uint32(3);
+ 
     SendPacket(&data);
 /*
     WorldPacket data(SMSG_LFG_QUEUE_STATUS, 4 + 4 + 4 + 4 + 4 +4 + 1 + 1 + 1 + 4);
