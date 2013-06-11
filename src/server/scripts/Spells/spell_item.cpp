@@ -2477,72 +2477,69 @@ enum eFlaskOfEnhancementSpells
 class spell_item_flask_of_enhancement: public SpellScriptLoader 
 {
 public:
-	spell_item_flask_of_enhancement() : SpellScriptLoader("spell_item_flask_of_enhancement")
-    {}
+    spell_item_flask_of_enhancement() : SpellScriptLoader("spell_item_flask_of_enhancement") { }
 
-	class spell_item_flask_of_enhancement_SpellScript: public SpellScript
-    {
-	public:
-		
+    class spell_item_flask_of_enhancement_SpellScript: public SpellScript
+    {		
         PrepareSpellScript(spell_item_flask_of_enhancement_SpellScript)
-		
+
         bool Validate(SpellInfo const* /*spellEntry*/) 
         {
-			if (!sSpellMgr->GetSpellInfo(SPELL_FLASK_OF_ENHANCEMENT_SP))
-				return false;
-			if (!sSpellMgr->GetSpellInfo(SPELL_FLASK_OF_ENHANCEMENT_AP))
-				return false;
-			if (!sSpellMgr->GetSpellInfo(SPELL_FLASK_OF_ENHANCEMENT_STR))
-				return false;
-			return true;
-		}
+            if (!sSpellMgr->GetSpellInfo(SPELL_FLASK_OF_ENHANCEMENT_SP))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_FLASK_OF_ENHANCEMENT_AP))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_FLASK_OF_ENHANCEMENT_STR))
+                return false;
+            return true;
+        }
 
-		void HandleDummy(SpellEffIndex /*effIndex*/) 
+        void HandleDummy(SpellEffIndex /*effIndex*/) 
         {
-			Unit* pCaster = GetCaster();
-			if (pCaster->GetTypeId() != TYPEID_PLAYER)
-				return;
+            Unit* pCaster = GetCaster();
+            if (pCaster->GetTypeId() != TYPEID_PLAYER)
+                return;
 
-			std::vector<uint32> possibleSpells;
-			switch (pCaster->getClass())
+            std::vector<uint32> possibleSpells;
+            switch (pCaster->getClass())
             {
-			    case CLASS_WARLOCK:
-			    case CLASS_MAGE:
-			    case CLASS_PRIEST:
-				    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_SP);
-				    break;
-			    case CLASS_DEATH_KNIGHT:
-			    case CLASS_WARRIOR:
-				    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_STR);
-				    break;
-			    case CLASS_ROGUE:
-			    case CLASS_HUNTER:
-				    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_AP);
-				    break;
-			    case CLASS_DRUID:
-			    case CLASS_PALADIN:
-				    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_SP);
-				    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_STR);
-				    break;
-			    case CLASS_SHAMAN:
-				    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_SP);
-				    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_AP);
-				    break;
-			}
+                case CLASS_WARLOCK:
+                case CLASS_MAGE:
+                case CLASS_PRIEST:
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_SP);
+                break;
+                case CLASS_DEATH_KNIGHT:
+                case CLASS_WARRIOR:
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_STR);
+                    break;
+                case CLASS_ROGUE:
+                case CLASS_HUNTER:
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_AP);
+                    break;
+                case CLASS_DRUID:
+                case CLASS_PALADIN:
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_SP);
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_STR);
+                    break;
+                case CLASS_SHAMAN:
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_SP);
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_AP);
+                    break;
+            }
 
-			pCaster->CastSpell(pCaster, possibleSpells[irand(0, (possibleSpells.size() - 1))], true, NULL);
-		}
+            pCaster->CastSpell(pCaster, possibleSpells[irand(0, (possibleSpells.size() - 1))], true, NULL);
+        }
 
-		void Register() 
+        void Register() 
         {
-			OnEffectHitTarget += SpellEffectFn(spell_item_flask_of_enhancement_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
-		}
-	};
+            OnEffectHitTarget += SpellEffectFn(spell_item_flask_of_enhancement_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+    };
 
-	SpellScript* GetSpellScript() const
+    SpellScript* GetSpellScript() const
     {
-		return new spell_item_flask_of_enhancement_SpellScript();
-	}
+        return new spell_item_flask_of_enhancement_SpellScript();
+    }
 };
 
 void AddSC_item_spell_scripts()
