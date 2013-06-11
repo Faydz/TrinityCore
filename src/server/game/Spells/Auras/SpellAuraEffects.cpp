@@ -565,7 +565,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                         amount *= caster->CalculateLevelPenalty(GetSpellInfo());
                         
                         // Improved PW: Shield
-                        if (AuraEffect const* pAurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 566, 1))
+                        if (AuraEffect const* pAurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 566, EFFECT_0))
                             AddPct(amount, pAurEff->GetAmount());
 
                         // Spiritual Healing
