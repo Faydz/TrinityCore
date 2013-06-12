@@ -850,6 +850,11 @@ class spell_pri_dispel_magic : public SpellScriptLoader
                             caster->CastSpell(target, 97690, true);
                         else if (!target->IsFriendlyTo(caster))
                             caster->CastSpell(target, 97691, true);
+                        if (caster->HasAura(55677))
+                        {
+                            int32 bp0 = target->GetMaxHealth() * 0.03;
+                            caster->CastCustomSpell(target, 56131, &bp0, NULL, NULL, true);
+                        }
                     }
                 }
                 PreventHitDefaultEffect(EFFECT_0);
