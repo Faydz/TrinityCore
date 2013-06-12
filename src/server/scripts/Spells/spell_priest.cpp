@@ -34,6 +34,8 @@ enum PriestSpells
     SPELL_PRIEST_GLYPH_OF_LIGHTWELL                 = 55673,
     SPELL_PRIEST_GLYPH_OF_PRAYER_OF_HEALING_HEAL    = 56161,
     SPELL_PRIEST_GLYPH_OF_SHADOW                    = 107906,
+    SPELL_PRIEST_GLYPH_OF_DISPEL_MAGIC              = 55677,
+    SPELL_PRIEST_GLYPH_OF_DISPEL_MAGIC_HEAL         = 56131,
     SPELL_PRIEST_GUARDIAN_SPIRIT_HEAL               = 48153,
     SPELL_PRIEST_LEAP_OF_FAITH                      = 73325,
     SPELL_PRIEST_LEAP_OF_FAITH_EFFECT               = 92832,
@@ -850,10 +852,10 @@ class spell_pri_dispel_magic : public SpellScriptLoader
                             caster->CastSpell(target, 97690, true);
                         else if (!target->IsFriendlyTo(caster))
                             caster->CastSpell(target, 97691, true);
-                        if (caster->HasAura(55677))
+                        if (caster->HasAura(SPELL_PRIEST_GLYPH_OF_DISPEL_MAGIC))
                         {
                             int32 bp0 = target->GetMaxHealth() * 0.03;
-                            caster->CastCustomSpell(target, 56131, &bp0, NULL, NULL, true);
+                            caster->CastCustomSpell(target, SPELL_PRIEST_GLYPH_OF_DISPEL_MAGIC_HEAL, &bp0, NULL, NULL, true);
                         }
                     }
                 }
