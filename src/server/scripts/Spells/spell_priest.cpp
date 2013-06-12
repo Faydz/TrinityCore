@@ -696,7 +696,7 @@ class spell_pri_shadow_word_death : public SpellScriptLoader
                         {
                             if (!player->HasSpellCooldown(SPELL_PRIEST_SHADOW_WORD_DEATH_GLYPH))
                             {
-                                if (healthBelow25Pct && target->isDead())
+                                if (healthBelow25Pct && !target->isDead())
                                 {
                                     player->RemoveSpellCooldown(SPELL_PRIEST_SHADOW_WORD_DEATH_TARGET_DAMAGE, true);
                                     player->AddSpellCooldown(SPELL_PRIEST_SHADOW_WORD_DEATH_GLYPH, 0, time(NULL) + 6);
