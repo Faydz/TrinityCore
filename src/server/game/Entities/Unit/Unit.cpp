@@ -672,13 +672,16 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
                         {
                             if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_MAGE, 82, EFFECT_0))
                             {
-                                uint32 stunId = 83046;
-                                if (aurEff->GetId() == 12592)
-                                    stunId = 83047;
+                                if(aurEff->GetId() != 11210 && aurEff->GetId() != 12592)
+                                {
+                                    uint32 stunId = 83046;
+                                    if (aurEff->GetId() == 12592)
+                                        stunId = 83047;
 
-                                caster->AddAura(stunId, victim);
-                                // Add cooldown
-                                caster->AddAura(87515 , caster);
+                                    caster->AddAura(stunId, victim);
+                                    // Add cooldown
+                                    caster->AddAura(87515 , caster);
+                                }
                             }
                         }
                     }
