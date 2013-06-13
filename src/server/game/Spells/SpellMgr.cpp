@@ -3742,6 +3742,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Whirlwind
+                    case 50622:
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+                        break;
 					// Demoralizing Shout
 					case 1160:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
