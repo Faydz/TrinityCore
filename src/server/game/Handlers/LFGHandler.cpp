@@ -402,8 +402,6 @@ void WorldSession::SendLfgUpdateStatus(lfg::LfgUpdateData const& updateData)
     bool extrainfo = false;
     bool join = false;
 
-    sLog->outError(LOG_FILTER_GENERAL,"updateData.updateType = %u, updateData.state = %u, updateData.dungeons = %u", updateData.updateType, updateData.state, updateData.dungeons);
-
     switch (updateData.updateType)
     {
     case lfg::LFG_UPDATETYPE_JOIN_QUEUE:

@@ -854,7 +854,7 @@ class spell_pri_dispel_magic : public SpellScriptLoader
                             caster->CastSpell(target, 97691, true);
                         if (caster->HasAura(SPELL_PRIEST_GLYPH_OF_DISPEL_MAGIC))
                         {
-                            int32 bp0 = target->GetMaxHealth() * 0.03;
+                            int32 bp0 = target->GetMaxHealth() * 0.03f;
                             caster->CastCustomSpell(target, SPELL_PRIEST_GLYPH_OF_DISPEL_MAGIC_HEAL, &bp0, NULL, NULL, true);
                         }
                     }
