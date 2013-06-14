@@ -3400,6 +3400,12 @@ void SpellMgr::LoadSpellCustomAttr()
             case 77487:
                 spellInfo->Effects[EFFECT_0].BasePoints = 10;
                 break;
+            case 2825:      // Bloodlust
+            case 32182:     // Heroism
+            case 80353:     // Time Warp
+            case 90355:     // Ancient Hysteria
+                spellInfo->AttributesEx9 |= SPELL_ATTR9_NOT_USABLE_IN_ARENA;
+                break;
             default:
                 break;
         }
@@ -3756,6 +3762,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARRIOR:
                 switch(spellInfo->Id)
                 {
+                    // Whirlwind
+                    case 50622:
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+                        break;
 					// Demoralizing Shout
 					case 1160:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
