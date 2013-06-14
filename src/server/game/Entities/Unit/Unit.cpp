@@ -672,7 +672,7 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
                         {
                             if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_MAGE, 82, EFFECT_0))
                             {
-                                if(aurEff->GetId() != 11210 && aurEff->GetId() != 12592)
+                                if(aurEff->GetId() == 11210 || aurEff->GetId() == 12592)
                                 {
                                     uint32 stunId = 83046;
                                     if (aurEff->GetId() == 12592)
