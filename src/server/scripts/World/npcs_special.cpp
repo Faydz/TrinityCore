@@ -3736,21 +3736,15 @@ public:
 
         void CheckIfMoveInRing(Unit *who)
         {
-            // Check if targets are alive, between 0.8y and 4.6y, not already frozen, not immune or in LOS
-            if (who->isAlive() && me->IsInRange(who, 0.8f, 4.6f, false)
+            // Check if targets are alive, not between center area, not already frozen, not immune or in LOS
+            if (who->isAlive() && !me->IsInRange(who, 0.0f, 2.0f, false)
                 && !who->HasAura(82691)/*<= target already frozen*/
                 && !who->HasAura(91264)/*<= target is immune*/
                 && !who->HasAuraState(AURA_STATE_FROZEN)
+                && who->GetDiminishing(DIMINISHING_DISORIENT) < DIMINISHING_LEVEL_IMMUNE
                 && me->IsWithinLOSInMap(who) && Isready)
             {
-                who->AddAura(82691, who);
-
-                // PvP duration of 8 seconds
-                if(who->ToPlayer())
-                {
-                    if (Aura* ring = who->GetAura(82691))
-                        ring->SetDuration(8000);
-                }
+                me->CastSpell(who, 82691);
             }
         }
 
@@ -3771,9 +3765,9 @@ public:
 
             // Find all the enemies
             std::list<Unit*> targets;
-            Trinity::AnyUnfriendlyUnitInObjectRangeCheck u_check(me, me, 5.0f);
+            Trinity::AnyUnfriendlyUnitInObjectRangeCheck u_check(me, me, 5.5f);
             Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, u_check);
-            me->VisitNearbyObject(5.0f, searcher);
+            me->VisitNearbyObject(5.5f, searcher);
             for (std::list<Unit*>::const_iterator iter = targets.begin(); iter != targets.end(); ++iter)
                 CheckIfMoveInRing(*iter);
         }

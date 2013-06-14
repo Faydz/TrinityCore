@@ -14409,7 +14409,7 @@ void Unit::IncrDiminishing(DiminishingGroup group)
     m_Diminishing.push_back(DiminishingReturn(group, getMSTime(), DIMINISHING_LEVEL_2));
 }
 
-float Unit::ApplyDiminishingToDuration(DiminishingGroup group, int32 &duration, Unit* caster, DiminishingLevels Level, int32 limitduration)
+float Unit::ApplyDiminishingToDuration(DiminishingGroup group, int32 &duration, Unit* caster, DiminishingLevels Level, int32 limitduration, SpellInfo const* spellInfo)
 {
     if (duration == -1 || group == DIMINISHING_NONE)
         return 1.0f;
@@ -14462,6 +14462,41 @@ float Unit::ApplyDiminishingToDuration(DiminishingGroup group, int32 &duration, 
             case DIMINISHING_LEVEL_3: mod = 0.25f; break;
             case DIMINISHING_LEVEL_IMMUNE: mod = 0.0f; break;
             default: break;
+        }
+
+        // Check this because it's useless add duration reduction when immune
+        if(diminish != DIMINISHING_LEVEL_IMMUNE)
+        {
+            // Handles mixed diminishing by spell not by group
+            switch (spellInfo->Id)
+            {
+                // Shattered Barrier
+                case 55080:
+                case 83073:
+                    // Shattered Barrier shares diminishing with Improved Cone of Cold freeze
+                    if(this->HasAura(83301) || this->HasAura(83302))
+                    {
+                        mod = mod == 0.25f ? 0.0 : mod / 2.0f;
+                    }
+                    break;
+                // Improved Cone of Cold freeze
+                case 83301:
+                case 83302:
+                    // Improved Cone of Cold freeze shares diminishing with Shattered Barrier
+                    if(this->HasAura(55080) || this->HasAura(83073))
+                    {
+                        mod = mod == 0.25f ? 0.0 : mod / 2.0f;
+                    }
+                    break;
+                // Deep Freeze-Ring of Frost
+                case 44572:
+                case 82691:
+                    if(this->HasAura(spellInfo->Id == 44572 ? 82691 : 44572))
+                    {
+                        mod = mod == 0.25f ? 0.0 : mod / 2.0f;
+                    }
+                    break;
+            }
         }
     }
 

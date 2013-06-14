@@ -72,18 +72,24 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
     {
         case SPELLFAMILY_GENERIC:
         {
-            // Pet charge effects (Infernal Awakening, Demon Charge)
-            if (spellproto->SpellVisual[0] == 2816 && spellproto->SpellIconID == 15)
-                return DIMINISHING_CONTROLLED_STUN;
             // Frost Tomb
-            else if (spellproto->Id == 48400)
+            if (spellproto->Id == 48400)
                 return DIMINISHING_NONE;
-            // Gnaw
-            else if (spellproto->Id == 47481)
-                return DIMINISHING_CONTROLLED_STUN;
             // ToC Icehowl Arctic Breath
             else if (spellproto->SpellVisual[0] == 14153)
                 return DIMINISHING_NONE;
+            // Intimidation
+            else if (spellproto->Id == 24394)
+                return DIMINISHING_CONTROLLED_STUN;
+            // Improved Hamstring
+            else if (spellproto->Id == 23694)
+                return DIMINISHING_ROOT;
+            // Improved Polymorph
+            else if (spellproto->Id == 83046 || spellproto->Id == 83047)
+                return DIMINISHING_STUN;
+            // Entrapment (own diminishing)
+            else if (spellproto->Id == 19185 || spellproto->Id == 64803)
+                return DIMINISHING_ENTRAPMENT;
             break;
         }
         // Event spells
@@ -91,75 +97,78 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
             return DIMINISHING_NONE;
         case SPELLFAMILY_MAGE:
         {
-            // Frostbite
-            if (spellproto->SpellFamilyFlags[1] & 0x80000000)
-                return DIMINISHING_ROOT;
             // Shattered Barrier
-            else if (spellproto->SpellVisual[0] == 12297)
+            if (spellproto->Id == 55080 || spellproto->Id == 83073)
                 return DIMINISHING_ROOT;
             // Deep Freeze
-            else if (spellproto->SpellIconID == 2939 && spellproto->SpellVisual[0] == 9963)
-                return DIMINISHING_CONTROLLED_STUN;
-            // Ring of Frost
-            else if (spellproto->SpellIconID == 5279 && spellproto->SpellVisual[0] == 4499)
+            else if (spellproto->Id == 44572)
                 return DIMINISHING_CONTROLLED_STUN;
             // Frost Nova / Freeze (Water Elemental)
-            else if (spellproto->SpellIconID == 193)
+            else if (spellproto->Id == 122 || spellproto->Id == 33395)
                 return DIMINISHING_CONTROLLED_ROOT;
             // Dragon's Breath
-            else if (spellproto->SpellFamilyFlags[0] & 0x800000)
+            else if (spellproto->Id == 31661)
                 return DIMINISHING_DRAGONS_BREATH;
-            else if (spellproto->Id == 83302)
-                return DIMINISHING_ROOT;
+            // Ring of Frost
+            // immunità ANCHE con deep freeze
+            else if (spellproto->Id == 82691)
+                return DIMINISHING_DISORIENT;
+            // Improved Cone of Cold dr funzionante
+            // immunità solo con shattered barrier
             break;
         }
         case SPELLFAMILY_WARRIOR:
         {
             // Hamstring - limit duration to 8s in PvP
-            if (spellproto->SpellFamilyFlags[0] & 0x2)
+            if (spellproto->Id == 1715)
                 return DIMINISHING_LIMITONLY;
             // Charge Stun (own diminishing)
-            else if (spellproto->SpellFamilyFlags[0] & 0x01000000)
-                return DIMINISHING_NONE;
+            else if (spellproto->Id == 7922)
+                return DIMINISHING_CHARGE;
             break;
         }
         case SPELLFAMILY_WARLOCK:
         {
             // Curses/etc
-            if ((spellproto->SpellFamilyFlags[0] & 0x80000000) || (spellproto->SpellFamilyFlags[1] & 0x200))
+            if ((spellproto->SpellFamilyFlags[0] & 0x80400000) || (spellproto->SpellFamilyFlags[1] & 0x200))
                 return DIMINISHING_LIMITONLY;
             // Seduction
-            else if (spellproto->SpellFamilyFlags[1] & 0x10000000)
+            else if (spellproto->Id == 6358)
                 return DIMINISHING_FEAR;
             // Unstable Affliction silence
             else if (spellproto->Id == 31117)
+                return DIMINISHING_NONE;
+            // Spell Lock (Interrupt)
+            else if (spellproto->Id == 19647)
                 return DIMINISHING_NONE;
             break;
         }
         case SPELLFAMILY_DRUID:
         {
-            // Pounce
-            if (spellproto->SpellFamilyFlags[0] & 0x20000)
-                return DIMINISHING_OPENING_STUN;
             // Cyclone
-            else if (spellproto->SpellFamilyFlags[1] & 0x20)
+            if (spellproto->Id == 33786)
                 return DIMINISHING_CYCLONE;
-            // Entangling Roots
-            // Nature's Grasp
-            else if (spellproto->SpellFamilyFlags[0] & 0x00000200)
+            // Entangling Roots / Nature's Grasp
+            else if (spellproto->Id == 339 || spellproto->Id == 19975)
                 return DIMINISHING_CONTROLLED_ROOT;
             // Faerie Fire
-            else if (spellproto->SpellFamilyFlags[0] & 0x400)
+            else if (spellproto->Id == 91565)
                 return DIMINISHING_LIMITONLY;
+            // Hibernate
+            else if (spellproto->Id == 2637)
+                return DIMINISHING_DISORIENT;
+            // Solar Beam (here as reminder that aoe silence seems not to be affected by dimininshing)
+            else if (spellproto->Id == 78675)
+                return DIMINISHING_SILENCE;
             break;
         }
         case SPELLFAMILY_ROGUE:
         {
             // Gouge
-            if (spellproto->SpellFamilyFlags[0] & 0x8)
+            if (spellproto->Id == 1776)
                 return DIMINISHING_DISORIENT;
             // Blind
-            else if (spellproto->SpellFamilyFlags[0] & 0x1000000)
+            else if (spellproto->Id == 2094)
                 return DIMINISHING_FEAR;
             // Crippling poison - Limit to 8 seconds in PvP (No SpellFamilyFlags)
             else if (spellproto->SpellIconID == 163)
@@ -169,47 +178,43 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellInfo const* spellproto,
         case SPELLFAMILY_HUNTER:
         {
             // Hunter's Mark
-            if ((spellproto->SpellFamilyFlags[0] & 0x400) && spellproto->SpellIconID == 538)
+            if (spellproto->Id == 1130)
                 return DIMINISHING_LIMITONLY;
             // Scatter Shot (own diminishing)
-            else if ((spellproto->SpellFamilyFlags[0] & 0x40000) && spellproto->SpellIconID == 132)
+            else if (spellproto->Id == 19503)
                 return DIMINISHING_SCATTER_SHOT;
-            // Entrapment (own diminishing)
-            else if (spellproto->SpellVisual[0] == 7484 && spellproto->SpellIconID == 20)
-                return DIMINISHING_ENTRAPMENT;
             // Wyvern Sting mechanic is MECHANIC_SLEEP but the diminishing is DIMINISHING_DISORIENT
-            else if ((spellproto->SpellFamilyFlags[1] & 0x1000) && spellproto->SpellIconID == 1721)
+            else if (spellproto->Id == 19386)
                 return DIMINISHING_DISORIENT;
             // Freezing Arrow
-            else if (spellproto->SpellFamilyFlags[0] & 0x8)
+            else if (spellproto->Id == 3355)
+                return DIMINISHING_DISORIENT;
+            // Bad Manner (Monkey)
+            else if (spellproto->Id == 90337)
                 return DIMINISHING_DISORIENT;
             break;
         }
         case SPELLFAMILY_PALADIN:
         {
-            // Judgement of Justice - limit duration to 8s in PvP
-            if (spellproto->SpellFamilyFlags[0] & 0x100000)
-                return DIMINISHING_LIMITONLY;
             // Turn Evil
-            else if ((spellproto->SpellFamilyFlags[1] & 0x804000) && spellproto->SpellIconID == 309)
+            if (spellproto->Id == 10326)
                 return DIMINISHING_FEAR;
             break;
         }
         case SPELLFAMILY_DEATHKNIGHT:
         {
-            // Hungering Cold (no flags)
-            if (spellproto->SpellIconID == 2797)
+            // Hungering Cold
+            if (spellproto->Id == 49203)
                 return DIMINISHING_DISORIENT;
-            // Mark of Blood
-            else if ((spellproto->SpellFamilyFlags[0] & 0x10000000) && spellproto->SpellIconID == 2285)
-                return DIMINISHING_LIMITONLY;
             break;
         }
-        case SPELLFAMILY_SHAMAN:
-            // Earth's Grasp
-            if (spellproto->Id == 64695)
-                return DIMINISHING_NONE;
+        case SPELLFAMILY_PRIEST:
+        {
+            // Holy Word: Chastise
+            if (spellproto->Id == 88625)
+                return DIMINISHING_CONTROLLED_STUN;
             break;
+        }
         default:
             break;
     }
@@ -316,6 +321,9 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellInfo const
             // Curse of Elements - limit to 120 seconds in PvP
             else if (spellproto->SpellFamilyFlags[1] & 0x200)
                return 120 * IN_MILLISECONDS;
+            // Curse of Exhaustion - limit to 10 seconds in PvP
+            else if (spellproto->SpellFamilyFlags[0] & 0x400000)
+               return 10 * IN_MILLISECONDS;
             break;
         }
         default:
@@ -3734,9 +3742,15 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_MAGE:
                 switch(spellInfo->Id)
                 {
-                case 44614:
-                    spellInfo->StackAmount = 1;
-                    break;
+                    // Ring of Frost freeze
+                    case 82691:
+                        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(31); // 8 seconds
+                        spellInfo->Effects[EFFECT_0].MaxRadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_0_YARDS);
+                        break;
+                    // Frostfire Bolt
+                    case 44614:
+                        spellInfo->StackAmount = 1;
+                        break;
                 }
                 break;
             case SPELLFAMILY_WARRIOR:
