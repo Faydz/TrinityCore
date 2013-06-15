@@ -821,16 +821,24 @@ class spell_pvp_trinket_wotf_shared_cd : public SpellScriptLoader
                 return true;
             }
 
-            void HandleScript()
+            void HandleScript(SpellEffIndex /*effIndex*/)
             {
-                // This is only needed because spells cast from spell_linked_spell are triggered by default
-                // Spell::SendSpellCooldown() skips all spells with TRIGGERED_IGNORE_SPELL_AND_CATEGORY_CD
-                GetCaster()->ToPlayer()->AddSpellAndCategoryCooldowns(GetSpellInfo(), GetCastItem() ? GetCastItem()->GetEntry() : 0, GetSpell());
+			    if (Player* caster = GetCaster()->ToPlayer())
+                {
+                    SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(GetSpellInfo()->Id);
+			        caster->AddSpellCooldown(spellInfo->Id, NULL, time(NULL) + spellInfo->GetRecoveryTime() / IN_MILLISECONDS);
+			        WorldPacket data(SMSG_SPELL_COOLDOWN, 8 + 1 + 4);
+			        data << uint64(caster->GetGUID());
+			        data << uint8(0);
+			        data << uint32(spellInfo->Id);
+			        data << uint32(0);
+			        caster->GetSession()->SendPacket(&data);
+		        }
             }
 
             void Register()
             {
-                AfterCast += SpellCastFn(spell_pvp_trinket_wotf_shared_cd_SpellScript::HandleScript);
+                OnEffectHitTarget += SpellEffectFn(spell_pvp_trinket_wotf_shared_cd_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_DUMMY);
             }
         };
 

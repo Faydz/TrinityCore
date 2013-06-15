@@ -1048,47 +1048,6 @@ class spell_dru_living_seed_proc : public SpellScriptLoader
         }
 };
 
-// 24858 - Moonkin Form
-class spell_dru_moonkin_form : public SpellScriptLoader
-{
-    public:
-        spell_dru_moonkin_form() : SpellScriptLoader("spell_dru_moonkin_form") { }
-        
-        class spell_dru_moonkin_form_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_dru_moonkin_form_AuraScript);
-
-            void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-            {
-                if(Unit* caster = GetCaster())
-                {
-                    caster->CastSpell(caster, SPELL_DRUID_MOONKIN_AURA);
-                }
-            }
-
-            void HandleEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-            {
-                if(Unit* caster = GetCaster())
-                {
-                    caster->RemoveAurasDueToSpell(SPELL_DRUID_MOONKIN_AURA);
-                }
-            }
-
-            void Register()
-            {
-                // Uncomment me for working again!
-                //AfterEffectApply += AuraEffectApplyFn(spell_dru_moonkin_form_AuraScript::HandleEffectApply, EFFECT_1, SPELL_AURA_MECHANIC_IMMUNITY, AURA_EFFECT_HANDLE_REAL);
-                //AfterEffectRemove += AuraEffectRemoveFn(spell_dru_moonkin_form_AuraScript::HandleEffectRemove, EFFECT_1, SPELL_AURA_MECHANIC_IMMUNITY, AURA_EFFECT_HANDLE_REAL);
-            }
-        };
-
-
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_dru_moonkin_form_AuraScript();
-        }
-};
-
 // 48391 - Owlkin Frenzy
 class spell_dru_owlkin_frenzy : public SpellScriptLoader
 {
@@ -2300,7 +2259,6 @@ void AddSC_druid_spell_scripts()
     new spell_dru_lifebloom();
     new spell_dru_living_seed();
     new spell_dru_living_seed_proc();
-    new spell_dru_moonkin_form();
     new spell_dru_owlkin_frenzy();
     new spell_dru_predatory_strikes();
     new spell_dru_primal_tenacity();
