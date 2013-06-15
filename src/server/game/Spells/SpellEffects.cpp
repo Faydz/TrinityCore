@@ -4671,10 +4671,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                 }
             }
             break;
-        case SPELLFAMILY_SHAMAN:
-            if (m_spellInfo->Id == 105792)
-                m_caster->CastSpell(unitTarget, 8050, true);
-            break;
         }
     }
 

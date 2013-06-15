@@ -627,8 +627,9 @@ class spell_sha_lava_lash : public SpellScriptLoader
                         }
 
                         // Improved Lava Lash
-                        if(AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 4780, EFFECT_0))
-                            caster->CastSpell(target, 105792, true);
+                        if (target->HasAura(8050))
+                            if(AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 4780, EFFECT_0))
+                                caster->CastSpell(target, 105792, true);
                     }
                 }
 
