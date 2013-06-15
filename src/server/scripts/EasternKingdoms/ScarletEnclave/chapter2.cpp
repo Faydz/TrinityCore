@@ -68,7 +68,8 @@ public:
 
         void SpellHit(Unit* caster, const SpellInfo* spell)
         {
-            if (spell->Id == SPELL_PERSUASIVE_STRIKE && caster->GetTypeId() == TYPEID_PLAYER && me->isAlive() && !speechCounter)
+            // Megaworkaround perché la spell 52781 Persuasive Strike non si riesce a castare "Can't do while confused"
+            if (/*spell->Id == SPELL_PERSUASIVE_STRIKE &&*/roll_chance_i(60) && caster->GetTypeId() == TYPEID_PLAYER && me->isAlive() && !speechCounter && me->isInCombat() && me->HealthBelowPct(30))
             {
                 if (Player* player = caster->ToPlayer())
                 {
