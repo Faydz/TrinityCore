@@ -275,7 +275,6 @@ void AddSC_boss_argaloth();
 void AddSC_boss_occuthar();
 
 void AddSC_boss_ammunae();
-void AddSC_boss_temple_guardian_anhuur();
 void AddSC_boss_isiset();
 void AddSC_boss_rajh();
 void AddSC_boss_setesh();
@@ -1052,7 +1051,6 @@ void AddKalimdorScripts()
     AddSC_winterspring();
 
     AddSC_instance_halls_of_origination();
-    AddSC_boss_temple_guardian_anhuur();
     AddSC_boss_earthrager_ptah();
     AddSC_boss_anraphet();
 
