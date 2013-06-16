@@ -19,6 +19,8 @@ set(scripts_STAT_SRCS
   EasternKingdoms/AlteracValley/alterac_valley.cpp
   EasternKingdoms/BaradinHold/boss_alizabal.cpp
   EasternKingdoms/BaradinHold/instance_baradin_hold.cpp
+  EasternKingdoms/BaradinHold/boss_argaloth.cpp
+  EasternKingdoms/BaradinHold/boss_occuthar.cpp
   EasternKingdoms/Scholomance/boss_the_ravenian.cpp
   EasternKingdoms/Scholomance/boss_instructor_malicia.cpp
   EasternKingdoms/Scholomance/boss_death_knight_darkreaver.cpp

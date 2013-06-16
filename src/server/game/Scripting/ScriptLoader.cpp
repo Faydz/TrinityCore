@@ -271,6 +271,17 @@ void AddSC_western_plaguelands();
 void AddSC_westfall();
 void AddSC_wetlands();
 
+void AddSC_boss_argaloth();
+void AddSC_boss_occuthar();
+
+void AddSC_boss_ammunae();
+void AddSC_boss_temple_guardian_anhuur();
+void AddSC_boss_isiset();
+void AddSC_boss_rajh();
+void AddSC_boss_setesh();
+void AddSC_elementaires_sdo();
+void AddSC_mob_trash_sdo();
+
 //kalimdor
 void AddSC_blackfathom_deeps();              //Blackfathom Depths
 void AddSC_boss_gelihast();
@@ -345,6 +356,13 @@ void AddSC_boss_ussam();
 void AddSC_boss_barim();
 void AddSC_boss_siamat();
 void AddSC_boss_lockmaw();
+void AddSC_boss_altairus();//Vortex Pinnacle
+void AddSC_boss_assad();
+void AddSC_boss_vizir_ertan();
+void AddSC_instance_the_vortex_pinnacle();
+void AddSC_mob_effect_cimevortex();
+void AddSC_mob_trash_cime_du_vortex();
+void AddSC_vortex_pinnacle();
 
 void AddSC_ashenvale();
 void AddSC_azshara();
@@ -920,6 +938,15 @@ void AddEasternKingdomsScripts()
     AddSC_western_plaguelands();
     AddSC_westfall();
     AddSC_wetlands();
+	AddSC_boss_argaloth();
+	AddSC_boss_occuthar();
+	AddSC_boss_ammunae(); 
+	AddSC_boss_temple_guardian_anhuur();
+	AddSC_boss_isiset();
+	AddSC_boss_rajh();
+	AddSC_boss_setesh(); 
+	AddSC_elementaires_sdo();
+	AddSC_mob_trash_sdo();
 #endif
 }
 
@@ -993,6 +1020,13 @@ void AddKalimdorScripts()
 	AddSC_boss_barim();
 	AddSC_boss_siamat();
 	AddSC_boss_lockmaw();
+	AddSC_boss_altairus();//Vortex Pinnacle
+	AddSC_boss_assad();
+	AddSC_boss_vizir_ertan();
+	AddSC_instance_the_vortex_pinnacle();
+	AddSC_mob_effect_cimevortex();
+	AddSC_mob_trash_cime_du_vortex();
+	AddSC_vortex_pinnacle();
 
     AddSC_ashenvale();
     AddSC_azshara();

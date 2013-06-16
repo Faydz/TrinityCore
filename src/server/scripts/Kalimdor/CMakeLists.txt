@@ -116,6 +116,12 @@ set(scripts_STAT_SRCS
   Kalimdor/HallsOfOrigination/boss_temple_guardian_anhuur.cpp
   Kalimdor/HallsOfOrigination/boss_earthrager_ptah.cpp
   Kalimdor/HallsOfOrigination/boss_anraphet.cpp
+  Kalimdor/HallsOfOrigination/boss_ammunae.cpp
+  Kalimdor/HallsOfOrigination/boss_isiset.cpp
+  Kalimdor/HallsOfOrigination/boss_rajh.cpp
+  Kalimdor/HallsOfOrigination/boss_setesh.cpp
+  Kalimdor/HallsOfOrigination/elementaires_sdo.cpp
+  Kalimdor/HallsOfOrigination/trash_origine.cpp
   Kalimdor/Firelands/instance_firelands.cpp
   Kalimdor/Firelands/firelands.h
   Kalimdor/Firelands/boss_alysrazor.cpp
@@ -123,6 +129,14 @@ set(scripts_STAT_SRCS
   Kalimdor/LostCityOfTolvir/boss_general_husam.cpp
   Kalimdor/LostCityOfTolvir/boss_lockmaw.cpp
   Kalimdor/LostCityOfTolvir/boss_siamat.cpp
+  Kalimdor/TheVortexPinnacle/boss_altairus.cpp
+  Kalimdor/TheVortexPinnacle/boss_assad.cpp
+  Kalimdor/TheVortexPinnacle/boss_vizir_ertan.cpp
+  Kalimdor/TheVortexPinnacle/instance_the_vortex_pinnacle.cpp
+  Kalimdor/TheVortexPinnacle/mob_effect_vortex.cpp
+  Kalimdor/TheVortexPinnacle/the_vortex_pinnacle.h
+  Kalimdor/TheVortexPinnacle/trash_cime.cpp
+  Kalimdor/TheVortexPinnacle/vortex_pinnacle.cpp
 )
 
 message("  -> Prepared: Kalimdor")
