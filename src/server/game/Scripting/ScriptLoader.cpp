@@ -341,6 +341,10 @@ void AddSC_boss_earthrager_ptah();
 void AddSC_boss_anraphet();
 void AddSC_instance_firelands();
 void AddSC_boss_alysrazor();
+void AddSC_boss_ussam();
+void AddSC_boss_barim();
+void AddSC_boss_siamat();
+void AddSC_boss_lockmaw();
 
 void AddSC_ashenvale();
 void AddSC_azshara();
@@ -985,6 +989,10 @@ void AddKalimdorScripts()
     AddSC_instance_wailing_caverns();
     AddSC_zulfarrak();                      //Zul'Farrak generic
     AddSC_instance_zulfarrak();             //Zul'Farrak instance script
+	AddSC_boss_ussam();
+	AddSC_boss_barim();
+	AddSC_boss_siamat();
+	AddSC_boss_lockmaw();
 
     AddSC_ashenvale();
     AddSC_azshara();

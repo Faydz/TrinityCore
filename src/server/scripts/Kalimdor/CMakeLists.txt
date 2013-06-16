@@ -119,6 +119,10 @@ set(scripts_STAT_SRCS
   Kalimdor/Firelands/instance_firelands.cpp
   Kalimdor/Firelands/firelands.h
   Kalimdor/Firelands/boss_alysrazor.cpp
+  Kalimdor/LostCityOfTolvir/boss_barim.cpp
+  Kalimdor/LostCityOfTolvir/boss_general_husam.cpp
+  Kalimdor/LostCityOfTolvir/boss_lockmaw.cpp
+  Kalimdor/LostCityOfTolvir/boss_siamat.cpp
 )
 
 message("  -> Prepared: Kalimdor")
