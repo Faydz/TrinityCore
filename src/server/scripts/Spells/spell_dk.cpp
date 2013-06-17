@@ -110,7 +110,7 @@ class spell_dk_necrotic_strike : public SpellScriptLoader
                     int32 toAdd = caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.70f;
 
                     // Amount absorbed scales with resilience
-                    toAdd -= target->GetDamageReduction(amount);
+                    toAdd -= target->GetDamageReduction(toAdd);
 
                     amount = necroAmount + toAdd;
                 }
