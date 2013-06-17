@@ -12683,12 +12683,12 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                 {
                     // Ambush
                     case 8676:
-                        // (1.90)*WeapDMG + 367
-                        // with daggers (1.90 * 1.447)*WeapDMG + (367 * 1.447)
+                        // 2.76*WeapDMG + 1014
+                        // with daggers (2.76 * 1.447)*WeapDMG + 1467
                         if(Player * player = this->ToPlayer())
                         {
                             float mod = 1.0f;
-                            float add = 966.0f;
+                            float add = 1014.0f;
 
                             Item* mainItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
                             Item* offItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
@@ -12697,20 +12697,20 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                                 || (offItem && offItem->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER))
                             {
                                 mod = 1.447f;
-                                add = 1011;
+                                add = 1467;
                             }
-                            int32 weaponDmg = this->CalculateDamage(BASE_ATTACK, true, true) * (1.9f * mod) + add;
+                            int32 weaponDmg = this->CalculateDamage(BASE_ATTACK, true, false) * (2.76f * mod);
 
-                            pdamage = uint32(weaponDmg + (367 * mod));
+                            pdamage = uint32(weaponDmg + add);
                         }
                         break;
                     // Backstab
                     case 53:
-                        // 2.0*WeapDMG + (310 * 2)
+                        // 2.75*WeapDMG + 1256
                         {
-                            int32 weaponDmg = CalculatePct(this->CalculateDamage(BASE_ATTACK, true, true), 240);
+                            int32 weaponDmg = CalculatePct(this->CalculateDamage(BASE_ATTACK, true, true), 275);
 
-                            pdamage = uint32(weaponDmg + 828);
+                            pdamage = uint32(weaponDmg + 1256);
                         }
                         break;
                 }
