@@ -2203,6 +2203,8 @@ class Player : public Unit, public GridObject<Player>
         {
             switch(GetPrimaryTalentTree(GetActiveSpec()))
             {
+                case BS_MAGE_FIRE:
+                    return 7.86f;
                 case BS_MAGE_FROST:
                 case BS_WARRIOR_FURY:
                     return 2.0f;

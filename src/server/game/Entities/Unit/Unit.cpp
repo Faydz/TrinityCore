@@ -11023,7 +11023,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                {
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FROST)
                    {
-                       DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -6.0f) * 0.025f); // frost base mastery is 2
+                       DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints()) * 0.025f); 
                    }
                }
             }
@@ -11045,7 +11045,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 if (owner->HasAuraType(SPELL_AURA_MASTERY))
                 {
                     if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_MAGE_FIRE)
-                        DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints() -0.14f) * 0.028f); // fire base mastery is 7.852
+                        DoneTotalMod *= 1 + ((owner->ToPlayer()->GetMasteryPoints()) * 0.028f); 
                 }
             }
 
