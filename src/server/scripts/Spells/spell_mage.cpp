@@ -1284,13 +1284,8 @@ class spell_mage_water_elemental_freeze : public SpellScriptLoader
 
                 // Remove Invisibility
                 if(Unit* caster = GetCaster())
-                {
-                    if(caster->HasAura(32612))
-                    {
-                        caster->RemoveAura(66);
-                        owner->RemoveAura(32612);
-                    }
-                }
+                    if(caster->HasAura(SPELL_MAGE_INVISIBILITY_INVISIBLE))
+                        caster->RemoveAura(SPELL_MAGE_INVISIBILITY_INVISIBLE);
             }
 
             void Register()
@@ -1501,7 +1496,10 @@ class spell_mage_invisibility_fading : public SpellScriptLoader
                 {
                     if(Guardian* elemental = player->ToPlayer()->GetGuardianPet())
                     {
-                        elemental->CastSpell(elemental, SPELL_MAGE_INVISIBILITY_FADING, true);
+                        elemental->AttackStop();
+                        elemental->InterruptNonMeleeSpells(false);
+                        elemental->SendMeleeAttackStop();
+                        elemental->AddAura(SPELL_MAGE_INVISIBILITY_FADING, elemental);
                     }
                 }
             }
@@ -1537,10 +1535,21 @@ class spell_mage_invisibility_invisible : public SpellScriptLoader
 
             void RemoveEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
-                // Remove Invisibility from Elemental when mage does an action
-                if(Unit* player = GetTarget()->ToPlayer())
-                    if(Guardian* elemental = player->ToPlayer()->GetGuardianPet())
-                        elemental->RemoveAura(SPELL_MAGE_INVISIBILITY_INVISIBLE);
+                if(Unit* target = GetTarget())
+                {
+                    if(target->isGuardian())
+                    {
+                        // Remove Invisibility from mage when elemental does an action
+                        if(Unit* owner = target->GetOwner())
+                            owner->RemoveAura(SPELL_MAGE_INVISIBILITY_INVISIBLE);
+                    }
+                    else
+                    {
+                        // Remove Invisibility from elemental when mage does an action
+                        if(Guardian* elemental = target->ToPlayer()->GetGuardianPet())
+                            elemental->RemoveAura(SPELL_MAGE_INVISIBILITY_INVISIBLE);
+                    }
+                }
             }
 
             void Register()

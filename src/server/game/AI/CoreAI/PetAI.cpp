@@ -110,14 +110,6 @@ void PetAI::UpdateAI(uint32 diff)
         }
         else
             DoMeleeAttackIfReady();
-        
-        // Remove Invisibility
-        if(me->HasAura(32612))
-        {
-            me->RemoveAura(32612);
-            owner->RemoveAura(32612);
-        }
-
     }
     else
     {
