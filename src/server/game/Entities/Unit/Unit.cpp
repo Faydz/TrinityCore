@@ -12683,7 +12683,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                 {
                     // Ambush
                     case 8676:
-                        // 2.76*WeapDMG + 1014
+                        // 2.76*WeapDMG + 1014 
                         // with daggers (2.76 * 1.447)*WeapDMG + 1467
                         if(Player * player = this->ToPlayer())
                         {
