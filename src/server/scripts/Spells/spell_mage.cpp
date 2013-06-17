@@ -79,6 +79,9 @@ enum MageSpells
     SPELL_MAGE_TEMPORAL_DISPLACEMENT            = 80354,
     SPELL_SHAMAN_EXHAUSTION                     = 57723,
     SPELL_SHAMAN_SATED                          = 57724,
+
+    SPELL_MAGE_INVISIBILITY_FADING              = 66,
+    SPELL_MAGE_INVISIBILITY_INVISIBLE           = 32612,
 };
 
 enum MageIcons
@@ -1245,55 +1248,65 @@ class spell_mage_summon_water_elemental : public SpellScriptLoader
 /// Updated 4.3.4
 class spell_mage_water_elemental_freeze : public SpellScriptLoader
 {
-   public:
-       spell_mage_water_elemental_freeze() : SpellScriptLoader("spell_mage_water_elemental_freeze") { }
+    public:
+        spell_mage_water_elemental_freeze() : SpellScriptLoader("spell_mage_water_elemental_freeze") { }
 
-       class spell_mage_water_elemental_freeze_SpellScript : public SpellScript
-       {
-           PrepareSpellScript(spell_mage_water_elemental_freeze_SpellScript);
+        class spell_mage_water_elemental_freeze_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_mage_water_elemental_freeze_SpellScript);
 
-           bool Validate(SpellInfo const* /*spellInfo*/)
-           {
-               if (!sSpellMgr->GetSpellInfo(SPELL_MAGE_FINGERS_OF_FROST))
-                   return false;
-               return true;
-           }
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_MAGE_FINGERS_OF_FROST))
+                    return false;
+                return true;
+            }
 
-           void CountTargets(std::list<WorldObject*>& targetList)
-           {
-               _didHit = !targetList.empty();
-           }
+            void CountTargets(std::list<WorldObject*>& targetList)
+            {
+                _didHit = !targetList.empty();
+            }
 
-           void HandleImprovedFreeze()
-           {
-               if (!_didHit)
-                   return;
+            void HandleImprovedFreeze()
+            {
+                if (!_didHit)
+                    return;
 
-               Unit* owner = GetCaster()->GetOwner();
-               if (!owner)
-                   return;
+                Unit* owner = GetCaster()->GetOwner();
+                if (!owner)
+                    return;
 
-               if (AuraEffect* aurEff = owner->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_MAGE, ICON_MAGE_IMPROVED_FREEZE, EFFECT_0))
-               {
-                   if (roll_chance_i(aurEff->GetAmount()))
-                       owner->CastCustomSpell(SPELL_MAGE_FINGERS_OF_FROST, SPELLVALUE_AURA_STACK, 2, owner, true);
-               }
-           }
+                if (AuraEffect* aurEff = owner->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_MAGE, ICON_MAGE_IMPROVED_FREEZE, EFFECT_0))
+                {
+                    if (roll_chance_i(aurEff->GetAmount()))
+                        owner->CastCustomSpell(SPELL_MAGE_FINGERS_OF_FROST, SPELLVALUE_AURA_STACK, 2, owner, true);
+                }
 
-           void Register()
-           {
-               OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_mage_water_elemental_freeze_SpellScript::CountTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENEMY);
-               AfterCast += SpellCastFn(spell_mage_water_elemental_freeze_SpellScript::HandleImprovedFreeze);
-           }
+                // Remove Invisibility
+                if(Unit* caster = GetCaster())
+                {
+                    if(caster->HasAura(32612))
+                    {
+                        caster->RemoveAura(66);
+                        owner->RemoveAura(32612);
+                    }
+                }
+            }
 
-       private:
-           bool _didHit;
-       };
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_mage_water_elemental_freeze_SpellScript::CountTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENEMY);
+                AfterCast += SpellCastFn(spell_mage_water_elemental_freeze_SpellScript::HandleImprovedFreeze);
+            }
 
-       SpellScript* GetSpellScript() const
-       {
-           return new spell_mage_water_elemental_freeze_SpellScript();
-       }
+        private:
+            bool _didHit;
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_mage_water_elemental_freeze_SpellScript();
+        }
 };
 
 // cauterize
@@ -1464,6 +1477,85 @@ class spell_mage_ignite : public SpellScriptLoader
         }
 };
 
+// 66 - Invisibility (Fading)
+class spell_mage_invisibility_fading : public SpellScriptLoader
+{
+    public:
+        spell_mage_invisibility_fading() : SpellScriptLoader("spell_mage_invisibility_fading") { }
+
+        class spell_mage_invisibility_fading_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_mage_invisibility_fading_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_MAGE_INVISIBILITY_FADING))
+                    return false;
+                return true;
+            }
+
+            void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                // Cast Invisibility on Elemental
+                if(Unit* player = GetTarget()->ToPlayer())
+                {
+                    if(Guardian* elemental = player->ToPlayer()->GetGuardianPet())
+                    {
+                        elemental->CastSpell(elemental, SPELL_MAGE_INVISIBILITY_FADING, true);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectApply += AuraEffectRemoveFn(spell_mage_invisibility_fading_AuraScript::HandleApply, EFFECT_1, SPELL_AURA_PERIODIC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_mage_invisibility_fading_AuraScript();
+        }
+};
+
+// 32612 - Invisibility (Invisible)
+class spell_mage_invisibility_invisible : public SpellScriptLoader
+{
+    public:
+        spell_mage_invisibility_invisible() : SpellScriptLoader("spell_mage_invisibility_invisible") { }
+
+        class spell_mage_invisibility_invisible_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_mage_invisibility_invisible_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_MAGE_INVISIBILITY_INVISIBLE))
+                    return false;
+                return true;
+            }
+
+            void RemoveEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                // Remove Invisibility from Elemental when mage does an action
+                if(Unit* player = GetTarget()->ToPlayer())
+                    if(Guardian* elemental = player->ToPlayer()->GetGuardianPet())
+                        elemental->RemoveAura(SPELL_MAGE_INVISIBILITY_INVISIBLE);
+            }
+
+            void Register()
+            {
+                OnEffectRemove += AuraEffectRemoveFn(spell_mage_invisibility_invisible_AuraScript::RemoveEffect, EFFECT_1, SPELL_AURA_MOD_INVISIBILITY, AURA_EFFECT_HANDLE_REAL);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_mage_invisibility_invisible_AuraScript();
+        }
+};
+
+
 void AddSC_mage_spell_scripts()
 {
     new spell_mage_time_warp();
@@ -1493,4 +1585,6 @@ void AddSC_mage_spell_scripts()
     new spell_mage_cauterize();
     new spell_mage_master_of_elements();
     new spell_mage_ignite();
+    new spell_mage_invisibility_fading();
+    new spell_mage_invisibility_invisible();
 }
