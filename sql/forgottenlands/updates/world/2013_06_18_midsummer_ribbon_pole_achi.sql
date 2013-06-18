@@ -1,0 +1,4 @@
+INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES (45390,'spell_gen_ribbon_pole_dancer_check');
+INSERT INTO `spell_linked_spell` (`spell_trigger`,`spell_effect`,`type`,`comment`) VALUES (29531,45390,0,'Ribbon Pole - Dancer Check Aura');
+INSERT INTO `spell_linked_spell` (`spell_trigger`,`spell_effect`,`type`,`comment`) VALUES (45390,45406,2,'Ribbon Pole - Periodic Visual');
+INSERT INTO spell_dbc VALUES (29710,0,0,256,0,0,0,0,0,0,0,0,0,0,1,0,0,101,0,0,0,0,0,1,0,-1,0,0,140,0,0,0,0,0,0,0,0,0,0,0,0,0,0,25,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,29531,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,'Ribbon Pole - Force Cast Ribbon Pole Channel');
