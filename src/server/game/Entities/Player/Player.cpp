@@ -8247,6 +8247,10 @@ void Player::DuelComplete(DuelCompleteType type)
 
     sScriptMgr->OnPlayerDuelEnd(duel->opponent, this, type);
 
+    // Resets cooldown on duel complete
+    RemoveAllSpellCooldown();
+    duel->opponent->RemoveAllSpellCooldown();
+
     switch (type)
     {
         case DUEL_FLED:
