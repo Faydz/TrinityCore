@@ -1132,9 +1132,61 @@ void Guardian::UpdateArmor()
 
     // hunter pets gain 35% of owner's armor value, warlock pets gain 100% of owner's armor
     if (isHunterPet())
-        bonus_armor = float(CalculatePct(m_owner->GetArmor(), 70));
-    else if (isPet())
+    {
+        int pct = 50;
+
+        // Looks for creature template
+        if(CreatureTemplate const* cinfo = GetCreatureTemplate())
+        {
+            // Checks the pet talent type
+            CreatureFamilyEntry const* pet_family = sCreatureFamilyStore.LookupEntry(cinfo->family);
+            if (pet_family)
+            {
+                switch(pet_family->petTalentType)
+                {
+                    // Ferocity
+                    case 0:
+                        pct = 50;
+                        break;
+                    // Tenacity
+                    case 1:
+                        pct = 70;
+                        break;
+                    // Cunning
+                    case 2:
+                        pct = 60;
+                        break;
+                }
+            }
+        }
+
+        bonus_armor = float(CalculatePct(m_owner->GetArmor(), pct));
+    }
+    else if (isPet() && !IsPetGhoul())
+    {
         bonus_armor = m_owner->GetArmor();
+
+        switch(m_owner->getClass())
+        {
+            case CLASS_SHAMAN:
+            case CLASS_MAGE:
+            case CLASS_WARLOCK:
+                bonus_armor = CalculatePct(m_owner->GetArmor(), 35);
+                break;
+        }
+    }
+    else
+    {
+        if(m_owner)
+        {
+            switch(m_owner->getClass())
+            {
+                case CLASS_SHAMAN:
+                    bonus_armor = CalculatePct(m_owner->GetArmor(), 35);
+                    break;
+            }
+        }
+    }
 
     value  = GetModifierValue(unitMod, BASE_VALUE);
     value *= GetModifierValue(unitMod, BASE_PCT);
@@ -1200,34 +1252,31 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
     if (ranged)
         return;
 
-    float val = 0.0f;
+    // Base attack power is fixed for every pet
+    float val = 932.0f;
+
     float bonusAP = 0.0f;
     UnitMods unitMod = UNIT_MOD_ATTACK_POWER;
-
-    if (GetEntry() == ENTRY_IMP)                                   // imp's attack power
-        val = GetStat(STAT_STRENGTH) - 10.0f;
-    else
-        val = 2 * GetStat(STAT_STRENGTH) - 20.0f;
 
     Unit* owner = GetOwner();
     if (owner && owner->GetTypeId() == TYPEID_PLAYER)
     {
         if (isHunterPet())                      //hunter pets benefit from owner's attack power
         {
-            float mod = 1.0f;                                                 //Hunter contribution modifier
-            bonusAP = owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.22f * mod;
-            SetBonusDamage(int32(owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.1287f * mod));
+            float mod = 0.425f;                                                 //Hunter contribution modifier
+            bonusAP = owner->GetTotalAttackPowerValue(RANGED_ATTACK) * mod;
+            SetBonusDamage(int32(owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.1287f));
         }
         else if (IsPetGhoul()) //ghouls benefit from deathknight's attack power (may be summon pet or not)
         {
-            bonusAP = owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.22f;
+            bonusAP = owner->GetTotalAttackPowerValue(BASE_ATTACK) * 1.12f;
             SetBonusDamage(int32(owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.1287f));
         }
         else if (IsSpiritWolf()) //wolf benefit from shaman's attack power
         {
-            float dmg_multiplier = 0.31f;
+            float dmg_multiplier = 0.50f;
             if (m_owner->GetAuraEffect(63271, 0)) // Glyph of Feral Spirit
-                dmg_multiplier = 0.61f;
+                dmg_multiplier = 0.80f;
             bonusAP = owner->GetTotalAttackPowerValue(BASE_ATTACK) * dmg_multiplier;
             SetBonusDamage(int32(owner->GetTotalAttackPowerValue(BASE_ATTACK) * dmg_multiplier));
         }
