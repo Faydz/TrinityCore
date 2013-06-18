@@ -1,3 +1,8 @@
+DELETE FROM spell_script_names WHERE spell_id=45390 AND ScriptName='spell_gen_ribbon_pole_dancer_check';
+DELETE FROM spell_linked_spell WHERE spell_trigger=29531 AND spell_effect=45390;
+DELETE FROM spell_linked_spell WHERE spell_trigger=45390 AND spell_effect=45406;
+DELETE FROM spell_dbc WHERE Id in(29710, 58934);
+
 INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES (45390,'spell_gen_ribbon_pole_dancer_check');
 INSERT INTO `spell_linked_spell` (`spell_trigger`,`spell_effect`,`type`,`comment`) VALUES (29531,45390,0,'Ribbon Pole - Dancer Check Aura');
 INSERT INTO `spell_linked_spell` (`spell_trigger`,`spell_effect`,`type`,`comment`) VALUES (45390,45406,2,'Ribbon Pole - Periodic Visual');
