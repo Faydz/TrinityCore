@@ -8247,9 +8247,9 @@ void Player::DuelComplete(DuelCompleteType type)
 
     sScriptMgr->OnPlayerDuelEnd(duel->opponent, this, type);
 
-    // Resets cooldown on duel complete
-    RemoveAllSpellCooldown();
-    duel->opponent->RemoveAllSpellCooldown();
+    // Resets stats and cooldown on duel complete
+    ResetDuelStatsAndCooldown();
+    duel->opponent->ResetDuelStatsAndCooldown();
 
     switch (type)
     {
@@ -8337,6 +8337,67 @@ void Player::DuelComplete(DuelCompleteType type)
     duel->opponent->duel = NULL;
     delete duel;
     duel = NULL;
+}
+
+void Player::ResetDuelStatsAndCooldown()
+{
+    // Cooldown
+    RemoveAllSpellCooldown();
+    
+    // Health
+    SetHealth(GetMaxHealth());
+    
+
+    Powers power = getPowerType();
+    
+    // Reset pet stats
+    if(Pet* pet = GetPet())
+    {
+        // Health
+        pet->SetHealth(pet->GetMaxHealth());
+
+        // Power
+        Powers petpower = pet->getPowerType();
+        pet->SetPower(petpower, pet->GetMaxPower(power));
+    }
+
+    // Multiple power for druid, not handled in the switch
+    if(getClass() == CLASS_DRUID)
+    {
+        SetPower(POWER_MANA, GetMaxPower(POWER_MANA));
+        SetPower(POWER_ENERGY, GetMaxPower(POWER_ENERGY));
+        SetPower(POWER_RAGE, 0);
+        SetPower(POWER_ECLIPSE, 0);
+
+        return;
+    }
+
+    // Power
+    switch(power)
+    {
+        case POWER_ENERGY:
+        case POWER_MANA:
+            SetPower(power, GetMaxPower(power));
+
+            switch(getClass())
+            {
+                case CLASS_PALADIN:
+                    SetPower(POWER_HOLY_POWER, 0);
+                    break;
+                case CLASS_WARLOCK:
+                    // Energizes 3 Soul Shard
+                    CastSpell(this, 95810);
+                    break;
+            }
+            break;
+        case POWER_FOCUS:
+            SetPower(power, GetMaxPower(power));
+            break;
+        case POWER_RAGE:
+        case POWER_RUNIC_POWER:
+            SetPower(power, 0);
+            break;
+    }
 }
 
 //---------------------------------------------------------//
