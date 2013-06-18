@@ -6796,8 +6796,11 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             {
 				// Glyph of Hemorrhage
 				case 56807:
-					triggered_spell_id = 89775;
-					basepoints0 = CalculatePct(damage, 40) / 8;
+                    if(procSpell && procSpell->Id == 16511)
+                    {
+					    triggered_spell_id = 89775;
+					    basepoints0 = CalculatePct(damage, 40) / 8;
+                    }
 					break;
                 // Restless Blade
                 case 79095:
