@@ -12683,12 +12683,12 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                 {
                     // Ambush
                     case 8676:
-                        // 2.76*WeapDMG + 1014 
-                        // with daggers (2.76 * 1.447)*WeapDMG + 1467
+                        // 1.9*WeapDMG + 1115 
+                        // with daggers (1.9 * 1.447)*WeapDMG + 1467
                         if(Player * player = this->ToPlayer())
                         {
                             float mod = 1.0f;
-                            float add = 1014.0f;
+                            int32 add = 1115;
 
                             Item* mainItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
                             Item* offItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
@@ -12699,18 +12699,18 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                                 mod = 1.447f;
                                 add = 1467;
                             }
-                            int32 weaponDmg = this->CalculateDamage(BASE_ATTACK, true, false) * (2.76f * mod);
+                            int32 weaponDmg = this->CalculateDamage(BASE_ATTACK, true, false) * (1.9f * mod);
 
                             pdamage = uint32(weaponDmg + add);
                         }
                         break;
                     // Backstab
                     case 53:
-                        // 2.75*WeapDMG + 1256
+                        // 2.0*WeapDMG + 690
                         {
-                            int32 weaponDmg = CalculatePct(this->CalculateDamage(BASE_ATTACK, true, true), 275);
+                            int32 weaponDmg = CalculatePct(this->CalculateDamage(BASE_ATTACK, true, true), 200);
 
-                            pdamage = uint32(weaponDmg + 1256);
+                            pdamage = uint32(weaponDmg + 690);
                         }
                         break;
                 }
