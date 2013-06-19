@@ -15907,7 +15907,8 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
                     uint8 stacks = shield->GetCharges();
                     stacks++;
 
-                    if (stacks <= 6)
+                    int maxStack = HasAura(88756) || HasAura(88764) ? 9 : 3;
+                    if (stacks <= maxStack)
                         shield->SetCharges(stacks);
                 }
             }
