@@ -98,7 +98,7 @@ class Guardian : public Minion
         void UpdateDamagePhysical(WeaponAttackType attType);
 
         void InitRating(CombatRating cr);
-        void ApplyRatingMod(CombatRating cr, int32 ratingChange, bool apply);
+        void ApplyRatingMod(CombatRating cr, float ratingChange, bool apply);
 
         int32 GetBonusDamage() const { return m_bonusSpellDamage; }
         void SetBonusDamage(int32 damage);
