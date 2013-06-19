@@ -1988,7 +1988,18 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* victim, WeaponAttackTy
     float miss_chance = MeleeSpellMissChance(victim, attType, 0);
 
     // Critical hit chance
-    float crit_chance = GetUnitCriticalChance(attType, victim);
+    Unit const* caster = this;
+    if(isPet() && GetOwner() && GetOwner()->GetTypeId() == TYPEID_PLAYER)
+    {
+        uint8 ownerClass = GetOwner()->getClass();
+
+        if(ownerClass != CLASS_MAGE && ownerClass != CLASS_SHAMAN)
+        {
+            caster = GetOwner();
+        }
+    }
+
+    float crit_chance = caster->GetUnitCriticalChance(attType, victim);
 
     // stunned target cannot dodge and this is check in GetUnitDodgeChance() (returned 0 in this case)
     float dodge_chance = victim->GetUnitDodgeChance();
@@ -11719,6 +11730,18 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
     // not critting spell
     if ((spellProto->AttributesEx2 & SPELL_ATTR2_CANT_CRIT))
         return false;
+    
+    // Is is player's pet (except mage and shaman classes) benefits 100% crit from owner
+    Unit const* caster = this;
+    if(isPet() && GetOwner() && GetOwner()->GetTypeId() == TYPEID_PLAYER)
+    {
+        uint8 ownerClass = GetOwner()->getClass();
+
+        if(ownerClass != CLASS_MAGE && ownerClass != CLASS_SHAMAN)
+        {
+            caster = GetOwner();
+        }
+    }
 
     float crit_chance = 0.0f;
     switch (spellProto->DmgClass)
@@ -11747,8 +11770,8 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
             if (schoolMask & SPELL_SCHOOL_MASK_NORMAL)
                 crit_chance = 0.0f;
             // For other schools
-            else if (GetTypeId() == TYPEID_PLAYER)
-                crit_chance = GetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1 + GetFirstSchoolInMask(schoolMask));
+            else if (GetTypeId() == TYPEID_PLAYER || caster->GetTypeId() == TYPEID_PLAYER)
+                crit_chance = caster->GetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1 + GetFirstSchoolInMask(schoolMask));
             else
             {
                 crit_chance = (float)m_baseSpellCritChance;
@@ -11925,9 +11948,9 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
         {
             if (victim)
             {
-                crit_chance += GetUnitCriticalChance(attackType, victim);
-                crit_chance += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_SPELL_CRIT_CHANCE_SCHOOL, schoolMask);
-				crit_chance += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_SPELL_CRIT_CHANCE_SCHOOL, schoolMask);
+                crit_chance += caster->GetUnitCriticalChance(attackType, victim);
+                crit_chance += caster->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_SPELL_CRIT_CHANCE_SCHOOL, schoolMask);
+				crit_chance += caster->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_SPELL_CRIT_CHANCE_SCHOOL, schoolMask);
 
 				switch(spellProto->Id)
 				{

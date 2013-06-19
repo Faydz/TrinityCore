@@ -1252,11 +1252,15 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
     if (ranged)
         return;
 
+    float val = 0.0f;
     // Base attack power is fixed for every pet
-    float val = 932.0f;
-
-    float bonusAP = 0.0f;
+    float bonusAP = 932.0f;
     UnitMods unitMod = UNIT_MOD_ATTACK_POWER;
+
+    if (GetEntry() == ENTRY_IMP)                                   // imp's attack power
+        val = GetStat(STAT_STRENGTH) - 10.0f;
+    else
+        val = 2 * GetStat(STAT_STRENGTH) - 20.0f;
 
     Unit* owner = GetOwner();
     if (owner && owner->GetTypeId() == TYPEID_PLAYER)
@@ -1264,12 +1268,12 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
         if (isHunterPet())                      //hunter pets benefit from owner's attack power
         {
             float mod = 0.425f;                                                 //Hunter contribution modifier
-            bonusAP = owner->GetTotalAttackPowerValue(RANGED_ATTACK) * mod;
+            bonusAP += owner->GetTotalAttackPowerValue(RANGED_ATTACK) * mod;
             SetBonusDamage(int32(owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.1287f));
         }
         else if (IsPetGhoul()) //ghouls benefit from deathknight's attack power (may be summon pet or not)
         {
-            bonusAP = owner->GetTotalAttackPowerValue(BASE_ATTACK) * 1.12f;
+            bonusAP += owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.12f;
             SetBonusDamage(int32(owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.1287f));
         }
         else if (IsSpiritWolf()) //wolf benefit from shaman's attack power
@@ -1277,7 +1281,7 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
             float dmg_multiplier = 0.50f;
             if (m_owner->GetAuraEffect(63271, 0)) // Glyph of Feral Spirit
                 dmg_multiplier = 0.80f;
-            bonusAP = owner->GetTotalAttackPowerValue(BASE_ATTACK) * dmg_multiplier;
+            bonusAP += owner->GetTotalAttackPowerValue(BASE_ATTACK) * dmg_multiplier;
             SetBonusDamage(int32(owner->GetTotalAttackPowerValue(BASE_ATTACK) * dmg_multiplier));
         }
         //demons benefit from warlocks shadow or fire damage
@@ -1289,7 +1293,7 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
             if (maximum < 0)
                 maximum = 0;
             SetBonusDamage(int32(maximum * 0.15f));
-            bonusAP = maximum * 0.57f;
+            bonusAP += maximum * 0.57f;
         }
         //water elementals benefit from mage's frost damage
         else if (GetEntry() == ENTRY_WATER_ELEMENTAL)
@@ -1372,6 +1376,44 @@ void Guardian::UpdateDamagePhysical(WeaponAttackType attType)
 
     SetStatFloatValue(UNIT_FIELD_MINDAMAGE, mindamage);
     SetStatFloatValue(UNIT_FIELD_MAXDAMAGE, maxdamage);
+}
+
+void Guardian::InitRating(CombatRating cr)
+{
+    Unit* owner = GetOwner();
+    
+    if(Player* player = owner->ToPlayer())
+    {
+        ApplyRatingMod(cr, player->GetRatingBonusValue(cr), true);
+    }
+}
+
+void Guardian::ApplyRatingMod(CombatRating cr, float ratingChange, bool apply)
+{
+    switch (cr)
+    {
+        case CR_HASTE_MELEE:
+            ApplyAttackTimePercentMod(BASE_ATTACK, ratingChange, apply);
+            ApplyAttackTimePercentMod(OFF_ATTACK, ratingChange, apply);
+            break;
+        case CR_HASTE_RANGED:
+            ApplyAttackTimePercentMod(RANGED_ATTACK, ratingChange, apply);
+            break;
+        case CR_HASTE_SPELL:
+            ApplyCastTimePercentMod(ratingChange, apply);
+            break;
+        case CR_HIT_MELEE:
+            m_modMeleeHitChance += (apply ? ratingChange : -ratingChange);
+            break;
+        case CR_HIT_RANGED:
+            m_modRangedHitChance += (apply ? ratingChange : -ratingChange);
+            break;
+        case CR_HIT_SPELL:
+            m_modSpellHitChance += (apply ? ratingChange : -ratingChange);
+            break;
+        default:
+            break;
+    }
 }
 
 void Guardian::SetBonusDamage(int32 damage)
