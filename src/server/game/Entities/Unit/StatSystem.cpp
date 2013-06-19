@@ -1393,20 +1393,24 @@ void Guardian::ApplyRatingMod(CombatRating cr, float ratingChange, bool apply)
     switch (cr)
     {
         case CR_HASTE_MELEE:
-        {
             ApplyAttackTimePercentMod(BASE_ATTACK, ratingChange, apply);
             ApplyAttackTimePercentMod(OFF_ATTACK, ratingChange, apply);
-        }
+            break;
         case CR_HASTE_RANGED:
-        {
             ApplyAttackTimePercentMod(RANGED_ATTACK, ratingChange, apply);
             break;
-        }
         case CR_HASTE_SPELL:
-        {
             ApplyCastTimePercentMod(ratingChange, apply);
             break;
-        }
+        case CR_HIT_MELEE:
+            m_modMeleeHitChance += (apply ? ratingChange : -ratingChange);
+            break;
+        case CR_HIT_RANGED:
+            m_modRangedHitChance += (apply ? ratingChange : -ratingChange);
+            break;
+        case CR_HIT_SPELL:
+            m_modSpellHitChance += (apply ? ratingChange : -ratingChange);
+            break;
         default:
             break;
     }
