@@ -27,5 +27,21 @@ enum eData
     TYPE_NANDOS                 = 4
 };
 
+enum Data64
+{
+	DATA_BARON_ASHBURY,
+};
+
+enum Data
+{
+	DATA_BARON_ASHBURY_EVENT,
+};
+
+enum CreatureIds
+{
+	//Bosses
+	BOSS_BARON_ASHBURY = 46962,
+};
+
 #endif
 

@@ -3406,6 +3406,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case 90355:     // Ancient Hysteria
                 spellInfo->AttributesEx9 |= SPELL_ATTR9_NOT_USABLE_IN_ARENA;
                 break;
+            // Asphyxiate
+            case 93710:
+            case 93423:
+                spellInfo->Effects[EFFECT_2].BasePoints = 6;
+                break;
             default:
                 break;
         }
