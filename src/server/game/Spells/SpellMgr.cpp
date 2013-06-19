@@ -4001,6 +4001,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_ROGUE:
                 switch(spellInfo->Id)
                 {
+                    // Sinister Calling
+                    case 31220:
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x3000004, 0x0, 0x0);
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_DAMAGE;
+                        break;
                     // combat readiness
                     case 74001:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
@@ -4009,10 +4014,13 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_PERIODIC_DUMMY;
                         spellInfo->Effects[EFFECT_1].Amplitude = 500;
                         break;
+                    // Vendetta
                     case 79140:
+                    // Smoke Bomb
                     case 76577:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
                         break;
+                    // Cloak of Shadows
                     case 39666:
                         spellInfo->Effects[0].BasePoints = -200;
                         break;
