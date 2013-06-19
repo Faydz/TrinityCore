@@ -4696,6 +4696,17 @@ void Spell::TakeRunePower(bool didHit)
             }
         }
     }
+    
+    // Not all spells have to generate Runic Power
+    switch(GetSpellInfo()->Id)
+    {
+        case 49184:
+            if(m_caster->HasAura(59052))
+            {
+                didHit = false;
+            }
+            break;
+    }
 
     // you can gain some runic power when use runes
     if (didHit)
