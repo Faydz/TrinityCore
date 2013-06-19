@@ -57,6 +57,7 @@ EndContentData */
 #include "Spell.h"
 #include "Player.h"
 #include "WorldSession.h"
+#include "AchievementMgr.h"
 
 /*######
 ## go_cat_figurine
@@ -1366,6 +1367,38 @@ public:
     }
 };
 
+/*######
+## go_ribbon_pole
+######*/
+
+enum RibbonPoleData
+{
+    SPELL_HAS_FULL_MIDSUMMER_SET        = 58933,
+};
+
+class go_ribbon_pole : public GameObjectScript
+{
+public:
+    go_ribbon_pole() : GameObjectScript("go_ribbon_pole") { }
+
+    bool OnGossipHello(Player* player, GameObject* go)
+    {
+        if(player){
+            if(player->HasAchieved(271)){
+                return true;
+            }
+
+            if(player->HasAura(SPELL_HAS_FULL_MIDSUMMER_SET)){
+                AchievementEntry const* burningpoledancer = sAchievementMgr->GetAchievement(271);
+                // reward achievement criteria
+                player->CompletedAchievement(burningpoledancer);
+                return true;
+            }
+        }
+        return true;
+    }
+};
+
 void AddSC_go_scripts()
 {
     new go_cat_figurine;
@@ -1408,4 +1441,5 @@ void AddSC_go_scripts()
     new go_veil_skith_cage;
     new go_frostblade_shrine;
     new go_midsummer_bonfire;
+    new go_ribbon_pole;
 }
