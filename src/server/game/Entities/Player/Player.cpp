@@ -5966,6 +5966,11 @@ void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
 {
     m_baseRatingValue[cr] +=(apply ? value : -value);
     UpdateRating(cr);
+    
+    // Even the pet gets 100% benefit from master's haste/hit
+    Pet* pet = GetPet();
+    if (pet)
+        pet->ApplyRatingMod(cr, value * GetRatingMultiplier(cr), apply);
 
     // explicit affected values
     switch (cr)

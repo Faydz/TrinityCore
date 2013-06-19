@@ -1374,6 +1374,40 @@ void Guardian::UpdateDamagePhysical(WeaponAttackType attType)
     SetStatFloatValue(UNIT_FIELD_MAXDAMAGE, maxdamage);
 }
 
+void Guardian::InitRating(CombatRating cr)
+{
+    Unit* owner = GetOwner();
+    
+    if(Player* player = owner->ToPlayer())
+    {
+        ApplyRatingMod(cr, player->GetRatingBonusValue(cr), true);
+    }
+}
+
+void Guardian::ApplyRatingMod(CombatRating cr, int32 RatingChange, bool apply)
+{
+    switch (cr)
+    {
+        case CR_HASTE_MELEE:
+        {
+            ApplyAttackTimePercentMod(BASE_ATTACK, RatingChange, apply);
+            ApplyAttackTimePercentMod(OFF_ATTACK, RatingChange, apply);
+        }
+        case CR_HASTE_RANGED:
+        {
+            ApplyAttackTimePercentMod(RANGED_ATTACK, RatingChange, apply);
+            break;
+        }
+        case CR_HASTE_SPELL:
+        {
+            ApplyCastTimePercentMod(RatingChange, apply);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 void Guardian::SetBonusDamage(int32 damage)
 {
     m_bonusSpellDamage = damage;

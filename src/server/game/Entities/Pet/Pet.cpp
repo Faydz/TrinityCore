@@ -1099,6 +1099,10 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
 
     UpdateAllStats();
 
+    InitRating(CR_HASTE_MELEE);
+    InitRating(CR_HASTE_RANGED);
+    InitRating(CR_HASTE_SPELL);
+
     SetFullHealth();
     SetPower(POWER_MANA, GetMaxPower(POWER_MANA));
     return true;
