@@ -145,6 +145,7 @@ class boss_ahune : public CreatureScript
             uiCyclesCount = 0;
 
             me->SummonCreature(NPC_AHUNITE_HAILSTONE, Pos[2], TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3000);
+            me->LowerPlayerDamageReq(me->GetHealth());
         };
 
         void JustSummoned(Creature* summon)
@@ -339,7 +340,7 @@ public:
                 {
                     if (GameObject* pSpear = me->FindNearestGameObject(GO_ICE_SPEAR_ENTRY, 5))
                         me->RemoveGameObject(pSpear, true);
-                    me->DespawnOrUnsummon();
+                    me->DisappearAndDie();
                     iceSpearTimer = 10000;
                 }
             }
