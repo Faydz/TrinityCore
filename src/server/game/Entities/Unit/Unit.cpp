@@ -12702,6 +12702,21 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
     {
         switch(owner->getClass())
         {
+            case CLASS_WARLOCK:
+                // Master Demonologist (Demonology Mastery)
+                if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
+                {
+                   if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DEMONOLOGY)
+                   {
+                       // Mod applied either if is pet or if warlock is in Metamorphosis
+                       if(this->isPet() || owner->HasAura(47241))
+                       {
+                           float pct = float(0.023f * owner->ToPlayer()->GetMasteryPoints());
+                           DoneTotalMod *= 1 +  pct;
+                       }
+                   }
+                }
+                break;
             case CLASS_HUNTER:
                 // Master of the Beasts (Beast Mastery Mastery)
                 if (owner->HasAuraType(SPELL_AURA_MASTERY) && owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_BEAST_MASTERY)
