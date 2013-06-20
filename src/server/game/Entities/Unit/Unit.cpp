@@ -11466,6 +11466,20 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 }
             }
 
+            // Master of the Beasts (Beast Mastery Mastery)
+            if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
+            {
+                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_BEAST_MASTERY)
+                {
+                    // Mod applied only to the pet's spells
+                    if(this->isPet())
+                    {
+                        float pct = float(0.0167f * owner->ToPlayer()->GetMasteryPoints());
+                        DoneTotalMod *= 1 +  pct;
+                    }
+                }
+            }
+
             // Essence of the Viper (Survival Mastery)
             if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY))
                if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_SURVIVAL)
@@ -12679,6 +12693,27 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                 AddPct(DoneTotalMod, amount);
             else if (ToPlayer() && ToPlayer()->HasItemFitToSpellRequirements((*i)->GetSpellInfo()))
                 AddPct(DoneTotalMod, amount);
+        }
+    }
+
+    // Pet mods releated to its owner
+    Unit const* owner = GetOwner();
+    if (owner && owner->ToPlayer())
+    {
+        switch(owner->getClass())
+        {
+            case CLASS_HUNTER:
+                // Master of the Beasts (Beast Mastery Mastery)
+                if (owner->HasAuraType(SPELL_AURA_MASTERY) && owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_BEAST_MASTERY)
+                {
+                    // Mod applied only to the pet's spells
+                    if(this->isPet() && owner->HasAura(5118))
+                    {
+                        float pct = float(0.0167f * owner->ToPlayer()->GetMasteryPoints());
+                        DoneTotalMod *= 1 +  pct;
+                    }
+                }
+                break;
         }
     }
 
