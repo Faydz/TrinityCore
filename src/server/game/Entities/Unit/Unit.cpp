@@ -12698,7 +12698,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
 
     // Pet mods releated to its owner
     Unit const* owner = GetOwner();
-    if (owner && owner->ToPlayer())
+    if (isPet() && owner && owner->ToPlayer())
     {
         switch(owner->getClass())
         {
@@ -12707,11 +12707,8 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                 if (owner->HasAuraType(SPELL_AURA_MASTERY) && owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_BEAST_MASTERY)
                 {
                     // Mod applied only to the pet's spells
-                    if(this->isPet() && owner->HasAura(5118))
-                    {
-                        float pct = float(0.0167f * owner->ToPlayer()->GetMasteryPoints());
-                        DoneTotalMod *= 1 +  pct;
-                    }
+                    float pct = float(0.0167f * owner->ToPlayer()->GetMasteryPoints());
+                    DoneTotalMod *= 1 +  pct;
                 }
                 break;
         }
