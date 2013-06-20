@@ -23,7 +23,7 @@ SDComment:
 SDCategory: Zul'Aman
 EndScriptData */
 
-#include"ScriptPCH.h"
+#include "ScriptPCH.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "zulaman.h"

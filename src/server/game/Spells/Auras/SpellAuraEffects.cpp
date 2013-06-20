@@ -5877,6 +5877,13 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
         case SPELLFAMILY_GENERIC:
             switch (GetId())
             {
+                // Fixate
+                case 78617:
+                    if(!target  || !caster)
+                        return;
+
+                    caster->AddThreat(target, 1000000);
+                    break;
                 case 66149: // Bullet Controller Periodic - 10 Man
                 case 68396: // Bullet Controller Periodic - 25 Man
                 {
