@@ -1988,18 +1988,30 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* victim, WeaponAttackTy
     float miss_chance = MeleeSpellMissChance(victim, attType, 0);
 
     // Critical hit chance
+    float crit_chance = 0.0f;
+
     Unit const* caster = this;
     if(isPet() && GetOwner() && GetOwner()->GetTypeId() == TYPEID_PLAYER)
     {
-        uint8 ownerClass = GetOwner()->getClass();
+        caster = GetOwner();
 
-        if(ownerClass != CLASS_MAGE && ownerClass != CLASS_SHAMAN)
+        switch(GetOwner()->getClass())
         {
-            caster = GetOwner();
+            case CLASS_WARLOCK:
+                // Hand of Gul'dan crit
+                if(victim && victim->HasAura(86000))
+                {
+                    crit_chance += 10.0f;
+                }
+                break;
+            // Shaman's wolves and Mage's elemental always have 5% crit
+            case CLASS_MAGE:
+            case CLASS_SHAMAN:
+                caster = this;
+                break;
         }
     }
-
-    float crit_chance = caster->GetUnitCriticalChance(attType, victim);
+    crit_chance += caster->GetUnitCriticalChance(attType, victim);
 
     // stunned target cannot dodge and this is check in GetUnitDodgeChance() (returned 0 in this case)
     float dodge_chance = victim->GetUnitDodgeChance();
@@ -11833,6 +11845,15 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                                         crit_chance += aurEff->GetAmount();
                                 break;
                         }
+
+                        if(isPet() && GetOwner() && GetOwner()->ToPlayer())
+                        {
+                            // Hand of Gul'dan crit
+                            if(victim->HasAura(86000))
+                            {
+                                crit_chance += 10.0f;
+                            }
+                        }
                         break; 
                     case SPELLFAMILY_MAGE:
                         // Glyph of Fire Blast
@@ -12697,6 +12718,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
     }
 
     // Pet mods releated to its owner
+    // Mod applied only to the pet's spells
     Unit const* owner = GetOwner();
     if (isPet() && owner && owner->ToPlayer())
     {
@@ -12708,12 +12730,8 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                 {
                    if (owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_WARLOCK_DEMONOLOGY)
                    {
-                       // Mod applied either if is pet or if warlock is in Metamorphosis
-                       if(this->isPet() || owner->HasAura(47241))
-                       {
-                           float pct = float(0.023f * owner->ToPlayer()->GetMasteryPoints());
-                           DoneTotalMod *= 1 +  pct;
-                       }
+                        float pct = float(0.023f * owner->ToPlayer()->GetMasteryPoints());
+                        DoneTotalMod *= 1 +  pct;
                    }
                 }
                 break;
@@ -12721,7 +12739,6 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                 // Master of the Beasts (Beast Mastery Mastery)
                 if (owner->HasAuraType(SPELL_AURA_MASTERY) && owner->ToPlayer()->GetPrimaryTalentTree(owner->ToPlayer()->GetActiveSpec()) == BS_HUNTER_BEAST_MASTERY)
                 {
-                    // Mod applied only to the pet's spells
                     float pct = float(0.0167f * owner->ToPlayer()->GetMasteryPoints());
                     DoneTotalMod *= 1 +  pct;
                 }
