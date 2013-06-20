@@ -17992,6 +17992,12 @@ float Unit::MeleeSpellMissChance(const Unit* victim, WeaponAttackType attType, u
         }
     }
 
+    // Deterrence
+    if (victim->HasAura(19263))
+    {
+        return 100.0f;
+    }
+
     // Spellmod from SPELLMOD_RESIST_MISS_CHANCE
     if (spellId)
     {
