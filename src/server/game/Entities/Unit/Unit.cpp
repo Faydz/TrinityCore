@@ -11474,6 +11474,14 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                         case 83381:
                             DoneTotal += ownerRAP * 0.516f;
                             break;
+                        // Claw
+                        case 16827:
+                        // Bite
+                        case 17253:
+                        // Smack
+                        case 49966:
+                            DoneTotal += 1.5f * (ownerRAP * 0.168f);
+                            break;
                     }
                 }
             }
