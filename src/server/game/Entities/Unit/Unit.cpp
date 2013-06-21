@@ -11480,7 +11480,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                         case 17253:
                         // Smack
                         case 49966:
-                            DoneTotal += 1.5f * (ownerRAP * 0.168f);
+                            DoneTotal += ownerRAP * 0.168f;
                             break;
                     }
                 }
