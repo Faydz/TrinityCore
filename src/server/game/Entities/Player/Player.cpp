@@ -22351,7 +22351,7 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
         }
     }
 
-    ModifyCurrency(currency, count, true, true, false, true);
+    ModifyCurrency(currency, count, true, true, false, false);
     return true;
 }
 
