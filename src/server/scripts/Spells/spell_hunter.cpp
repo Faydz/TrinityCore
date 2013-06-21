@@ -79,10 +79,22 @@ class spell_hun_pet_intervene : public SpellScriptLoader
                     amount = CalculatePct(caster->GetMaxHealth(), 50);
                 }
             }
+            
+            void function (AuraEffect* aurEff, DamageInfo& /*dmgInfo*/, uint32& /*absorbAmount*/)
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetTarget();
+
+                if(caster && target)
+                {
+                    target->RemoveAura(GetId(), caster->GetGUID());
+                }
+            }
 
             void Register()
             {
                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_hun_pet_intervene_AuraScript::OnEffectCalcAmount, EFFECT_1, SPELL_AURA_SCHOOL_ABSORB);
+                AfterEffectAbsorb += AuraEffectAbsorbFn(spell_hun_pet_intervene_AuraScript::function, EFFECT_1);
             }
         };
 
