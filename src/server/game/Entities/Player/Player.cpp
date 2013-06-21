@@ -22266,6 +22266,13 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
         return false;
     }
 
+	// Check if we are above the cap
+	if (GetCurrencyOnWeek(currency, true) + count > GetCurrencyWeekCap(proto))
+	{
+		SendBuyError(BUY_ERR_CANT_FIND_ITEM, NULL, currency, 0);	
+		return false;
+	}
+
     Creature* creature = GetNPCIfCanInteractWith(vendorGuid, UNIT_NPC_FLAG_VENDOR);
     if (!creature)
     {
