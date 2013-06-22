@@ -695,7 +695,6 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         {
                             if(caster->HasAura(62459))
                             {
-                            sLog->outError(LOG_FILTER_GENERAL, "proc ");
                                 caster->CastSpell(caster, 62458);
                             }
                         }
