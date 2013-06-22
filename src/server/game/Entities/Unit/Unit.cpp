@@ -10947,8 +10947,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
         {
             if(aurEff->GetBase() && aurEff->GetBase()->GetCaster())
             {
-                DoneTotal += aurEff->GetBase()->GetCaster()->SpellDamageBonusDone(victim, spellProto, pdamage, damagetype);;
-                aurEff->GetBase()->GetCaster()->MonsterSay("CASTER", LANG_UNIVERSAL, aurEff->GetBase()->GetCaster()->GetGUID());
+                DoneTotal += aurEff->GetBase()->GetCaster()->SpellDamageBonusDone(victim, spellProto, pdamage, damagetype);
             }
         }
     }
