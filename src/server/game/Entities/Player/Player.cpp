@@ -7096,6 +7096,8 @@ void Player::RewardReputation(Unit* victim, float rate)
 
     ReputationOnKillEntry const* Rep = sObjectMgr->GetReputationOnKilEntry(victim->ToCreature()->GetCreatureTemplate()->Entry);
 
+    ReputationOnKillEntry const* addRep;
+
     // All mob in level 85 dungeons give championing reputation && All bosses give guild reputation
     if (!Rep)
     {
@@ -7114,9 +7116,9 @@ void Player::RewardReputation(Unit* victim, float rate)
                 if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 1000000)
                 {
                     if (!map->IsHeroic())
-                        Rep = sObjectMgr->GetReputationOnKilEntry(43438);
+                        addRep = sObjectMgr->GetReputationOnKilEntry(43438);
                     else
-                        Rep = sObjectMgr->GetReputationOnKilEntry(49642);
+                        addRep = sObjectMgr->GetReputationOnKilEntry(49642);
                 }
             }
         }
@@ -7170,6 +7172,30 @@ void Player::RewardReputation(Unit* victim, float rate)
         uint32 current_reputation_rank2 = GetReputationMgr().GetRank(factionEntry2);
         if (factionEntry2 && current_reputation_rank2 <= Rep->ReputationMaxCap2)
             GetReputationMgr().ModifyReputation(factionEntry2, donerep2);
+    }
+
+    // Give Additional Rep
+    if (addRep)
+    {
+        if (addRep->RepFaction1)
+        {
+            int32 donerep1 = CalculateReputationGain(REPUTATION_SOURCE_KILL, victim->getLevel(), addRep->RepValue1, addRep->RepFaction1);
+            donerep1 = int32(donerep1 * rate);
+            FactionEntry const* factionEntry1 = sFactionStore.LookupEntry(addRep->RepFaction1);
+            uint32 current_reputation_rank1 = GetReputationMgr().GetRank(factionEntry1);
+            if (factionEntry1 && current_reputation_rank1 <= addRep->ReputationMaxCap1)
+                GetReputationMgr().ModifyReputation(factionEntry1, donerep1);
+        }
+
+        if (addRep->RepFaction2)
+        {
+            int32 donerep2 = CalculateReputationGain(REPUTATION_SOURCE_KILL, victim->getLevel(), addRep->RepValue2, addRep->RepFaction2);
+            donerep2 = int32(donerep2 * rate);
+            FactionEntry const* factionEntry2 = sFactionStore.LookupEntry(addRep->RepFaction2);
+            uint32 current_reputation_rank2 = GetReputationMgr().GetRank(factionEntry2);
+            if (factionEntry2 && current_reputation_rank2 <= addRep->ReputationMaxCap2)
+                GetReputationMgr().ModifyReputation(factionEntry2, donerep2);
+        }
     }
 }
 
