@@ -3411,6 +3411,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case 93423:
                 spellInfo->Effects[EFFECT_2].BasePoints = 6;
                 break;
+            // Flamethrower
+            case 79505:
+            case 91531:
+            case 91532:
+            case 91533:
+                spellInfo->Effects[EFFECT_0].TargetA = 1;
+                break;
             default:
                 break;
         }
