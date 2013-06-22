@@ -15969,7 +15969,7 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
             }
             
             // 4P Bonus Set (Improved Lightning Shield)
-            if (AuraEffect* aurEff = GetAuraEffect(100956, 0, 0))
+            if (HasAura(100956) && ToPlayer() && !ToPlayer()->HasSpellCooldown(100956))
             {
                 takeCharges = false;
                 useCharges = false;
@@ -15981,7 +15981,10 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
 
                     int maxStack = HasAura(88756) || HasAura(88764) ? 9 : 3;
                     if (stacks <= maxStack)
+                    {
                         shield->SetCharges(stacks);
+                        ToPlayer()->AddSpellCooldown(100956, 0, time(NULL) + 3);
+                    }
                 }
             }
         }
