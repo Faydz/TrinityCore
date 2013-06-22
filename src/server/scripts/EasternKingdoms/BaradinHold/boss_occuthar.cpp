@@ -34,6 +34,7 @@ enum events
     EVENT_SEARING_SHADOWS = 1,
     EVENT_FOCUSED_FIRE,
     EVENT_EYES_OF_OCCUTHAR,
+    EVENT_BERSERK,
 
 };
 
@@ -75,6 +76,7 @@ public:
             events.ScheduleEvent(EVENT_SEARING_SHADOWS, urand(13000, 15000));
             events.ScheduleEvent(EVENT_FOCUSED_FIRE, urand(15000, 16000));
             events.ScheduleEvent(EVENT_EYES_OF_OCCUTHAR, urand(30000, 35000));
+            events.ScheduleEvent(EVENT_BERSERK, 270000);
 
             _EnterCombat();
         }
@@ -127,7 +129,9 @@ public:
                         }
                         events.ScheduleEvent(EVENT_EYES_OF_OCCUTHAR, urand(55000, 60000));
                         break;
-                    
+                    case EVENT_BERSERK:
+                        me->CastSpell(me, SPELL_BERSERK, true);
+                        break;
                 }
             }
 
