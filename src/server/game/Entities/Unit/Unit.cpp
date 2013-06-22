@@ -9021,6 +9021,25 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Soaked In Poison
+        case 80011:
+        case 91504:
+        case 91505:
+        case 91506:
+            target = victim;
+
+            if (!triggeredByAura)
+                return false;
+
+            if (!target)
+                return false;
+
+            if (triggeredByAura->GetCasterGUID() != target->GetGUID())
+                RemoveAurasDueToSpell(auraSpellInfo->Id);
+            else
+                return false;
+
+            break;
         // Symbiotic Worm trinkets
         case 92356:
         case 92236:

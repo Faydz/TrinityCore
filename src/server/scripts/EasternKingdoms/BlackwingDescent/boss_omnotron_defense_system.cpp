@@ -48,31 +48,31 @@
 enum Spells
 {
     // Omnitron
-    SPELL_INACTIVE=78726,
-    SPELL_SHUTTING_DOWN = 78746,
-    SPELL_ACTIVATED = 78740,
+    SPELL_INACTIVE                                = 78726,
+    SPELL_SHUTTING_DOWN                           = 78746,
+    SPELL_ACTIVATED                               = 78740,
 
     // Electron
-    SPELL_LIGHTNING_CONDUCTOR = 79888,
-    SPELL_ELECTRICAL_DISCHARGE = 91465,
-    SPELL_UNSTABLE_SHIELD = 91447,
+    SPELL_LIGHTNING_CONDUCTOR                     = 79888,
+    SPELL_ELECTRICAL_DISCHARGE                    = 91465,
+    SPELL_UNSTABLE_SHIELD                         = 91447,
     // Toxitron
-    SPELL_CHEMICAL_BOMB = 80157,
-    SPELL_POISON_SOAKED_SHELL = 91501,
-    SPELL_POISON_PROTOCOL = 91513,
+    SPELL_CHEMICAL_BOMB                           = 80157,
+    SPELL_POISON_SOAKED_SHELL                     = 91501,
+    SPELL_POISON_PROTOCOL                         = 80053,
     // Magmatron
-    SPELL_BARRIER = 79582,
-    SPELL_ACQUIRING_TARGET = 79501,
-    SPELL_FLAMETHROWER = 79504,
-    SPELL_INCINERATION_SECURITY_MEASURE = 79023,
+    SPELL_BARRIER                                 = 79582,
+    SPELL_ACQUIRING_TARGET                        = 79501,
+    SPELL_FLAMETHROWER                            = 79504,
+    SPELL_INCINERATION_SECURITY_MEASURE           = 79023,
     // Arcanotron
-    SPELL_POWER_GENERATOR = 79626, // little bit hacky but it works :-)
-    SPELL_ARCANE_ANNIHILATOR = 79710,
-    SPELL_POWER_CONVERSION = 79729,
+    SPELL_POWER_GENERATOR                         = 79626, // E' inutile che fai faccine del cazzo, non andava una sega a sei un cojone
+    SPELL_ARCANE_ANNIHILATOR                      = 79710,
+    SPELL_POWER_CONVERSION                        = 79729,
 
     // Bombe de Poison
-    SPELL_FIXER = 80094,
-    SPELL_BOMBE = 80092,
+    SPELL_FIXER                                   = 80094,
+    SPELL_BOMBE                                   = 80092,
 };
 
 enum Summons
@@ -93,14 +93,18 @@ enum Events
     EVENT_ACQUIRING_TARGET,
     EVENT_INCINERATION_SECURITY_MEASURE,
     EVENT_BARRIER,
+
     // Toxitron
     EVENT_CHEMICAL_BOMB,
     EVENT_POISON_PROTOCOL,
     EVENT_POISON_SOAKED_SHELL,
+
     // Electron
     EVENT_LIGHTNING_CONDUCTOR,
     EVENT_ELECTRICAL_DISCHARGE,
     EVENT_UNSTABLE_SHIELD,
+    EVENT_STATIC_SHOCK,
+
     // Arcanotron
     EVENT_POWER_CONVERSION,
     EVENT_POWER_GENERATOR,
@@ -356,6 +360,7 @@ public:
         bool activated;
         bool isFirstTron;
         bool isMovingHome;
+        bool staticShockCd;
         Position homePosition;
         Creature* omnotron;
 
@@ -414,6 +419,9 @@ public:
         {
             if (Creature* omnotron = ObjectAccessor::GetCreature(*me,instance->GetData64(BOSS_OMNOTRON)))
                 omnotron->AI()->DoAction(ACTION_OMNOTRON_RESET);
+
+            staticShockCd = false;
+            events.Reset();
         };
 
         void DoAction(int32 action)
@@ -422,72 +430,74 @@ public:
 
             switch(action)
             {
-            case ACTION_TRON_ACTIVATE:
-                me->RemoveAllAuras();
-                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-                me->SetReactState(REACT_AGGRESSIVE);
-                DoZoneInCombat(me);
-                me->AddAura(SPELL_ACTIVATED, me);
-                activated = true;
-                isMovingHome = false;
-
-                omnotron = ObjectAccessor::GetCreature(*me,instance->GetData64(BOSS_OMNOTRON));
-
-                // Intialize Events
-                switch(me->GetEntry())
-                {
-
-                case NPC_MAGMATRON:
-                    events.ScheduleEvent(EVENT_ACQUIRING_TARGET, 15000);
-                    events.ScheduleEvent(EVENT_INCINERATION_SECURITY_MEASURE, 27000);
-                    events.ScheduleEvent(EVENT_BARRIER, 30000);
-                    break;
-
-                case NPC_TOXITRON:
-                    events.ScheduleEvent(EVENT_CHEMICAL_BOMB, 25000);
-                    events.ScheduleEvent(EVENT_POISON_PROTOCOL, 3800);
-                    events.ScheduleEvent(EVENT_POISON_SOAKED_SHELL, 65000);
-                    break;
-
-                case NPC_ELECTRON:
-                    events.ScheduleEvent(EVENT_LIGHTNING_CONDUCTOR, 10000);
-                    events.ScheduleEvent(EVENT_ELECTRICAL_DISCHARGE, 25000);
-                    events.ScheduleEvent(EVENT_UNSTABLE_SHIELD, 11500);
-                    break;
-
-                case NPC_ARCANOTRON:
-                    events.ScheduleEvent(EVENT_POWER_CONVERSION, 10000);
-                    events.ScheduleEvent(EVENT_POWER_GENERATOR, 30000);
-                    events.ScheduleEvent(EVENT_ARCANE_ANNIHILATOR, 8000);
-                    break;
-                }
-
-                return;
-                break;
-
-            case ACTION_EVENT_FAILED:
-                if(!isFirstTron)
-                { // is not First Tron
-                    DoAction(ACTION_DEACTIVATE);
-                }else
-                { // is First Tron
-                    me->SetReactState(REACT_AGGRESSIVE);
+                case ACTION_TRON_ACTIVATE:
                     me->RemoveAllAuras();
                     me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-                    me->GetMotionMaster()->MovePoint(1, wayPos[0]);
+                    me->SetReactState(REACT_AGGRESSIVE);
+                    DoZoneInCombat(me);
+                    me->AddAura(SPELL_ACTIVATED, me);
                     activated = true;
                     isMovingHome = false;
-                }
+
+                    omnotron = ObjectAccessor::GetCreature(*me,instance->GetData64(BOSS_OMNOTRON));
+
+                    // Intialize Events
+                    switch(me->GetEntry())
+                    {
+
+                        case NPC_MAGMATRON:
+                            events.ScheduleEvent(EVENT_ACQUIRING_TARGET, 20000);
+                            events.ScheduleEvent(EVENT_INCINERATION_SECURITY_MEASURE, 10000);
+                            events.ScheduleEvent(EVENT_BARRIER, 42000);
+                            break;
+
+                        case NPC_TOXITRON:
+                            events.ScheduleEvent(EVENT_CHEMICAL_BOMB, 25000);
+                            events.ScheduleEvent(EVENT_POISON_PROTOCOL, 3800);
+                            events.ScheduleEvent(EVENT_POISON_SOAKED_SHELL, 42000);
+                            break;
+
+                        case NPC_ELECTRON:
+                            events.ScheduleEvent(EVENT_LIGHTNING_CONDUCTOR, 15000);
+                            events.ScheduleEvent(EVENT_ELECTRICAL_DISCHARGE, 25000);
+                            events.ScheduleEvent(EVENT_UNSTABLE_SHIELD, 42000);
+                            break;
+
+                        case NPC_ARCANOTRON:
+                            events.ScheduleEvent(EVENT_POWER_CONVERSION, 42000);
+                            events.ScheduleEvent(EVENT_POWER_GENERATOR, 15000);
+                            events.ScheduleEvent(EVENT_ARCANE_ANNIHILATOR, 8000);
+                            break;
+                    }
+                    
+                    return;
                 break;
 
-            case ACTION_DEACTIVATE:
-                me->SetReactState(REACT_PASSIVE);
-                me->AttackStop();
-                me->RemoveAllAuras();
-                me->GetMotionMaster()->MovePoint(0, homePosition);
-                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-                activated = false;
-                isMovingHome = true;
+                case ACTION_EVENT_FAILED:
+                    if(!isFirstTron)
+                    { 
+                        // is not First Tron
+                        DoAction(ACTION_DEACTIVATE);
+                    }else
+                    { 
+                        // is First Tron
+                        me->SetReactState(REACT_AGGRESSIVE);
+                        me->RemoveAllAuras();
+                        me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                        me->GetMotionMaster()->MovePoint(1, wayPos[0]);
+                        activated = true;
+                        isMovingHome = false;
+                    }
+                break;
+
+                case ACTION_DEACTIVATE:
+                    me->SetReactState(REACT_PASSIVE);
+                    me->AttackStop();
+                    me->RemoveAllAuras();
+                    me->GetMotionMaster()->MovePoint(0, homePosition);
+                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                    activated = false;
+                    isMovingHome = true;
                 break;
             }
         }
@@ -510,81 +520,120 @@ public:
                 switch(eventId)
                 {
                     // Magmatron
-                case EVENT_ACQUIRING_TARGET:
-                    if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
-                        DoCast(pTarget, SPELL_ACQUIRING_TARGET);
-                    me->MonsterYell(SAY_REROUTING_ENERGY, 0, 0);
-                    events.ScheduleEvent(EVENT_ACQUIRING_TARGET, 15000);
-                    return;
-                case EVENT_INCINERATION_SECURITY_MEASURE:
-                    DoCastAOE(SPELL_INCINERATION_SECURITY_MEASURE);
-                    events.ScheduleEvent(EVENT_INCINERATION_SECURITY_MEASURE, 27000);
-                    return;
-                case EVENT_BARRIER:
-                    DoCast(me, SPELL_BARRIER);
-                    me->MonsterYell(SAY_SHIELD_FLAMME, 0, 0);
-                    events.ScheduleEvent(EVENT_BARRIER, 60000);
-                    return;
+                    case EVENT_ACQUIRING_TARGET:
+                        if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
+                            DoCast(pTarget, SPELL_ACQUIRING_TARGET);
+
+                        me->MonsterYell(SAY_REROUTING_ENERGY, 0, 0);
+
+                        events.ScheduleEvent(EVENT_ACQUIRING_TARGET, 35000);
+                        break;
+                    case EVENT_INCINERATION_SECURITY_MEASURE:
+                        DoCastAOE(SPELL_INCINERATION_SECURITY_MEASURE);
+                        events.ScheduleEvent(EVENT_INCINERATION_SECURITY_MEASURE, 25000);
+                        break;
+                    case EVENT_BARRIER:
+                        DoCast(me, SPELL_BARRIER);
+                        me->MonsterYell(SAY_SHIELD_FLAMME, 0, 0);
+                        break;
 
                     // Toxitron
-                case EVENT_CHEMICAL_BOMB:
-                    if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
-                        DoCast(pTarget, SPELL_CHEMICAL_BOMB);
-                    events.ScheduleEvent(EVENT_CHEMICAL_BOMB, 30000);
-                    return;
+                    case EVENT_CHEMICAL_BOMB:
+                        if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
+                            DoCast(pTarget, SPELL_CHEMICAL_BOMB);
+                        events.ScheduleEvent(EVENT_CHEMICAL_BOMB, 45000);
+                        break;
 
-                case EVENT_POISON_PROTOCOL:
-                    for (uint32 i10 = 0; i10 < 8; ++i10)
-                        DoCast(me, SPELL_POISON_PROTOCOL+i10);
-                    if (Is25ManRaid())
-                        for (uint32 i25 = 0; i25 < 15; ++i25)
-                            DoCast(me, SPELL_POISON_PROTOCOL+i25);
-                    events.ScheduleEvent(EVENT_POISON_PROTOCOL, 38000);
-                    return;
+                    case EVENT_POISON_PROTOCOL:
+                        DoCast(me, SPELL_POISON_PROTOCOL);
+                        events.ScheduleEvent(EVENT_POISON_PROTOCOL, 38000);
+                        break;
 
-                case EVENT_POISON_SOAKED_SHELL:
-                    DoCast(me, SPELL_POISON_SOAKED_SHELL);
-                    me->MonsterYell(SAY_SHIELD_POISON, 0, 0);
-                    events.ScheduleEvent(EVENT_POISON_SOAKED_SHELL, 60000);
-                    return;
+                    case EVENT_POISON_SOAKED_SHELL:
+                        DoCast(me, SPELL_POISON_SOAKED_SHELL);
+                        me->MonsterYell(SAY_SHIELD_POISON, 0, 0);
+                        break;
 
                     // Electron
-                case EVENT_LIGHTNING_CONDUCTOR:
-                    if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
-                        DoCast(pTarget, SPELL_LIGHTNING_CONDUCTOR);
-                    me->MonsterYell(SAY_LIGHTNING, 0, 0);
-                    events.ScheduleEvent(EVENT_LIGHTNING_CONDUCTOR,10000);
-                    return;
-                case EVENT_ELECTRICAL_DISCHARGE:
-                    if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
-                        DoCast(pTarget, SPELL_ELECTRICAL_DISCHARGE);
-                    events.ScheduleEvent(EVENT_ELECTRICAL_DISCHARGE, 25000);
-                    return;
-                case EVENT_UNSTABLE_SHIELD:
-                    DoCast(me, SPELL_UNSTABLE_SHIELD);
-                    me->MonsterYell(SAY_SHIELD_ELECTRON, 0, 0);
-                    events.ScheduleEvent(EVENT_UNSTABLE_SHIELD, 60000);
-                    return;
+                    case EVENT_LIGHTNING_CONDUCTOR:
+                        for (uint8 i = 0; i < RAID_MODE(1, 3); i++)
+                        {
+                            if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
+                                DoCast(pTarget, SPELL_LIGHTNING_CONDUCTOR);
+                        }
+
+                        me->MonsterYell(SAY_LIGHTNING, 0, 0);
+                        events.ScheduleEvent(EVENT_LIGHTNING_CONDUCTOR, urand(10000, 15000));
+                        break;
+                
+                    case EVENT_ELECTRICAL_DISCHARGE:
+                        if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
+                            DoCast(pTarget, SPELL_ELECTRICAL_DISCHARGE);
+                        events.ScheduleEvent(EVENT_ELECTRICAL_DISCHARGE, 25000);
+                        break;
+
+                    case EVENT_UNSTABLE_SHIELD:
+                        DoCast(me, SPELL_UNSTABLE_SHIELD);
+                        me->MonsterYell(SAY_SHIELD_ELECTRON, 0, 0);
+                        break;
+
+                    case EVENT_STATIC_SHOCK:
+                        if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true))
+                            me->CastSpell(target, 79911, true);
+
+                        staticShockCd = false;
+                        break;
 
                     // Arcanotron
-                case EVENT_POWER_CONVERSION:
-                    DoCast(me, SPELL_POWER_CONVERSION);
-                    me->MonsterYell(SAY_SHIELD_ARCANOTRON, 0, 0);
-                    events.ScheduleEvent(EVENT_POWER_CONVERSION, 60000);
-                    return;
-                case EVENT_POWER_GENERATOR:
-                    DoCast(me, SPELL_POWER_GENERATOR, true);
-                    events.ScheduleEvent(EVENT_POWER_GENERATOR, 30000);
-                    return;
-                case EVENT_ARCANE_ANNIHILATOR:
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, true))
-                        DoCast(target, SPELL_ARCANE_ANNIHILATOR);
-                    events.ScheduleEvent(EVENT_ARCANE_ANNIHILATOR, 8000);
-                    return;
+                    case EVENT_POWER_CONVERSION:
+                        DoCast(me, SPELL_POWER_CONVERSION);
+                        me->MonsterYell(SAY_SHIELD_ARCANOTRON, 0, 0);
+                        break;
+
+                    case EVENT_POWER_GENERATOR:
+                        if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true))
+                        {
+                            Position pos;
+                            target->GetPosition(&pos);
+                            if (Creature* powerGenerator = me->SummonCreature(42733, pos, TEMPSUMMON_TIMED_DESPAWN, 60000, 0))
+                            {
+                                powerGenerator->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+                                powerGenerator->AddAura(91559, powerGenerator);
+                            }
+                        }
+                        events.ScheduleEvent(EVENT_POWER_GENERATOR, 30000);
+                        break;
+
+                    case EVENT_ARCANE_ANNIHILATOR:
+                        for (uint8 i = 0; i < RAID_MODE(1, 3); i++)
+                        {
+                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true))
+                            {
+                                DoCast(target, SPELL_ARCANE_ANNIHILATOR);
+                            }
+                        }
+
+                        events.ScheduleEvent(EVENT_ARCANE_ANNIHILATOR, 8000);
+                        break;
                 }
             }
 
             DoMeleeAttackIfReady();
+        }
+
+        void JustSummoned(Creature* summon)
+        {
+            switch (summon->GetEntry())
+            {
+                case 42934:
+                    DoZoneInCombat(summon);
+                    summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_DISABLE_MOVE);
+                    summon->AddAura(80162, summon);
+                    break;
+                case 42897:
+                    DoZoneInCombat(summon);
+                    break;
+            }
         }
 
         void SetData(uint32 Type, uint32 Data)
@@ -599,6 +648,12 @@ public:
 
         void DamageTaken(Unit* who, uint32& damage)
         {
+            if (me->GetEntry() == NPC_ELECTRON && me->HasAura(SPELL_UNSTABLE_SHIELD) && damage > 0 && !staticShockCd)
+            {
+                staticShockCd = true;
+                events.ScheduleEvent(EVENT_STATIC_SHOCK, 1000, 0, 0);
+            }
+
             if (Creature* omnotron = ObjectAccessor::GetCreature(*me,instance->GetData64(BOSS_OMNOTRON)))
             {
                 if(damage >= omnotron->GetHealth())
@@ -622,31 +677,11 @@ public:
                                 trons[i]->DisappearAndDie();
                         }
                     }
-                    me->SetLootMode(5);
-                    if (me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
-                        who->SummonGameObject(8000008, -324.768f, -379.851f, 213.76f, 1.593f, 0.0f, 0.0f, 0.0f, 0.0f, 100000000);
-                    else
-                        who->SummonGameObject(8000009, -324.768f, -379.851f, 213.76f, 1.593f, 0.0f, 0.0f, 0.0f, 0.0f, 100000000);
                 }
                 else
                     omnotron->SetHealth(omnotron->GetHealth()-damage);
             }
 
-        }
-
-        void JustSummoned(Creature* summon)
-        {
-            summon->setFaction(me->getFaction());
-            summon->SetInCombatWithZone();
-
-            switch(summon->GetEntry())
-            {
-            case NPC_POWER_GENERATOR:
-                summon->SetReactState(REACT_PASSIVE);
-                summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-                summon->DisappearAndDie();
-                break;
-            }
         }
 
     };
@@ -662,12 +697,20 @@ public:
         npc_poison_bombAI(Creature * pCreature) : ScriptedAI(pCreature) {}
 
         uint32 uiFixe;
-        uint32 uiBombeFixe;
+        uint32 uiDisappear;
 
         void Reset()
         {
             uiFixe = 2000;
-            uiBombeFixe = 20000;
+        }
+
+        void MoveInLineOfSight(Unit* who)
+        {
+            if (who->HasAura(SPELL_FIXER) && me->GetDistance(who) < 2.0f)
+            {
+                me->CastSpell(me, 80092, true);
+                uiDisappear = 500;
+            }
         }
 
         void UpdateAI(uint32 uiDiff)
@@ -677,16 +720,26 @@ public:
 
             if(uiFixe <= uiDiff)
             {
-                if (Unit *target = SelectTarget(SELECT_TARGET_RANDOM, 1, 100, true))
+                if (Unit *target = SelectTarget(SELECT_TARGET_RANDOM, 1, 100.0f, true))
+                {
                     DoCast(target, SPELL_FIXER);
-                uiFixe = 2000;
+                    me->Attack(target, true);
+                    me->AddThreat(target, 1000000.0f);
+                }
             } else uiFixe -= uiDiff;
 
-            if(uiBombeFixe <= uiDiff)
+            if(uiDisappear <= uiDiff)
             {
-                DoCastAOE(SPELL_BOMBE);
-                uiBombeFixe = 20000;
-            } else uiBombeFixe -= uiDiff;
+                Position pos;
+                me->GetPosition(&pos);
+                if (Creature* puddle = me->SummonCreature(42920, pos))
+                {
+                    puddle->SetReactState(REACT_PASSIVE);
+                    puddle->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_DISABLE_MOVE);
+                    puddle->AddAura(80095, puddle);
+                }
+                me->DisappearAndDie();
+            } else uiFixe -= uiDisappear;
 
             DoMeleeAttackIfReady();
         }
@@ -698,9 +751,40 @@ public:
     }
 };
 
+class npc_power_generator : public CreatureScript
+{
+public:
+    npc_power_generator() : CreatureScript("npc_power_generator") { }
+
+    struct npc_power_generatorAI : public ScriptedAI
+    {
+        npc_power_generatorAI(Creature * pCreature) : ScriptedAI(pCreature) {}
+
+        void Reset()
+        {
+            if (!me->HasAura(91559))
+                me->AddAura(91559, me);
+        }
+
+        void UpdateAI(uint32 diff)
+        {
+            if (!me->HasAura(91559))
+                me->AddAura(91559, me);
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_power_generatorAI(creature);
+    }
+};
+
+
+
 void AddSC_boss_omnotron_defense_system()
 {
     new boss_omnotron();
     new boss_trons();
     new npc_poison_bomb();
+    new npc_power_generator();
 }
