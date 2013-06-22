@@ -12724,9 +12724,10 @@ bool Unit::IsImmunedToSpellEffect(SpellInfo const* spellInfo, uint32 index) cons
         // Check for immune to application of harmful magical effects
         AuraEffectList const& immuneAuraApply = GetAuraEffectsByType(SPELL_AURA_MOD_IMMUNE_AURA_APPLY_SCHOOL);
         for (AuraEffectList::const_iterator iter = immuneAuraApply.begin(); iter != immuneAuraApply.end(); ++iter)
-            if (spellInfo->Dispel == DISPEL_MAGIC &&                                      // Magic debuff
-                ((*iter)->GetMiscValue() & spellInfo->GetSchoolMask()) &&  // Check school
-                !spellInfo->IsPositiveEffect(index))                                  // Harmful
+            // Hackfix for DK's Anti-Magic Shell immunity of Cyclone, Hex...
+            if (((*iter)->GetId() == 48707 || spellInfo->Dispel == DISPEL_MAGIC) &&         // Magic debuff
+                ((*iter)->GetMiscValue() & spellInfo->GetSchoolMask()) &&                   // Check school
+                !spellInfo->IsPositiveEffect(index))                                        // Harmful
                 return true;
     }
 
