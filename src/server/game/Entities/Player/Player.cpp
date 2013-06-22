@@ -22379,17 +22379,17 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
             uint32 totalCap = proto->TotalCap;
 
             // Check Week Cap
-	        if (cap > 0 && (GetCurrencyOnWeek(currency, true) + count) > cap)
-	        {
-		        SendBuyError(BUY_ERR_CANT_FIND_ITEM, NULL, currency, 0);	
-		        return false;
-	        }
+            if (cap > 0 && (GetCurrencyOnWeek(currency, true) + count) > cap)
+            {
+                SendBuyError(BUY_ERR_CANT_FIND_ITEM, NULL, currency, 0);	
+                return false;
+            }
 
             // Check total cap
             if (totalCap > 0 && (GetCurrency(currency, false)) > totalCap)
             {
                 SendBuyError(BUY_ERR_CANT_FIND_ITEM, NULL, currency, 0);	
-		        return false;
+                return false;
             }
 
             ModifyCurrency(iece->RequiredCurrency[i], -int32(count), false, true);
