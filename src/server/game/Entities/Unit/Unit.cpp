@@ -5790,20 +5790,52 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 case 2999:
                     if (effIndex != 0)
                         return false;
+
                     AuraEffect* counter = triggeredByAura->GetBase()->GetEffect(EFFECT_1);
                     if (!counter)
                         return true;
 
+                    // Can't proc from instant Pyroblast
                     // Count spell criticals in a row in second aura
-                    if (procEx & PROC_EX_CRITICAL_HIT)
+                    if (procSpell->Id != 92315 && procEx & PROC_EX_CRITICAL_HIT)
                     {
                         counter->SetAmount(counter->GetAmount() * 2);
+
                         if (counter->GetAmount() < 100 && dummySpell->Id != 44445) // not enough or Hot Streak spell
+                        {
                             return true;
-                        // Crititcal counted -> roll chance
-                        if (roll_chance_i(triggerAmount))
+                        }
+
+                        float roll_chance = (float)triggerAmount;
+
+                        // Proc chance for Hot Streak talent scales with critical strike
+                        if(dummySpell->Id == 44445 && ToPlayer() && victim)
+                        {
+                            float crit_chance = ToPlayer()->GetTotalSpellCritChanceOnTarget(SPELL_SCHOOL_MASK_FIRE, victim);
+
+                            if (crit_chance <= 20.0f)
+                            {
+                                roll_chance = (1.0f - 4.0f * crit_chance / 100.0f) * 100.0f;
+                            }
+                            else if (crit_chance <= 30.0f && crit_chance > 20.0f)
+                            {
+                                roll_chance = (0.5f - 1.5f * crit_chance / 100.0f) * 100.0f;
+                            }
+                            else if (crit_chance <= 45.0f && crit_chance > 30.0f)
+                            {
+                                roll_chance = (0.15f - 0.33f * crit_chance / 100.0f) * 100.0f;
+                            }
+                            else 
+                                roll_chance = 0.0f;
+                        }
+
+                        // Critical counted -> roll chance
+                        if (roll_chance_f(roll_chance))
+                        {
                             CastSpell(this, 48108, true, castItem, triggeredByAura);
+                        }
                     }
+
                     counter->SetAmount(25);
                     return true;
             }
