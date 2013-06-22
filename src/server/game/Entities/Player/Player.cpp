@@ -22292,13 +22292,6 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
         return false;
     }
 
-	// Check if we are above the cap
-	if (GetCurrencyOnWeek(currency, true) + count > GetCurrencyWeekCap(proto))
-	{
-		SendBuyError(BUY_ERR_CANT_FIND_ITEM, NULL, currency, 0);	
-		return false;
-	}
-
     Creature* creature = GetNPCIfCanInteractWith(vendorGuid, UNIT_NPC_FLAG_VENDOR);
     if (!creature)
     {
@@ -22380,6 +22373,25 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
                 continue;
 
             count = iece->RequiredCurrencyCount[i];
+
+            // Check if we are above the cap
+            uint32 cap = GetCurrencyWeekCap(proto);
+            uint32 totalCap = proto->TotalCap;
+
+            // Check Week Cap
+	        if (cap > 0 && (GetCurrencyOnWeek(currency, true) + count) > cap)
+	        {
+		        SendBuyError(BUY_ERR_CANT_FIND_ITEM, NULL, currency, 0);	
+		        return false;
+	        }
+
+            // Check total cap
+            if (totalCap > 0 && (GetCurrency(currency, false)) > totalCap)
+            {
+                SendBuyError(BUY_ERR_CANT_FIND_ITEM, NULL, currency, 0);	
+		        return false;
+            }
+
             ModifyCurrency(iece->RequiredCurrency[i], -int32(count), false, true);
         }
     }
