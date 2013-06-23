@@ -1,6 +1,6 @@
 DELETE FROM `creature` WHERE `id` = 43296;
-INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
-(43296, 669, 15, 1, 0, 0, -106.354, 24.9035, 72.0573, 4.5743, 86400, 0, 0, 12684, 0, 0, 0, 0, 0, 0);
+INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`,  `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
+(43296, 669, 15, 1, 0, 0, -106.354, 24.9035, 72.0573, 4.5743, 86400, 0, 0, 12684, 0, 0, 0, 0, 0);
 
 UPDATE `creature_template` SET `difficulty_entry_1`=47774, `difficulty_entry_2`=47775, `difficulty_entry_3`=47776, `mechanic_immune_mask`=650854369, `ScriptName`='boss_chimaeron' WHERE  `entry`=43296 LIMIT 1;
 UPDATE `creature_template` SET `exp`=3 WHERE  `entry`=43296 LIMIT 1;
