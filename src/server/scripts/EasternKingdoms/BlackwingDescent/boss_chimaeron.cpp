@@ -1,9 +1,5 @@
 /*
-* Copyright (C) 2005 - 2012 MaNGOS <http://www.getmangos.org/>
-*
-* Copyright (C) 2008 - 2012 TrinityCore <http://www.trinitycore.org/>
-*
-* Copyright (C) 2011 - 2012 ArkCORE <http://www.arkania.net/>
+* Copyright (C) 2012 - 2013 Forgotten Lands <https://www.forgottenlands.eu>
 *
 * This program is free software; you can redistribute it and/or modify it
 * under the terms of the GNU General Public License as published by the
@@ -140,9 +136,6 @@ public:
             if(me->GetMap()->IsHeroic())
                 me->SummonCreature(NPC_NEFARIAN_HELPER_HEROIC,-115.5546f, 45.403f, 79.078f, 4.57f ,TEMPSUMMON_MANUAL_DESPAWN);
 
-            /*if(Creature* victor_nefarian = ObjectAccessor::GetCreature(*me,instance->GetData64(NPC_LORD_VICTOR_NEFARIAN)))
-                DoScriptText(SAY_AGGRO,victor_nefarian);*/
-
             events.ScheduleEvent(EVENT_MASSACRE, urand(30000,35000));
             events.ScheduleEvent(EVENT_DOUBLE_ATTACK, urand(13000,15000));
             events.ScheduleEvent(EVENT_CAUSTIC_SLIME, urand(10000,12000));
@@ -160,9 +153,6 @@ public:
             if(me->GetHealthPct() < 20 && phase == 1)
             {
                 phase = 2;
-
-                /*if(Creature* finkle_einhorn = ObjectAccessor::GetCreature(*me,instance->GetData64(NPC_FINKLE_EINHORN)))
-                    DoScriptText(SAY_FINAL_PHASE, finkle_einhorn);*/
 
                 DoCast(me, SPELL_MORTALITY);
                 DoCastAOE(SPELL_MORTALITY_RAID_DEBUFF);
@@ -190,8 +180,6 @@ public:
 
                 case EVENT_FEUD:
                     DoCast(me,SPELL_FEUD);
-                    /*if(Creature* victor_nefarian = ObjectAccessor::GetCreature(*me,instance->GetData64(NPC_LORD_VICTOR_NEFARIAN)))
-                        DoScriptText(SAY_FEUD, victor_nefarian);*/
                     break;
 
                 case EVENT_FAILURE:
@@ -254,9 +242,6 @@ public:
             if(Creature* bile_o_tron = ObjectAccessor::GetCreature(*me,instance->GetData64(NPC_BILE_O_TRON)))
                 bile_o_tron->AI()->DoAction(ACTION_BILE_O_TRON_RESET);
 
-            /*if(Creature* victor_nefarian = ObjectAccessor::GetCreature(*me,instance->GetData64(NPC_LORD_VICTOR_NEFARIAN)))
-                DoScriptText(SAY_OUTRO, victor_nefarian);*/
-
             if(Creature* nefarianHelperheroic = me->FindNearestCreature(NPC_NEFARIAN_HELPER_HEROIC,50.0f,true))
                 nefarianHelperheroic->DisappearAndDie();
 
@@ -311,24 +296,11 @@ public:
 
         uint32 timer;
 
+        void MoveInLineOfSight(Unit* who)
+        { }
+
         void UpdateAI(uint32 diff) 
-        {
-            /*if (timer <= diff)
-            {
-                if (Player* target = me->FindNearestPlayer(85.f, true))
-                    if (target->GetDistance(me) < 85.f  && me->HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP))
-                    {
-                        DoScriptText(SAY_INTRO - urand(0,2), me);
-
-                        timer = 25000;
-
-                    } else
-                        timer = 1000;
-                else
-                    timer = 1000;
-
-            } else timer -= diff;*/
-        }
+        { }
     };
 };
 
@@ -367,7 +339,8 @@ public:
                 me->AddAura(SPELL_FINKLES_MIXTURE, me);
 
             if(uiSystemFailureTimer <= diff && isFailureActive)
-            { // Reroute Power
+            { 
+                // Reroute Power
                 me->RemoveAura(SPELL_SYSTEM_FALURE);
                 me->GetMotionMaster()->MovePoint(1,BilePositions[waypoint]);
 
@@ -396,9 +369,6 @@ public:
             case ACTION_BILE_O_TRON_SYSTEM_FAILURE:
                 if(!activated)
                     break;
-
-               /* if(Creature* finkle_einhorn = ObjectAccessor::GetCreature(*me,instance->GetData64(NPC_FINKLE_EINHORN)))
-                    DoScriptText(SAY_SYSTEM_FAILURE, finkle_einhorn);*/
 
                 me->RemoveAllAuras();
                 DoCast(me,SPELL_REROUTE_POWER, true);
