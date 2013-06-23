@@ -7096,7 +7096,7 @@ void Player::RewardReputation(Unit* victim, float rate)
 
     ReputationOnKillEntry const* Rep = sObjectMgr->GetReputationOnKilEntry(victim->ToCreature()->GetCreatureTemplate()->Entry);
 
-    ReputationOnKillEntry const* addRep;
+    ReputationOnKillEntry const* addRep = NULL;
 
     // All mob in level 85 dungeons give championing reputation && All bosses give guild reputation
     if (!Rep)
