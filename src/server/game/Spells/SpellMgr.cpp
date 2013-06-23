@@ -3773,6 +3773,7 @@ void SpellMgr::LoadSpellCustomAttr()
                 {
                     // Ring of Frost freeze
                     case 82691:
+                        spellInfo->AuraInterruptFlags = AURA_INTERRUPT_FLAG_TAKE_DAMAGE;
                         spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(31); // 8 seconds
                         spellInfo->Effects[EFFECT_0].MaxRadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_0_YARDS);
                         break;
