@@ -2675,7 +2675,15 @@ void AuraEffect::HandleAuraModDisarm(AuraApplication const* aurApp, uint8 mode, 
 
     // if disarm effects should be applied, wait to set flag until damage mods are unapplied
     if (apply)
+    {
         target->SetFlag(field, flag);
+
+        // Hackfix. Bladestorm removed on disarm applied
+        if(target->HasAura(46924))
+        {
+            target->RemoveAura(46924);
+        }
+    }
 
     if (target->GetTypeId() == TYPEID_UNIT && target->ToCreature()->GetCurrentEquipmentId())
         target->UpdateDamagePhysical(attType);
