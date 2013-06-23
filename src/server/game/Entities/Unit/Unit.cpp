@@ -9076,6 +9076,16 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Shadow Infusion
+        case 48965:
+        case 49571:
+        case 49572:
+            // Cant's proc while in arena preparation
+            if (this->HasAura(32727))
+            {
+                return false;
+            }
+            break;
         // Soaked In Poison
         case 80011:
         case 91504:

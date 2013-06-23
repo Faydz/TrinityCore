@@ -691,6 +691,7 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     // Chains of Ice
                     case 45524:
                     {
+                        // T10 - hands bonus
                         if (Unit* caster = GetCaster())
                         {
                             if(caster->HasAura(62459))
