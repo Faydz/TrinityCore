@@ -3671,6 +3671,17 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Dark Transformation
+                    case 63560:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 80;
+                        break;
+                    // Magic Suppression rank 1/3
+                    case 49224:
+                    case 49611:
+                        spellInfo->ProcChance = 0;
+                        spellInfo->ProcCharges = 0;
+                        spellInfo->Effects[EFFECT_0].Mechanic = MECHANIC_NONE;
+                        break;
                     // Improved Blood Presence
                     case 63611:
                         spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_POWER_REGEN_PERCENT;
@@ -3762,6 +3773,7 @@ void SpellMgr::LoadSpellCustomAttr()
                 {
                     // Ring of Frost freeze
                     case 82691:
+                        spellInfo->AuraInterruptFlags = AURA_INTERRUPT_FLAG_TAKE_DAMAGE;
                         spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(31); // 8 seconds
                         spellInfo->Effects[EFFECT_0].MaxRadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_0_YARDS);
                         break;
