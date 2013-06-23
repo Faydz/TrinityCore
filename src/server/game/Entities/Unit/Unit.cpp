@@ -9076,6 +9076,13 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Master Marksman
+        case 34485:  // Rank 1
+        case 34486:  // Rank 2
+        case 34487:  // Rank 3
+            if(!(procSpell->Id == 56641))
+                return false;
+            break;
         // Shadow Infusion
         case 48965:
         case 49571:
@@ -12096,6 +12103,7 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
 				{
 					// steady shot, combra shot, aimed shot (Careful Aim 34483 - 34482)
 					case 19434:
+					case 82928:
 					case 56641:
 					case 77767:
                         if(AuraEffect* auraEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2222, 0))
