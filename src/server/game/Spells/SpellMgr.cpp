@@ -3671,6 +3671,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Dark Transformation
+                    case 63560:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 80;
+                        break;
                     // Magic Suppression rank 1/3
                     case 49224:
                     case 49611:
