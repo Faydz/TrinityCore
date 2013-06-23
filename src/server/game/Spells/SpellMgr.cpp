@@ -3671,6 +3671,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Magic Suppression rank 1/3
+                    case 49224:
+                    case 49611:
+                        spellInfo->ProcChance = 0;
+                        spellInfo->ProcCharges = 0;
+                        spellInfo->Effects[EFFECT_0].Mechanic = MECHANIC_NONE;
+                        break;
                     // Improved Blood Presence
                     case 63611:
                         spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_POWER_REGEN_PERCENT;
