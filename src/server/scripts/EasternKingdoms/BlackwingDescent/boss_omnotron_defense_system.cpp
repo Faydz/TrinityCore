@@ -422,6 +422,8 @@ public:
 
             staticShockCd = false;
             events.Reset();
+
+            me->LowerPlayerDamageReq(me->GetHealth());
         };
 
         void DoAction(int32 action)
