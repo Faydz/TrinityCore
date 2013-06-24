@@ -7113,7 +7113,7 @@ void Player::RewardReputation(Unit* victim, float rate)
                         Rep = sObjectMgr->GetReputationOnKilEntry(49667);
                 }
 
-                if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 1000000)
+                if (victim->getLevel() >= 86 && victim->GetMaxHealth() >= 2000000)
                 {
                     if (!map->IsHeroic())
                         addRep = sObjectMgr->GetReputationOnKilEntry(43438);
