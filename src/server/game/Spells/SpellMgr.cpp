@@ -2898,6 +2898,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case 72625: // Ooze Eruption
             case 88942: // Meteor Slash
             case 95172:
+            case 77679: // Scorching Blast
+            case 92968:
+            case 92969:
+            case 92970:
                 // ONLY SPELLS WITH SPELLFAMILY_GENERIC and EFFECT_SCHOOL_DAMAGE
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_SHARE_DAMAGE;
                 break;
@@ -3406,6 +3410,26 @@ void SpellMgr::LoadSpellCustomAttr()
             case 90355:     // Ancient Hysteria
                 spellInfo->AttributesEx9 |= SPELL_ATTR9_NOT_USABLE_IN_ARENA;
                 break;
+            // Asphyxiate
+            case 93710:
+            case 93423:
+                spellInfo->Effects[EFFECT_2].BasePoints = 6;
+                break;
+            // Flamethrower
+            case 79505:
+            case 91531:
+            case 91532:
+            case 91533:
+                spellInfo->Effects[EFFECT_0].TargetA = 1;
+                break;
+            // Growth Catalyst
+            case 77987:
+            case 101440:
+            case 101441:
+            case 101442:
+                spellInfo->StackAmount = 18;
+                spellInfo->AttributesEx3 |= SPELL_ATTR3_STACK_FOR_DIFF_CASTERS;
+                break;
             default:
                 break;
         }
@@ -3659,6 +3683,17 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_DEATHKNIGHT:
                 switch(spellInfo->Id)
                 {
+                    // Dark Transformation
+                    case 63560:
+                        spellInfo->Effects[EFFECT_0].BasePoints = 80;
+                        break;
+                    // Magic Suppression rank 1/3
+                    case 49224:
+                    case 49611:
+                        spellInfo->ProcChance = 0;
+                        spellInfo->ProcCharges = 0;
+                        spellInfo->Effects[EFFECT_0].Mechanic = MECHANIC_NONE;
+                        break;
                     // Improved Blood Presence
                     case 63611:
                         spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_POWER_REGEN_PERCENT;
@@ -3750,6 +3785,7 @@ void SpellMgr::LoadSpellCustomAttr()
                 {
                     // Ring of Frost freeze
                     case 82691:
+                        spellInfo->AuraInterruptFlags = AURA_INTERRUPT_FLAG_TAKE_DAMAGE;
                         spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(31); // 8 seconds
                         spellInfo->Effects[EFFECT_0].MaxRadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_0_YARDS);
                         break;
@@ -4001,6 +4037,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_ROGUE:
                 switch(spellInfo->Id)
                 {
+                    // Sinister Calling
+                    case 31220:
+                        spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(0x3000004, 0x0, 0x0);
+                        spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_DAMAGE;
+                        break;
                     // combat readiness
                     case 74001:
                         spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
@@ -4009,10 +4050,13 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_PERIODIC_DUMMY;
                         spellInfo->Effects[EFFECT_1].Amplitude = 500;
                         break;
+                    // Vendetta
                     case 79140:
+                    // Smoke Bomb
                     case 76577:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
                         break;
+                    // Cloak of Shadows
                     case 39666:
                         spellInfo->Effects[0].BasePoints = -200;
                         break;

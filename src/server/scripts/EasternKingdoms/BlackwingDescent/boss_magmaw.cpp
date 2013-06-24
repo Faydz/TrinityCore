@@ -1,9 +1,5 @@
 /*
-* Copyright (C) 2005 - 2012 MaNGOS <http://www.getmangos.org/>
-*
-* Copyright (C) 2008 - 2012 TrinityCore <http://www.trinitycore.org/>
-*
-* Copyright (C) 2011 - 2012 ArkCORE <http://www.arkania.net/>
+* Copyright (C) 2012 - 2013 Forgotten Lands <https://www.forgottenlands.eu>
 *
 * This program is free software; you can redistribute it and/or modify it
 * under the terms of the GNU General Public License as published by the
@@ -53,7 +49,6 @@ enum Spells
     SPELL_CUSTOM_STATE_05               = 45799,
     SPELL_COSMETIC_CHAINS               = 65612,
     SPELL_LAVA_ERRUPT_EMOTE             = 79461,
-
 };
 
 enum Events
@@ -73,56 +68,6 @@ enum Events
 enum Actions
 {
     ACTION_START_GROUND_PHASE,
-};
-
-Position const IgnitionPositions[2][21] =
-{
-    { // Left Side
-        {-355.258f, -66.156f, 215.363f, 3.32963f},
-        {-349.104f, -57.5792f, 214.837f, 3.35319f},
-        {-355.983f, -79.9935f, 213.749f, 3.91082f},
-        {-348.35f, -71.9141f, 213.26f, 3.96973f},
-        {-341.228f, -63.2021f, 212.833f, 3.96973f},
-        {-335.636f, -53.1296f, 212.332f, 5.80755f},
-        {-344.959f, -47.9226f, 212.061f, 6.07851f},
-        {-354.565f, -47.2949f, 213.04f, 3.04373f},
-        {-350.721f, -88.5883f, 213.92f, 3.97443f},
-        {-342.783f, -80.5202f, 213.868f, 3.93124f},
-        {-335.879f, -72.941f, 212.87f, 4.06083f},
-        {-330.037f, -64.3112f, 212.393f, 4.14329f},
-        {-324.021f, -54.4161f, 211.863f, 4.19434f},
-        {-317.603f, -44.6127f, 211.952f, 0.96793f},
-        {-329.399f, -43.7365f, 211.748f, 6.02982f},
-        {-341.139f, -38.8838f, 211.426f, 6.12014f},
-        {-350.813f, -26.2997f, 211.345f, 2.15388f},
-        {-352.253f, -37.0172f, 211.603f, 2.95734f},
-        {-338.237f, -27.1878f, 211.154f, 3.06337f},
-        {-327.528f, -32.3648f, 211.394f, 3.06337f},
-        {-316.344f, -33.1654f, 211.428f, 3.17725f},
-    },
-    {  // Right Side
-        {-313.627f, -72.6881f, 213.266f, 1.00637f},
-        {-319.881f, -82.0775f, 213.552f, 4.27756f},
-        {-306.833f, -83.4444f, 213.633f, 4.36788f},
-        {-302.725f, -74.0836f, 213.345f, 4.69382f},
-        {-304.055f, -63.3109f, 212.826f, 4.57601f},
-        {-300.848f, -54.0836f, 212.39f, 4.18332f},
-        {-308.972f, -52.744f, 212.326f, 5.62846f},
-        {-315.607f, -58.0178f, 212.578f, 1.02995f},
-        {-320.357f, -65.927f, 212.802f, 1.0378f},
-        {-326.56f, -74.2884f, 213.145f, 0.841454f},
-        {-333.371f, -83.2f, 213.706f, 0.566564f},
-        {-343.042f, -91.8511f, 213.916f, 3.12304f},
-        {-334.444f, -92.7097f, 213.903f, 3.06413f},
-        {-324.424f, -93.0766f, 213.909f, 2.98166f},
-        {-315.574f, -93.3725f, 213.924f, 3.12696f},
-        {-304.845f, -93.5295f, 213.919f, 3.10733f},
-        {-296.142f, -88.6009f, 214.03f, 4.72919f},
-        {-292.752f, -78.8147f, 213.567f, 4.71348f},
-        {-295.368f, -68.4218f, 213.065f, 4.71741f},
-        {-293.046f, -56.9843f, 212.531f, 4.62709f},
-        {-295.83f, -46.4565f, 212.04f, 1.27344f},
-    }
 };
 
 Position const HeroicPositions[1] =
@@ -162,18 +107,9 @@ public:
 
             me->SetReactState(REACT_PASSIVE);
 
-            if(Creature* head = ObjectAccessor::GetCreature(*me, instance->GetData64(NPC_MAGMAWS_HEAD)))
-            {
-                if(head->isDead())
-                    head->Respawn();
+            if (instance)
+			    instance->SetData(DATA_MAGMAW, NOT_STARTED);
 
-                /*if(!me->GetVehicleKit()->GetPassenger(0))
-                    head->EnterVehicle(me, 0);
-
-                head->GetVehicleKit()->RemoveAllPassengers();*/
-            }
-
-			instance->SetData(DATA_MAGMAW, NOT_STARTED);
             _Reset();
         }
 
@@ -183,8 +119,8 @@ public:
             if(Creature* head = ObjectAccessor::GetCreature(*me, instance->GetData64(NPC_MAGMAWS_HEAD)))
                 head->AI()->DoZoneInCombat(head);
 
-            events.ScheduleEvent(EVENT_MAGMA_SPIT, urand(11000,13000));
-            events.ScheduleEvent(EVENT_LAVA_SPEW, urand(7000,9000));
+            events.ScheduleEvent(EVENT_MAGMA_SPIT, urand(11000, 13000));
+            events.ScheduleEvent(EVENT_LAVA_SPEW, urand(20000, 25000));
             events.ScheduleEvent(EVENT_PILLAR_OF_FLAME, 30000);
 
             events.ScheduleEvent(EVENT_IN_RANGE_CHECK, 5000);
@@ -196,8 +132,11 @@ public:
                 if (Creature* nefarian = me->SummonCreature(NPC_NEFARIAN_HELPER_HEROIC, HeroicPositions[0], TEMPSUMMON_MANUAL_DESPAWN))
                     nefarian->AI()->DoZoneInCombat();
             }
-			instance->SetData(DATA_MAGMAW, IN_PROGRESS);
+
             _EnterCombat();
+
+            if (instance)
+			    instance->SetData(DATA_MAGMAW, IN_PROGRESS);
         }
 
         void UpdateAI(uint32 diff)
@@ -223,17 +162,19 @@ public:
                 switch(eventId)
                 {
                     case EVENT_MAGMA_SPIT:
-                        // Maybe we have to cast the spell on all Players
-                        if(Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 200.0f, true))
-                            DoCast(target, SPELL_MAGMA_SPIT);
+                        // Cast spell to 3-8 players
+                        for (uint8 i = 0; i < RAID_MODE(3, 8); i++)
+                        {
+                            if(Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 200.0f, true))
+                                me->CastSpell(target, SPELL_MAGMA_SPIT, true);
+                        }
 
-                        events.ScheduleEvent(EVENT_MAGMA_SPIT, urand(15000,17000));
+                        events.ScheduleEvent(EVENT_MAGMA_SPIT, urand(15000, 17000));
                         break;
                     case EVENT_LAVA_SPEW:
-                        if (!me->IsWithinMeleeRange(me->getVictim()))
-                            DoCastAOE(SPELL_LAVA_SPEW);
+                        DoCastAOE(SPELL_LAVA_SPEW);
 
-                        events.ScheduleEvent(EVENT_LAVA_SPEW, urand(7000,9000));
+                        events.ScheduleEvent(EVENT_LAVA_SPEW, urand(20000, 25000));
                         break;
                     case EVENT_IN_RANGE_CHECK:
                         if (me->getVictim())
@@ -278,7 +219,7 @@ public:
                         me->RemoveAura(SPELL_POINT_OF_VULNERABILITY);
 
                         events.ScheduleEvent(EVENT_MAGMA_SPIT, urand(11000, 13000));
-                        events.ScheduleEvent(EVENT_LAVA_SPEW, urand(7000, 9000));
+                        events.ScheduleEvent(EVENT_LAVA_SPEW, urand(20000, 25000));
                         events.ScheduleEvent(EVENT_PILLAR_OF_FLAME, 30000);
 
                         events.ScheduleEvent(EVENT_IN_RANGE_CHECK, 5000);
@@ -310,7 +251,10 @@ public:
                 head->DisappearAndDie();
 
             DespawnMinions();
-			instance->SetData(DATA_MAGMAW, DONE);
+
+            if (instance)
+			    instance->SetData(DATA_MAGMAW, DONE);
+
             _JustDied();
         }
 
@@ -321,13 +265,6 @@ public:
         }
 
         private:
-            inline void CastIgnition()
-            {
-                uint8 side = urand(0,1);
-
-                for(uint8 i=0; i<21 ; i++)
-                    me->CastSpell(IgnitionPositions[side][i].GetPositionX(),IgnitionPositions[side][i].GetPositionY(),IgnitionPositions[side][i].GetPositionZ(),SPELL_IGNITION_TRIGGER_SPAWN,true);
-            }
 
             inline void DespawnMinions()
             {
@@ -384,6 +321,67 @@ public:
     };
 };
 
+enum parasiteEvents
+{
+    EVENT_INFECTION = 1,
+};
+
+class npc_lava_parasite : public CreatureScript
+{
+public:
+    npc_lava_parasite() : CreatureScript("npc_lava_parasite") { }
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_lava_parasiteAI (creature);
+    }
+
+    struct npc_lava_parasiteAI : public ScriptedAI
+    {
+        npc_lava_parasiteAI(Creature* creature) : ScriptedAI(creature)
+        {
+            instance = creature->GetInstanceScript();
+        }
+
+        InstanceScript* instance;
+        EventMap events;
+
+        void Reset()
+        {
+            events.Reset();    
+            me->SetSpeed(MOVE_WALK, 0.8f, true);
+            me->SetSpeed(MOVE_RUN, 0.8f, true);
+        }
+
+        void EnterCombat(Unit* victim)
+        {
+            events.ScheduleEvent(EVENT_INFECTION, 500);
+        }
+        
+        void UpdateAI(uint32 diff)
+        {
+            if (!UpdateVictim())
+                return;
+
+            events.Update(diff);
+
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case EVENT_INFECTION:
+                        if (me->GetDistance(me->getVictim()) <= 2.5f)
+                            if (!me->getVictim()->HasAura(78097))
+                                me->AddAura(78097, me->getVictim());
+
+                        events.ScheduleEvent(EVENT_INFECTION, 500);
+                        break;
+                }
+            }
+        }
+    };
+};
+
 class mob_pillar_of_flame_trigger : public CreatureScript
 {
 public:
@@ -396,7 +394,10 @@ public:
 
     struct mob_pillar_of_flame_triggerAI : public ScriptedAI
     {
-        mob_pillar_of_flame_triggerAI(Creature* creature) : ScriptedAI(creature),Intialized(false) { }
+        mob_pillar_of_flame_triggerAI(Creature* creature) : ScriptedAI(creature),Intialized(false)
+        {
+            creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+        }
 
         uint32 uiErruptTime;
         uint32 uiSpawnTime;
@@ -415,6 +416,7 @@ public:
             me->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_DISABLE_MOVE | UNIT_FLAG_NOT_SELECTABLE);
             me->SetSpeed(MOVE_WALK, 0.0f, true);
             me->SetSpeed(MOVE_RUN, 0.0f, true);
+            me->AddAura(97360, me);
 
             DoCastAOE(SPELL_PILLAR_OF_FLAME, true); // This is only for DBM warnings etc...
 
@@ -452,37 +454,10 @@ public:
     };
 };
 
-class spell_parasitic_infection : public SpellScriptLoader
-{
-public:
-    spell_parasitic_infection() : SpellScriptLoader("spell_parasitic_infection") { }
-
-    class spell_parasitic_infection_AuraScript : public AuraScript
-    {
-        PrepareAuraScript(spell_parasitic_infection_AuraScript);
-
-        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            if(Unit * caster = GetCaster())
-                caster->CastSpell(caster, 77973, true);
-        }
-
-        void Register()
-        {
-            OnEffectRemove += AuraEffectRemoveFn(spell_parasitic_infection_AuraScript::OnRemove, EFFECT_2, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_DEFAULT);
-        }
-    };
-
-    AuraScript* GetAuraScript() const
-    {
-        return new spell_parasitic_infection_AuraScript();
-    }
-};
-
 void AddSC_boss_magmaw()
 {
     new boss_magmaw();
     new mob_magmaws_head();
     new mob_pillar_of_flame_trigger();
-    new spell_parasitic_infection();
+    new npc_lava_parasite();
 }

@@ -59,6 +59,7 @@ EndContentData */
 #include "CellImpl.h"
 #include "SpellAuras.h"
 #include "Pet.h"
+#include "AchievementMgr.h"
 
 /*########
 # npc_air_force_bots
@@ -3778,6 +3779,103 @@ public:
     }
 };
 
+/*******      MIDSUMMER FESTIVAL TALESPINNER    *******/
+/******* ACHIEVEMENT: KING OF THE FIRE FESTIVAL *******/
+
+#define GOSSIP_TALESPINNER_QUEST "QUEST: A Thief's Reward"
+#define GOSSIP_TALESPINNER_ACHIEVEMENT "I'm The King Of The Fire Festival!"
+
+enum TaleSpinnerData
+{
+    QUEST_FLAME_ORGRIMMAR    = 9324     ,                           
+    QUEST_FLAME_THUNDERBLUFF = 9325     ,
+    QUEST_FLAME_SILVERMOON   = 11935    ,
+    QUEST_FLAME_UNDERCITY    = 9326     ,
+    QUEST_FLAME_STORMWIND    = 9330     ,
+    QUEST_FLAME_IRONFORGE    = 9331     ,
+    QUEST_FLAME_DARNASSUS    = 9332     ,
+    QUEST_FLAME_EXODAR       = 11933    ,
+    QUEST_THIEF_REWARD_HORDE = 9339     ,
+    QUEST_THIEF_REWARD_ALLY  = 9365     ,
+    ACHI_FESTIVAL_KING       = 1145
+};
+
+class npc_festival_talespinner : public CreatureScript
+{
+public:
+    npc_festival_talespinner() : CreatureScript("npc_festival_talespinner") { }
+
+    bool OnGossipHello(Player* player, Creature* creature)
+    {
+        // Do le quest standard (definite sul db)
+        if (creature->isQuestGiver())
+            player->PrepareQuestMenu(creature->GetGUID());
+
+        // THIEF'S REWARD (HORDE)
+        if(player->GetTeamId() == TEAM_HORDE){            
+            if (player->GetQuestStatus(QUEST_FLAME_STORMWIND) == QUEST_STATUS_REWARDED && 
+                player->GetQuestStatus(QUEST_FLAME_DARNASSUS) == QUEST_STATUS_REWARDED &&
+                player->GetQuestStatus(QUEST_FLAME_IRONFORGE) == QUEST_STATUS_REWARDED &&
+                player->GetQuestStatus(QUEST_FLAME_EXODAR) == QUEST_STATUS_REWARDED &&
+                player->GetQuestStatus(QUEST_THIEF_REWARD_HORDE) != QUEST_STATUS_REWARDED){
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TALESPINNER_QUEST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+            }                
+        }
+
+        // THIEF'S REWARD (ALLIANCE)
+        if(player->GetTeamId() == TEAM_ALLIANCE){
+            if (player->GetQuestStatus(QUEST_FLAME_ORGRIMMAR) == QUEST_STATUS_REWARDED && 
+                player->GetQuestStatus(QUEST_FLAME_UNDERCITY) == QUEST_STATUS_REWARDED &&
+                player->GetQuestStatus(QUEST_FLAME_SILVERMOON) == QUEST_STATUS_REWARDED &&
+                player->GetQuestStatus(QUEST_FLAME_THUNDERBLUFF) == QUEST_STATUS_REWARDED &&
+                player->GetQuestStatus(QUEST_THIEF_REWARD_ALLY) != QUEST_STATUS_REWARDED){
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TALESPINNER_QUEST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
+            } 
+        }
+
+        // Con thief's reward completato, se non ho l'achievement, devo poterlo prendere
+        // (ho verificato e lo da al completamento della quest, ma meglio essere sicuri!)
+        if ((player->GetQuestStatus(QUEST_THIEF_REWARD_ALLY) == QUEST_STATUS_REWARDED   || 
+             player->GetQuestStatus(QUEST_THIEF_REWARD_HORDE) == QUEST_STATUS_REWARDED) &&
+            !player->HasAchieved(ACHI_FESTIVAL_KING)){
+
+            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TALESPINNER_ACHIEVEMENT, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
+        }
+
+        player->SEND_GOSSIP_MENU(player->GetGossipTextId(creature), creature->GetGUID());
+
+        return true;
+    }
+
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 action)
+    {
+        player->PlayerTalkClass->ClearMenus();
+        Quest const* questhorde = sObjectMgr->GetQuestTemplate(QUEST_THIEF_REWARD_HORDE);
+        Quest const* questally = sObjectMgr->GetQuestTemplate(QUEST_THIEF_REWARD_ALLY);
+        AchievementEntry const* festivalking = sAchievementMgr->GetAchievement(ACHI_FESTIVAL_KING);
+        switch (action)
+        {
+            case GOSSIP_ACTION_INFO_DEF + 1:
+                player->AddQuest(questhorde,creature);
+                creature->MonsterSay("Check your quest log!",LANG_UNIVERSAL,player->GetGUID());
+                player->CLOSE_GOSSIP_MENU();
+                break;
+            case GOSSIP_ACTION_INFO_DEF + 2:
+                player->AddQuest(questally,creature);
+                creature->MonsterSay("Check your quest log!",LANG_UNIVERSAL,player->GetGUID());
+                player->CLOSE_GOSSIP_MENU();
+                break;
+            case GOSSIP_ACTION_INFO_DEF + 3:
+                player->CLOSE_GOSSIP_MENU();
+                player->CompletedAchievement(festivalking);
+                break;
+        }
+        return true;
+    }
+};
+
+
+
 void AddSC_npcs_special()
 {
     new npc_air_force_bots();
@@ -3817,4 +3915,5 @@ void AddSC_npcs_special()
     new npc_shadowy_apparition();
     new npc_flaming_orb();
 	new npc_ring_of_frost;
+    new npc_festival_talespinner();
 }

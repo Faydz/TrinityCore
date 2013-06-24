@@ -3085,6 +3085,17 @@ void Spell::prepare(SpellCastTargets const* targets, AuraEffect const* triggered
         m_caster->ToPlayer()->SetSpellModTakingSpell(this, true);
     // calculate cast time (calculated after first CheckCast check to prevent charge counting for first CheckCast fail)
     m_casttime = m_spellInfo->CalcCastTime(m_caster, this);
+
+    // DK's Dark Simulacrum Hackfix.
+    // Copied spell always has to be instant cast
+    if(AuraEffect* aurEff = m_caster->GetAuraEffect(77616, EFFECT_0))
+    {
+        if(m_spellInfo->Id == aurEff->GetAmount())
+        {
+            m_casttime = 0;
+        }
+    }
+
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
     {
         m_caster->ToPlayer()->SetSpellModTakingSpell(this, false);
@@ -4695,6 +4706,17 @@ void Spell::TakeRunePower(bool didHit)
                     break;
             }
         }
+    }
+    
+    // Not all spells have to generate Runic Power
+    switch(GetSpellInfo()->Id)
+    {
+        case 49184:
+            if(m_caster->HasAura(59052))
+            {
+                didHit = false;
+            }
+            break;
     }
 
     // you can gain some runic power when use runes

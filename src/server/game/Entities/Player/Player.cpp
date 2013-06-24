@@ -5966,6 +5966,11 @@ void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
 {
     m_baseRatingValue[cr] +=(apply ? value : -value);
     UpdateRating(cr);
+    
+    // Even the pet gets 100% benefit from master's haste/hit
+    Pet* pet = GetPet();
+    if (pet)
+        pet->ApplyRatingMod(cr, value * GetRatingMultiplier(cr), apply);
 
     // explicit affected values
     switch (cr)
@@ -7091,6 +7096,8 @@ void Player::RewardReputation(Unit* victim, float rate)
 
     ReputationOnKillEntry const* Rep = sObjectMgr->GetReputationOnKilEntry(victim->ToCreature()->GetCreatureTemplate()->Entry);
 
+    ReputationOnKillEntry const* addRep = NULL;
+
     // All mob in level 85 dungeons give championing reputation && All bosses give guild reputation
     if (!Rep)
     {
@@ -7109,9 +7116,9 @@ void Player::RewardReputation(Unit* victim, float rate)
                 if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 1000000)
                 {
                     if (!map->IsHeroic())
-                        Rep = sObjectMgr->GetReputationOnKilEntry(43438);
+                        addRep = sObjectMgr->GetReputationOnKilEntry(43438);
                     else
-                        Rep = sObjectMgr->GetReputationOnKilEntry(49642);
+                        addRep = sObjectMgr->GetReputationOnKilEntry(49642);
                 }
             }
         }
@@ -7165,6 +7172,30 @@ void Player::RewardReputation(Unit* victim, float rate)
         uint32 current_reputation_rank2 = GetReputationMgr().GetRank(factionEntry2);
         if (factionEntry2 && current_reputation_rank2 <= Rep->ReputationMaxCap2)
             GetReputationMgr().ModifyReputation(factionEntry2, donerep2);
+    }
+
+    // Give Additional Rep
+    if (addRep)
+    {
+        if (addRep->RepFaction1)
+        {
+            int32 donerep1 = CalculateReputationGain(REPUTATION_SOURCE_KILL, victim->getLevel(), addRep->RepValue1, addRep->RepFaction1);
+            donerep1 = int32(donerep1 * rate);
+            FactionEntry const* factionEntry1 = sFactionStore.LookupEntry(addRep->RepFaction1);
+            uint32 current_reputation_rank1 = GetReputationMgr().GetRank(factionEntry1);
+            if (factionEntry1 && current_reputation_rank1 <= addRep->ReputationMaxCap1)
+                GetReputationMgr().ModifyReputation(factionEntry1, donerep1);
+        }
+
+        if (addRep->RepFaction2)
+        {
+            int32 donerep2 = CalculateReputationGain(REPUTATION_SOURCE_KILL, victim->getLevel(), addRep->RepValue2, addRep->RepFaction2);
+            donerep2 = int32(donerep2 * rate);
+            FactionEntry const* factionEntry2 = sFactionStore.LookupEntry(addRep->RepFaction2);
+            uint32 current_reputation_rank2 = GetReputationMgr().GetRank(factionEntry2);
+            if (factionEntry2 && current_reputation_rank2 <= addRep->ReputationMaxCap2)
+                GetReputationMgr().ModifyReputation(factionEntry2, donerep2);
+        }
     }
 }
 
@@ -8247,6 +8278,10 @@ void Player::DuelComplete(DuelCompleteType type)
 
     sScriptMgr->OnPlayerDuelEnd(duel->opponent, this, type);
 
+    // Resets stats and cooldown on duel complete
+    ResetDuelStatsAndCooldown();
+    duel->opponent->ResetDuelStatsAndCooldown();
+
     switch (type)
     {
         case DUEL_FLED:
@@ -8333,6 +8368,67 @@ void Player::DuelComplete(DuelCompleteType type)
     duel->opponent->duel = NULL;
     delete duel;
     duel = NULL;
+}
+
+void Player::ResetDuelStatsAndCooldown()
+{
+    // Cooldown
+    RemoveAllSpellCooldown();
+    
+    // Health
+    SetHealth(GetMaxHealth());
+    
+
+    Powers power = getPowerType();
+    
+    // Reset pet stats
+    if(Pet* pet = GetPet())
+    {
+        // Health
+        pet->SetHealth(pet->GetMaxHealth());
+
+        // Power
+        Powers petpower = pet->getPowerType();
+        pet->SetPower(petpower, pet->GetMaxPower(power));
+    }
+
+    // Multiple power for druid, not handled in the switch
+    if(getClass() == CLASS_DRUID)
+    {
+        SetPower(POWER_MANA, GetMaxPower(POWER_MANA));
+        SetPower(POWER_ENERGY, GetMaxPower(POWER_ENERGY));
+        SetPower(POWER_RAGE, 0);
+        SetPower(POWER_ECLIPSE, 0);
+
+        return;
+    }
+
+    // Power
+    switch(power)
+    {
+        case POWER_ENERGY:
+        case POWER_MANA:
+            SetPower(power, GetMaxPower(power));
+
+            switch(getClass())
+            {
+                case CLASS_PALADIN:
+                    SetPower(POWER_HOLY_POWER, 0);
+                    break;
+                case CLASS_WARLOCK:
+                    // Energizes 3 Soul Shard
+                    CastSpell(this, 95810);
+                    break;
+            }
+            break;
+        case POWER_FOCUS:
+            SetPower(power, GetMaxPower(power));
+            break;
+        case POWER_RAGE:
+        case POWER_RUNIC_POWER:
+            SetPower(power, 0);
+            break;
+    }
 }
 
 //---------------------------------------------------------//
@@ -22277,11 +22373,30 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
                 continue;
 
             count = iece->RequiredCurrencyCount[i];
+
+            // Check if we are above the cap
+            uint32 cap = GetCurrencyWeekCap(proto);
+            uint32 totalCap = proto->TotalCap;
+
+            // Check Week Cap
+            if (cap > 0 && (GetCurrencyOnWeek(currency, true) + count) > cap)
+            {
+                SendBuyError(BUY_ERR_CANT_FIND_ITEM, NULL, currency, 0);	
+                return false;
+            }
+
+            // Check total cap
+            if (totalCap > 0 && (GetCurrency(currency, false)) > totalCap)
+            {
+                SendBuyError(BUY_ERR_CANT_FIND_ITEM, NULL, currency, 0);	
+                return false;
+            }
+
             ModifyCurrency(iece->RequiredCurrency[i], -int32(count), false, true);
         }
     }
 
-    ModifyCurrency(currency, count, true, true, false, true);
+    ModifyCurrency(currency, count, true, true, false, false);
     return true;
 }
 
@@ -23501,6 +23616,24 @@ void Player::SendInitialPacketsBeforeAddToMap()
     // SMSG_UPDATE_AURA_DURATION
 
     SendTalentsInfoData(false);
+
+    data.Initialize(SMSG_WORLD_SERVER_INFO, 1 + 1 + 4 + 4);
+    data.WriteBit(0);                                               // HasRestrictedLevel
+    data.WriteBit(0);                                               // HasRestrictedMoney
+    data.WriteBit(0);                                               // IneligibleForLoot
+    data.FlushBits();
+    //if (IneligibleForLoot)
+    //    data << uint32(0);                                        // EncounterMask
+
+    data << uint8(0);                                               // IsOnTournamentRealm
+    //if (HasRestrictedMoney)
+    //    data << uint32(100000);                                   // RestrictedMoney (starter accounts)
+    //if (HasRestrictedLevel)
+    //    data << uint32(20);                                       // RestrictedLevel (starter accounts)
+
+    data << uint32(sWorld->GetNextWeeklyQuestsResetTime() - WEEK);  // LastWeeklyReset (not instance reset)
+    data << uint32(GetMap()->GetDifficulty());
+    GetSession()->SendPacket(&data);
 
     SendInitialSpells();
 

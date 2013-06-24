@@ -60,6 +60,50 @@ enum HunterSpells
     SPELL_DRAENEI_GIFT_OF_THE_NAARU                 = 59543,
 };
 
+// 53476 - pet intervene
+class spell_hun_pet_intervene : public SpellScriptLoader 
+{
+    public:
+        spell_hun_pet_intervene() : SpellScriptLoader("spell_hun_pet_intervene") { }
+
+        class spell_hun_pet_intervene_AuraScript: public AuraScript
+        {
+            PrepareAuraScript(spell_hun_pet_intervene_AuraScript);
+
+            void OnEffectCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = false;
+
+                if(Unit* caster = GetCaster())
+                {
+                    amount = CalculatePct(caster->GetMaxHealth(), 50);
+                }
+            }
+            
+            void function (AuraEffect* aurEff, DamageInfo& /*dmgInfo*/, uint32& /*absorbAmount*/)
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetTarget();
+
+                if(caster && target)
+                {
+                    target->RemoveAura(GetId(), caster->GetGUID());
+                }
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_hun_pet_intervene_AuraScript::OnEffectCalcAmount, EFFECT_1, SPELL_AURA_SCHOOL_ABSORB);
+                AfterEffectAbsorb += AuraEffectAbsorbFn(spell_hun_pet_intervene_AuraScript::function, EFFECT_1);
+            }
+        };
+
+        AuraScript* GetAuraScript() const 
+        {
+            return new spell_hun_pet_intervene_AuraScript();
+        }
+};
+
 // 34490 - Silencing Shot
 class spell_hun_silencing_shot : public SpellScriptLoader
 {
@@ -1226,6 +1270,7 @@ class spell_hun_multi_shot : public SpellScriptLoader
 
 void AddSC_hunter_spell_scripts()
 {
+    new spell_hun_pet_intervene();
     new spell_hun_silencing_shot();
     new spell_hun_aspect_of_the_beast();
     new spell_hun_ascpect_of_the_viper();

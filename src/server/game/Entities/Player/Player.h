@@ -1938,6 +1938,7 @@ class Player : public Unit, public GridObject<Player>
         void UpdateDuelFlag(time_t currTime);
         void CheckDuelDistance(time_t currTime);
         void DuelComplete(DuelCompleteType type);
+        void ResetDuelStatsAndCooldown();
         void SendDuelCountdown(uint32 counter);
 
         bool IsGroupVisibleFor(Player const* p) const;
@@ -2033,6 +2034,7 @@ class Player : public Unit, public GridObject<Player>
 
         void UpdateAllSpellCritChances();
         void UpdateSpellCritChance(uint32 school);
+        float GetTotalSpellCritChanceOnTarget(SpellSchoolMask schoolMask, Unit* victim);
         void UpdateArmorPenetration(int32 amount);
         void UpdateExpertise(WeaponAttackType attType);
         void ApplyManaRegenBonus(int32 amount, bool apply);
@@ -2203,6 +2205,8 @@ class Player : public Unit, public GridObject<Player>
         {
             switch(GetPrimaryTalentTree(GetActiveSpec()))
             {
+                case BS_MAGE_FIRE:
+                    return 7.86f;
                 case BS_MAGE_FROST:
                 case BS_WARRIOR_FURY:
                     return 2.0f;

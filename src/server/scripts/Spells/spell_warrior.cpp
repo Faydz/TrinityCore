@@ -733,7 +733,10 @@ class spell_warr_intimidating_shout : public SpellScriptLoader
 
             void FilterTargets(std::list<WorldObject*>& unitList)
             {
-                unitList.remove(GetExplTargetWorldObject());
+                if(GetExplTargetWorldObject())
+                {
+                    unitList.remove(GetExplTargetWorldObject());
+                }
             }
 
             void Register()

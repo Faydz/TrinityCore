@@ -203,6 +203,7 @@ void AddSC_boss_kirtonos_the_herald();
 void AddSC_instance_scholomance();
 void AddSC_shadowfang_keep();                //Shadowfang keep
 void AddSC_instance_shadowfang_keep();
+void AddSC_boss_baron_ashbury(); 
 void AddSC_boss_magistrate_barthilas();      //Stratholme
 void AddSC_boss_maleki_the_pallid();
 void AddSC_boss_nerubenkan();
@@ -597,6 +598,7 @@ void AddSC_boss_nethermancer_sepethrea();
 void AddSC_boss_pathaleon_the_calculator();
 void AddSC_boss_mechano_lord_capacitus();
 void AddSC_instance_mechanar();
+void AddSC_boss_ahune();                     //Ahune Midsummer
 
 void AddSC_blades_edge_mountains();
 void AddSC_boss_doomlordkazzak();
@@ -920,6 +922,7 @@ void AddEasternKingdomsScripts()
     AddSC_instance_scholomance();
     AddSC_shadowfang_keep();                //Shadowfang keep
     AddSC_instance_shadowfang_keep();
+    AddSC_boss_baron_ashbury();
     AddSC_boss_magistrate_barthilas();      //Stratholme
     AddSC_boss_maleki_the_pallid();
     AddSC_boss_nerubenkan();
@@ -1164,6 +1167,7 @@ void AddOutlandScripts()
     AddSC_boss_pathaleon_the_calculator();
     AddSC_boss_mechano_lord_capacitus();
     AddSC_instance_mechanar();
+    AddSC_boss_ahune();                     //Ahune Midsummer
 
     AddSC_blades_edge_mountains();
     AddSC_boss_doomlordkazzak();

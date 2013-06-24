@@ -20,3 +20,4 @@ Questo documento tiene traccia delle ottimizzazioni da fare una volta stabilizza
 11 Riabilitare la spell Wild Mushroom e fixare il crash che ne consegue, quando utilizzata.
 12 Migliorare la gestione del filtro dei target in stealth per gli script Multi Shot e Holy Wrath
 13 Gestire il caso in cui un player e una unit (es. manichino) si sovrappongono e sono sotto Ring of Frost. Il fix temporaneo riduce questo bug a verificarsi solo quando un player e un non-player si sovrappongono grazie a spellInfo->Effects[EFFECT_0].MaxRadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_0_YARDS); (82691)
+14 Nella funzione Player::ResetDuelStatsAndCooldown, il SetPower non aggiorna graficamente il power effettivo. Questo bug si verifica per POWER_RUNIC_POWER, POWER_FOCUS e POWER_RAGE (solo Warrior). Il bug si ripropone in altre chiamate del SetPower, eccezione fatta per quelle negli script, dove funziona correttamente.

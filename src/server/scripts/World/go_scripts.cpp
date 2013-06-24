@@ -57,6 +57,7 @@ EndContentData */
 #include "Spell.h"
 #include "Player.h"
 #include "WorldSession.h"
+#include "AchievementMgr.h"
 
 /*######
 ## go_cat_figurine
@@ -1366,6 +1367,103 @@ public:
     }
 };
 
+/*######
+## go_ribbon_pole
+######*/
+
+enum RibbonPoleData
+{
+    SPELL_HAS_FULL_MIDSUMMER_SET        = 58933,
+};
+
+class go_ribbon_pole : public GameObjectScript
+{
+public:
+    go_ribbon_pole() : GameObjectScript("go_ribbon_pole") { }
+
+    bool OnGossipHello(Player* player, GameObject* go)
+    {
+        if(player){
+            if(player->HasAchieved(271)){
+                return true;
+            }
+
+            if(player->HasAura(SPELL_HAS_FULL_MIDSUMMER_SET)){
+                AchievementEntry const* burningpoledancer = sAchievementMgr->GetAchievement(271);
+                // reward achievement criteria
+                player->CompletedAchievement(burningpoledancer);
+                return true;
+            }
+        }
+        return true;
+    }
+};
+
+
+enum CapitalFlamesData
+{
+    GO_FLAME_EXODAR           = 188128,
+    GO_FLAME_STORMWIND        = 181332,
+    GO_FLAME_IRONFORGE        = 181333,
+    GO_FLAME_DARNASSUS        = 181334,
+    GO_FLAME_SILVERMOON       = 188129,
+    GO_FLAME_UNDERCITY        = 181335,
+    GO_FLAME_ORGRIMMAR        = 181336,
+    GO_FLAME_THUNDERBLUFF     = 181337
+};
+
+enum SpellFlameData
+{
+    SPELL_FLAME_EXODAR           = 46690,
+    SPELL_FLAME_STORMWIND        = 29101,
+    SPELL_FLAME_IRONFORGE        = 29102,
+    SPELL_FLAME_DARNASSUS        = 29099,
+    SPELL_FLAME_SILVERMOON       = 46689,
+    SPELL_FLAME_UNDERCITY        = 29133,
+    SPELL_FLAME_ORGRIMMAR        = 29130,
+    SPELL_FLAME_THUNDERBLUFF     = 29132
+};
+
+class go_capital_flame : public GameObjectScript
+{
+public:
+    go_capital_flame() : GameObjectScript("go_capital_flame") { }
+
+    bool OnGossipHello(Player* player, GameObject* go)
+    {
+        if(player){
+
+            if(player->HasAchieved(1145)){
+                return true;
+            }
+            
+            // HORDE PART
+            if(player->GetTeamId() == TEAM_HORDE){
+                if(go->GetEntry() == GO_FLAME_IRONFORGE)
+                    player->CastSpell(player,SPELL_FLAME_IRONFORGE);
+                if(go->GetEntry() == GO_FLAME_STORMWIND)
+                    player->CastSpell(player,SPELL_FLAME_STORMWIND);
+                if(go->GetEntry() == GO_FLAME_DARNASSUS)
+                    player->CastSpell(player,SPELL_FLAME_DARNASSUS);
+                if(go->GetEntry() == GO_FLAME_EXODAR)
+                    player->CastSpell(player,SPELL_FLAME_EXODAR);
+            }
+            // ALLIANCE PART
+            if(player->GetTeamId() == TEAM_ALLIANCE){
+                if(go->GetEntry() == GO_FLAME_ORGRIMMAR)
+                    player->CastSpell(player,SPELL_FLAME_ORGRIMMAR);
+                if(go->GetEntry() == GO_FLAME_UNDERCITY)
+                    player->CastSpell(player,SPELL_FLAME_UNDERCITY);
+                if(go->GetEntry() == GO_FLAME_SILVERMOON)
+                    player->CastSpell(player,SPELL_FLAME_SILVERMOON);
+                if(go->GetEntry() == GO_FLAME_THUNDERBLUFF)
+                    player->CastSpell(player,SPELL_FLAME_THUNDERBLUFF);
+            }
+        }
+        return true;
+    }
+};
+
 void AddSC_go_scripts()
 {
     new go_cat_figurine;
@@ -1408,4 +1506,6 @@ void AddSC_go_scripts()
     new go_veil_skith_cage;
     new go_frostblade_shrine;
     new go_midsummer_bonfire;
+    new go_ribbon_pole;
+    new go_capital_flame;
 }

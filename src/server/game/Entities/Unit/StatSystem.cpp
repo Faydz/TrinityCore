@@ -644,6 +644,23 @@ void Player::UpdateSpellCritChance(uint32 school)
     SetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1 + school, crit);
 }
 
+float Player::GetTotalSpellCritChanceOnTarget(SpellSchoolMask schoolMask, Unit* victim)
+{
+    // For normal school set zero crit chance
+    if (schoolMask == SPELL_SCHOOL_MASK_NORMAL || victim == NULL)
+    {
+        return 0.0f;
+    }
+
+    float crit_chance = GetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1 + GetFirstSchoolInMask(schoolMask));
+    // Modify critical chance by victim SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE
+    crit_chance += victim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE, schoolMask);
+    // Modify critical chance by victim SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE
+    crit_chance += victim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE);
+
+    return crit_chance;
+}
+
 void Player::UpdateArmorPenetration(int32 amount)
 {
     // Store Rating Value
@@ -1132,9 +1149,61 @@ void Guardian::UpdateArmor()
 
     // hunter pets gain 35% of owner's armor value, warlock pets gain 100% of owner's armor
     if (isHunterPet())
-        bonus_armor = float(CalculatePct(m_owner->GetArmor(), 70));
-    else if (isPet())
+    {
+        int pct = 50;
+
+        // Looks for creature template
+        if(CreatureTemplate const* cinfo = GetCreatureTemplate())
+        {
+            // Checks the pet talent type
+            CreatureFamilyEntry const* pet_family = sCreatureFamilyStore.LookupEntry(cinfo->family);
+            if (pet_family)
+            {
+                switch(pet_family->petTalentType)
+                {
+                    // Ferocity
+                    case 0:
+                        pct = 50;
+                        break;
+                    // Tenacity
+                    case 1:
+                        pct = 70;
+                        break;
+                    // Cunning
+                    case 2:
+                        pct = 60;
+                        break;
+                }
+            }
+        }
+
+        bonus_armor = float(CalculatePct(m_owner->GetArmor(), pct));
+    }
+    else if (isPet() && !IsPetGhoul())
+    {
         bonus_armor = m_owner->GetArmor();
+
+        switch(m_owner->getClass())
+        {
+            case CLASS_SHAMAN:
+            case CLASS_MAGE:
+            case CLASS_WARLOCK:
+                bonus_armor = CalculatePct(m_owner->GetArmor(), 35);
+                break;
+        }
+    }
+    else
+    {
+        if(m_owner)
+        {
+            switch(m_owner->getClass())
+            {
+                case CLASS_SHAMAN:
+                    bonus_armor = CalculatePct(m_owner->GetArmor(), 35);
+                    break;
+            }
+        }
+    }
 
     value  = GetModifierValue(unitMod, BASE_VALUE);
     value *= GetModifierValue(unitMod, BASE_PCT);
@@ -1201,7 +1270,8 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
         return;
 
     float val = 0.0f;
-    float bonusAP = 0.0f;
+    // Base attack power is fixed for every pet
+    float bonusAP = 932.0f;
     UnitMods unitMod = UNIT_MOD_ATTACK_POWER;
 
     if (GetEntry() == ENTRY_IMP)                                   // imp's attack power
@@ -1214,21 +1284,21 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
     {
         if (isHunterPet())                      //hunter pets benefit from owner's attack power
         {
-            float mod = 1.0f;                                                 //Hunter contribution modifier
-            bonusAP = owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.22f * mod;
-            SetBonusDamage(int32(owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.1287f * mod));
+            float mod = 0.425f;                                                 //Hunter contribution modifier
+            bonusAP += owner->GetTotalAttackPowerValue(RANGED_ATTACK) * mod;
+            SetBonusDamage(int32(owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.1287f));
         }
         else if (IsPetGhoul()) //ghouls benefit from deathknight's attack power (may be summon pet or not)
         {
-            bonusAP = owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.22f;
+            bonusAP += owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.12f;
             SetBonusDamage(int32(owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.1287f));
         }
         else if (IsSpiritWolf()) //wolf benefit from shaman's attack power
         {
-            float dmg_multiplier = 0.31f;
+            float dmg_multiplier = 0.50f;
             if (m_owner->GetAuraEffect(63271, 0)) // Glyph of Feral Spirit
-                dmg_multiplier = 0.61f;
-            bonusAP = owner->GetTotalAttackPowerValue(BASE_ATTACK) * dmg_multiplier;
+                dmg_multiplier = 0.80f;
+            bonusAP += owner->GetTotalAttackPowerValue(BASE_ATTACK) * dmg_multiplier;
             SetBonusDamage(int32(owner->GetTotalAttackPowerValue(BASE_ATTACK) * dmg_multiplier));
         }
         //demons benefit from warlocks shadow or fire damage
@@ -1240,7 +1310,7 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
             if (maximum < 0)
                 maximum = 0;
             SetBonusDamage(int32(maximum * 0.15f));
-            bonusAP = maximum * 0.57f;
+            bonusAP += maximum * 0.57f;
         }
         //water elementals benefit from mage's frost damage
         else if (GetEntry() == ENTRY_WATER_ELEMENTAL)
@@ -1323,6 +1393,44 @@ void Guardian::UpdateDamagePhysical(WeaponAttackType attType)
 
     SetStatFloatValue(UNIT_FIELD_MINDAMAGE, mindamage);
     SetStatFloatValue(UNIT_FIELD_MAXDAMAGE, maxdamage);
+}
+
+void Guardian::InitRating(CombatRating cr)
+{
+    Unit* owner = GetOwner();
+    
+    if(Player* player = owner->ToPlayer())
+    {
+        ApplyRatingMod(cr, player->GetRatingBonusValue(cr), true);
+    }
+}
+
+void Guardian::ApplyRatingMod(CombatRating cr, float ratingChange, bool apply)
+{
+    switch (cr)
+    {
+        case CR_HASTE_MELEE:
+            ApplyAttackTimePercentMod(BASE_ATTACK, ratingChange, apply);
+            ApplyAttackTimePercentMod(OFF_ATTACK, ratingChange, apply);
+            break;
+        case CR_HASTE_RANGED:
+            ApplyAttackTimePercentMod(RANGED_ATTACK, ratingChange, apply);
+            break;
+        case CR_HASTE_SPELL:
+            ApplyCastTimePercentMod(ratingChange, apply);
+            break;
+        case CR_HIT_MELEE:
+            m_modMeleeHitChance += (apply ? ratingChange : -ratingChange);
+            break;
+        case CR_HIT_RANGED:
+            m_modRangedHitChance += (apply ? ratingChange : -ratingChange);
+            break;
+        case CR_HIT_SPELL:
+            m_modSpellHitChance += (apply ? ratingChange : -ratingChange);
+            break;
+        default:
+            break;
+    }
 }
 
 void Guardian::SetBonusDamage(int32 damage)

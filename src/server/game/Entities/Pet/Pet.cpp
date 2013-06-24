@@ -865,7 +865,8 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
     {
         if (GetOwner()->getClass() == CLASS_WARLOCK
                 || GetOwner()->getClass() == CLASS_SHAMAN        // Fire Elemental
-                || GetOwner()->getClass() == CLASS_DEATH_KNIGHT) // Risen Ghoul
+                || GetOwner()->getClass() == CLASS_DEATH_KNIGHT // Risen Ghoul
+                || GetOwner()->getClass() == CLASS_MAGE)        // Water Elemental
         {
             petType = SUMMON_PET;
         }
@@ -987,7 +988,6 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
             {
                 case 510: // mage Water Elemental
                 {
-                    SetCreateHealth(fixedHp);
                     SetCreateStat(STAT_STAMINA, float(GetOwner()->GetStat(STAT_STAMINA)) * 0.78f);
 
                     SetBonusDamage(int32(GetOwner()->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FROST) * 0.33f));
@@ -1098,6 +1098,16 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
     }
 
     UpdateAllStats();
+
+    // Haste
+    InitRating(CR_HASTE_MELEE);
+    InitRating(CR_HASTE_RANGED);
+    InitRating(CR_HASTE_SPELL);
+
+    // Hit
+    InitRating(CR_HIT_MELEE);
+    InitRating(CR_HIT_RANGED);
+    InitRating(CR_HIT_SPELL);
 
     SetFullHealth();
     SetPower(POWER_MANA, GetMaxPower(POWER_MANA));

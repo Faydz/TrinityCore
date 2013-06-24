@@ -110,7 +110,7 @@ class spell_dk_necrotic_strike : public SpellScriptLoader
                     int32 toAdd = caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.70f;
 
                     // Amount absorbed scales with resilience
-                    toAdd -= target->GetDamageReduction(amount);
+                    toAdd -= target->GetDamageReduction(toAdd);
 
                     amount = necroAmount + toAdd;
                 }
@@ -307,11 +307,17 @@ class spell_dk_anti_magic_shell_self : public SpellScriptLoader
 
             void Trigger(AuraEffect* aurEff, DamageInfo & /*dmgInfo*/, uint32 & absorbAmount)
             {
-                Unit* target = GetTarget();
-                // damage absorbed by Anti-Magic Shell energizes the DK with additional runic power.
-                // This, if I'm not mistaken, shows that we get back ~20% of the absorbed damage as runic power.
-                int32 bp = absorbAmount * 2 / 10;
-                target->CastCustomSpell(target, SPELL_DK_RUNIC_POWER_ENERGIZE, &bp, NULL, NULL, true, NULL, aurEff);
+                if(Unit* target = GetTarget())
+                {
+                    // Not using IconID here because Magic Suppression IconID is not unique for DKs
+                    if(target->HasAura(49224) || target->HasAura(49610) || target->HasAura(49611))
+                    {
+                        // damage absorbed by Anti-Magic Shell energizes the DK with additional runic power.
+                        // This, if I'm not mistaken, shows that we get back ~20% of the absorbed damage as runic power.
+                        int32 bp = absorbAmount * 2 / 10;
+                        target->CastCustomSpell(target, SPELL_DK_RUNIC_POWER_ENERGIZE, &bp, NULL, NULL, true, NULL, aurEff);
+                    }
+                }
             }
 
             void Register()

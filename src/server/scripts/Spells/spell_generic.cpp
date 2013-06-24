@@ -36,6 +36,7 @@
 #include "SkillDiscovery.h"
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
+#include "AchievementMgr.h"
 
 class spell_gen_absorb0_hitlimit1 : public SpellScriptLoader
 {
@@ -3769,6 +3770,7 @@ public:
             return new spell_gen_forged_fury_SpellScript();
         }
 };
+
 
 void AddSC_generic_spell_scripts()
 {
