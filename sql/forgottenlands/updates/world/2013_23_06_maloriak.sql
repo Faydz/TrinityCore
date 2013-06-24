@@ -25,7 +25,7 @@ UPDATE `creature_template` SET `difficulty_entry_1`=49975, `difficulty_entry_2`=
 UPDATE `creature_template` SET `minlevel`=88, `maxlevel`=88, `exp`=3, `faction_A`=16, `faction_H`=16, `mindmg`=1225.5, `maxdmg`=1544.7, `attackpower`=1651, `dmg_multiplier`=3, `baseattacktime`=2000, `rangeattacktime`=2000, `minrangedmg`=1160.9, `maxrangedmg`=1328.1, `rangedattackpower`=225 WHERE  `entry` IN (49975, 49981, 49987);
 
 DELETE FROM `creature` WHERE `id` IN (41377);
-INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
+INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
 (41377, 669, 15, 1, 0, 0, -105.836, -485.849, 81.8197, 2.16662, 300, 0, 0, 5808, 0, 0, 0, 0, 0);
 
 UPDATE `creature_template` SET `exp`=3, `faction_A`=16, `faction_H`=16, `Health_mod`=10000, `flags_extra`=2 WHERE  `entry`=41377 LIMIT 1;
