@@ -628,7 +628,7 @@ public:
             switch (summon->GetEntry())
             {
                 case 42934:
-                    DoZoneInCombat(summon);
+                    summon->SetReactState(REACT_PASSIVE);
                     summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_DISABLE_MOVE);
                     summon->AddAura(80162, summon);
                     break;
@@ -738,7 +738,8 @@ public:
                 {
                     puddle->SetReactState(REACT_PASSIVE);
                     puddle->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_DISABLE_MOVE);
-                    puddle->AddAura(80095, puddle);
+                    if (!puddle->HasAura(80095))
+                        puddle->AddAura(80095, puddle);
                 }
                 me->DisappearAndDie();
             } else uiFixe -= uiDisappear;
