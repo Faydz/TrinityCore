@@ -3029,10 +3029,16 @@ void Unit::_AddAura(UnitAura* aura, Unit* caster)
     if (aura->IsRemoved())
         return;
 
-    aura->SetIsSingleTarget(caster && aura->GetSpellInfo()->IsSingleTarget());
+    aura->SetIsSingleTarget(caster && (aura->GetSpellInfo()->IsSingleTarget() || aura->HasEffectType(SPELL_AURA_CONTROL_VEHICLE)));
     if (aura->IsSingleTarget())
     {
-        ASSERT((IsInWorld() && !IsDuringRemoveFromWorld()) || (aura->GetCasterGUID() == GetGUID()));
+        ASSERT((IsInWorld() && !IsDuringRemoveFromWorld()) || (aura->GetCasterGUID() == GetGUID()) ||
+                (isBeingLoaded() && aura->HasEffectType(SPELL_AURA_CONTROL_VEHICLE)));
+                /* @HACK: Player is not in world during loading auras.
+                 *        Single target auras are not saved or loaded from database
+                 *        but may be created as a result of aura links (player mounts with passengers)
+                 */
+
         // register single target aura
         caster->GetSingleCastAuras().push_back(aura);
         // remove other single target auras
@@ -3040,7 +3046,7 @@ void Unit::_AddAura(UnitAura* aura, Unit* caster)
         for (Unit::AuraList::iterator itr = scAuras.begin(); itr != scAuras.end();)
         {
             if ((*itr) != aura &&
-                (*itr)->GetSpellInfo()->IsSingleTargetWith(aura->GetSpellInfo()))
+                (*itr)->IsSingleTargetWith(aura))
             {
                 (*itr)->Remove();
                 itr = scAuras.begin();
@@ -13200,7 +13206,7 @@ Player* Unit::GetSpellModOwner() const
 }
 
 ///----------Pet responses methods-----------------
-void Unit::SendPetCastFail(uint32 spellid, SpellCastResult result)
+void Unit::SendPetCastFail(uint8 castCount, SpellInfo const* spellInfo, SpellCastResult result)
 {
     if (result == SPELL_CAST_OK)
         return;
@@ -13209,11 +13215,7 @@ void Unit::SendPetCastFail(uint32 spellid, SpellCastResult result)
     if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
         return;
 
-    WorldPacket data(SMSG_PET_CAST_FAILED, 1 + 4 + 1);
-    data << uint8(0);                                       // cast count
-    data << uint32(spellid);
-    data << uint8(result);
-    owner->ToPlayer()->GetSession()->SendPacket(&data);
+    Spell::SendCastResult(owner->ToPlayer(), spellInfo, castCount, result, SPELL_CUSTOM_ERROR_NONE, SMSG_PET_CAST_FAILED);
 }
 
 void Unit::SendPetActionFeedback(uint8 msg)
@@ -14426,19 +14428,13 @@ void Unit::SetStunned(bool apply)
         SetTarget(0);
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
 
-        // MOVEMENTFLAG_ROOT cannot be used in conjunction with MOVEMENTFLAG_MASK_MOVING (tested 3.3.5a)
-        // this will freeze clients. That's why we remove MOVEMENTFLAG_MASK_MOVING before
-        // setting MOVEMENTFLAG_ROOT
-        RemoveUnitMovementFlag(MOVEMENTFLAG_MASK_MOVING);
-        AddUnitMovementFlag(MOVEMENTFLAG_ROOT);
-
         // Creature specific
         if (GetTypeId() != TYPEID_PLAYER)
             ToCreature()->StopMoving();
         else
             SetStandState(UNIT_STAND_STATE_STAND);
 
-        SendMoveRoot(0);
+        SetRooted(true);
 
         CastStop();
     }
@@ -14453,10 +14449,7 @@ void Unit::SetStunned(bool apply)
             RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
 
         if (!HasUnitState(UNIT_STATE_ROOT))         // prevent moving if it also has root effect
-        {
-            SendMoveUnroot(0);
-            RemoveUnitMovementFlag(MOVEMENTFLAG_ROOT);
-        }
+            SetRooted(false);
     }
 }
 
@@ -16690,7 +16683,7 @@ bool Unit::SetWalk(bool enable)
     if (enable)
         Movement::PacketSender(this, SMSG_SPLINE_MOVE_SET_WALK_MODE, SMSG_SPLINE_MOVE_SET_WALK_MODE).Send();
     else
-        Movement::PacketSender(this, SMSG_SPLINE_MOVE_SET_RUN_MODE, SMSG_SPLINE_MOVE_SET_WALK_MODE).Send();
+        Movement::PacketSender(this, SMSG_SPLINE_MOVE_SET_RUN_MODE, SMSG_SPLINE_MOVE_SET_RUN_MODE).Send();
 
     return true;
 }
@@ -16703,9 +16696,19 @@ bool Unit::SetDisableGravity(bool disable, bool packetOnly /*= false*/)
             return false;
 
         if (disable)
+        {
             AddUnitMovementFlag(MOVEMENTFLAG_DISABLE_GRAVITY);
+            RemoveUnitMovementFlag(MOVEMENTFLAG_FALLING);
+        }
         else
+        {
             RemoveUnitMovementFlag(MOVEMENTFLAG_DISABLE_GRAVITY);
+            if (!HasUnitMovementFlag(MOVEMENTFLAG_CAN_FLY))
+            {
+                m_movementInfo.SetFallTime(0);
+                AddUnitMovementFlag(MOVEMENTFLAG_FALLING);
+            }
+        }
     }
 
     if (disable)
@@ -16740,9 +16743,19 @@ bool Unit::SetCanFly(bool enable)
         return false;
 
     if (enable)
+    {
         AddUnitMovementFlag(MOVEMENTFLAG_CAN_FLY);
+        RemoveUnitMovementFlag(MOVEMENTFLAG_FALLING);
+    }
     else
-        RemoveUnitMovementFlag(MOVEMENTFLAG_CAN_FLY);
+    {
+        RemoveUnitMovementFlag(MOVEMENTFLAG_CAN_FLY | MOVEMENTFLAG_MASK_MOVING_FLY);
+        if (!IsLevitating())
+        {
+            m_movementInfo.SetFallTime(0);
+            AddUnitMovementFlag(MOVEMENTFLAG_FALLING);
+        }
+    }
 
     if (enable)
         Movement::PacketSender(this, SMSG_SPLINE_MOVE_SET_FLYING, SMSG_MOVE_SET_CAN_FLY).Send();
