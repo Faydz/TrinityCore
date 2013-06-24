@@ -363,6 +363,7 @@ public:
         bool staticShockCd;
         Position homePosition;
         Creature* omnotron;
+        Unit* flameTarget;
 
         void EnterCombat(Unit * who)
         {
@@ -373,6 +374,8 @@ public:
 
                 DoAction(ACTION_TRON_ACTIVATE);
             }
+
+            flameTarget = NULL;
         }
 
         void JustDied(Unit* /*Killer*/)
@@ -422,6 +425,7 @@ public:
 
             staticShockCd = false;
             events.Reset();
+            flameTarget = NULL;
 
             me->LowerPlayerDamageReq(me->GetHealth());
         };
@@ -524,11 +528,20 @@ public:
                     // Magmatron
                     case EVENT_ACQUIRING_TARGET:
                         if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
+                        {
                             DoCast(pTarget, SPELL_ACQUIRING_TARGET);
+                            flameTarget = pTarget;
+                        }
 
                         me->MonsterYell(SAY_REROUTING_ENERGY, 0, 0);
-
+                        
+                        events.ScheduleEvent(EVENT_FLAMETHROWER, 4000);
                         events.ScheduleEvent(EVENT_ACQUIRING_TARGET, 35000);
+                        break;
+
+                    case EVENT_FLAMETHROWER:
+                        if (flameTarget)
+                            DoCast(flameTarget, 79505, true);
                         break;
                     case EVENT_INCINERATION_SECURITY_MEASURE:
                         DoCastAOE(SPELL_INCINERATION_SECURITY_MEASURE);
