@@ -3430,6 +3430,10 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->StackAmount = 18;
                 spellInfo->AttributesEx3 |= SPELL_ATTR3_STACK_FOR_DIFF_CASTERS;
                 break;
+            // Hatch Eggs
+            case 42471:
+                spellInfo->MaxAffectedTargets = 3;
+                break;
             default:
                 break;
         }
