@@ -723,13 +723,13 @@ void WorldSession::HandleUnstablePetCallback(PreparedQueryResult result, uint32 
     }
 
     CreatureTemplate const* creatureInfo = sObjectMgr->GetCreatureTemplate(petEntry);
-    if (!creatureInfo || !creatureInfo->IsTameable(true))
+    if (!creatureInfo || !creatureInfo->isTameable(true))
     {
         SendStableResult(STABLE_ERR_STABLE);
         return;
     }
     
-    if (!creatureInfo->IsTameable(_player->CanTameExoticPets()))
+    if (!creatureInfo->isTameable(_player->CanTameExoticPets()))
     {
         SendStableResult(STABLE_ERR_EXOTIC);
         return;
