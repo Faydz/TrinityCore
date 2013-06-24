@@ -16,6 +16,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _SPECTATORADDON_H
+#define _SPECTATORADDON_H
+
 #define SPECTATOR_ADDON_SPELL_INTERUPTED 99999 // specific addons
 #define SPECTATOR_ADDON_SPELL_CANCELED 99998   // numbers =\
 
@@ -93,3 +96,5 @@ class SpectatorAddonMsg {
 
         bool prefixFlags[SPECTATOR_PREFIX_COUNT];
 };
+
+#endif

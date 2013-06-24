@@ -86,6 +86,7 @@ class BattlegroundMgr
         /* Battlegrounds */
         Battleground* GetBattlegroundThroughClientInstance(uint32 instanceId, BattlegroundTypeId bgTypeId);
         Battleground* GetBattleground(uint32 InstanceID, BattlegroundTypeId bgTypeId);
+        BattlegroundContainer GetBattlegroundsByType(BattlegroundTypeId bgTypeId) { return bgDataStore[bgTypeId].m_Battlegrounds; }
         Battleground* GetBattlegroundTemplate(BattlegroundTypeId bgTypeId);
         Battleground* CreateNewBattleground(BattlegroundTypeId bgTypeId, PvPDifficultyEntry const* bracketEntry, uint8 arenaType, bool isRated);
 
@@ -131,11 +132,11 @@ class BattlegroundMgr
                 return itr->second;
             return BATTLEGROUND_WS;
         }
+        static bool IsArenaType(BattlegroundTypeId bgTypeId);
 
     private:
         bool CreateBattleground(CreateBattlegroundData& data);
         uint32 CreateClientVisibleInstanceId(BattlegroundTypeId bgTypeId, BattlegroundBracketId bracket_id);
-        static bool IsArenaType(BattlegroundTypeId bgTypeId);
         BattlegroundTypeId GetRandomBG(BattlegroundTypeId id);
 
         typedef std::map<BattlegroundTypeId, BattlegroundData> BattlegroundDataContainer;
