@@ -108,14 +108,14 @@ public:
             me->SetReactState(REACT_PASSIVE);
 
             if (instance)
-			    instance->SetData(DATA_MAGMAW, NOT_STARTED);
+                instance->SetData(DATA_MAGMAW, NOT_STARTED);
 
             _Reset();
         }
 
         void EnterCombat(Unit* /*who*/)
         {
-			DoZoneInCombat();
+            DoZoneInCombat();
             if(Creature* head = ObjectAccessor::GetCreature(*me, instance->GetData64(NPC_MAGMAWS_HEAD)))
                 head->AI()->DoZoneInCombat(head);
 
@@ -136,7 +136,7 @@ public:
             _EnterCombat();
 
             if (instance)
-			    instance->SetData(DATA_MAGMAW, IN_PROGRESS);
+                instance->SetData(DATA_MAGMAW, IN_PROGRESS);
         }
 
         void UpdateAI(uint32 diff)
@@ -178,12 +178,12 @@ public:
                         break;
                     case EVENT_IN_RANGE_CHECK:
                         if (me->getVictim())
-						{
-							if (me->GetDistance(me->getVictim()) > 40.0f)
-								DoCast(me, SPELL_MOLTEN_TANTRUM);
+                        {
+                            if (me->GetDistance(me->getVictim()) > 40.0f)
+                                DoCast(me, SPELL_MOLTEN_TANTRUM);
 
-							events.ScheduleEvent(EVENT_IN_RANGE_CHECK, 5000);
-						}
+                            events.ScheduleEvent(EVENT_IN_RANGE_CHECK, 5000);
+                        }
                         break;
                     case EVENT_PILLAR_OF_FLAME:
                         if(Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 500.0f, true))
@@ -255,7 +255,7 @@ public:
             DespawnMinions();
 
             if (instance)
-			    instance->SetData(DATA_MAGMAW, DONE);
+                instance->SetData(DATA_MAGMAW, DONE);
 
             _JustDied();
         }
@@ -381,7 +381,7 @@ public:
                 }
             }
 
-			DoMeleeAttackIfReady();
+            DoMeleeAttackIfReady();
         }
     };
 };
