@@ -39,8 +39,8 @@ enum WatcherStrings
 bool ArenaWatcherEnable = true;
 bool ArenaWatcherOnlyGM = true;
 bool ArenaWatcherOnlyRated = false;
-bool ArenaWatcherToPlayers = false;
-bool ArenaWatcherSilence = false;
+bool ArenaWatcherToPlayers = true;
+bool ArenaWatcherSilence = true;
 float ArenaWatcherSpeed = 3.0f;
 
 struct ArenaWatcher
