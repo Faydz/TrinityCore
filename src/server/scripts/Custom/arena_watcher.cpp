@@ -209,11 +209,13 @@ class npc_arena_watcher : public CreatureScript
         {
             player->CLOSE_GOSSIP_MENU();
             creature->MonsterWhisper(MSG_HAS_BG_QUEUE, player->GetGUID());
+            creature->MonsterSay("YOU HAVE BG QUEUE",LANG_UNIVERSAL,NULL);
             return true;
         }
 
 
         if (!ArenaWatcherEnable && (!ArenaWatcherOnlyGM || player->isGameMaster()))
+            creature->MonsterSay("NON SEI UN GM!",LANG_UNIVERSAL,NULL);
             return true;
 
         if (action <= GOSSIP_OFFSET)
@@ -225,11 +227,13 @@ class npc_arena_watcher : public CreatureScript
             for (uint8 bgTypeId = 0; bgTypeId < MAX_BATTLEGROUND_TYPE_ID; ++bgTypeId)
             {
                 if (!BattlegroundMgr::IsArenaType(BattlegroundTypeId(bgTypeId)))
+                    creature->MonsterSay("NON CI SONO ARENE",LANG_UNIVERSAL,NULL);
                     continue;
 
                 BattlegroundData* arenas = sBattlegroundMgr->GetAllBattlegroundsWithTypeId(BattlegroundTypeId(bgTypeId));
 
                 if (!arenas || arenas->m_Battlegrounds.empty())
+                    creature->MonsterSay("NON CI SONO ARENE",LANG_UNIVERSAL,NULL);
                     continue;
 
                 for (BattlegroundContainer::const_iterator itr = arenas->m_Battlegrounds.begin(); itr != arenas->m_Battlegrounds.end(); ++itr)
@@ -250,11 +254,13 @@ class npc_arena_watcher : public CreatureScript
 
                     if (itr->second->isRated())
                     {
+                        creature->MonsterSay("ORCO IL CRISTO CI SONO ARENE!!!",LANG_UNIVERSAL,NULL);
                         ArenaTeam* teamOne = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(0));
                         ArenaTeam* teamTwo = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(1));
 
                         if (teamOne && teamTwo)
                         {
+                            creature->MonsterSay("ENTRACI NIGGA!",LANG_UNIVERSAL,NULL);
                             char gossipTextFormat[100];
                             snprintf(gossipTextFormat, 100, "%s : %s (%u) vs. %s (%u)", map->GetMapName(), teamOne->GetName().c_str(), teamOne->GetRating(), teamTwo->GetName().c_str(), teamTwo->GetRating());
                             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, gossipTextFormat, GOSSIP_SENDER_MAIN + bgTypeId, itr->first + GOSSIP_OFFSET);
