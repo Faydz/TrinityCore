@@ -751,6 +751,9 @@ class PlayerScript : public UnitScript
         // Called when a player is bound to an instance
         virtual void OnBindToInstance(Player* /*player*/, Difficulty /*difficulty*/, uint32 /*mapId*/, bool /*permanent*/) { }
 
+        // Called when a player remove from battleground
+        virtual void OnPlayerRemoveFromBattleground(Player* /*player*/, Battleground* /*bg*/) { }
+
         // Called when a player switches to a new zone
         virtual void OnUpdateZone(Player* /*player*/, uint32 /*newZone*/, uint32 /*newArea*/) { }
 
@@ -1029,6 +1032,7 @@ class ScriptMgr
         void OnPlayerDelete(uint64 guid);
         void OnPlayerSave(Player* player);
         void OnPlayerBindToInstance(Player* player, Difficulty difficulty, uint32 mapid, bool permanent);
+        void OnPlayerRemoveFromBattleground(Player* player, Battleground* bg);
         void OnPlayerUpdateZone(Player* player, uint32 newZone, uint32 newArea);
 
     public: /* GuildScript */
