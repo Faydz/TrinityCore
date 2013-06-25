@@ -10,6 +10,8 @@
 #include "ArenaTeam.h"
 #include "Config.h"
 
+#define MSG_HAS_BG_QUEUE       "Hai coda per BG o Arena!"
+
 enum WatcherData
 {
     GOSSIP_OFFSET = GOSSIP_ACTION_INFO_DEF + 10,
@@ -59,7 +61,7 @@ bool IsWatcher(uint32 guid)
 
 void ArenaWatcherStart(Player* player)
 {
-    player->SetGMVisible(false);
+
     uint32 guid = player->GetGUIDLow();
     
     if (IsWatcher(guid))
@@ -83,8 +85,8 @@ void ArenaWatcherAfterTeleport(Player* player)
     player->SetSpeed(MOVE_SWIM, ArenaWatcherSpeed, true);
     player->SetSpeed(MOVE_FLIGHT, ArenaWatcherSpeed, true);
     player->setDeathState(CORPSE);
-
-    player->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+    player->SetVisible(false);
+    player->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED );
 }
 
 void ArenaWatcherEnd(Player* player)
@@ -111,7 +113,7 @@ void ArenaWatcherEnd(Player* player)
         player->SetSpeed(MOVE_SWIM, 1.0f, true);
         player->SetSpeed(MOVE_FLIGHT, 1.0f, true);
 
-        player->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+        player->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED );
     }
 }
 
@@ -230,6 +232,13 @@ class npc_arena_watcher : public CreatureScript
     bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
     {
         player->PlayerTalkClass->ClearMenus();
+
+        if (player->InBattlegroundQueue())
+        {
+            player->CLOSE_GOSSIP_MENU();
+            creature->MonsterWhisper(MSG_HAS_BG_QUEUE, player->GetGUID());
+            return true;
+        }
 
         if (!ArenaWatcherEnable && (!ArenaWatcherOnlyGM || player->isGameMaster()))
             return true;
