@@ -17,3 +17,10 @@ INSERT INTO `creature_template` (`entry`,`difficulty_entry_1`,`difficulty_entry_
 VALUES 
 (190000,0,0,0,0,0,21022,0,0,0,'Eye','Arena watcher',NULL,0,1,1,0,35,35,1,1,1.14286,1.5,0,0,0,0,0,1,0,0,
 1,128,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'',0,3,1,1,1,0,0,0,0,0,0,0,0,1,0,0,'npc_arena_watcher',1);
+
+DELETE FROM creature_text where entry = 190000;
+INSERT INTO `creature_text` (`entry`,`groupid`,`id`,`text`,`type`,`language`,`probability`,`emote`,`duration`,`sound`,`comment`) VALUES (190000,0,0,'Sorry matches at the moment there is no',15,0,0,0,0,0,'ArenaWatcher');
+INSERT INTO `creature_text` (`entry`,`groupid`,`id`,`text`,`type`,`language`,`probability`,`emote`,`duration`,`sound`,`comment`) VALUES (190000,1,0,'The match has been completed',15,0,0,0,0,0,'ArenaWatcher');
+INSERT INTO `creature_text` (`entry`,`groupid`,`id`,`text`,`type`,`language`,`probability`,`emote`,`duration`,`sound`,`comment`) VALUES (190000,2,0,'Target is offline',15,0,0,0,0,0,'ArenaWatcher');
+INSERT INTO `creature_text` (`entry`,`groupid`,`id`,`text`,`type`,`language`,`probability`,`emote`,`duration`,`sound`,`comment`) VALUES (190000,3,0,'Target not in arena',15,0,0,0,0,0,'ArenaWatcher');
+INSERT INTO `creature_text` (`entry`,`groupid`,`id`,`text`,`type`,`language`,`probability`,`emote`,`duration`,`sound`,`comment`) VALUES (190000,4,0,'Target is GameMaster',15,0,0,0,0,0,'ArenaWatcher');

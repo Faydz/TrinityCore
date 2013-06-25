@@ -86,7 +86,15 @@ class BattlegroundMgr
         /* Battlegrounds */
         Battleground* GetBattlegroundThroughClientInstance(uint32 instanceId, BattlegroundTypeId bgTypeId);
         Battleground* GetBattleground(uint32 InstanceID, BattlegroundTypeId bgTypeId);
-        BattlegroundContainer GetBattlegroundsByType(BattlegroundTypeId bgTypeId) { return bgDataStore[bgTypeId].m_Battlegrounds; }
+
+        BattlegroundData* GetAllBattlegroundsWithTypeId(BattlegroundTypeId bgTypeId) {
+            BattlegroundDataContainer::iterator it = bgDataStore.find(bgTypeId);
+            if (it == bgDataStore.end())
+                return NULL;
+
+            return &it->second;
+        }
+
         Battleground* GetBattlegroundTemplate(BattlegroundTypeId bgTypeId);
         Battleground* CreateNewBattleground(BattlegroundTypeId bgTypeId, PvPDifficultyEntry const* bracketEntry, uint8 arenaType, bool isRated);
 
