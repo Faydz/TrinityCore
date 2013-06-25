@@ -146,8 +146,6 @@ public:
                 std::string const& name = itr->second->GetName();
                 uint8 size = name.size();
                 uint8 security = itrSec;
-                if (security == 0)
-                    continue;
                 uint8 max = ((16 - size) / 2);
                 uint8 max2 = max;
                 if ((max + max2 + size) == 16)

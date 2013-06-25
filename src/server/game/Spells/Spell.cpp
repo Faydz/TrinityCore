@@ -4930,11 +4930,6 @@ SpellCastResult Spell::CheckCast(bool strict)
             return SPELL_FAILED_ONLY_INDOORS;
     }
 
-    // ARENA SPECTATOR: a spectator should not be able to cast anything
-    if (Player *tmpPlayer = m_caster->ToPlayer())
-        if (tmpPlayer->isSpectator())
-            return SPELL_FAILED_SPELL_UNAVAILABLE;
-
     // only check at first call, Stealth auras are already removed at second call
     // for now, ignore triggered spells
     if (strict && !(_triggeredCastFlags & TRIGGERED_IGNORE_SHAPESHIFT))

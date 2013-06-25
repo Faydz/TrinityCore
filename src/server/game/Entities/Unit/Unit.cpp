@@ -315,19 +315,6 @@ Unit::~Unit()
 
     _DeleteRemovedAuras();
 
-    // remove veiw point for spectator
-    if (!m_sharedVision.empty())
-    {
-        for (SharedVisionList::iterator itr = m_sharedVision.begin(); itr != m_sharedVision.end(); ++itr)
-            if ((*itr)->isSpectator() && (*itr)->getSpectateFrom())
-            {
-                (*itr)->SetViewpoint((*itr)->getSpectateFrom(), false);
-                if (m_sharedVision.empty())
-                    break;
-                --itr;
-            }
-    }
-
     delete m_charmInfo;
     delete movespline;
 
@@ -561,52 +548,15 @@ AuraApplication * Unit::GetVisibleAura(uint8 slot) const
 
 void Unit::SetVisibleAura(uint8 slot, AuraApplication * aur)
 {
-    if (Aura* aura = aur->GetBase())
-        if (Player *player = ToPlayer())
-            if (player->HaveSpectators() && slot < MAX_AURAS)
-            {
-                SpectatorAddonMsg msg;
-                uint64 casterID = 0;
-                if (aura->GetCaster())
-                    casterID = (aura->GetCaster()->ToPlayer()) ? aura->GetCaster()->GetGUID() : 0;
-                msg.SetPlayer(player->GetName());
-                msg.CreateAura(casterID, aura->GetSpellInfo()->Id,
-                               aura->GetSpellInfo()->IsPositive(), aura->GetSpellInfo()->Dispel,
-                               aura->GetDuration(), aura->GetMaxDuration(),
-                               aura->GetStackAmount(), false);
-                player->SendSpectatorAddonMsgToBG(msg);
-            }
-
-    m_visibleAuras[slot] = aur;
+    m_visibleAuras[slot]=aur;
     UpdateAuraForGroup(slot);
 }
 
 void Unit::RemoveVisibleAura(uint8 slot)
 {
-    AuraApplication *aurApp = GetVisibleAura(slot);
-    if (aurApp && slot < MAX_AURAS)
-    {
-        if (Aura* aura = aurApp->GetBase())
-            if (Player *player = ToPlayer())
-                if (player->HaveSpectators())
-                {
-                    SpectatorAddonMsg msg;
-                    uint64 casterID = 0;
-                    if (aura->GetCaster())
-                        casterID = (aura->GetCaster()->ToPlayer()) ? aura->GetCaster()->GetGUID() : 0;
-                    msg.SetPlayer(player->GetName());
-                    msg.CreateAura(casterID, aura->GetSpellInfo()->Id,
-                                   aurApp->IsPositive(), aura->GetSpellInfo()->Dispel,
-                                   aura->GetDuration(), aura->GetMaxDuration(),
-                                   aura->GetStackAmount(), true);
-                    player->SendSpectatorAddonMsgToBG(msg);
-                }
-    }
-
     m_visibleAuras.erase(slot);
     UpdateAuraForGroup(slot);
 }
-
 
 void Unit::UpdateInterruptMask()
 {
@@ -15098,17 +15048,9 @@ void Unit::SetHealth(uint32 val)
 
     SetUInt32Value(UNIT_FIELD_HEALTH, val);
 
-    // group and spectator update
+    // group update
     if (Player* player = ToPlayer())
     {
-        if (player->HaveSpectators())
-        {
-            SpectatorAddonMsg msg;
-            msg.SetPlayer(player->GetName());
-            msg.SetCurrentHP(val);
-            player->SendSpectatorAddonMsgToBG(msg);
-        }
-
         if (player->GetGroup())
             player->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_CUR_HP);
     }
@@ -15132,17 +15074,8 @@ void Unit::SetMaxHealth(uint32 val)
     SetUInt32Value(UNIT_FIELD_MAXHEALTH, val);
 
     // group update
-    // group and spectators update
     if (GetTypeId() == TYPEID_PLAYER)
     {
-        if (ToPlayer()->HaveSpectators())
-        {
-            SpectatorAddonMsg msg;
-            msg.SetPlayer(ToPlayer()->GetName());
-            msg.SetMaxHP(val);
-            ToPlayer()->SendSpectatorAddonMsgToBG(msg);
-        }
-
         if (ToPlayer()->GetGroup())
             ToPlayer()->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_MAX_HP);
     }
@@ -15226,18 +15159,9 @@ void Unit::SetMaxPower(Powers power, int32 val)
     int32 cur_power = GetPower(power);
     SetInt32Value(UNIT_FIELD_MAXPOWER1 + powerIndex, val);
 
-    // group and spectators update
+    // group update
     if (GetTypeId() == TYPEID_PLAYER)
     {
-        if (ToPlayer()->HaveSpectators())
-        {
-            SpectatorAddonMsg msg;
-            msg.SetPlayer(ToPlayer()->GetName());
-            msg.SetMaxPower(val);
-            msg.SetPowerType(power);
-            ToPlayer()->SendSpectatorAddonMsgToBG(msg);
-        }
-
         if (ToPlayer()->GetGroup())
             ToPlayer()->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_MAX_POWER);
     }

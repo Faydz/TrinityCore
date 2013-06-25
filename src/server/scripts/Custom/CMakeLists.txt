@@ -11,7 +11,6 @@
 set(scripts_STAT_SRCS
   ${scripts_STAT_SRCS}
   Custom/bountyhunter.cpp
-  Custom/arena_spectator.cpp
 )
 
 message("  -> Prepared: Custom")
