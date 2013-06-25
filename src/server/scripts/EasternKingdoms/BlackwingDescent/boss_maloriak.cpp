@@ -207,7 +207,7 @@ public:
                 phase = PHASE_FINAL;
                 me->InterruptNonMeleeSpells(true);
                 
-               // DoCast(SPELL_RELEASE_ALL_ABBERATIONS);
+                DoCast(SPELL_RELEASE_ALL_ABBERATIONS);
             };
 
             while (uint32 eventId = events.ExecuteEvent())

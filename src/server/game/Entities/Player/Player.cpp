@@ -7105,6 +7105,7 @@ void Player::RewardReputation(Unit* victim, float rate)
         {
             if (map->IsDungeon())
             {
+                // Dungeon & Raid trashes
                 if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 45000)
                 {
                     if (!map->IsHeroic())
@@ -7113,8 +7114,14 @@ void Player::RewardReputation(Unit* victim, float rate)
                         Rep = sObjectMgr->GetReputationOnKilEntry(49667);
                 }
 
-                if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 1000000)
+                // Dungeon & Raid Bosses 
+                if (victim->getLevel() >= 86 && victim->GetMaxHealth() >= 2000000)
                 {
+                    if (!map->IsHeroic())
+                        Rep = sObjectMgr->GetReputationOnKilEntry(43296);
+                    else
+                        Rep = sObjectMgr->GetReputationOnKilEntry(47775);
+
                     if (!map->IsHeroic())
                         addRep = sObjectMgr->GetReputationOnKilEntry(43438);
                     else

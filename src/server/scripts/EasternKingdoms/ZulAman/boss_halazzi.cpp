@@ -271,8 +271,7 @@ class boss_halazzi : public CreatureScript
 
             void JustDied(Unit* /*killer*/)
             {
-                if (instance)
-                    instance->SetData(DATA_HALAZZIEVENT, DONE);
+                _JustDied();
 
                 me->MonsterYell(YELL_DEATH, LANG_UNIVERSAL, 0);
                 DoPlaySoundToSet(me, SOUND_DEATH);

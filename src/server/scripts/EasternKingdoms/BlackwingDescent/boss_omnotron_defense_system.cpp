@@ -93,6 +93,7 @@ enum Events
     EVENT_ACQUIRING_TARGET,
     EVENT_INCINERATION_SECURITY_MEASURE,
     EVENT_BARRIER,
+    EVENT_FLAMETHROWER,
 
     // Toxitron
     EVENT_CHEMICAL_BOMB,
@@ -363,6 +364,7 @@ public:
         bool staticShockCd;
         Position homePosition;
         Creature* omnotron;
+        Unit* flameTarget;
 
         void EnterCombat(Unit * who)
         {
@@ -373,6 +375,8 @@ public:
 
                 DoAction(ACTION_TRON_ACTIVATE);
             }
+
+            flameTarget = NULL;
         }
 
         void JustDied(Unit* /*Killer*/)
@@ -422,6 +426,9 @@ public:
 
             staticShockCd = false;
             events.Reset();
+            flameTarget = NULL;
+
+            me->LowerPlayerDamageReq(me->GetHealth());
         };
 
         void DoAction(int32 action)
@@ -522,11 +529,20 @@ public:
                     // Magmatron
                     case EVENT_ACQUIRING_TARGET:
                         if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
+                        {
                             DoCast(pTarget, SPELL_ACQUIRING_TARGET);
+                            flameTarget = pTarget;
+                        }
 
                         me->MonsterYell(SAY_REROUTING_ENERGY, 0, 0);
-
+                        
+                        events.ScheduleEvent(EVENT_FLAMETHROWER, 4000);
                         events.ScheduleEvent(EVENT_ACQUIRING_TARGET, 35000);
+                        break;
+
+                    case EVENT_FLAMETHROWER:
+                        if (flameTarget)
+                            DoCast(flameTarget, 79505, true);
                         break;
                     case EVENT_INCINERATION_SECURITY_MEASURE:
                         DoCastAOE(SPELL_INCINERATION_SECURITY_MEASURE);
@@ -626,7 +642,7 @@ public:
             switch (summon->GetEntry())
             {
                 case 42934:
-                    DoZoneInCombat(summon);
+                    summon->SetReactState(REACT_PASSIVE);
                     summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_DISABLE_MOVE);
                     summon->AddAura(80162, summon);
                     break;
@@ -736,7 +752,8 @@ public:
                 {
                     puddle->SetReactState(REACT_PASSIVE);
                     puddle->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_DISABLE_MOVE);
-                    puddle->AddAura(80095, puddle);
+                    if (!puddle->HasAura(80095))
+                        puddle->AddAura(80095, puddle);
                 }
                 me->DisappearAndDie();
             } else uiFixe -= uiDisappear;

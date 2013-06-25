@@ -35,7 +35,7 @@ EndScriptData */
 
 enum Spells
 {
-    SPELL_STATIC_DISRUPTION     = 43622,
+    SPELL_STATIC_DISRUPTION     = 97298,
     SPELL_STATIC_VISUAL         = 45265,
     SPELL_CALL_LIGHTNING        = 43661, // Missing timer
     SPELL_GUST_OF_WIND          = 43621,
