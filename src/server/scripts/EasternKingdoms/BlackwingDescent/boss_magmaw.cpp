@@ -178,10 +178,12 @@ public:
                         break;
                     case EVENT_IN_RANGE_CHECK:
                         if (me->getVictim())
-                            if (me->GetDistance(me->getVictim()) > 10.0f)
-                                DoCast(me, SPELL_MOLTEN_TANTRUM);
+						{
+							if (me->GetDistance(me->getVictim()) > 40.0f)
+								DoCast(me, SPELL_MOLTEN_TANTRUM);
 
-                        events.ScheduleEvent(EVENT_IN_RANGE_CHECK, 5000);
+							events.ScheduleEvent(EVENT_IN_RANGE_CHECK, 5000);
+						}
                         break;
                     case EVENT_PILLAR_OF_FLAME:
                         if(Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 500.0f, true))
@@ -370,14 +372,16 @@ public:
                 switch (eventId)
                 {
                     case EVENT_INFECTION:
-                        if (me->GetDistance(me->getVictim()) <= 2.5f)
-                            if (!me->getVictim()->HasAura(78097))
-                                me->AddAura(78097, me->getVictim());
+                        if (me->GetDistance(me->getVictim()) <= 3.5f)
+                            if (!me->getVictim()->HasAura(78941))
+                                me->AddAura(78941 , me->getVictim());
 
                         events.ScheduleEvent(EVENT_INFECTION, 500);
                         break;
                 }
             }
+
+			DoMeleeAttackIfReady();
         }
     };
 };
