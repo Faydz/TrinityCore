@@ -5795,9 +5795,12 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     if (!counter)
                         return true;
 
-                    // Can't proc from instant Pyroblast
+                    // Can't proc from instant Pyro
+                    if(procSpell->Id == 92315)
+                        return true;
+
                     // Count spell criticals in a row in second aura
-                    if (procSpell->Id != 92315 && procEx & PROC_EX_CRITICAL_HIT)
+                    if (procEx & PROC_EX_CRITICAL_HIT)
                     {
                         counter->SetAmount(counter->GetAmount() * 2);
 
@@ -11588,6 +11591,21 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                             break;
                     }
                 }
+
+                // Spiked Collar
+                if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2934, EFFECT_0))
+                {
+                    AddPct(DoneTotalMod, aurEff->GetAmount());
+                }
+                
+                // Wild Hunt
+                if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_PET, 3748, EFFECT_0))
+                {
+                    if(this->GetPower(POWER_FOCUS) + spellProto->CalcPowerCost(this, spellProto->GetSchoolMask()) <= 50)
+                    {
+                        AddPct(DoneTotalMod, aurEff->GetAmount());
+                    }
+                }
             }
 
             // Master of the Beasts (Beast Mastery Mastery)
@@ -12098,6 +12116,12 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                 crit_chance += caster->GetUnitCriticalChance(attackType, victim);
                 crit_chance += caster->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_SPELL_CRIT_CHANCE_SCHOOL, schoolMask);
 				crit_chance += caster->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_SPELL_CRIT_CHANCE_SCHOOL, schoolMask);
+                
+                if (!spellProto->IsPositive())
+                {
+                    // Modify critical chance by victim SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE
+                    crit_chance += victim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE);
+                }
 
 				switch(spellProto->Id)
 				{

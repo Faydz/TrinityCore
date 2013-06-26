@@ -378,6 +378,9 @@ class spell_rog_preparation : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
+                if(!GetCaster() || !GetCaster()->ToPlayer())
+                    return;
+
                 Player* caster = GetCaster()->ToPlayer();
 
                 // immediately finishes the cooldown on certain Rogue abilities
@@ -386,7 +389,7 @@ class spell_rog_preparation : public SpellScriptLoader
                 {
                     SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(itr->first);
 
-                    if (spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE)
+                    if (spellInfo && spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE)
                     {
                         if (spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_COLDB_SHADOWSTEP ||     // Cold Blood, Shadowstep
                             spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_VAN_EVAS_SPRINT && spellInfo->Id != 5277)         // Vanish, Evasion, Sprint

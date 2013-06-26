@@ -693,6 +693,9 @@ void AddSC_outdoorpvp_zm();
 // player
 void AddSC_chat_log();
 
+// arena watcher
+void AddSC_arena_watcher();
+
 #endif
 
 void AddScripts()
@@ -1421,7 +1424,6 @@ void AddBattlegroundScripts()
 void AddCustomScripts()
 {
 #ifdef SCRIPTS
-    /* This is where custom scripts should be added. */
-
+    AddSC_arena_watcher();
 #endif
 }

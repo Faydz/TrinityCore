@@ -621,6 +621,10 @@ inline void Battleground::_ProcessLeave(uint32 diff)
             // do not change any battleground's private variables
         }
     }
+    
+    // Arena Spectator - Remove Spectators
+    if(GetBgMap())
+        GetBgMap()->RemoveAllPlayers();
 }
 
 inline Player* Battleground::_GetPlayer(uint64 guid, bool offlineRemove, char const* context) const
@@ -1134,6 +1138,9 @@ void Battleground::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
         if (Transport)
             player->TeleportToBGEntryPoint();
 
+        // Arena Spectator - Script RemoveFromBattleground are called
+        sScriptMgr->OnPlayerRemoveFromBattleground(player, this);
+
         sLog->outDebug(LOG_FILTER_BATTLEGROUND, "Removed player %s from Battleground.", player->GetName().c_str());
     }
 
@@ -1320,6 +1327,11 @@ void Battleground::EventPlayerLoggedIn(Player* player)
             break;
         }
     }
+
+    // Arena Spectator
+    if (!IsPlayerInBattleground(guid))
+       return;
+
     m_Players[guid].OfflineRemoveTime = 0;
     PlayerAddedToBGCheckIfBGIsRunning(player);
     // if battleground is starting, then add preparation aura
@@ -1330,6 +1342,10 @@ void Battleground::EventPlayerLoggedIn(Player* player)
 void Battleground::EventPlayerLoggedOut(Player* player)
 {
     uint64 guid = player->GetGUID();
+
+    if (!IsPlayerInBattleground(guid))
+        return;
+
     if (!IsPlayerInBattleground(guid))  // Check if this player really is in battleground (might be a GM who teleported inside)
         return;
 

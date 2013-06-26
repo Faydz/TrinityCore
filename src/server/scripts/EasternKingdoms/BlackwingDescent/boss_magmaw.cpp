@@ -122,8 +122,6 @@ public:
             events.ScheduleEvent(EVENT_MAGMA_SPIT, urand(11000, 13000));
             events.ScheduleEvent(EVENT_LAVA_SPEW, urand(20000, 25000));
             events.ScheduleEvent(EVENT_PILLAR_OF_FLAME, 30000);
-
-            events.ScheduleEvent(EVENT_IN_RANGE_CHECK, 5000);
             events.ScheduleEvent(EVENT_MANGLE, 45000);
             events.ScheduleEvent(EVENT_BERSERK, 600000); // 10 Min
 
@@ -175,15 +173,6 @@ public:
                         DoCastAOE(SPELL_LAVA_SPEW);
 
                         events.ScheduleEvent(EVENT_LAVA_SPEW, urand(20000, 25000));
-                        break;
-                    case EVENT_IN_RANGE_CHECK:
-                        if (me->getVictim())
-                        {
-                            if (me->GetDistance(me->getVictim()) > 40.0f)
-                                DoCast(me, SPELL_MOLTEN_TANTRUM);
-
-                            events.ScheduleEvent(EVENT_IN_RANGE_CHECK, 5000);
-                        }
                         break;
                     case EVENT_PILLAR_OF_FLAME:
                         if(Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 500.0f, true))

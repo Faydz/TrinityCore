@@ -3988,6 +3988,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_HUNTER:
                 switch(spellInfo->Id)
                 {
+                    // Roar of Sacrifice
+                    case 53480:
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName= SPELL_AURA_SPLIT_DAMAGE_PCT;
+                        break;
                     // Glyph of Silencing Shot
                     case 56836:
                         spellInfo->Effects[EFFECT_0].ApplyAuraName= SPELL_AURA_DUMMY;
@@ -4088,6 +4092,17 @@ void SpellMgr::LoadSpellCustomAttr()
                     // Tremor Totem
                     case 8143:
                         spellInfo->PreventionType = SPELL_PREVENTION_TYPE_SILENCE;
+                        break;
+                }
+                break;
+            case SPELLFAMILY_PET:
+                switch(spellInfo->Id)
+                {
+                    // Wild Hunt
+                    case 62758:
+                    case 62762:
+                        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
                         break;
                 }
                 break;
