@@ -11588,6 +11588,12 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                             break;
                     }
                 }
+
+                // Spiked Collar
+                if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2934, EFFECT_0))
+                {
+                    AddPct(DoneTotalMod, aurEff->GetAmount());
+                }
             }
 
             // Master of the Beasts (Beast Mastery Mastery)
