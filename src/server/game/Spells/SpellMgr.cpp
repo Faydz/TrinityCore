@@ -3972,6 +3972,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_HUNTER:
                 switch(spellInfo->Id)
                 {
+                    // Roar of Sacrifice
+                    case 53480:
+                        spellInfo->Effects[EFFECT_1].ApplyAuraName= SPELL_AURA_SPLIT_DAMAGE_PCT;
+                        break;
                     // Glyph of Silencing Shot
                     case 56836:
                         spellInfo->Effects[EFFECT_0].ApplyAuraName= SPELL_AURA_DUMMY;
