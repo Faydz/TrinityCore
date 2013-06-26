@@ -1356,6 +1356,8 @@ class Player : public Unit, public GridObject<Player>
         void RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent = false);
         void HandlePetSummonState(PetType petType, PetSummonState petSummonState);
 
+        bool IsSpectator();
+
         PhaseMgr& GetPhaseMgr() { return phaseMgr; }
 
         /// Handles said message in regular chat based on declared language and in config pre-defined Range.

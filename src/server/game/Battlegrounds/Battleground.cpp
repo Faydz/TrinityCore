@@ -621,10 +621,6 @@ inline void Battleground::_ProcessLeave(uint32 diff)
             // do not change any battleground's private variables
         }
     }
-    
-    // Arena Spectator - Remove Spectators
-    if(GetBgMap())
-        GetBgMap()->RemoveAllPlayers();
 }
 
 inline Player* Battleground::_GetPlayer(uint64 guid, bool offlineRemove, char const* context) const
