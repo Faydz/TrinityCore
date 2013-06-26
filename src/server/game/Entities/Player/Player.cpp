@@ -7105,6 +7105,7 @@ void Player::RewardReputation(Unit* victim, float rate)
         {
             if (map->IsDungeon())
             {
+                // Dungeon & Raid trashes
                 if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 45000)
                 {
                     if (!map->IsHeroic())
@@ -7113,8 +7114,14 @@ void Player::RewardReputation(Unit* victim, float rate)
                         Rep = sObjectMgr->GetReputationOnKilEntry(49667);
                 }
 
-                if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 1000000)
+                // Dungeon & Raid Bosses 
+                if (victim->getLevel() >= 86 && victim->GetMaxHealth() >= 2000000)
                 {
+                    if (!map->IsHeroic())
+                        Rep = sObjectMgr->GetReputationOnKilEntry(43296);
+                    else
+                        Rep = sObjectMgr->GetReputationOnKilEntry(47775);
+
                     if (!map->IsHeroic())
                         addRep = sObjectMgr->GetReputationOnKilEntry(43438);
                     else
@@ -23251,6 +23258,11 @@ bool Player::IsVisibleGloballyFor(Player const* u) const
     if (!AccountMgr::IsPlayerAccount(u->GetSession()->GetSecurity()))
         return GetSession()->GetSecurity() <= u->GetSession()->GetSecurity();
 
+    // Arena Spectator
+    if (!isGMVisible())
+        return false;
+
+
     // non faction visibility non-breakable for non-GMs
     if (!IsVisible())
         return false;
@@ -23616,6 +23628,24 @@ void Player::SendInitialPacketsBeforeAddToMap()
     // SMSG_UPDATE_AURA_DURATION
 
     SendTalentsInfoData(false);
+
+    data.Initialize(SMSG_WORLD_SERVER_INFO, 1 + 1 + 4 + 4);
+    data.WriteBit(0);                                               // HasRestrictedLevel
+    data.WriteBit(0);                                               // HasRestrictedMoney
+    data.WriteBit(0);                                               // IneligibleForLoot
+    data.FlushBits();
+    //if (IneligibleForLoot)
+    //    data << uint32(0);                                        // EncounterMask
+
+    data << uint8(0);                                               // IsOnTournamentRealm
+    //if (HasRestrictedMoney)
+    //    data << uint32(100000);                                   // RestrictedMoney (starter accounts)
+    //if (HasRestrictedLevel)
+    //    data << uint32(20);                                       // RestrictedLevel (starter accounts)
+
+    data << uint32(sWorld->GetNextWeeklyQuestsResetTime() - WEEK);  // LastWeeklyReset (not instance reset)
+    data << uint32(GetMap()->GetDifficulty());
+    GetSession()->SendPacket(&data);
 
     SendInitialSpells();
 

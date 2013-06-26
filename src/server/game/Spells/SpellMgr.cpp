@@ -2898,6 +2898,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case 72625: // Ooze Eruption
             case 88942: // Meteor Slash
             case 95172:
+            case 77679: // Scorching Blast
+            case 92968:
+            case 92969:
+            case 92970:
                 // ONLY SPELLS WITH SPELLFAMILY_GENERIC and EFFECT_SCHOOL_DAMAGE
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_SHARE_DAMAGE;
                 break;
@@ -3417,6 +3421,18 @@ void SpellMgr::LoadSpellCustomAttr()
             case 91532:
             case 91533:
                 spellInfo->Effects[EFFECT_0].TargetA = 1;
+                break;
+            // Growth Catalyst
+            case 77987:
+            case 101440:
+            case 101441:
+            case 101442:
+                spellInfo->StackAmount = 18;
+                spellInfo->AttributesEx3 |= SPELL_ATTR3_STACK_FOR_DIFF_CASTERS;
+                break;
+            // Hatch Eggs
+            case 42471:
+                spellInfo->MaxAffectedTargets = 3;
                 break;
             default:
                 break;

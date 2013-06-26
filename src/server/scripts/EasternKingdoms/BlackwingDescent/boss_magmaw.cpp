@@ -108,22 +108,20 @@ public:
             me->SetReactState(REACT_PASSIVE);
 
             if (instance)
-			    instance->SetData(DATA_MAGMAW, NOT_STARTED);
+                instance->SetData(DATA_MAGMAW, NOT_STARTED);
 
             _Reset();
         }
 
         void EnterCombat(Unit* /*who*/)
         {
-			DoZoneInCombat();
+            DoZoneInCombat();
             if(Creature* head = ObjectAccessor::GetCreature(*me, instance->GetData64(NPC_MAGMAWS_HEAD)))
                 head->AI()->DoZoneInCombat(head);
 
             events.ScheduleEvent(EVENT_MAGMA_SPIT, urand(11000, 13000));
             events.ScheduleEvent(EVENT_LAVA_SPEW, urand(20000, 25000));
             events.ScheduleEvent(EVENT_PILLAR_OF_FLAME, 30000);
-
-            events.ScheduleEvent(EVENT_IN_RANGE_CHECK, 5000);
             events.ScheduleEvent(EVENT_MANGLE, 45000);
             events.ScheduleEvent(EVENT_BERSERK, 600000); // 10 Min
 
@@ -136,7 +134,7 @@ public:
             _EnterCombat();
 
             if (instance)
-			    instance->SetData(DATA_MAGMAW, IN_PROGRESS);
+                instance->SetData(DATA_MAGMAW, IN_PROGRESS);
         }
 
         void UpdateAI(uint32 diff)
@@ -175,13 +173,6 @@ public:
                         DoCastAOE(SPELL_LAVA_SPEW);
 
                         events.ScheduleEvent(EVENT_LAVA_SPEW, urand(20000, 25000));
-                        break;
-                    case EVENT_IN_RANGE_CHECK:
-                        if (me->getVictim())
-                            if (me->GetDistance(me->getVictim()) > 10.0f)
-                                DoCast(me, SPELL_MOLTEN_TANTRUM);
-
-                        events.ScheduleEvent(EVENT_IN_RANGE_CHECK, 5000);
                         break;
                     case EVENT_PILLAR_OF_FLAME:
                         if(Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 500.0f, true))
@@ -253,7 +244,7 @@ public:
             DespawnMinions();
 
             if (instance)
-			    instance->SetData(DATA_MAGMAW, DONE);
+                instance->SetData(DATA_MAGMAW, DONE);
 
             _JustDied();
         }
@@ -270,10 +261,14 @@ public:
             {
                 DespawnCreatures(NPC_IGNITION_TRIGGER);
                 DespawnCreatures(NPC_LAVA_PARASITE);
+                DespawnCreatures(42321);
 
                 DespawnCreatures(NPC_NEFARIAN_HELPER_HEROIC);
                 DespawnCreatures(NPC_BLAZING_BONE_CONSTRUCT);
                 DespawnCreatures(NPC_PILLAR_OF_FLAME_TRIGGER);
+                
+                if (instance)
+                    instance->DoRemoveAurasDueToSpellOnPlayers(78941);
             }
 
             void DespawnCreatures(uint32 entry)
@@ -370,14 +365,16 @@ public:
                 switch (eventId)
                 {
                     case EVENT_INFECTION:
-                        if (me->GetDistance(me->getVictim()) <= 2.5f)
-                            if (!me->getVictim()->HasAura(78097))
-                                me->AddAura(78097, me->getVictim());
+                        if (me->GetDistance(me->getVictim()) <= 3.5f)
+                            if (!me->getVictim()->HasAura(78941))
+                                me->AddAura(78941 , me->getVictim());
 
                         events.ScheduleEvent(EVENT_INFECTION, 500);
                         break;
                 }
             }
+
+            DoMeleeAttackIfReady();
         }
     };
 };
