@@ -75,7 +75,6 @@ void ArenaWatcherStart(Player* player)
 void ArenaWatcherAfterTeleport(Player* player)
 {
     player->AddUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
-    player->AddUnitMovementFlag(MOVEMENTFLAG_MASK_MOVING);
 
     if (ArenaWatcherSilence)
         player->GetSession()->m_muteTime = time(NULL) + 120 * MINUTE;
@@ -84,7 +83,7 @@ void ArenaWatcherAfterTeleport(Player* player)
     player->SetSpeed(MOVE_RUN, ArenaWatcherSpeed, true);
     player->SetSpeed(MOVE_SWIM, ArenaWatcherSpeed, true);
     player->setDeathState(CORPSE);
-
+    player->SetAcceptWhispers(false);
     player->SetVisible(false);
     player->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED );
 }
@@ -108,6 +107,7 @@ void ArenaWatcherEnd(Player* player)
         player->SetGMVisible(true);
         player->SetGameMaster(false);
         player->SetAcceptWhispers(true);
+        player->RemoveUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
         player->SetSpeed(MOVE_WALK, 1.0f, true);
         player->SetSpeed(MOVE_RUN, 1.0f, true);
         player->SetSpeed(MOVE_SWIM, 1.0f, true);
