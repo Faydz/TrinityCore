@@ -4095,6 +4095,17 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                 }
                 break;
+            case SPELLFAMILY_PET:
+                switch(spellInfo->Id)
+                {
+                    // Wild Hunt
+                    case 62758:
+                    case 62762:
+                        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
+                        break;
+                }
+                break;
             default:
                 break;
         }
