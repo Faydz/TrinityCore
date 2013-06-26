@@ -5795,9 +5795,12 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     if (!counter)
                         return true;
 
-                    // Can't proc from instant Pyroblast
+                    // Can't proc from instant Pyro
+                    if(procSpell->Id == 92315)
+                        return true;
+
                     // Count spell criticals in a row in second aura
-                    if (procSpell->Id != 92315 && procEx & PROC_EX_CRITICAL_HIT)
+                    if (procEx & PROC_EX_CRITICAL_HIT)
                     {
                         counter->SetAmount(counter->GetAmount() * 2);
 
