@@ -1073,7 +1073,7 @@ bool Guardian::UpdateStats(Stats stat)
                 break;
         }
 
-        ownersBonus = CalculatePct(owner->GetStat(STAT_STAMINA), pct);
+        ownersBonus = CalculatePct(owner->GetStat(STAT_STAMINA) - owner->GetCreateStat(STAT_STAMINA), pct);
         value += ownersBonus;
     }
                                                             //warlock's and mage's pets gain 30% of owner's intellect
@@ -1221,11 +1221,6 @@ void Guardian::UpdateMaxHealth()
     float multiplicator;
     switch (GetEntry())
     {
-        case ENTRY_IMP:             multiplicator = 8.4f;   break;
-        case ENTRY_VOIDWALKER:      multiplicator = 11.0f;  break;
-        case ENTRY_SUCCUBUS:        multiplicator = 9.1f;   break;
-        case ENTRY_FELHUNTER:       multiplicator = 9.5f;   break;
-        case ENTRY_FELGUARD:        multiplicator = 11.0f;  break;
         case ENTRY_BLOODWORM:       multiplicator = 1.0f;   break;
         case ENTRY_WATER_ELEMENTAL: multiplicator = 7.5;  break;
         default:                    multiplicator = 14.0f;  break;
