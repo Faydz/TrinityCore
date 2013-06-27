@@ -2769,9 +2769,6 @@ void BattlegroundMap::RemoveAllPlayers()
             if (Player* player = itr->getSource())
                 if (!player->IsBeingTeleportedFar()){
                     player->TeleportTo(player->GetBattlegroundEntryPoint());
-                    // Spectator removal
-                    if(player->IsSpectator())
-                        sScriptMgr->OnPlayerRemoveFromBattleground(player, m_bg);
                 }
 }
 

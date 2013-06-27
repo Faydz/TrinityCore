@@ -1339,9 +1339,6 @@ void Battleground::EventPlayerLoggedOut(Player* player)
 {
     uint64 guid = player->GetGUID();
 
-    if (!IsPlayerInBattleground(guid))
-        return;
-
     if (!IsPlayerInBattleground(guid))  // Check if this player really is in battleground (might be a GM who teleported inside)
         return;
 
