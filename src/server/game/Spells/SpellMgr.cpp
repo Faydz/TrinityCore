@@ -3434,6 +3434,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case 42471:
                 spellInfo->MaxAffectedTargets = 3;
                 break;
+            // Flush (Dalaran Arena Knockback)
+            case 57405:
+                spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_DUMMY;
+                break;
             default:
                 break;
         }
