@@ -401,8 +401,10 @@ void Player::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, bo
     if (IsInFeralForm())                                    //check if player is druid and in cat or bear forms
     {
         float weaponSpeed = BASE_ATTACK_TIME / 1000.f;
-        if (Item* weapon = GetWeaponForAttack(BASE_ATTACK, true))
-            weaponSpeed =  weapon->GetTemplate()->Delay / 1000;
+        if (Item* weapon = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND + attType))
+            if (weapon->GetTemplate()->Class == ITEM_CLASS_WEAPON)
+                if (!weapon->IsBroken())
+                    weaponSpeed =  weapon->GetTemplate()->Delay / 1000.0f;
 
         if (GetShapeshiftForm() == FORM_CAT)
         {
