@@ -637,20 +637,6 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
                 else if (AuraEffect const* aurEff = caster->GetAuraEffect(60774, EFFECT_0))
                     amount += cp * aurEff->GetAmount();
             }
-            // Razor Claws (Mastery Druid Feral)
-            if (caster->ToPlayer())
-            {
-                if (caster->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY) && GetMiscValue() == FORM_CAT)
-                {
-                    if (m_spellInfo->Mechanic == MECHANIC_BLEED)
-                    {
-                        if (caster->ToPlayer()->GetPrimaryTalentTree(caster->ToPlayer()->GetActiveSpec()) == BS_DRUID_FERAL_COMBAT)
-                        {
-                            amount += int32(amount * (0.031f *  caster->ToPlayer()->GetMasteryPoints()));
-                        }
-                    }
-                }
-            }
 			break;
         case SPELL_AURA_PERIODIC_ENERGIZE:
             switch (m_spellInfo->Id)

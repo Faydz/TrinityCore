@@ -56,7 +56,29 @@ void BattlegroundDS::PostUpdateImpl(uint32 diff)
         {
             for (uint32 i = BG_DS_NPC_PIPE_KNOCKBACK_1; i <= BG_DS_NPC_PIPE_KNOCKBACK_2; ++i)
                 if (Creature* waterSpout = GetBgMap()->GetCreature(BgCreatures[i]))
+                {
                     waterSpout->CastSpell(waterSpout, BG_DS_SPELL_FLUSH, true);
+
+                    for (BattlegroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
+                    {
+                        Player *plr = ObjectAccessor::FindPlayer(itr->first);
+
+                        if (!plr)
+                            continue;
+                        
+                        if (plr->GetDistance2d(1214.0f, 765.0f) <= 50.0f && plr->GetPositionZ() > 11.0f)
+                        {
+                            plr->SetOrientation(0.0f);
+                            plr->JumpTo(35.0f, 9.0f, true);
+                        }
+                        else if (plr->GetDistance2d(1369.0f, 817.0f) <= 50.0f && plr->GetPositionZ() > 11.0f)
+                        {
+                            plr->SetOrientation(M_PI);
+                            plr->JumpTo(35.0f, 9.0f, true);
+                        }
+                    }
+                }
+            
 
             setPipeKnockBackCount(getPipeKnockBackCount() + 1);
             setPipeKnockBackTimer(BG_DS_PIPE_KNOCKBACK_DELAY);
