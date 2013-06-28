@@ -38,6 +38,7 @@ enum PaladinSpells
 
     SPELL_PALADIN_DIVINE_STORM_HEAL			  = 54172,
 
+    SPELL_PALADIN_EYE_FOR_AN_EYE_RANK_1          = 9799,
     SPELL_PALADIN_EYE_FOR_AN_EYE_DAMAGE		  = 25997,
 
     SPELL_PALADIN_FORBEARANCE				    = 25771,
@@ -505,7 +506,10 @@ class spell_pal_divine_storm_dummy : public SpellScriptLoader
 	    {
 
 		    return new spell_pal_divine_storm_dummy_SpellScript();
+            void HandleEffectProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+                int32 damage = CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), aurEff->GetAmount());
 
+                OnEffectProc += AuraEffectProcFn(spell_pal_eye_for_an_eye_AuraScript::HandleEffectProc, EFFECT_0, m_scriptSpellId == SPELL_PALADIN_EYE_FOR_AN_EYE_RANK_1 ? SPELL_AURA_DUMMY : SPELL_AURA_PROC_TRIGGER_SPELL);
 	    }
 
 };
