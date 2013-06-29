@@ -1145,4 +1145,5 @@ void AddSC_shaman_spell_scripts()
     new spell_sha_healing_rain();
     new spell_sha_earthquake();
     new spell_sha_earthquake_effect();
+    new spell_sha_rolling_thunder();
 }
