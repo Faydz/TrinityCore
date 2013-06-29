@@ -80,21 +80,18 @@ class spell_dru_wild_mushroom : public SpellScriptLoader
                         if(!list.empty()){
                             for (std::list<Creature*>::iterator i = list.begin(); i != list.end(); i)
                             {
-                                if (!(*i))
-                                    continue;
-
-                                if (!(*i)->GetCharmerOrOwner())
-                                    continue;
-
-                                if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
+                                if((*i) && (*i)->GetCharmerOrOwner())
                                 {
-                                    if (!player)
+                                    if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
                                     {
-                                        return;
+                                        if (!player)
+                                        {
+                                            return;
+                                        }
                                     }
+                                    else
+                                        list.remove((*i));
                                 }
-                                else
-                                    list.remove((*i));
 
                                 i++;
                             }
@@ -172,16 +169,14 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
                         player->GetCreatureListWithEntryInGrid(list, SPELL_DRUID_NPC_WILD_MUSHROOM, 100.0f);
                         for (std::list<Creature*>::const_iterator i = list.begin(); i != list.end(); i)
                         {
-                            if(!(*i))
-                                continue;
-
-                            if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
+                            if ((*i) && (*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
                             {
                                 if(TempSummon* tempMushroom = (*i)->ToTempSummon())
                                 {
                                     mushroomList.push_back(tempMushroom);
                                 }
                             }
+
                             i++;
                         }
 
@@ -204,17 +199,19 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
 
                         for (std::list<TempSummon*>::const_iterator i = mushroomList.begin(); i != mushroomList.end(); i)
                         {
-                            if(!(*i))
-                                continue;
-
-                            Position pos;
-                            (*i)->GetPosition(&pos);
-
-                            // Must have at least one mushroom within 40 yards
-                            if (player->IsWithinDist3d(&pos, spellRange))
+                            if((*i))
                             {
-                                return SPELL_CAST_OK;
+                                Position pos;
+                                (*i)->GetPosition(&pos);
+
+                                // Must have at least one mushroom within 40 yards
+                                if (player->IsWithinDist3d(&pos, spellRange))
+                                {
+                                    return SPELL_CAST_OK;
+                                }
                             }
+
+                            i++;
                         }
 
                         SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_TARGET_TOO_FAR);
@@ -266,6 +263,7 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
                                         fungalGrowthSummonSpell, true);
                                 }
                             }
+
                             i++;
                         }
                         
@@ -299,6 +297,7 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
                                             tempMushroom->CastSpell(tempMushroom, fungalGrowthSlowSpell, true);
                                         }
                                     }
+
                                     i++;
                                 }
                             }
