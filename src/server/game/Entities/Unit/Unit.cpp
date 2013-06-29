@@ -11529,6 +11529,11 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             }
             break;
         case SPELLFAMILY_SHAMAN:
+            // lightning shield
+            if (spellProto->Id == 26364)
+            {
+                pdamage = 0;
+            }
             // Enhanced Elements (Enhanchment Mastery)
             if (owner->ToPlayer() && owner->HasAuraType(SPELL_AURA_MASTERY) && (spellProto->SchoolMask == SPELL_SCHOOL_MASK_FIRE ||
                 spellProto->SchoolMask == SPELL_SCHOOL_MASK_FROST || spellProto->SchoolMask == SPELL_SCHOOL_MASK_NATURE))
@@ -11551,7 +11556,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
 
                 // here for improved shields
                 if (AuraEffect* aurEff = GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_SHAMAN, 19, EFFECT_0))
-                    DoneTotalMod /= 1.0f + float(aurEff->GetAmount() / 100);
+                    DoneTotalMod /= 1.0f + float(aurEff->GetAmount() / 100.0f);  
             }
             break;
         case SPELLFAMILY_HUNTER:
@@ -11696,7 +11701,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
     // apply spellmod to Done damage (flat and pct)
     if (Player* modOwner = GetSpellModOwner())
         modOwner->ApplySpellMod(spellProto->Id, damagetype == DOT ? SPELLMOD_DOT : SPELLMOD_DAMAGE, tmpDamage);
-
     return uint32(std::max(tmpDamage, 0.0f));
 }
 
