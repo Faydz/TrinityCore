@@ -103,9 +103,12 @@ class spell_dru_wild_mushroom : public SpellScriptLoader
                         // Max 3 Wild Mushroom
                         if ((int32)list.size() >= GetEffectValue())
                         {
-                            if(TempSummon* temp = list.back()->ToTempSummon())
+                            if(list.back())
                             {
-                                temp->UnSummon();
+                                if(TempSummon* temp = list.back()->ToTempSummon())
+                                {
+                                    temp->UnSummon();
+                                }
                             }
                         }
                         
@@ -169,6 +172,9 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
                         player->GetCreatureListWithEntryInGrid(list, SPELL_DRUID_NPC_WILD_MUSHROOM, 100.0f);
                         for (std::list<Creature*>::const_iterator i = list.begin(); i != list.end(); i)
                         {
+                            if(!(*i))
+                                continue;
+
                             if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
                             {
                                 if(TempSummon* tempMushroom = (*i)->ToTempSummon())
@@ -198,6 +204,9 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
 
                         for (std::list<TempSummon*>::const_iterator i = mushroomList.begin(); i != mushroomList.end(); i)
                         {
+                            if(!(*i))
+                                continue;
+
                             Position pos;
                             (*i)->GetPosition(&pos);
 
@@ -228,10 +237,11 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
                         {
                             Position pos;
                             TempSummon* tempMushroom = (*i);
-                            tempMushroom->GetPosition(&pos);
                             
                             if(tempMushroom)
                             {
+                                tempMushroom->GetPosition(&pos);
+
                                 // Explosion visual and suicide
                                 tempMushroom->CastSpell(tempMushroom, SPELL_DRUID_SPELL_WILD_MUSHROOM_SUICIDE, true);
 
@@ -273,7 +283,7 @@ class spell_dru_wild_mushroom_detonate : public SpellScriptLoader
                                 player->GetCreatureListWithEntryInGrid(list, fungalGrowthCreID, 100.0f);
                                 for (std::list<Creature*>::const_iterator i = list.begin(); i != list.end(); i)
                                 {
-                                    if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
+                                    if ((*i) && (*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
                                     {
                                         if(TempSummon* tempMushroom = (*i)->ToTempSummon())
                                         {
