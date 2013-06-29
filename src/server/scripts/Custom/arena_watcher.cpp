@@ -92,7 +92,7 @@ void ArenaWatcherAfterTeleport(Player* player)
 
     player->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED );
     player->SetSpeed(MOVE_WALK, ArenaWatcherSpeed, true);
-    player->SetSpeed(MOVE_RUN, ArenaWatcherSpeed, true);
+    player->SetSpeed(MOVE_RUN, ArenaWatcherSpeed*2, true);
     player->SetSpeed(MOVE_SWIM, ArenaWatcherSpeed, true);
     player->SetAcceptWhispers(false);
     //Cosi non posso castare niente neanche per sbaglio
