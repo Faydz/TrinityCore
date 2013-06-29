@@ -9630,17 +9630,6 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 return false;
             break;
         }
-        case 88765: // Rolling thunder
-            if (!HasAura(324))
-                return false;
-
-            if (Aura* shield = GetAura(324, GetGUID()))
-            {
-                uint8 stacks = shield->GetCharges();
-                if (stacks < 9)
-                    shield->SetCharges(stacks + 1);
-            }
-            break;
         case 16246: // Elemental Focus
         {
             int32 bp1 = 0;
