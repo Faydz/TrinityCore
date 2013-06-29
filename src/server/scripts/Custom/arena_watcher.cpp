@@ -46,6 +46,7 @@ float ArenaWatcherSpeed = 3.0f;
 struct ArenaWatcher
 {
     time_t mutetime;
+    uint32 faction;
 };
 
 //La solita vecchia  map (questa parte è identica al bountyhunter)
@@ -67,7 +68,7 @@ void ArenaWatcherStart(Player* player)
     //Pre-teletrasporto in arena: divento invisibile 
     player->SetVisible(false);
     uint32 guid = player->GetGUIDLow();
-
+    
     // se esisto gia come watcher non posso riwatchare due volte.
     // in questo caso sarà successo qualche baco, se il player fa logout è OK
     if (IsWatcher(guid))
@@ -76,6 +77,7 @@ void ArenaWatcherStart(Player* player)
     ArenaWatcher data;
     //Mi salvo il mutetime attuale: se ho un mute dato da un giemme, mi permarrà quando esco.
     data.mutetime = player->GetSession()->m_muteTime;
+    data.faction = player->getFaction();
     //inserisco il player nella mappa
     ArenaWatcherPlayers[guid] = data;
 }
@@ -84,7 +86,7 @@ void ArenaWatcherStart(Player* player)
 void ArenaWatcherAfterTeleport(Player* player)
 {
     player->AddUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
-
+    player->setFaction(14);
     if (ArenaWatcherSilence)
         player->GetSession()->m_muteTime = time(NULL) + 120 * MINUTE;
 
@@ -108,9 +110,11 @@ void ArenaWatcherEnd(Player* player)
     ArenaWatcherMap::iterator itr = ArenaWatcherPlayers.find(guid);
     if (itr != ArenaWatcherPlayers.end())
     {
+        // Eseguo prima i re-setup con le variabili salvate dentro alla mappa
         if (ArenaWatcherSilence)
             player->GetSession()->m_muteTime = ArenaWatcherPlayers[guid].mutetime;
-
+        player->setFaction(ArenaWatcherPlayers[guid].faction);
+        // Cancello l'occorrenza nella mappa
         ArenaWatcherPlayers.erase(itr);
         player->ResurrectPlayer(100.0f, false);
         player->SetAcceptWhispers(true);
@@ -120,6 +124,7 @@ void ArenaWatcherEnd(Player* player)
         player->SetSpeed(MOVE_SWIM, 1.0f, true);
         player->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED );
         player->SetVisible(true);
+        
     }
 }
 
