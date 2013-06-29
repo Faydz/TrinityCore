@@ -44,6 +44,7 @@ enum ShamanSpells
     SPELL_SHAMAN_GLYPH_OF_THUNDERSTORM          = 62132,
     SPELL_SHAMAN_LAVA_FLOWS_TRIGGERED           = 65264,
     SPELL_SHAMAN_SATED                          = 57724,
+    SPELL_SHAMAN_LIGHTNING_SHIELD               = 324,
     SPELL_SHAMAN_STORM_EARTH_AND_FIRE           = 51483,
     SPELL_SHAMAN_TOTEM_EARTHBIND_EARTHGRAB      = 64695,
     SPELL_SHAMAN_TOTEM_EARTHBIND_TOTEM          = 6474,
@@ -1081,6 +1082,44 @@ public:
     {
         return new spell_sha_earthquake_effect_SpellScript();
     }
+};
+
+// 88756 - Rolling Thunder
+class spell_sha_rolling_thunder : public SpellScriptLoader
+{
+    public:
+        spell_sha_rolling_thunder() : SpellScriptLoader("spell_sha_rolling_thunder") { }
+
+        class spell_sha_rolling_thunder_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_sha_rolling_thunder_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_SHAMAN_LIGHTNING_SHIELD))
+                    return false;
+                return true;
+            }
+
+            void HandleEffectProc(AuraEffect const* aurEff, ProcEventInfo& /*eventInfo*/)
+            {
+                if (Aura* aura = GetTarget()->GetAura(SPELL_SHAMAN_LIGHTNING_SHIELD))
+                {
+                    aura->SetCharges(std::min(aura->GetCharges() + 1, aurEff->GetAmount()));
+                    aura->RefreshDuration();
+                }
+            }
+
+            void Register()
+            {
+                OnEffectProc += AuraEffectProcFn(spell_sha_rolling_thunder_AuraScript::HandleEffectProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_sha_rolling_thunder_AuraScript();
+        }
 };
 
 void AddSC_shaman_spell_scripts()
