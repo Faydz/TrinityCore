@@ -28413,20 +28413,3 @@ void Player::HandlePetSummonState(PetType petType, PetSummonState petSummonState
         CastSpell(target, triggered_spell_id, true);
     }
 }
-
-bool Player::IsSpectator()
-{
-    uint32 newzone, newarea;
-    GetZoneAndAreaId(newzone, newarea);
-    // player should be in arena map
-    if (newzone == 3698 || newzone == 3702 || newzone == 3968 || newzone == 4378 || newzone == 4406)
-    {
-        // but not being involved in a battleground
-        if(!InArena())
-            return true;
-        else 
-            return false;
-    }
-    // standard is false
-    return false;
-}

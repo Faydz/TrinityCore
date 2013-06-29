@@ -2769,6 +2769,7 @@ void BattlegroundMap::RemoveAllPlayers()
             if (Player* player = itr->getSource())
                 if (!player->IsBeingTeleportedFar()){
                     player->TeleportTo(player->GetBattlegroundEntryPoint());
+                    sScriptMgr->OnPlayerRemoveFromBattleground(player, m_bg);
                 }
 }
 

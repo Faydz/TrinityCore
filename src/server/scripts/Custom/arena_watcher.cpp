@@ -26,8 +26,6 @@ enum WatcherTexts
     SAY_TARGET_IS_GM            = 4,
 };
 
-
-
 enum WatcherStrings
 {
     STRING_ARENA_2v2            = 11200,
@@ -36,21 +34,25 @@ enum WatcherStrings
     STRING_FOLLOW               = 11203,
 };
 
-bool ArenaWatcherEnable = true;
-bool ArenaWatcherOnlyGM = true;
+// queste sono le opzioni disponbili - dopo le leggo con worldscript
+bool ArenaWatcherEnable = false;
+bool ArenaWatcherOnlyGM = false;
 bool ArenaWatcherOnlyRated = false;
-bool ArenaWatcherToPlayers = true;
-bool ArenaWatcherSilence = true;
+bool ArenaWatcherToPlayers = false;
+bool ArenaWatcherSilence = false;
 float ArenaWatcherSpeed = 3.0f;
 
+//Questo è il mutetime, mi serve se decido che durante le arene gli spectator non possono parlare.
 struct ArenaWatcher
 {
     time_t mutetime;
 };
 
+//La solita vecchia  map (questa parte è identica al bountyhunter)
 typedef std::map<uint32, ArenaWatcher> ArenaWatcherMap;
 ArenaWatcherMap ArenaWatcherPlayers;
 
+//La funzione iswatcher mi dice se un player sta spectando, ovvero se appartiene alla arenawatcher map
 bool IsWatcher(uint32 guid)
 {
     ArenaWatcherMap::iterator itr = ArenaWatcherPlayers.find(guid);
@@ -59,19 +61,26 @@ bool IsWatcher(uint32 guid)
     return false;
 }
 
+
 void ArenaWatcherStart(Player* player)
 {
-    player->SetGMVisible(false);
+    //Pre-teletrasporto in arena: divento invisibile 
+    player->SetVisible(false);
     uint32 guid = player->GetGUIDLow();
 
+    // se esisto gia come watcher non posso riwatchare due volte.
+    // in questo caso sarà successo qualche baco, se il player fa logout è OK
     if (IsWatcher(guid))
-        return;
+        return;   
 
     ArenaWatcher data;
+    //Mi salvo il mutetime attuale: se ho un mute dato da un giemme, mi permarrà quando esco.
     data.mutetime = player->GetSession()->m_muteTime;
+    //inserisco il player nella mappa
     ArenaWatcherPlayers[guid] = data;
 }
 
+// Operazioni da fare dopo il teletrasporto
 void ArenaWatcherAfterTeleport(Player* player)
 {
     player->AddUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
@@ -79,13 +88,13 @@ void ArenaWatcherAfterTeleport(Player* player)
     if (ArenaWatcherSilence)
         player->GetSession()->m_muteTime = time(NULL) + 120 * MINUTE;
 
+    player->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED );
     player->SetSpeed(MOVE_WALK, ArenaWatcherSpeed, true);
     player->SetSpeed(MOVE_RUN, ArenaWatcherSpeed, true);
     player->SetSpeed(MOVE_SWIM, ArenaWatcherSpeed, true);
-    player->setDeathState(CORPSE);
     player->SetAcceptWhispers(false);
-    player->SetVisible(false);
-    player->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED );
+    //Cosi non posso castare niente neanche per sbaglio
+    player->setDeathState(CORPSE);
 }
 
 void ArenaWatcherEnd(Player* player)
@@ -95,17 +104,15 @@ void ArenaWatcherEnd(Player* player)
     if (!IsWatcher(guid))
         return;
 
-    if (ArenaWatcherSilence)
-        player->GetSession()->m_muteTime = ArenaWatcherPlayers[guid].mutetime;
-
-
+    // Se sono un watcher, ripristino il mio stato normale dopo essere stato teletrasportato fuori dall'arena
     ArenaWatcherMap::iterator itr = ArenaWatcherPlayers.find(guid);
     if (itr != ArenaWatcherPlayers.end())
     {
+        if (ArenaWatcherSilence)
+            player->GetSession()->m_muteTime = ArenaWatcherPlayers[guid].mutetime;
+
         ArenaWatcherPlayers.erase(itr);
         player->ResurrectPlayer(100.0f, false);
-        player->SetGMVisible(true);
-        player->SetGameMaster(false);
         player->SetAcceptWhispers(true);
         player->RemoveUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
         player->SetSpeed(MOVE_WALK, 1.0f, true);
@@ -115,6 +122,40 @@ void ArenaWatcherEnd(Player* player)
         player->SetVisible(true);
     }
 }
+
+uint8 GetArenaBySlot(uint8 slot)
+{
+    switch (slot)
+    {
+        case 0: return ARENA_TEAM_2v2;
+        case 1: return ARENA_TEAM_3v3;
+        case 2: return ARENA_TEAM_5v5;
+        default:
+            break;
+    }
+    return 0;
+}
+
+class mod_ArenaWatcher_WorldScript : public WorldScript
+{
+    public:
+        mod_ArenaWatcher_WorldScript() : WorldScript("mod_ArenaWatcher_WorldScript") { }
+
+    void OnConfigLoad(bool reload)
+    {
+        sLog->outInfo(LOG_FILTER_WORLDSERVER,"Loading Sceicco's Arena Watcher System...");
+
+        ArenaWatcherEnable = ConfigMgr::GetBoolDefault("ArenaWatcher.Enable", true);
+        ArenaWatcherOnlyGM = ConfigMgr::GetBoolDefault("ArenaWatcher.OnlyGM", true);
+        ArenaWatcherOnlyRated = ConfigMgr::GetBoolDefault("ArenaWatcher.OnlyRated", false);
+        ArenaWatcherToPlayers = ConfigMgr::GetBoolDefault("ArenaWatcher.ToPlayers", false);
+        ArenaWatcherSilence = ConfigMgr::GetBoolDefault("ArenaWatcher.Silence", false);
+        ArenaWatcherSpeed = ConfigMgr::GetFloatDefault("ArenaWatcher.Speed", 3.0f);
+
+        if (!reload)
+            ArenaWatcherPlayers.clear();
+    }
+};
 
 class mod_ArenaWatcher_PlayerScript : public PlayerScript
 {
@@ -145,8 +186,6 @@ class npc_arena_watcher : public CreatureScript
 
     bool OnGossipHello(Player* player, Creature* creature)
     {
-        if (creature->isQuestGiver())
-            player->PrepareQuestMenu(creature->GetGUID());
 
         if (ArenaWatcherEnable && (!ArenaWatcherOnlyGM || player->isGameMaster()))
         {
@@ -181,7 +220,7 @@ class npc_arena_watcher : public CreatureScript
 
                 char gossipTextFormat[50];
                 snprintf(gossipTextFormat, 50, sObjectMgr->GetTrinityStringForDBCLocale(STRING_ARENA_2v2 + i), arenasCount[i]);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, gossipTextFormat, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + ArenaTeam::GetTypeBySlot(i));
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, gossipTextFormat, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + i);
             }
 
             if (ArenaWatcherToPlayers)
@@ -209,13 +248,11 @@ class npc_arena_watcher : public CreatureScript
         {
             player->CLOSE_GOSSIP_MENU();
             creature->MonsterWhisper(MSG_HAS_BG_QUEUE, player->GetGUID());
-            creature->MonsterSay("YOU HAVE BG QUEUE",LANG_UNIVERSAL,NULL);
             return true;
         }
 
 
         if (!ArenaWatcherEnable && (!ArenaWatcherOnlyGM || player->isGameMaster()))
-            creature->MonsterSay("NON SEI UN GM!",LANG_UNIVERSAL,NULL);
             return true;
 
         if (action <= GOSSIP_OFFSET)
@@ -227,13 +264,11 @@ class npc_arena_watcher : public CreatureScript
             for (uint8 bgTypeId = 0; bgTypeId < MAX_BATTLEGROUND_TYPE_ID; ++bgTypeId)
             {
                 if (!BattlegroundMgr::IsArenaType(BattlegroundTypeId(bgTypeId)))
-                    creature->MonsterSay("NON CI SONO ARENE",LANG_UNIVERSAL,NULL);
                     continue;
-
+                
                 BattlegroundData* arenas = sBattlegroundMgr->GetAllBattlegroundsWithTypeId(BattlegroundTypeId(bgTypeId));
 
                 if (!arenas || arenas->m_Battlegrounds.empty())
-                    creature->MonsterSay("NON CI SONO ARENE",LANG_UNIVERSAL,NULL);
                     continue;
 
                 for (BattlegroundContainer::const_iterator itr = arenas->m_Battlegrounds.begin(); itr != arenas->m_Battlegrounds.end(); ++itr)
@@ -246,7 +281,7 @@ class npc_arena_watcher : public CreatureScript
                         continue;
                     }
 
-                    if (itr->second->GetArenaType() != playerCount)
+                    if (itr->second->GetArenaType() != GetArenaBySlot(playerCount))
                         continue;
 
                     if (ArenaWatcherOnlyRated && !itr->second->isRated())
@@ -254,13 +289,11 @@ class npc_arena_watcher : public CreatureScript
 
                     if (itr->second->isRated())
                     {
-                        creature->MonsterSay("ORCO IL CRISTO CI SONO ARENE!!!",LANG_UNIVERSAL,NULL);
                         ArenaTeam* teamOne = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(0));
                         ArenaTeam* teamTwo = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(1));
 
                         if (teamOne && teamTwo)
                         {
-                            creature->MonsterSay("ENTRACI NIGGA!",LANG_UNIVERSAL,NULL);
                             char gossipTextFormat[100];
                             snprintf(gossipTextFormat, 100, "%s : %s (%u) vs. %s (%u)", map->GetMapName(), teamOne->GetName().c_str(), teamOne->GetRating(), teamTwo->GetName().c_str(), teamTwo->GetRating());
                             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, gossipTextFormat, GOSSIP_SENDER_MAIN + bgTypeId, itr->first + GOSSIP_OFFSET);
@@ -398,6 +431,7 @@ class npc_arena_watcher : public CreatureScript
 
 void AddSC_arena_watcher()
 {
+    new mod_ArenaWatcher_WorldScript();
     new mod_ArenaWatcher_PlayerScript();
     new npc_arena_watcher();
 }
