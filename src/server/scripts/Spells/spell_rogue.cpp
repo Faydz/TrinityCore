@@ -519,7 +519,7 @@ class spell_rog_recuperate : public SpellScriptLoader
         }
 };
 
-// -1943 - Rupture
+// 1943 - Rupture
 class spell_rog_rupture : public SpellScriptLoader
 {
     public:
@@ -555,14 +555,14 @@ class spell_rog_rupture : public SpellScriptLoader
                     if (cp > 5)
                         cp = 5;
 
+                    amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * attackpowerPerCombo[cp]);
+
                     // Revealing Strike
                     if (GetUnitOwner())
                     {
                         if (GetUnitOwner()->HasAura(84617))
                             AddPct(amount, 35);
                     }
-
-                    amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * attackpowerPerCombo[cp]);
                 }
             }
 
