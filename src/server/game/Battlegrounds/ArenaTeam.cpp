@@ -667,6 +667,8 @@ int32 ArenaTeam::GetRatingMod(uint32 ownRating, uint32 ownMMRating, uint32 oppon
         {
             mod = 24.0f * change;
         }
+
+        mod = mod < 1.0f ? 1.0f : mod;
     }
     // Loser
     else
