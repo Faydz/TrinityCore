@@ -364,9 +364,11 @@ void BattlegroundQueue::RemovePlayer(uint64 guid, bool decreaseInvitedCount)
         {
             sLog->outDebug(LOG_FILTER_BATTLEGROUND, "UPDATING memberLost's personal arena rating for %u by opponents rating: %u", GUID_LOPART(guid), group->OpponentsTeamRating);
             if (Player* player = ObjectAccessor::FindPlayer(guid))
-                at->MemberLost(player, group->OpponentsMatchmakerRating);
+            {
+                at->MemberLost(player, group->ArenaMatchmakerRating, group->OpponentsMatchmakerRating);
+            }
             else
-                at->OfflineMemberLost(guid, group->OpponentsMatchmakerRating);
+                at->OfflineMemberLost(guid, group->ArenaMatchmakerRating, group->OpponentsMatchmakerRating);
             at->SaveToDB();
         }
     }
