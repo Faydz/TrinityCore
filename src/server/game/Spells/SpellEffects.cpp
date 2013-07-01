@@ -1965,29 +1965,15 @@ void Spell::EffectCreateItem(SpellEffIndex effIndex)
                         if (Item* pStone = m_caster->ToPlayer()->GetItemByEntry(stone))
                         {
                             if (pStone->GetCount() > uint32(damage))
-                                pStone->SetCount(pStone->GetCount() - damage);
-                            else if (pStone->GetCount() == uint32(damage))
-                                m_caster->ToPlayer()->DestroyItem(pStone->GetBagSlot(), pStone->GetSlot(), true);
-                            else
                             {
-                                for (int x = 0; x < damage;)
-                                {
-                                    if (x > 0)
-                                    {
-                                        pStone = m_caster->ToPlayer()->GetItemByEntry(stone);
-                                        if (pStone && pStone->GetCount() > uint32(damage) - x)
-                                        {
-                                            pStone->SetCount(pStone->GetCount() - damage + x);
-                                            break;
-                                        }
-                                    }
-                                    if (pStone)
-                                        m_caster->ToPlayer()->DestroyItem(pStone->GetBagSlot(), pStone->GetSlot(), true);
-                                    x += pStone->GetCount();
-                                }
+                                pStone->SetCount(pStone->GetCount() - damage);
+                                reqFragments -= 12 * damage;
                             }
-
-                            reqFragments -= 12 * damage;
+                            else if (pStone->GetCount() == uint32(damage))
+                            {
+                                m_caster->ToPlayer()->DestroyItem(pStone->GetBagSlot(), pStone->GetSlot(), true);
+                                reqFragments -= 12 * damage;
+                            }
                         }
                     }
                 }
