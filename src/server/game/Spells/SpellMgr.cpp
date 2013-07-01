@@ -3438,6 +3438,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case 57405:
                 spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_DUMMY;
                 break;
+            // Molten Tantrum
+            case 78068:
+            case 91917:
+            case 91927:
+            case 91928:
+                spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
+                break;
             default:
                 break;
         }
