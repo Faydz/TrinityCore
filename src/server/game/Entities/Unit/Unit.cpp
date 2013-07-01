@@ -11253,6 +11253,19 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
         case SPELLFAMILY_WARLOCK:
             switch(spellProto->Id)
             {
+                // Unstable Affliction dispel damage
+                /*
+                * Cataclysm-Logo-Small Patch 4.1.0 (26-Apr-2011): 
+                * Unstable Affliction damage done when it is dispelled has been doubled, 
+                * but this damage can no longer be critical.; 
+                * Damage dealt by Unstable Affliction when it is dispelled now properly benefits from Shadow Mastery. 
+                */
+                case 31117:
+                    if(this->HasAura(87339))
+                    {
+                        AddPct(DoneTotalMod, 30);
+                    }
+                    break;
                 // Fire and Brimstone
                 case 29722:
                 case 50796:
