@@ -166,9 +166,8 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
     if (petType == HUNTER_PET)
     {
         CreatureTemplate const* creatureInfo = sObjectMgr->GetCreatureTemplate(petEntry);
-        // We don't chek if creature is tameable, because some creature was in 406 but not in 434. 
-        // And we don't want that players loose thery lovely pets.. 
-        if (!creatureInfo)
+        // I'm a fucking retard. Some pets are tameable in BM and not in MM! So we need this check
+        if (!creatureInfo || !creatureInfo->isTameable(owner->CanTameExoticPets()))
             return false;
     }
 
