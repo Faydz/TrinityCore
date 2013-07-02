@@ -5328,6 +5328,16 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (m_caster->HasUnitState(UNIT_STATE_ROOT))
                     return SPELL_FAILED_ROOTED;
 
+                // Hack for dalaran sewers.
+                if (m_caster->GetMapId() == 617)
+                {
+                    if (Unit* target = m_targets.GetUnitTarget())
+                    {
+                        if (fabs(m_caster->GetPositionZ() - target->GetPositionZ()) > 1.0f) 
+                            return SPELL_FAILED_NOPATH;
+                    }
+                }
+
                 if (GetSpellInfo()->NeedsExplicitUnitTarget())
                 {
                     Unit* target = m_targets.GetUnitTarget();
