@@ -3454,6 +3454,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case SPELLFAMILY_WARLOCK:
                 switch(spellInfo->Id)
                 {
+                    // Unstable Affliction damage
+                    case 31117:
+                        spellInfo->AttributesEx2 |= SPELL_ATTR2_CANT_CRIT;
+                        break;
                     // Shadowflame
                     case 47897:
                         spellInfo->SchoolMask = SPELL_SCHOOL_MASK_FIRE | SPELL_SCHOOL_MASK_SHADOW;
