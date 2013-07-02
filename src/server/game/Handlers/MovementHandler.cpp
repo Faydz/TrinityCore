@@ -292,34 +292,37 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recvPacket)
         return;
     }
 
-    float underMapValueZ;   
-    switch (plrMover->GetMapId())    
+    if(plrMover)
     {
-        case 617: underMapValueZ = 3.0f; break; // Dalaran Sewers
-        case 618: underMapValueZ = 28.0f; break; // Ring of Valor
-        case 562: underMapValueZ = -10.0f; break; // Blade Edge Arena
-        case 559: underMapValueZ = -18.0f; break; // Nagrand arena
-        case 572: underMapValueZ = 28.0f; break; // Lordearon
-        case 571: underMapValueZ = -400.0f; break; // Northrend
-        default: underMapValueZ = -500.0f; break;
-    }
-    
-    // Hackfix for ArenaUnderZ -> Teleport 
-    if (movementInfo.pos.GetPositionZ() < underMapValueZ)
-    {
-        if (underMapValueZ != -500) // Only Case Values
+        float underMapValueZ;   
+        switch (plrMover->GetMapId())    
         {
-            if (plrMover->GetMapId() == 572) // Lordaeron Arena 
-                plrMover->TeleportTo(572, 1286.14868f, 1667.32f, 41.0f, 1.6f); //
+            case 617: underMapValueZ = 3.0f; break; // Dalaran Sewers
+            case 618: underMapValueZ = 28.0f; break; // Ring of Valor
+            case 562: underMapValueZ = -10.0f; break; // Blade Edge Arena
+            case 559: underMapValueZ = -18.0f; break; // Nagrand arena
+            case 572: underMapValueZ = 28.0f; break; // Lordearon
+            case 571: underMapValueZ = -400.0f; break; // Northrend
+            default: underMapValueZ = -500.0f; break;
+        }
+    
+        // Hackfix for ArenaUnderZ -> Teleport 
+        if (movementInfo.pos.GetPositionZ() < underMapValueZ)
+        {
+            if (underMapValueZ != -500) // Only Case Values
+            {
+                if (plrMover->GetMapId() == 572) // Lordaeron Arena 
+                    plrMover->TeleportTo(572, 1286.14868f, 1667.32f, 41.0f, 1.6f); //
                    
-            if (plrMover->GetMapId() == 559) // Nagrand Arena 
-                plrMover->TeleportTo(559, 4052.79868f, 2926.32f, 16.0f, 1.6f); 
+                if (plrMover->GetMapId() == 559) // Nagrand Arena 
+                    plrMover->TeleportTo(559, 4052.79868f, 2926.32f, 16.0f, 1.6f); 
            
-            if (plrMover->GetMapId() == 562) // Blade Edge arena 
-                plrMover->TeleportTo(562, 6237.79768f, 261.142f, 2.0f, 4.0f); 
+                if (plrMover->GetMapId() == 562) // Blade Edge arena 
+                    plrMover->TeleportTo(562, 6237.79768f, 261.142f, 2.0f, 4.0f); 
                     
-            if (plrMover->GetMapId() == 617) // Dalaran Arena 
-                plrMover->TeleportTo(617, 1292.34868f, 790.40f, 8.5f, 1.6f);  
+                if (plrMover->GetMapId() == 617) // Dalaran Arena 
+                    plrMover->TeleportTo(617, 1292.34868f, 790.40f, 8.5f, 1.6f);  
+            }
         }
     }
 
