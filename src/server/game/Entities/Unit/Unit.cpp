@@ -1933,7 +1933,16 @@ void Unit::AttackerStateUpdate (Unit* victim, WeaponAttackType attType, bool ext
     if (!victim->isAlive())
         return;
 
-    if ((attType == BASE_ATTACK || attType == OFF_ATTACK) && !IsWithinLOSInMap(victim))
+    bool ignoreMeleeLos = false;
+
+    // Pet ignore los if really near to the target
+    if (Pet * pet = ToPet())
+    {
+        if (pet->GetDistance2d(victim) <= 2.0f)
+            ignoreMeleeLos = true;
+    }
+
+    if ((attType == BASE_ATTACK || attType == OFF_ATTACK) && !IsWithinLOSInMap(victim) && !ignoreMeleeLos)
         return;
 
     CombatStart(victim);
