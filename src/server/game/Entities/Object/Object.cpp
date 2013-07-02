@@ -3195,8 +3195,14 @@ void WorldObject::MovePositionToFirstCollision(Position &pos, float dist, float 
 
     for (uint8 j = 0; j < 10; ++j)
     {
+        float maxZ = 6.0f;
+
+        // Hack for dalaran sewers
+        if (GetMap()->GetId() == 617)
+            maxZ = 1.0f;
+
         // do not allow too big z changes
-        if (fabs(pos.m_positionZ - destz) > 6)
+        if (fabs(pos.m_positionZ - destz) > maxZ)
         {
             destx -= step * std::cos(angle);
             desty -= step * std::sin(angle);
