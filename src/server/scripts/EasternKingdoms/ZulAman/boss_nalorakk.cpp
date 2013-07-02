@@ -65,11 +65,6 @@ float NalorakkWay[8][3] =
 #define YELL_SHIFTEDTOTROLL     "Make way for Nalorakk!"
 #define YELL_SHIFTEDTOBEAR      "You call on da beast, you gonna get more dan you bargain for!"*/
 
-enum Says
-{
-   
-};
-
 enum Sound
 {
     // Trash Waves

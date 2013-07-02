@@ -178,7 +178,7 @@ set(scripts_STAT_SRCS
   EasternKingdoms/zone_blasted_lands.cpp
   EasternKingdoms/zone_stormwind_city.cpp
   EasternKingdoms/ZulAman/boss_halazzi.cpp
-  EasternKingdoms/ZulAman/boss_hexlord.cpp
+  EasternKingdoms/ZulAman/boss_hex_lord_malacrass.cpp
   EasternKingdoms/ZulAman/boss_zuljin.cpp
   EasternKingdoms/ZulAman/boss_akilzon.cpp
   EasternKingdoms/ZulAman/instance_zulaman.cpp
