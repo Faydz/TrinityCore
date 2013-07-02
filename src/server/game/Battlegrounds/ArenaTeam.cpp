@@ -601,7 +601,7 @@ float ArenaTeam::GetChanceAgainst(uint32 ownRating, uint32 opponentRating)
 {
     // Returns the chance to win against a team with the given rating, used in the rating adjustment calculation
     // ELO system
-    return 1.0f / (1.0f + exp((float)((float)opponentRating - (float)ownRating) / 400.0f));
+    return 1.0f / (1.0f + pow(10, (float)((float)opponentRating - (float)ownRating) / 600.0f));
 }
 
 int32 ArenaTeam::GetMatchmakerRatingMod(uint32 ownRating, uint32 opponentRating, bool won)
