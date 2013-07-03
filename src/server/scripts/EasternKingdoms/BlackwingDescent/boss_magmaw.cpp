@@ -261,14 +261,14 @@ public:
             {
                 DespawnCreatures(NPC_IGNITION_TRIGGER);
                 DespawnCreatures(NPC_LAVA_PARASITE);
-                DespawnCreatures(42321);
+                DespawnCreatures(NPC_LAVA_PARASITE_2);
 
                 DespawnCreatures(NPC_NEFARIAN_HELPER_HEROIC);
                 DespawnCreatures(NPC_BLAZING_BONE_CONSTRUCT);
                 DespawnCreatures(NPC_PILLAR_OF_FLAME_TRIGGER);
                 
                 if (instance)
-                    instance->DoRemoveAurasDueToSpellOnPlayers(78941);
+                    instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_PARASITIC_INFECTION);
             }
 
             void DespawnCreatures(uint32 entry)

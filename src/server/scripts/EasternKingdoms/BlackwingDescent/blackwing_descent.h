@@ -47,6 +47,7 @@ enum Creatures
 	NPC_MAGMAWS_HEAD                = 42347,
 	NPC_IGNITION_TRIGGER            = 49447,
 	NPC_LAVA_PARASITE               = 41806,
+    NPC_LAVA_PARASITE_2             = 42321,
 	NPC_PILLAR_OF_FLAME_TRIGGER     = 41843,
 	NPC_BLAZING_BONE_CONSTRUCT      = 49416,
     NPC_DRAGONID_DRUDGE             = 42362,
