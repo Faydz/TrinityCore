@@ -623,6 +623,8 @@ inline void Battleground::_ProcessLeave(uint32 diff)
             // do not change any battleground's private variables
         }
     }
+    if(GetBgMap())
+        GetBgMap()->RemoveSpectators();
 }
 
 inline Player* Battleground::_GetPlayer(uint64 guid, bool offlineRemove, char const* context) const
@@ -1015,16 +1017,19 @@ void Battleground::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
 {
     // FIRST OF ALL REMOVE SPECTATOR IN ANY CASE DON'T CARE ABOUT ANYTHING FUCK OFF SPECTATOR NIGGAS TUENTI DOLLAS IN MAI POKEEEE
     if(Player* possibleSpectator = ObjectAccessor::FindPlayer(guid)){
-
         if(possibleSpectator->GetSpectator())
         {
-            // Arena Spectator - Script RemoveFromBattleground are called
-            sScriptMgr->OnPlayerRemoveFromBattleground(possibleSpectator, this);
 
             BattlegroundPlayerMap::iterator itr = m_Players.find(guid);
             if (itr != m_Players.end())
             {
                 m_Players.erase(itr);
+            }
+
+            // Arena Spectator - Script RemoveFromBattleground are called
+            if (!possibleSpectator->IsBeingTeleportedFar()){
+                possibleSpectator->TeleportTo(possibleSpectator->GetBattlegroundEntryPoint());
+                sScriptMgr->OnPlayerRemoveFromBattleground(possibleSpectator, this);
             }
         }
     }
@@ -1159,6 +1164,7 @@ void Battleground::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
 
     //battleground object will be deleted next Battleground::Update() call
 }
+
 
 // this method is called when no players remains in battleground
 void Battleground::Reset()
