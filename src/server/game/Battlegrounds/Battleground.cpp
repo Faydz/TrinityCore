@@ -260,6 +260,8 @@ void Battleground::Update(uint32 diff)
         return;
     }
 
+
+
     switch (GetStatus())
     {
         case STATUS_WAIT_JOIN:
@@ -1011,6 +1013,24 @@ void Battleground::BlockMovement(Player* player)
 
 void Battleground::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPacket)
 {
+    // FIRST OF ALL REMOVE SPECTATOR IN ANY CASE DON'T CARE ABOUT ANYTHING FUCK OFF SPECTATOR NIGGAS TUENTI DOLLAS IN MAI POKEEEE
+    if(Player* possibleSpectator = ObjectAccessor::FindPlayer(guid)){
+
+        if(possibleSpectator->GetSpectator())
+        {
+            // Arena Spectator - Script RemoveFromBattleground are called
+            sScriptMgr->OnPlayerRemoveFromBattleground(possibleSpectator, this);
+
+            BattlegroundPlayerMap::iterator itr = m_Players.find(guid);
+            if (itr != m_Players.end())
+            {
+                m_Players.erase(itr);
+            }
+
+            sLog->outDebug(LOG_FILTER_BATTLEGROUND, "Removed SPECTATOR %s from ARENA.", possibleSpectator->GetName().c_str());
+        }
+    }
+    
     uint32 team = GetPlayerTeam(guid);
     bool participant = false;
     // Remove from lists/maps
@@ -1135,9 +1155,6 @@ void Battleground::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
 
         if (Transport)
             player->TeleportToBGEntryPoint();
-
-        // Arena Spectator - Script RemoveFromBattleground are called
-        sScriptMgr->OnPlayerRemoveFromBattleground(player, this);
 
         sLog->outDebug(LOG_FILTER_BATTLEGROUND, "Removed player %s from Battleground.", player->GetName().c_str());
     }
