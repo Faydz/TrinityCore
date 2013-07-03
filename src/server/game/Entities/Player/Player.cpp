@@ -19478,9 +19478,7 @@ void Player::ConvertInstancesToGroup(Player* player, Group* group, bool switchLe
     {
         for (BoundInstancesMap::iterator itr = player->m_boundInstances[i].begin(); itr != player->m_boundInstances[i].end();)
         {
-            if (!switchLeader || !group->GetBoundInstance(itr->second.save->GetDifficulty(), itr->first))
-                group->BindToInstance(itr->second.save, itr->second.perm, false);
-
+            group->BindToInstance(itr->second.save, itr->second.perm, false);
             // permanent binds are not removed
             if (switchLeader && !itr->second.perm)
             {
