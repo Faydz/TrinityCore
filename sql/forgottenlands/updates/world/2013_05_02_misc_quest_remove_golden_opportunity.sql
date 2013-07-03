@@ -1,1 +1,0 @@
-DELETE FROM `creature_questrelation` WHERE  `id`=43239 AND `quest`=26572;
