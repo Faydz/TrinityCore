@@ -3525,6 +3525,19 @@ void AuraEffect::HandleModStateImmunityMask(AuraApplication const* aurApp, uint8
 
     switch (miscVal)
     {
+        case 1849:
+            if (GetId() == 8143)
+            {
+                mechanic_immunity_list = (1 << MECHANIC_FEAR) | (1 << MECHANIC_CHARM)
+                    | (1 << MECHANIC_SLEEP);
+
+                target->ApplySpellImmune(GetId(), IMMUNITY_MECHANIC, MECHANIC_FEAR, apply);
+                target->ApplySpellImmune(GetId(), IMMUNITY_MECHANIC, MECHANIC_CHARM, apply);
+                target->ApplySpellImmune(GetId(), IMMUNITY_MECHANIC, MECHANIC_SLEEP, apply);
+                aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR);
+                aura_immunity_list.push_back(SPELL_AURA_MOD_CHARM);
+            }
+            break;
         case 96:
         case 1615:
         {

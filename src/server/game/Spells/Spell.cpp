@@ -5899,7 +5899,7 @@ SpellCastResult Spell::CheckCasterAuras() const
                     break;
                 }
             }
-            if (foundNotStun && m_spellInfo->Id != 22812)
+            if (foundNotStun && m_spellInfo->Id != 22812 && m_spellInfo->Id != 8143)
                 prevented_reason = SPELL_FAILED_STUNNED;
         }
         else
@@ -5941,6 +5941,12 @@ SpellCastResult Spell::CheckCasterAuras() const
                         switch (part->GetAuraType())
                         {
                             case SPELL_AURA_MOD_STUN:
+                                // Hack that allows Tremor Totem removes only charm/sleep stun
+                                if (m_spellInfo->Id == 8143 && !(auraInfo->GetAllEffectsMechanicMask() & (1<<MECHANIC_CHARM) || auraInfo->GetAllEffectsMechanicMask() & (1<<MECHANIC_SLEEP)))
+                                {
+                                    return SPELL_FAILED_STUNNED;
+                                }
+
                                 if (!usableInStun || !(auraInfo->GetAllEffectsMechanicMask() & (1<<MECHANIC_STUN)))
                                     return SPELL_FAILED_STUNNED;
                                 break;
