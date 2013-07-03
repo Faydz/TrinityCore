@@ -68,6 +68,7 @@ void ArenaWatcherStart(Player* player)
     //Pre-teletrasporto in arena: divento invisibile 
     player->SetVisible(false);
     uint32 guid = player->GetGUIDLow();
+    player->SetSpectator(true);
     
     // se esisto gia come watcher non posso riwatchare due volte.
     // in questo caso sarà successo qualche baco, se il player fa logout è OK
@@ -80,6 +81,7 @@ void ArenaWatcherStart(Player* player)
     data.faction = player->getFaction();
     //inserisco il player nella mappa
     ArenaWatcherPlayers[guid] = data;
+
 }
 
 // Operazioni da fare dopo il teletrasporto
@@ -124,6 +126,7 @@ void ArenaWatcherEnd(Player* player)
         player->SetSpeed(MOVE_SWIM, 1.0f, true);
         player->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED );
         player->SetVisible(true);
+        player->SetSpectator(false);
         
     }
 }

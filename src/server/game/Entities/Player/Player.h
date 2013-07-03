@@ -2317,6 +2317,10 @@ class Player : public Unit, public GridObject<Player>
         bool GetRandomWinner() { return m_IsBGRandomWinner; }
         void SetRandomWinner(bool isWinner);
 
+        //SPECTATOR
+        void SetSpectator(bool spectator);
+        bool GetSpectator();
+
         /*********************************************************/
         /***               OUTDOOR PVP SYSTEM                  ***/
         /*********************************************************/
@@ -3010,6 +3014,8 @@ class Player : public Unit, public GridObject<Player>
         uint32 _maxPersonalArenaRate;
 
         PhaseMgr phaseMgr;
+        
+        bool m_isSpectator;
 };
 
 void AddItemsSetItem(Player*player, Item* item);

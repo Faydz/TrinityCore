@@ -837,6 +837,9 @@ Player::Player(WorldSession* session): Unit(true), phaseMgr(this)
 
     m_IsBGRandomWinner = false;
 
+    // Spectator
+    m_isSpectator = false;
+
     // Player summoning
     m_summon_expire = 0;
     m_summon_mapid = 0;
@@ -25354,6 +25357,18 @@ void Player::SetTitle(CharTitlesEntry const* title, bool lost)
     data << uint32(title->bit_index);
     data << uint32(lost ? 0 : 1);                           // 1 - earned, 0 - lost
     GetSession()->SendPacket(&data);
+}
+
+void Player::SetSpectator(bool spectator){
+
+        m_isSpectator = spectator;
+
+}
+
+bool Player::GetSpectator(){
+
+    return m_isSpectator;
+
 }
 
 bool Player::isTotalImmunity()
