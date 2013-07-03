@@ -1026,8 +1026,6 @@ void Battleground::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
             {
                 m_Players.erase(itr);
             }
-
-            sLog->outDebug(LOG_FILTER_BATTLEGROUND, "Removed SPECTATOR %s from ARENA.", possibleSpectator->GetName().c_str());
         }
     }
     
