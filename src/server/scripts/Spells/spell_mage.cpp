@@ -618,9 +618,9 @@ class spell_mage_cold_snap : public SpellScriptLoader
                 for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
                 {
                     SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(itr->first);
-
                     if (spellInfo->SpellFamilyName == SPELLFAMILY_MAGE &&
-                        (spellInfo->GetSchoolMask() & SPELL_SCHOOL_MASK_FROST) &&
+                        (spellInfo->GetSchoolMask() & SPELL_SCHOOL_MASK_FROST) ||
+                        (spellInfo->Id == 92283 )&&
                         spellInfo->Id != SPELL_MAGE_COLD_SNAP && spellInfo->GetRecoveryTime() > 0)
                     {
                         caster->RemoveSpellCooldown((itr++)->first, true);
