@@ -673,6 +673,7 @@ class BattlegroundMap : public Map
         void SetUnload();
         //void UnloadAll(bool pForce);
         void RemoveAllPlayers();
+        void RemoveSpectators();
 
         virtual void InitVisibilityDistance();
         Battleground* GetBG() { return m_bg; }
