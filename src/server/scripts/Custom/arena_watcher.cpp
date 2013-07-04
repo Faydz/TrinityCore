@@ -342,7 +342,7 @@ class npc_arena_watcher : public CreatureScript
                     Battleground* bg = arenas->m_Battlegrounds[arenaId];
 
                     if(bg){
-                        if (bg->GetStatus() == STATUS_NONE || bg->GetStatus() == STATUS_WAIT_LEAVE) 
+                        if (bg->GetStatus() != STATUS_IN_PROGRESS) 
                         {
                             sCreatureTextMgr->SendChat(creature, SAY_ARENA_NOT_IN_PROGRESS, player->GetGUID());
                             player->PlayerTalkClass->ClearMenus();
