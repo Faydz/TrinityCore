@@ -4106,6 +4106,7 @@ void SpellMgr::LoadSpellCustomAttr()
                         break;
                     // Tremor Totem
                     case 8143:
+                        spellInfo->AttributesEx5 |= SPELL_ATTR5_USABLE_WHILE_STUNNED;
                         spellInfo->PreventionType = SPELL_PREVENTION_TYPE_SILENCE;
                         break;
                 }

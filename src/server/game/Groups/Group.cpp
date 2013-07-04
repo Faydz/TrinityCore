@@ -652,39 +652,30 @@ bool Group::RemoveMember(uint64 guid, const RemoveMethod &method /*= GROUP_REMOV
     }
 }
 
-void Group::ChangeLeader(uint64 newLeaderGuid)
+void Group::ChangeLeader(uint64 guid)
 {
-    member_witerator slot = _getMemberWSlot(newLeaderGuid);
+    member_witerator slot = _getMemberWSlot(guid);
 
     if (slot == m_memberSlots.end())
         return;
 
-    Player* newLeader = ObjectAccessor::FindPlayer(slot->guid);
+    Player* player = ObjectAccessor::FindPlayer(slot->guid);
 
     // Don't allow switching leader to offline players
-    if (!newLeader)
+    if (!player)
         return;
 
-    sScriptMgr->OnGroupChangeLeader(this, newLeaderGuid, m_leaderGuid);
+    sScriptMgr->OnGroupChangeLeader(this, guid, m_leaderGuid);
 
     if (!isBGGroup() && !isBFGroup())
     {
-        SQLTransaction trans = CharacterDatabase.BeginTransaction();
-
         // Remove the groups permanent instance bindings
         for (uint8 i = 0; i < MAX_DIFFICULTY; ++i)
         {
             for (BoundInstancesMap::iterator itr = m_boundInstances[i].begin(); itr != m_boundInstances[i].end();)
             {
-                // Do not unbind saves of instances that already had map created (a newLeader entered)
-                // forcing a new instance with another leader requires group disbanding (confirmed on retail)
-                if (itr->second.perm && !sMapMgr->FindMap(itr->first, itr->second.save->GetInstanceId()))
+                if (itr->second.perm)
                 {
-                    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_GROUP_INSTANCE_PERM_BINDING);
-                    stmt->setUInt32(0, m_dbStoreId);
-                    stmt->setUInt32(1, itr->second.save->GetInstanceId());
-                    trans->Append(stmt);
-
                     itr->second.save->RemoveGroup(this);
                     m_boundInstances[i].erase(itr++);
                 }
@@ -693,22 +684,29 @@ void Group::ChangeLeader(uint64 newLeaderGuid)
             }
         }
 
+        // Same in the database
+
+        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_GROUP_INSTANCE_PERM_BINDING);
+
+        stmt->setUInt32(0, m_dbStoreId);
+        stmt->setUInt32(1, player->GetGUIDLow());
+
+        CharacterDatabase.Execute(stmt);
+
         // Copy the permanent binds from the new leader to the group
-        Player::ConvertInstancesToGroup(newLeader, this, true);
+        Player::ConvertInstancesToGroup(player, this, true);
 
         // Update the group leader
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_GROUP_LEADER);
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_GROUP_LEADER);
 
-        stmt->setUInt32(0, newLeader->GetGUIDLow());
+        stmt->setUInt32(0, player->GetGUIDLow());
         stmt->setUInt32(1, m_dbStoreId);
 
-        trans->Append(stmt);
-
-        CharacterDatabase.CommitTransaction(trans);
+        CharacterDatabase.Execute(stmt);
     }
 
-    m_leaderGuid = newLeader->GetGUID();
-    m_leaderName = newLeader->GetName();
+    m_leaderGuid = player->GetGUID();
+    m_leaderName = player->GetName();
     ToggleGroupMemberFlag(slot, MEMBER_FLAG_ASSISTANT, false);
 
     WorldPacket data(SMSG_GROUP_SET_LEADER, m_leaderName.size()+1);
