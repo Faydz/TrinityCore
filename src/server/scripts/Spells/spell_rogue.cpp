@@ -730,8 +730,7 @@ public:
                     if (GetCaster()->ToPlayer()->HasSpellCooldown(1784))
                         GetCaster()->ToPlayer()->RemoveSpellCooldown(1784, true);
 
-                    if(!GetCaster()->HasAura(23335) && !GetCaster()->HasAura(23333)) // Can't be stealthed while holding PvP flag
-                        GetCaster()->CastSpell(GetCaster(), 1784, true);
+                    GetCaster()->CastSpell(GetCaster(), 1784, true);
                 }
             }
         }
