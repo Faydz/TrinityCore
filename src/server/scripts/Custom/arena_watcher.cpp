@@ -274,47 +274,48 @@ class npc_arena_watcher : public CreatureScript
                 if (!BattlegroundMgr::IsArenaType(BattlegroundTypeId(bgTypeId)))
                     continue;
                 
-                BattlegroundData* arenas = sBattlegroundMgr->GetAllBattlegroundsWithTypeId(BattlegroundTypeId(bgTypeId));
+                if(BattlegroundData* arenas = sBattlegroundMgr->GetAllBattlegroundsWithTypeId(BattlegroundTypeId(bgTypeId))){
 
-                if (!arenas || arenas->m_Battlegrounds.empty())
-                    continue;
-
-                for (BattlegroundContainer::const_iterator itr = arenas->m_Battlegrounds.begin(); itr != arenas->m_Battlegrounds.end(); ++itr)
-                {
-                    Map* map = itr->second->FindBgMap();
-                    if (!map)
+                    if (!arenas || arenas->m_Battlegrounds.empty())
                         continue;
 
-                    if (!(itr->second->GetStatus() & 2)) {
-                        continue;
-                    }
-
-                    if (itr->second->GetArenaType() != GetArenaBySlot(playerCount))
-                        continue;
-
-                    if (ArenaWatcherOnlyRated && !itr->second->isRated())
-                        continue;
-
-                    if (itr->second->isRated())
+                    for (BattlegroundContainer::const_iterator itr = arenas->m_Battlegrounds.begin(); itr != arenas->m_Battlegrounds.end(); ++itr)
                     {
-                        ArenaTeam* teamOne = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(0));
-                        ArenaTeam* teamTwo = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(1));
+                        Map* map = itr->second->FindBgMap();
+                        if (!map)
+                            continue;
 
-                        if (teamOne && teamTwo)
+                        if (!(itr->second->GetStatus() & 2)) {
+                            continue;
+                        }
+
+                        if (itr->second->GetArenaType() != GetArenaBySlot(playerCount))
+                            continue;
+
+                        if (ArenaWatcherOnlyRated && !itr->second->isRated())
+                            continue;
+
+                        if (itr->second->isRated())
+                        {
+                            ArenaTeam* teamOne = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(0));
+                            ArenaTeam* teamTwo = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(1));
+
+                            if (teamOne && teamTwo)
+                            {
+                                char gossipTextFormat[100];
+                                snprintf(gossipTextFormat, 100, "%s : %s (%u) vs. %s (%u)", map->GetMapName(), teamOne->GetName().c_str(), teamOne->GetRating(), teamTwo->GetName().c_str(), teamTwo->GetRating());
+                                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, gossipTextFormat, GOSSIP_SENDER_MAIN + bgTypeId, itr->first + GOSSIP_OFFSET);
+                            }
+                        }
+                        else
                         {
                             char gossipTextFormat[100];
-                            snprintf(gossipTextFormat, 100, "%s : %s (%u) vs. %s (%u)", map->GetMapName(), teamOne->GetName().c_str(), teamOne->GetRating(), teamTwo->GetName().c_str(), teamTwo->GetRating());
+                            snprintf(gossipTextFormat, 100, "[%u] %s : %u vs. %u", itr->first, map->GetMapName(), playerCount, playerCount);
                             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, gossipTextFormat, GOSSIP_SENDER_MAIN + bgTypeId, itr->first + GOSSIP_OFFSET);
                         }
-                    }
-                    else
-                    {
-                        char gossipTextFormat[100];
-                        snprintf(gossipTextFormat, 100, "[%u] %s : %u vs. %u", itr->first, map->GetMapName(), playerCount, playerCount);
-                        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, gossipTextFormat, GOSSIP_SENDER_MAIN + bgTypeId, itr->first + GOSSIP_OFFSET);
-                    }
 
-                    bracketExists = true;
+                        bracketExists = true;
+                    }
                 }
             }
 
@@ -331,61 +332,70 @@ class npc_arena_watcher : public CreatureScript
         {
             uint32 arenaId = action - GOSSIP_OFFSET;
             uint32 bgTypeId = sender - GOSSIP_SENDER_MAIN;
-            BattlegroundData* arenas = sBattlegroundMgr->GetAllBattlegroundsWithTypeId(BattlegroundTypeId(bgTypeId));
+            if(BattlegroundData* arenas = sBattlegroundMgr->GetAllBattlegroundsWithTypeId(BattlegroundTypeId(bgTypeId))){
 
-            if (!arenas || arenas->m_Battlegrounds.empty())
-                return false;
-
-            if (arenas->m_Battlegrounds[arenaId])
-            {
-                Battleground* bg = arenas->m_Battlegrounds[arenaId];
-
-                if (bg->GetStatus() == STATUS_NONE)
-                {
-                    sCreatureTextMgr->SendChat(creature, SAY_ARENA_NOT_IN_PROGRESS, player->GetGUID());
-                    player->PlayerTalkClass->ClearMenus();
-                    player->CLOSE_GOSSIP_MENU();
+                if (!arenas || arenas->m_Battlegrounds.empty())
                     return false;
-                }
 
-                float x = 0.0f, y = 0.0f, z = 0.0f;
-                switch (bg->GetMapId())
+                if (arenas->m_Battlegrounds[arenaId])
                 {
-                    case 617:
-                        x = 1299.046f;
-                        y = 784.825f;
-                        z = 9.338f;
-                        break;
-                    case 618:
-                        x = 763.5f;
-                        y = -284;
-                        z = 28.276f;
-                        break;
-                    case 572:
-                        x = 1285.810547f;
-                        y = 1667.896851f;
-                        z = 39.957642f;
-                        break;
-                    case 562:
-                        x = 6238.930176f;
-                        y = 262.963470f;
-                        z = 0.889519f;
-                        break;
-                    case 559:
-                        x = 4055.504395f;
-                        y = 2919.660645f;
-                        z = 13.611241f;
-                        break;
-                    default:
-                        player->PlayerTalkClass->ClearMenus();
-                        player->CLOSE_GOSSIP_MENU();
-                        return false;
+                    Battleground* bg = arenas->m_Battlegrounds[arenaId];
+
+                    if(bg){
+                        if (bg->GetStatus() == STATUS_NONE || bg->GetStatus() == STATUS_WAIT_LEAVE) 
+                        {
+                            sCreatureTextMgr->SendChat(creature, SAY_ARENA_NOT_IN_PROGRESS, player->GetGUID());
+                            player->PlayerTalkClass->ClearMenus();
+                            player->CLOSE_GOSSIP_MENU();
+                            return false;
+                        }
+                    }
+
+                    float x = 0.0f, y = 0.0f, z = 0.0f;
+
+                    if(bg){
+                        switch (bg->GetMapId())
+                        {
+                            case 617:
+                                x = 1299.046f;
+                                y = 784.825f;
+                                z = 9.338f;
+                                break;
+                            case 618:
+                                x = 763.5f;
+                                y = -284;
+                                z = 28.276f;
+                                break;
+                            case 572:
+                                x = 1285.810547f;
+                                y = 1667.896851f;
+                                z = 39.957642f;
+                                break;
+                            case 562:
+                                x = 6238.930176f;
+                                y = 262.963470f;
+                                z = 0.889519f;
+                                break;
+                            case 559:
+                                x = 4055.504395f;
+                                y = 2919.660645f;
+                                z = 13.611241f;
+                                break;
+                            default:
+                                player->PlayerTalkClass->ClearMenus();
+                                player->CLOSE_GOSSIP_MENU();
+                                return false;
+                        }
+                    }
+
+                    if(bg){
+                        player->SetBattlegroundId(bg->GetInstanceID(), bg->GetTypeID());
+                        player->SetBattlegroundEntryPoint();
+                        ArenaWatcherStart(player);
+                        player->TeleportTo(bg->GetMapId(), x, y, z, player->GetOrientation());
+                        ArenaWatcherAfterTeleport(player);
+                    }
                 }
-                player->SetBattlegroundId(bg->GetInstanceID(), bg->GetTypeID());
-                player->SetBattlegroundEntryPoint();
-                ArenaWatcherStart(player);
-                player->TeleportTo(bg->GetMapId(), x, y, z, player->GetOrientation());
-                ArenaWatcherAfterTeleport(player);
             }
         }
         return true;
