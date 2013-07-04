@@ -339,9 +339,9 @@ class npc_arena_watcher : public CreatureScript
 
                 if (arenas->m_Battlegrounds[arenaId])
                 {
-                    Battleground* bg = arenas->m_Battlegrounds[arenaId];
+                    
+                    if(Battleground* bg = arenas->m_Battlegrounds[arenaId]){
 
-                    if(bg){
                         if (bg->GetStatus() != STATUS_IN_PROGRESS) 
                         {
                             sCreatureTextMgr->SendChat(creature, SAY_ARENA_NOT_IN_PROGRESS, player->GetGUID());
@@ -349,51 +349,53 @@ class npc_arena_watcher : public CreatureScript
                             player->CLOSE_GOSSIP_MENU();
                             return false;
                         }
-                    }
 
-                    float x = 0.0f, y = 0.0f, z = 0.0f;
+                        float x = 0.0f, y = 0.0f, z = 0.0f;
 
-                    if(bg){
-                        switch (bg->GetMapId())
-                        {
-                            case 617:
-                                x = 1299.046f;
-                                y = 784.825f;
-                                z = 9.338f;
-                                break;
-                            case 618:
-                                x = 763.5f;
-                                y = -284;
-                                z = 28.276f;
-                                break;
-                            case 572:
-                                x = 1285.810547f;
-                                y = 1667.896851f;
-                                z = 39.957642f;
-                                break;
-                            case 562:
-                                x = 6238.930176f;
-                                y = 262.963470f;
-                                z = 0.889519f;
-                                break;
-                            case 559:
-                                x = 4055.504395f;
-                                y = 2919.660645f;
-                                z = 13.611241f;
-                                break;
-                            default:
-                                player->PlayerTalkClass->ClearMenus();
-                                player->CLOSE_GOSSIP_MENU();
-                                return false;
+                        if(bg){
+                            switch (bg->GetMapId())
+                            {
+                                case 617:
+                                    x = 1299.046f;
+                                    y = 784.825f;
+                                    z = 9.338f;
+                                    break;
+                                case 618:
+                                    x = 763.5f;
+                                    y = -284;
+                                    z = 28.276f;
+                                    break;
+                                case 572:
+                                    x = 1285.810547f;
+                                    y = 1667.896851f;
+                                    z = 39.957642f;
+                                    break;
+                                case 562:
+                                    x = 6238.930176f;
+                                    y = 262.963470f;
+                                    z = 0.889519f;
+                                    break;
+                                case 559:
+                                    x = 4055.504395f;
+                                    y = 2919.660645f;
+                                    z = 13.611241f;
+                                    break;
+                                default:
+                                    player->PlayerTalkClass->ClearMenus();
+                                    player->CLOSE_GOSSIP_MENU();
+                                    return false;
+                            }
                         }
-                    }
 
-                    if(bg){
-                        player->SetBattlegroundId(bg->GetInstanceID(), bg->GetTypeID());
-                        player->SetBattlegroundEntryPoint();
-                        ArenaWatcherStart(player);
-                        player->TeleportTo(bg->GetMapId(), x, y, z, player->GetOrientation());
-                        ArenaWatcherAfterTeleport(player);
+                        if(bg){
+                            if(bg->GetStatus()==STATUS_IN_PROGRESS){
+                                player->SetBattlegroundId(bg->GetInstanceID(), bg->GetTypeID());
+                                player->SetBattlegroundEntryPoint();
+                                ArenaWatcherStart(player);
+                                player->TeleportTo(bg->GetMapId(), x, y, z, player->GetOrientation());
+                                ArenaWatcherAfterTeleport(player);
+                            }
+                        }
                     }
                 }
             }
