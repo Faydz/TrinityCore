@@ -376,6 +376,15 @@ void WorldSession::HandlePVPLogDataOpcode(WorldPacket & /*recvData*/)
     sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: Sent SMSG_PVP_LOG_DATA Message");
 }
 
+void WorldSession::HandleSendRatedBgList(WorldPacket & /*recvData*/)
+{
+   /* 
+    uint32 bgTypeId = 100;
+    WorldPacket data;
+    sBattlegroundMgr->BuildBattlegroundListPacket(&data, 0, _player, BattlegroundTypeId(bgTypeId));
+    SendPacket(&data);*/
+}
+
 void WorldSession::HandleBattlefieldListOpcode(WorldPacket& recvData)
 {
     sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: Recvd CMSG_BATTLEFIELD_LIST Message");
