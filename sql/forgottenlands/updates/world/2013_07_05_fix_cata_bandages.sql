@@ -1,5 +1,5 @@
-DELETE from `spell_linked_spell` where `spell_trigger` IN (3275, 1159, 3267, 3268, 7926, 7927, 10838, 10839, 18608, 18630, 24414, 27030, 27031, 45543, 45544, 51803, 74553, 74554, 74555) AND `spell_effect`=11196;
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (3275, 11196, 1, 'linen bandage');
+DELETE from `spell_linked_spell` where `spell_trigger` IN (746, 1159, 3267, 3268, 7926, 7927, 10838, 10839, 18608, 18610, 24414, 27030, 27031, 45543, 45544, 51803, 74553, 74554, 74555) AND `spell_effect`=11196;
+INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (746, 11196, 1, 'linen bandage');
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (1159, 11196, 1, 'heavy linen bandage'); 
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (3267, 11196, 1, 'wool bandage'); 
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (3268, 11196, 1, 'heavy wool bandage');
@@ -8,7 +8,7 @@ INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comm
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (10838, 11196, 1, 'mageweave bandage');
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (10839, 11196, 1, 'heavy mageweave bandage');
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (18608, 11196, 1, 'runecloth bandage');
-INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (18630, 11196, 1, 'heavy runecloth bandage');
+INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (18610, 11196, 1, 'heavy runecloth bandage');
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (24414, 11196, 1, 'arathi bandage');
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (27030, 11196, 1, 'netherweave bandage');
 INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES (27031, 11196, 1, 'heavy netherweave bandage');
