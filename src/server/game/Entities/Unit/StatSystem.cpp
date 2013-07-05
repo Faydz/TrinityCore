@@ -1039,6 +1039,13 @@ bool Guardian::UpdateStats(Stats stat)
             case CLASS_WARLOCK:
                 pct = 75;
                 break;
+            case CLASS_DEATH_KNIGHT:
+                // Ebon Gargoyle
+                if(GetEntry() == 27829)
+                {
+                    pct = 80;
+                }
+                break;
             case CLASS_MAGE:
                 pct = 78;
                 break;
