@@ -971,11 +971,6 @@ bool BattlegroundMgr::CreateBattleground(CreateBattlegroundData& data)
             bg = new Battleground;
             bg->SetRandom(true);
             break;
-        case BATTLEGROUND_RATED_10_VS_10:
-        case BATTLEGROUND_RATED_15_VS_15:
-        case BATTLEGROUND_RATED_25_VS_25:
-            bg = new Battleground;
-            break;
         case BATTLEGROUND_TP:
             bg = new BattlegroundTP;
             break;
@@ -1065,8 +1060,7 @@ void BattlegroundMgr::CreateInitialBattlegrounds()
             continue;
         }
 
-        if (data.bgTypeId == BATTLEGROUND_AA || data.bgTypeId == BATTLEGROUND_RB || data.bgTypeId == BATTLEGROUND_RATED_10_VS_10 
-            || data.bgTypeId == BATTLEGROUND_RATED_15_VS_15 || data.bgTypeId == BATTLEGROUND_RATED_25_VS_25)
+        if (data.bgTypeId == BATTLEGROUND_AA || data.bgTypeId == BATTLEGROUND_RB)
         {
             data.Team1StartLocX = 0;
             data.Team1StartLocY = 0;
@@ -1110,7 +1104,7 @@ void BattlegroundMgr::CreateInitialBattlegrounds()
 
         if (!CreateBattleground(data))
             continue;
-        
+
         if (data.IsArena)
         {
             if (data.bgTypeId != BATTLEGROUND_AA)

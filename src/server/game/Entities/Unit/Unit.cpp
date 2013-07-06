@@ -5823,22 +5823,13 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         // Proc chance for Hot Streak talent scales with critical strike
                         if(dummySpell->Id == 44445 && ToPlayer() && victim)
                         {
-                            float crit_chance = ToPlayer()->GetTotalSpellCritChanceOnTarget(SPELL_SCHOOL_MASK_FIRE, victim);
+                            float crit_chance = ToPlayer()->GetTotalSpellCritChanceOnTarget(SPELL_SCHOOL_MASK_FIRE, victim) / 100.0f;
 
-                            if (crit_chance <= 20.0f)
-                            {
-                                roll_chance = (1.0f - 4.0f * crit_chance / 100.0f) * 100.0f;
-                            }
-                            else if (crit_chance <= 30.0f && crit_chance > 20.0f)
-                            {
-                                roll_chance = (0.5f - 1.5f * crit_chance / 100.0f) * 100.0f;
-                            }
-                            else if (crit_chance <= 45.0f && crit_chance > 30.0f)
-                            {
-                                roll_chance = (0.15f - 0.33f * crit_chance / 100.0f) * 100.0f;
-                            }
-                            else 
-                                roll_chance = 0.0f;
+                            roll_chance = (1.5156f * pow(crit_chance, 2)) - (2.5351f * crit_chance) + 0.8414f;
+
+                            roll_chance = crit_chance >= 0.4370f ? 0.0f : crit_chance <= 0.03f ? 1.0f : roll_chance;
+
+                            roll_chance *= 100.0f;
                         }
 
                         // Critical counted -> roll chance
