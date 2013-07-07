@@ -56,7 +56,7 @@ enum eEnums
     SPELL_FIRE_BOMB_DAMAGE      = 42630,
 
 // --Summons
-    NPC_FLAME_BREATH_1          = 43037,
+    NPC_FLAME_BREATH            = 43037,
     NPC_AMANI_HATCHER           = 23818,
     NPC_HATCHLING               = 23598,   // 42493
     NPC_EGG                     = 23817,
@@ -217,7 +217,7 @@ class boss_janalai : public CreatureScript
                             ownerOrientation = me->GetOrientation();
                             me->GetPosition(&pos);
 
-                            Creature* summon = me->SummonCreature(NPC_FLAME_BREATH_1, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), ownerOrientation, TEMPSUMMON_TIMED_DESPAWN, 3000);
+                            Creature* summon = me->SummonCreature(NPC_FLAME_BREATH, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), ownerOrientation, TEMPSUMMON_TIMED_DESPAWN, 3000);
                             if(summon)
                             {
                                 summon->GetMotionMaster()->MovePoint(0, summon->GetPositionX() + 120 / 2 * cos(ownerOrientation), summon->GetPositionY() + 120 / 2 * sin(ownerOrientation), (summon->GetPositionZ() +2.0f));
@@ -350,7 +350,7 @@ class npc_flame_breath : public CreatureScript
                         {
                             Position pos;
                             me->GetPosition(&pos);
-                            Creature* flameBreath = me->SummonCreature(NPC_FLAME_BREATH_1, me->GetPositionX(), me->GetPositionY(), z, me->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN, 6000);
+                            Creature* flameBreath = me->SummonCreature(NPC_FLAME_BREATH, me->GetPositionX(), me->GetPositionY(), z, me->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN, 6000);
                             if(flameBreath)
                             {
                                 flameBreath->SetReactState(REACT_PASSIVE);
