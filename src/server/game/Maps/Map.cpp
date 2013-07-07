@@ -2782,6 +2782,7 @@ void BattlegroundMap::RemoveSpectators()
                     if(player->GetSpectator()){
                         player->TeleportTo(player->GetBattlegroundEntryPoint());
                         sScriptMgr->OnPlayerRemoveFromBattleground(player, m_bg);
+                        player->SetSpectator(false);
                     }
                 }
             }

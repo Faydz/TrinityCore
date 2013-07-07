@@ -295,6 +295,9 @@ class npc_arena_watcher : public CreatureScript
                         if (ArenaWatcherOnlyRated && !itr->second->isRated())
                             continue;
 
+                        if (itr->second->GetStatus() != STATUS_IN_PROGRESS)
+                            continue;
+
                         if (itr->second->isRated())
                         {
                             ArenaTeam* teamOne = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(0));
@@ -429,14 +432,22 @@ class npc_arena_watcher : public CreatureScript
                         {
                             if (Battleground* bg = target->GetBattleground())
                             {
-                                player->SetBattlegroundId(bg->GetInstanceID(), bg->GetTypeID());
-                                player->SetBattlegroundEntryPoint();
-                                float x, y, z;
-                                target->GetContactPoint(player, x, y, z);
-                                ArenaWatcherStart(player);
-                                player->TeleportTo(target->GetMapId(), x, y, z, player->GetOrientation());
-                                player->SetInFront(target);
-                                ArenaWatcherAfterTeleport(player);
+                                if(bg->GetStatus() != STATUS_IN_PROGRESS)
+                                {
+                                    sCreatureTextMgr->SendChat(creature, SAY_ARENA_NOT_IN_PROGRESS, player->GetGUID());
+                                    return true;
+                                }
+                                else 
+                                {
+                                    player->SetBattlegroundId(bg->GetInstanceID(), bg->GetTypeID());
+                                    player->SetBattlegroundEntryPoint();
+                                    float x, y, z;
+                                    target->GetContactPoint(player, x, y, z);
+                                    ArenaWatcherStart(player);
+                                    player->TeleportTo(target->GetMapId(), x, y, z, player->GetOrientation());
+                                    player->SetInFront(target);
+                                    ArenaWatcherAfterTeleport(player);
+                                }
                             }
                         }
                     }
