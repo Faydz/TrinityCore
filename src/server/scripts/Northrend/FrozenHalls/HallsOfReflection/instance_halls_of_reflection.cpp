@@ -101,7 +101,7 @@ public:
         {
             Map::PlayerList const& players = instance->GetPlayers();
             if (!players.isEmpty())
-                if (Player* player = players.begin()->getSource())
+                if (Player* player = players.begin()->GetSource())
                     _teamInInstance = player->GetTeam();
 
             switch (creature->GetEntry())
@@ -215,7 +215,7 @@ public:
             return true;
         }
 
-        void SetData(uint32 type, uint32 data)
+        void SetData(uint32 type, uint32 data) OVERRIDE
         {
             switch (type)
             {
@@ -271,11 +271,11 @@ public:
                     for (std::set<uint64>::const_iterator itr = waveGuidList[waveId].begin(); itr != waveGuidList[waveId].end(); ++itr)
                     {
                         Creature* npc = instance->GetCreature(*itr);
-                        if (!npc || !npc->isAlive())
+                        if (!npc || !npc->IsAlive())
                             ++deadNpcs;
                     }
 
-                    // because the current npc returns isAlive when OnUnitDeath happens
+                    // because the current npc returns IsAlive when OnUnitDeath happens
                     // we check if the number of dead npcs is equal to the list-1
                     if (deadNpcs == waveGuidList[waveId].size() - 1)
                     {
@@ -409,7 +409,7 @@ public:
             }
         }
 
-        uint32 GetData(uint32 type) const
+        uint32 GetData(uint32 type) const OVERRIDE
         {
             switch (type)
             {
@@ -428,7 +428,7 @@ public:
             return 0;
         }
 
-        uint64 GetData64(uint32 type) const
+        uint64 GetData64(uint32 type) const OVERRIDE
         {
             switch (type)
             {
@@ -528,7 +528,7 @@ public:
         std::set<uint64> waveGuidList[8];
     };
 
-    InstanceScript* GetInstanceScript(InstanceMap* map) const
+    InstanceScript* GetInstanceScript(InstanceMap* map) const OVERRIDE
     {
         return new instance_halls_of_reflection_InstanceMapScript(map);
     }

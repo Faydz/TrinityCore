@@ -213,7 +213,7 @@ class instance_stratholme : public InstanceMapScript
                 }
             }
 
-            void SetData(uint32 type, uint32 data)
+            void SetData(uint32 type, uint32 data) OVERRIDE
             {
                 switch (type)
                 {
@@ -273,7 +273,7 @@ class instance_stratholme : public InstanceMapScript
                             for (std::set<uint64>::const_iterator i = abomnationGUID.begin(); i != abomnationGUID.end(); ++i)
                             {
                                 if (Creature* pAbom = instance->GetCreature(*i))
-                                    if (!pAbom->isAlive())
+                                    if (!pAbom->IsAlive())
                                         --count;
                             }
 
@@ -310,7 +310,7 @@ class instance_stratholme : public InstanceMapScript
                                 Map::PlayerList const& players = instance->GetPlayers();
                                 if (!players.isEmpty())
                                     for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-                                        if (Player* player = itr->getSource())
+                                        if (Player* player = itr->GetSource())
                                             if (player->GetQuestStatus(QUEST_DEAD_MAN_PLEA) == QUEST_STATUS_INCOMPLETE)
                                                 player->AreaExploredOrEventHappens(QUEST_DEAD_MAN_PLEA);
 
@@ -384,7 +384,7 @@ class instance_stratholme : public InstanceMapScript
                 OUT_LOAD_INST_DATA_COMPLETE;
             }
 
-            uint32 GetData(uint32 type) const
+            uint32 GetData(uint32 type) const OVERRIDE
             {
                   switch (type)
                   {
@@ -408,7 +408,7 @@ class instance_stratholme : public InstanceMapScript
                   return 0;
             }
 
-            uint64 GetData64(uint32 data) const
+            uint64 GetData64(uint32 data) const OVERRIDE
             {
                 switch (data)
                 {
@@ -451,7 +451,7 @@ class instance_stratholme : public InstanceMapScript
             }
         };
 
-        InstanceScript* GetInstanceScript(InstanceMap* map) const
+        InstanceScript* GetInstanceScript(InstanceMap* map) const OVERRIDE
         {
             return new instance_stratholme_InstanceMapScript(map);
         }

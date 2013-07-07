@@ -27,7 +27,7 @@ EndScriptData */
 #include "ScriptedCreature.h"
 #include "Player.h"
 
-enum eSays
+enum Says
 {
     SAY_AGGRO                    = 0,
     SAY_SUMMON                   = 1,
@@ -37,7 +37,7 @@ enum eSays
     SAY_WIPE                     = 5
 };
 
-enum eSpells
+enum Spells
 {
     SPELL_ORBITAL_STRIKE         = 30637,
     SPELL_SHADOW_WHIP            = 30638,
@@ -75,7 +75,7 @@ class boss_omor_the_unscarred : public CreatureScript
             uint64 PlayerGUID;
             bool CanPullBack;
 
-            void Reset()
+            void Reset() OVERRIDE
             {
                 Talk(SAY_WIPE);
 
@@ -90,12 +90,12 @@ class boss_omor_the_unscarred : public CreatureScript
                 CanPullBack = false;
             }
 
-            void EnterCombat(Unit* /*who*/)
+            void EnterCombat(Unit* /*who*/) OVERRIDE
             {
                 Talk(SAY_AGGRO);
             }
 
-            void KilledUnit(Unit* /*victim*/)
+            void KilledUnit(Unit* /*victim*/) OVERRIDE
             {
                 if (rand()%2)
                     return;
@@ -103,7 +103,7 @@ class boss_omor_the_unscarred : public CreatureScript
                 Talk(SAY_KILL_1);
             }
 
-            void JustSummoned(Creature* summoned)
+            void JustSummoned(Creature* summoned) OVERRIDE
             {
                 Talk(SAY_SUMMON);
 
@@ -113,12 +113,12 @@ class boss_omor_the_unscarred : public CreatureScript
                 ++SummonedCount;
             }
 
-            void JustDied(Unit* /*killer*/)
+            void JustDied(Unit* /*killer*/) OVERRIDE
             {
                 Talk(SAY_DIE);
             }
 
-            void UpdateAI(uint32 diff)
+            void UpdateAI(uint32 diff) OVERRIDE
             {
                 if (!UpdateVictim())
                     return;
@@ -160,8 +160,8 @@ class boss_omor_the_unscarred : public CreatureScript
                     if (OrbitalStrike_Timer <= diff)
                     {
                         Unit* temp = NULL;
-                        if (me->IsWithinMeleeRange(me->getVictim()))
-                            temp = me->getVictim();
+                        if (me->IsWithinMeleeRange(me->GetVictim()))
+                            temp = me->GetVictim();
                         else temp = SelectTarget(SELECT_TARGET_RANDOM, 0);
 
                         if (temp && temp->GetTypeId() == TYPEID_PLAYER)
@@ -206,7 +206,7 @@ class boss_omor_the_unscarred : public CreatureScript
                     if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0))
                     {
                         if (target)
-                            target = me->getVictim();
+                            target = me->GetVictim();
 
                         DoCast(target, SPELL_SHADOW_BOLT);
                         Shadowbolt_Timer = 4000+rand()%2500;
@@ -219,7 +219,7 @@ class boss_omor_the_unscarred : public CreatureScript
             }
         };
 
-        CreatureAI* GetAI(Creature* creature) const
+        CreatureAI* GetAI(Creature* creature) const OVERRIDE
         {
             return new boss_omor_the_unscarredAI(creature);
         }

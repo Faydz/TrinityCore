@@ -65,7 +65,7 @@ uint32 OPvPCapturePointNA::GetAliveGuardsCount()
         case NA_NPC_GUARD_14:
         case NA_NPC_GUARD_15:
             if (Creature const* const cr = HashMapHolder<Creature>::Find(itr->second))
-                if (cr->isAlive())
+                if (cr->IsAlive())
                     ++cnt;
             break;
         default:
@@ -669,7 +669,7 @@ class OutdoorPvP_nagrand : public OutdoorPvPScript
         {
         }
 
-        OutdoorPvP* GetOutdoorPvP() const
+        OutdoorPvP* GetOutdoorPvP() const OVERRIDE
         {
             return new OutdoorPvPNA();
         }

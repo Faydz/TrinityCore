@@ -109,7 +109,7 @@ class instance_violet_hold : public InstanceMapScript
 public:
     instance_violet_hold() : InstanceMapScript("instance_violet_hold", 608) { }
 
-    InstanceScript* GetInstanceScript(InstanceMap* map) const
+    InstanceScript* GetInstanceScript(InstanceMap* map) const OVERRIDE
     {
         return new instance_violet_hold_InstanceMapScript(map);
     }
@@ -314,7 +314,7 @@ public:
             }
         }
 
-        void SetData(uint32 type, uint32 data)
+        void SetData(uint32 type, uint32 data) OVERRIDE
         {
             switch (type)
             {
@@ -407,7 +407,7 @@ public:
             }
         }
 
-        void SetData64(uint32 type, uint64 data)
+        void SetData64(uint32 type, uint64 data) OVERRIDE
         {
             switch (type)
             {
@@ -420,7 +420,7 @@ public:
             }
         }
 
-        uint32 GetData(uint32 type) const
+        uint32 GetData(uint32 type) const OVERRIDE
         {
             switch (type)
             {
@@ -441,7 +441,7 @@ public:
             return 0;
         }
 
-        uint64 GetData64(uint32 identifier) const
+        uint64 GetData64(uint32 identifier) const OVERRIDE
         {
             switch (identifier)
             {
@@ -671,11 +671,11 @@ public:
             Map::PlayerList const &players = instance->GetPlayers();
             for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
             {
-                Player* player = itr->getSource();
-                if (player->isGameMaster())
+                Player* player = itr->GetSource();
+                if (player->IsGameMaster())
                     continue;
 
-                if (player->isAlive())
+                if (player->IsAlive())
                     return false;
             }
 
@@ -796,7 +796,7 @@ public:
             for (std::set<uint64>::const_iterator itr = trashMobs.begin(); itr != trashMobs.end(); ++itr)
             {
                 Creature* creature = instance->GetCreature(*itr);
-                if (creature && creature->isAlive())
+                if (creature && creature->IsAlive())
                     creature->CastSpell(creature, SPELL_ARCANE_LIGHTNING, true);  // Who should cast the spell?
             }
         }

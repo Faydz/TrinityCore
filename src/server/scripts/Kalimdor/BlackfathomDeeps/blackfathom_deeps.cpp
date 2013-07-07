@@ -40,7 +40,7 @@ class go_blackfathom_altar : public GameObjectScript
 public:
     go_blackfathom_altar() : GameObjectScript("go_blackfathom_altar") { }
 
-    bool OnGossipHello(Player* player, GameObject* /*go*/)
+    bool OnGossipHello(Player* player, GameObject* /*go*/) OVERRIDE
     {
         if (!player->HasAura(SPELL_BLESSING_OF_BLACKFATHOM))
             player->AddAura(SPELL_BLESSING_OF_BLACKFATHOM, player);
@@ -53,7 +53,7 @@ class go_blackfathom_fire : public GameObjectScript
 public:
     go_blackfathom_fire() : GameObjectScript("go_blackfathom_fire") { }
 
-    bool OnGossipHello(Player* /*player*/, GameObject* go)
+    bool OnGossipHello(Player* /*player*/, GameObject* go) OVERRIDE
     {
         InstanceScript* instance = go->GetInstanceScript();
 
@@ -73,7 +73,7 @@ class npc_blackfathom_deeps_event : public CreatureScript
 public:
     npc_blackfathom_deeps_event() : CreatureScript("npc_blackfathom_deeps_event") { }
 
-    CreatureAI* GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const OVERRIDE
     {
         return new npc_blackfathom_deeps_eventAI (creature);
     }
@@ -82,7 +82,7 @@ public:
     {
         npc_blackfathom_deeps_eventAI(Creature* creature) : ScriptedAI(creature)
         {
-            if (creature->isSummon())
+            if (creature->IsSummon())
             {
                 creature->SetHomePosition(HomePosition);
                 AttackPlayer();
@@ -99,7 +99,7 @@ public:
 
         bool Flee;
 
-        void Reset()
+        void Reset() OVERRIDE
         {
             Flee = false;
 
@@ -117,12 +117,12 @@ public:
 
             for (Map::PlayerList::const_iterator i = PlList.begin(); i != PlList.end(); ++i)
             {
-                if (Player* player = i->getSource())
+                if (Player* player = i->GetSource())
                 {
-                    if (player->isGameMaster())
+                    if (player->IsGameMaster())
                         continue;
 
-                    if (player->isAlive())
+                    if (player->IsAlive())
                     {
                         me->SetInCombatWith(player);
                         player->SetInCombatWith(me);
@@ -132,7 +132,7 @@ public:
             }
         }
 
-        void UpdateAI(uint32 diff)
+        void UpdateAI(uint32 diff) OVERRIDE
         {
             if (!UpdateVictim())
                 return;
@@ -181,9 +181,9 @@ public:
             DoMeleeAttackIfReady();
         }
 
-        void JustDied(Unit* /*killer*/)
+        void JustDied(Unit* /*killer*/) OVERRIDE
         {
-            if (me->isSummon()) //we are not a normal spawn.
+            if (me->IsSummon()) //we are not a normal spawn.
                 if (instance)
                     instance->SetData(DATA_EVENT, instance->GetData(DATA_EVENT) + 1);
         }
@@ -201,7 +201,7 @@ class npc_morridune : public CreatureScript
 public:
     npc_morridune() : CreatureScript("npc_morridune") { }
 
-    bool OnGossipSelect(Player* player, Creature* /*creature*/, uint32 /*sender*/, uint32 action)
+    bool OnGossipSelect(Player* player, Creature* /*creature*/, uint32 /*sender*/, uint32 action) OVERRIDE
     {
         player->PlayerTalkClass->ClearMenus();
         switch (action)
@@ -214,7 +214,7 @@ public:
         return true;
     }
 
-    bool OnGossipHello(Player* player, Creature* creature)
+    bool OnGossipHello(Player* player, Creature* creature) OVERRIDE
     {
         player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_MORRIDUNE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
 
@@ -222,7 +222,7 @@ public:
         return true;
     }
 
-    CreatureAI* GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const OVERRIDE
     {
         return new npc_morriduneAI (creature);
     }
@@ -236,14 +236,13 @@ public:
             Start(false, false, 0);
         }
 
-        void WaypointReached(uint32 waypointId)
+        void WaypointReached(uint32 waypointId) OVERRIDE
         {
             switch (waypointId)
             {
                 case 4:
                     SetEscortPaused(true);
-                    me->SetOrientation(1.775791f);
-                    me->SendMovementFlagUpdate();
+                    me->SetFacingTo(1.775791f);
                     me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                     Talk(SAY_MORRIDUNE_2);
                     break;

@@ -108,14 +108,14 @@ class spell_eadric_radiance : public SpellScriptLoader
                 unitList.remove_if(OrientationCheck(GetCaster()));
             }
 
-            void Register()
+            void Register() OVERRIDE
             {
                 OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_eadric_radiance_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
                 OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_eadric_radiance_SpellScript::FilterTargets, EFFECT_1, TARGET_UNIT_SRC_AREA_ENEMY);
             }
         };
 
-        SpellScript* GetSpellScript() const
+        SpellScript* GetSpellScript() const OVERRIDE
         {
             return new spell_eadric_radiance_SpellScript();
         }
@@ -143,7 +143,7 @@ public:
 
         bool bDone;
 
-        void Reset()
+        void Reset() OVERRIDE
         {
             uiVenganceTimer = 10000;
             uiRadianceTimer = 16000;
@@ -153,7 +153,7 @@ public:
             bDone = false;
         }
 
-        void DamageTaken(Unit* /*done_by*/, uint32 &damage)
+        void DamageTaken(Unit* /*done_by*/, uint32 &damage) OVERRIDE
         {
             if (damage >= me->GetHealth())
             {
@@ -164,7 +164,7 @@ public:
             }
         }
 
-        void MovementInform(uint32 MovementType, uint32 /*Data*/)
+        void MovementInform(uint32 MovementType, uint32 /*Data*/) OVERRIDE
         {
             if (MovementType != POINT_MOTION_TYPE)
                 return;
@@ -175,7 +175,7 @@ public:
             me->DisappearAndDie();
         }
 
-        void UpdateAI(uint32 uiDiff)
+        void UpdateAI(uint32 uiDiff) OVERRIDE
         {
             if (bDone && uiResetTimer <= uiDiff)
             {
@@ -192,7 +192,7 @@ public:
 
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 250, true))
                 {
-                    if (target && target->isAlive())
+                    if (target && target->IsAlive())
                     {
                         DoCast(target, SPELL_HAMMER_JUSTICE);
                         DoCast(target, SPELL_HAMMER_RIGHTEOUS);
@@ -219,7 +219,7 @@ public:
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const OVERRIDE
     {
         return new boss_eadricAI(creature);
     }
@@ -253,7 +253,7 @@ public:
         uint32 uiRenewTimer;
         uint32 uiResetTimer;
 
-        void Reset()
+        void Reset() OVERRIDE
         {
             me->RemoveAllAuras();
 
@@ -267,17 +267,17 @@ public:
             bDone = false;
 
             if (Creature* pMemory = Unit::GetCreature(*me, MemoryGUID))
-                if (pMemory->isAlive())
+                if (pMemory->IsAlive())
                     pMemory->RemoveFromWorld();
         }
 
-        void SetData(uint32 uiId, uint32 /*uiValue*/)
+        void SetData(uint32 uiId, uint32 /*uiValue*/) OVERRIDE
         {
             if (uiId == 1)
                 me->RemoveAura(SPELL_SHIELD);
         }
 
-        void DamageTaken(Unit* /*done_by*/, uint32 &damage)
+        void DamageTaken(Unit* /*done_by*/, uint32 &damage) OVERRIDE
         {
             if (damage >= me->GetHealth())
             {
@@ -288,7 +288,7 @@ public:
             }
         }
 
-        void MovementInform(uint32 MovementType, uint32 Point)
+        void MovementInform(uint32 MovementType, uint32 Point) OVERRIDE
         {
             if (MovementType != POINT_MOTION_TYPE || Point != 0)
                 return;
@@ -299,7 +299,7 @@ public:
             me->DisappearAndDie();
         }
 
-        void UpdateAI(uint32 uiDiff)
+        void UpdateAI(uint32 uiDiff) OVERRIDE
         {
             if (bDone && uiResetTimer <= uiDiff)
             {
@@ -314,7 +314,7 @@ public:
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 250, true))
                 {
-                    if (target && target->isAlive())
+                    if (target && target->IsAlive())
                         DoCast(target, SPELL_HOLY_FIRE);
                 }
                  if (me->HasAura(SPELL_SHIELD))
@@ -327,7 +327,7 @@ public:
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 250, true))
                 {
-                    if (target && target->isAlive())
+                    if (target && target->IsAlive())
                         DoCast(target, SPELL_SMITE);
                 }
                 if (me->HasAura(SPELL_SHIELD))
@@ -349,7 +349,7 @@ public:
                             break;
                         case 1:
                             if (Creature* pMemory = Unit::GetCreature(*me, MemoryGUID))
-                                if (pMemory->isAlive())
+                                if (pMemory->IsAlive())
                                     DoCast(pMemory, SPELL_RENEW);
                             break;
                     }
@@ -371,13 +371,13 @@ public:
             DoMeleeAttackIfReady();
         }
 
-        void JustSummoned(Creature* summon)
+        void JustSummoned(Creature* summon) OVERRIDE
         {
             MemoryGUID = summon->GetGUID();
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const OVERRIDE
     {
         return new boss_paletressAI(creature);
     }
@@ -396,14 +396,14 @@ public:
         uint32 uiShadowPastTimer;
         uint32 uiWakingNightmare;
 
-        void Reset()
+        void Reset() OVERRIDE
         {
             uiOldWoundsTimer = 12000;
             uiShadowPastTimer = 5000;
             uiWakingNightmare = 7000;
         }
 
-        void UpdateAI(uint32 uiDiff)
+        void UpdateAI(uint32 uiDiff) OVERRIDE
         {
             if (!UpdateVictim())
                 return;
@@ -412,7 +412,7 @@ public:
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0))
                 {
-                    if (target && target->isAlive())
+                    if (target && target->IsAlive())
                         DoCast(target, SPELL_OLD_WOUNDS);
                 }
                 uiOldWoundsTimer = 12000;
@@ -428,7 +428,7 @@ public:
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1))
                 {
-                    if (target && target->isAlive())
+                    if (target && target->IsAlive())
                         DoCast(target, SPELL_SHADOWS_PAST);
                 }
                 uiShadowPastTimer = 5000;
@@ -437,16 +437,16 @@ public:
             DoMeleeAttackIfReady();
         }
 
-        void JustDied(Unit* /*killer*/)
+        void JustDied(Unit* /*killer*/) OVERRIDE
         {
             if (TempSummon* summ = me->ToTempSummon())
                 if (Unit* summoner = summ->GetSummoner())
-                    if (summoner->isAlive())
+                    if (summoner->IsAlive())
                         summoner->GetAI()->SetData(1, 0);
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const OVERRIDE
     {
         return new npc_memoryAI(creature);
     }
@@ -472,28 +472,26 @@ public:
 
         uint8 uiWaypoint;
 
-        void WaypointReached(uint32 waypointId)
+        void WaypointReached(uint32 waypointId) OVERRIDE
         {
             if (waypointId == 0)
             {
                 switch (uiWaypoint)
                 {
                     case 0:
-                        me->SetOrientation(5.81f);
+                        me->SetFacingTo(5.81f);
                         break;
                     case 1:
-                        me->SetOrientation(4.60f);
+                        me->SetFacingTo(4.60f);
                         break;
                     case 2:
-                        me->SetOrientation(2.79f);
+                        me->SetFacingTo(2.79f);
                         break;
                 }
-
-                me->SendMovementFlagUpdate();
             }
         }
 
-        void SetData(uint32 uiType, uint32 /*uiData*/)
+        void SetData(uint32 uiType, uint32 /*uiData*/) OVERRIDE
         {
             switch (me->GetEntry())
             {
@@ -545,7 +543,7 @@ public:
             uiWaypoint = uiType;
         }
 
-        void UpdateAI(uint32 uiDiff)
+        void UpdateAI(uint32 uiDiff) OVERRIDE
         {
             npc_escortAI::UpdateAI(uiDiff);
 
@@ -555,14 +553,14 @@ public:
             DoMeleeAttackIfReady();
         }
 
-        void JustDied(Unit* /*killer*/)
+        void JustDied(Unit* /*killer*/) OVERRIDE
         {
             if (instance)
                 instance->SetData(DATA_ARGENT_SOLDIER_DEFEATED, instance->GetData(DATA_ARGENT_SOLDIER_DEFEATED) + 1);
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const OVERRIDE
     {
         return new npc_argent_soldierAI(creature);
     }

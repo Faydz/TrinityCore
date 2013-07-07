@@ -233,7 +233,7 @@ class instance_ulduar : public InstanceMapScript
                 {
                     Map::PlayerList const& Players = instance->GetPlayers();
                     if (!Players.isEmpty())
-                        if (Player* player = Players.begin()->getSource())
+                        if (Player* player = Players.begin()->GetSource())
                             TeamInInstance = player->GetTeam();
                 }
 
@@ -626,19 +626,19 @@ class instance_ulduar : public InstanceMapScript
                 switch (eventId)
                 {
                     case EVENT_TOWER_OF_STORM_DESTROYED:
-                        if (FlameLeviathan && FlameLeviathan->isAlive())
+                        if (FlameLeviathan && FlameLeviathan->IsAlive())
                             FlameLeviathan->AI()->DoAction(ACTION_TOWER_OF_STORM_DESTROYED);
                         break;
                     case EVENT_TOWER_OF_FROST_DESTROYED:
-                        if (FlameLeviathan && FlameLeviathan->isAlive())
+                        if (FlameLeviathan && FlameLeviathan->IsAlive())
                             FlameLeviathan->AI()->DoAction(ACTION_TOWER_OF_FROST_DESTROYED);
                         break;
                     case EVENT_TOWER_OF_FLAMES_DESTROYED:
-                        if (FlameLeviathan && FlameLeviathan->isAlive())
+                        if (FlameLeviathan && FlameLeviathan->IsAlive())
                             FlameLeviathan->AI()->DoAction(ACTION_TOWER_OF_FLAMES_DESTROYED);
                         break;
                     case EVENT_TOWER_OF_LIFE_DESTROYED:
-                        if (FlameLeviathan && FlameLeviathan->isAlive())
+                        if (FlameLeviathan && FlameLeviathan->IsAlive())
                             FlameLeviathan->AI()->DoAction(ACTION_TOWER_OF_LIFE_DESTROYED);
                         break;
                     case EVENT_ACTIVATE_SANITY_WELL:
@@ -729,7 +729,7 @@ class instance_ulduar : public InstanceMapScript
                             // get item level (recheck weapons)
                             Map::PlayerList const& players = instance->GetPlayers();
                             for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-                                if (Player* player = itr->getSource())
+                                if (Player* player = itr->GetSource())
                                     for (uint8 slot = EQUIPMENT_SLOT_MAINHAND; slot <= EQUIPMENT_SLOT_RANGED; ++slot)
                                         if (Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
                                             if (item->GetTemplate()->ItemLevel > _maxWeaponItemLevel)
@@ -741,7 +741,7 @@ class instance_ulduar : public InstanceMapScript
                             Map::PlayerList const& players = instance->GetPlayers();
                             for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
                             {
-                                if (Player* player = itr->getSource())
+                                if (Player* player = itr->GetSource())
                                 {
                                     for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
                                     {
@@ -768,7 +768,7 @@ class instance_ulduar : public InstanceMapScript
                 return true;
             }
 
-            void SetData(uint32 type, uint32 data)
+            void SetData(uint32 type, uint32 data) OVERRIDE
             {
                 switch (type)
                 {
@@ -820,11 +820,11 @@ class instance_ulduar : public InstanceMapScript
                 }
             }
 
-            void SetData64(uint32 /*type*/, uint64 /*data*/)
+            void SetData64(uint32 /*type*/, uint64 /*data*/) OVERRIDE
             {
             }
 
-            uint64 GetData64(uint32 data) const
+            uint64 GetData64(uint32 data) const OVERRIDE
             {
                 switch (data)
                 {
@@ -938,7 +938,7 @@ class instance_ulduar : public InstanceMapScript
                 return 0;
             }
 
-            uint32 GetData(uint32 type) const
+            uint32 GetData(uint32 type) const OVERRIDE
             {
                 switch (type)
                 {
@@ -1113,7 +1113,7 @@ class instance_ulduar : public InstanceMapScript
             uint32 _maxWeaponItemLevel;
         };
 
-        InstanceScript* GetInstanceScript(InstanceMap* map) const
+        InstanceScript* GetInstanceScript(InstanceMap* map) const OVERRIDE
         {
             return new instance_ulduar_InstanceMapScript(map);
         }

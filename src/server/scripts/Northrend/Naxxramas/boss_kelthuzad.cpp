@@ -252,7 +252,7 @@ struct NotCharmedTargetSelector : public std::unary_function<Unit*, bool>
 
     bool operator()(Unit const* target) const
     {
-        return !target->isCharmed();
+        return !target->IsCharmed();
     }
 };
 
@@ -283,7 +283,7 @@ public:
 
         SummonList spawns; // adds spawn by the trigger. kept in separated list (i.e. not in summons)
 
-        void Reset()
+        void Reset() OVERRIDE
         {
             _Reset();
 
@@ -330,12 +330,12 @@ public:
             nWeaver = 0;
         }
 
-        void KilledUnit(Unit* /*victim*/)
+        void KilledUnit(Unit* /*victim*/) OVERRIDE
         {
             Talk(SAY_SLAY);
         }
 
-        void JustDied(Unit* /*killer*/)
+        void JustDied(Unit* /*killer*/) OVERRIDE
         {
             _JustDied();
             Talk(SAY_DEATH);
@@ -349,7 +349,7 @@ public:
             chained.clear();
         }
 
-        void EnterCombat(Unit* /*who*/)
+        void EnterCombat(Unit* /*who*/) OVERRIDE
         {
             me->setFaction(uiFaction);
 
@@ -382,7 +382,7 @@ public:
             KTTriggerGUID = instance ? instance->GetData64(DATA_KELTHUZAD_TRIGGER) : 0;
         }
 
-        void UpdateAI(uint32 diff)
+        void UpdateAI(uint32 diff) OVERRIDE
         {
             if (!UpdateVictim())
                 return;
@@ -431,7 +431,7 @@ public:
                             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_DISABLE_MOVE | UNIT_FLAG_NOT_SELECTABLE);
                             me->CastStop();
 
-                            DoStartMovement(me->getVictim());
+                            DoStartMovement(me->GetVictim());
                             events.ScheduleEvent(EVENT_BOLT, urand(5000, 10000));
                             events.ScheduleEvent(EVENT_NOVA, 15000);
                             events.ScheduleEvent(EVENT_DETONATE, urand(30000, 40000));
@@ -504,7 +504,7 @@ public:
                             for (uint8 i = 1; i <= count; i++)
                             {
                                 Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 200, true);
-                                if (target && !target->isCharmed() && (chained.find(target->GetGUID()) == chained.end()))
+                                if (target && !target->IsCharmed() && (chained.find(target->GetGUID()) == chained.end()))
                                 {
                                     DoCast(target, SPELL_CHAINS_OF_KELTHUZAD);
                                     float scale = target->GetFloatValue(OBJECT_FIELD_SCALE_X);
@@ -525,7 +525,7 @@ public:
                             {
                                 if (Unit* player = Unit::GetPlayer(*me, (*itr).first))
                                 {
-                                    if (!player->isCharmed())
+                                    if (!player->IsCharmed())
                                     {
                                         player->SetObjectScale((*itr).second);
                                         std::map<uint64, float>::iterator next = itr;
@@ -647,7 +647,7 @@ public:
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const OVERRIDE
     {
         return new boss_kelthuzadAI (creature);
     }
@@ -658,9 +658,9 @@ class at_kelthuzad_center : public AreaTriggerScript
 public:
     at_kelthuzad_center() : AreaTriggerScript("at_kelthuzad_center") { }
 
-    bool OnTrigger(Player* player, const AreaTriggerEntry* /*at*/)
+    bool OnTrigger(Player* player, const AreaTriggerEntry* /*at*/) OVERRIDE
     {
-        if (player->isGameMaster())
+        if (player->IsGameMaster())
             return false;
 
         InstanceScript* instance = player->GetInstanceScript();
@@ -728,14 +728,14 @@ class npc_kelthuzad_abomination : public CreatureScript
                 _instance = creature->GetInstanceScript();
             }
 
-            void Reset()
+            void Reset() OVERRIDE
             {
                 _events.Reset();
                 _events.ScheduleEvent(EVENT_MORTAL_WOUND, urand(2000, 5000));
                 DoCast(me, SPELL_FRENZY, true);
             }
 
-            void UpdateAI(uint32 diff)
+            void UpdateAI(uint32 diff) OVERRIDE
             {
                 if (!UpdateVictim())
                     return;
@@ -756,7 +756,7 @@ class npc_kelthuzad_abomination : public CreatureScript
                 }
             }
 
-            void JustDied(Unit* /*killer*/)
+            void JustDied(Unit* /*killer*/) OVERRIDE
             {
                 if (_instance)
                     _instance->SetData(DATA_ABOMINATION_KILLED, _instance->GetData(DATA_ABOMINATION_KILLED) + 1);
@@ -767,7 +767,7 @@ class npc_kelthuzad_abomination : public CreatureScript
             EventMap _events;
         };
 
-        CreatureAI* GetAI(Creature* creature) const
+        CreatureAI* GetAI(Creature* creature) const OVERRIDE
         {
             return new npc_kelthuzad_abominationAI(creature);
         }
@@ -782,7 +782,7 @@ class spell_kelthuzad_detonate_mana : public SpellScriptLoader
         {
             PrepareAuraScript(spell_kelthuzad_detonate_mana_AuraScript);
 
-            bool Validate(SpellInfo const* /*spell*/)
+            bool Validate(SpellInfo const* /*spell*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_MANA_DETONATION_DAMAGE))
                     return false;
@@ -801,13 +801,13 @@ class spell_kelthuzad_detonate_mana : public SpellScriptLoader
                 }
             }
 
-            void Register()
+            void Register() OVERRIDE
             {
                 OnEffectPeriodic += AuraEffectPeriodicFn(spell_kelthuzad_detonate_mana_AuraScript::HandleScript, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
             }
         };
 
-        AuraScript* GetAuraScript() const
+        AuraScript* GetAuraScript() const OVERRIDE
         {
             return new spell_kelthuzad_detonate_mana_AuraScript();
         }
@@ -818,7 +818,7 @@ class achievement_just_cant_get_enough : public AchievementCriteriaScript
    public:
        achievement_just_cant_get_enough() : AchievementCriteriaScript("achievement_just_cant_get_enough") { }
 
-       bool OnCheck(Player* /*player*/, Unit* target)
+       bool OnCheck(Player* /*player*/, Unit* target) OVERRIDE
        {
            if (!target)
                return false;
