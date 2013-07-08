@@ -3415,6 +3415,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case 93423:
                 spellInfo->Effects[EFFECT_2].BasePoints = 6;
                 break;
+            // Acquiring Target
+            case 79501:
+            case 92035:
+            case 92036:
+            case 92037:
+                spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
+                break;
             // Flamethrower
             case 79505:
             case 91531:
