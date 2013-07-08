@@ -12436,6 +12436,19 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                     break;
             }
             break;
+        case SPELLFAMILY_HUNTER:
+            switch(spellProto->Id)
+            {
+                // Spirit Mend
+                case 90361:
+                    if(Unit* owner = GetCharmerOrOwner())
+                    {
+                        float pct = damagetype == HEAL ? 0.175f : 0.02345f;
+                        DoneTotal += int32(owner->GetTotalAttackPowerValue(RANGED_ATTACK) * pct);
+                    }
+                    break;
+            }
+            break;
     }
 
     // Default calculation
