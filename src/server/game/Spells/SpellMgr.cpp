@@ -3452,6 +3452,11 @@ void SpellMgr::LoadSpellCustomAttr()
             case 91928:
                 spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
                 break;
+            // Double Attack
+            case 88826:
+                spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_PROC_TRIGGER_SPELL;
+                spellInfo->Effects[EFFECT_0].TriggerSpell = 82882;
+                break;
             default:
                 break;
         }
