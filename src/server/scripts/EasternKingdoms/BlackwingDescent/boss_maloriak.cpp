@@ -41,6 +41,7 @@ enum Spells
     SPELL_FLASH_FREEZE              = 77699, // HC: 92980
     SPELL_FLASH_FREEZE_SUMMON       = 77711,
     SPELL_FLASH_FREEZE_VISUAL       = 77712,
+    SPELL_SHATTER                   = 77715,
 
     // Green Phase
     SPELL_THROW_GREEN_BOTTLE        = 77937, // Or 77938?
@@ -542,7 +543,7 @@ public:
             if(target)
             {
                 me->NearTeleportTo(target->GetPositionX(),target->GetPositionY(),target->GetPositionZ(),target->GetOrientation());
-                me->AddAura(SPELL_FLASH_FREEZE, target);
+                me->CastSpell(target, SPELL_FLASH_FREEZE, false);
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
                 me->SetReactState(REACT_PASSIVE);
             }
@@ -566,7 +567,10 @@ public:
         void JustDied(Unit* /*killer*/)
         {
             if(target)
+            {
+                me->CastSpell(me, SPELL_SHATTER, false);
                 target->RemoveAura(SPELL_FLASH_FREEZE);
+            }
 
             me->DisappearAndDie();
         }
