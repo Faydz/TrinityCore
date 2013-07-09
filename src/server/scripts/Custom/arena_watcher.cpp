@@ -204,20 +204,22 @@ class npc_arena_watcher : public CreatureScript
                 if (!BattlegroundMgr::IsArenaType(BattlegroundTypeId(bgTypeId)))
                     continue;
 
-                BattlegroundData* arenas = sBattlegroundMgr->GetAllBattlegroundsWithTypeId(BattlegroundTypeId(bgTypeId));
+                if(BattlegroundData* arenas = sBattlegroundMgr->GetAllBattlegroundsWithTypeId(BattlegroundTypeId(bgTypeId))){
 
-                if (!arenas || arenas->m_Battlegrounds.empty())
-                    continue;
-
-                for (BattlegroundContainer::const_iterator itr = arenas->m_Battlegrounds.begin(); itr != arenas->m_Battlegrounds.end(); ++itr)
-                {
-                    if (!(itr->second->GetStatus() & 2))
+                    if (!arenas || arenas->m_Battlegrounds.empty())
                         continue;
 
-                    if (ArenaWatcherOnlyRated && !itr->second->isRated())
-                        continue;
+                    for (BattlegroundContainer::const_iterator itr = arenas->m_Battlegrounds.begin(); itr != arenas->m_Battlegrounds.end(); ++itr)
+                    {
+                        if (!(itr->second->GetStatus() & 2))
+                            continue;
 
-                    ++arenasCount[ArenaTeam::GetSlotByType(itr->second->GetArenaType())];
+                        if (ArenaWatcherOnlyRated && !itr->second->isRated())
+                            continue;
+
+                        if(itr->second->GetStatus()==STATUS_IN_PROGRESS)
+                            ++arenasCount[ArenaTeam::GetSlotByType(itr->second->GetArenaType())];
+                    }
                 }
             }
 
