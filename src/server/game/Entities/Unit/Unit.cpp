@@ -18700,11 +18700,12 @@ uint32 Unit::GetModelForForm(ShapeshiftForm form) const
                 switch (getRace()) 
                 {
                     case RACE_TROLL:
-                        return 12238;
+                        return 37174:
+                    case RACE_WORGEN:
+                        return 37173;
                     case RACE_TAUREN:
                         return 15375;
                     case RACE_NIGHTELF:
-                    case RACE_WORGEN:
                         return 15374;
                 }
             case FORM_FLIGHT_EPIC:
