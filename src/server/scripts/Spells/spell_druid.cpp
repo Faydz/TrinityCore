@@ -80,17 +80,20 @@ class spell_dru_wild_mushroom : public SpellScriptLoader
                         if(!list.empty()){
                             for (std::list<Creature*>::iterator i = list.begin(); i != list.end(); i)
                             {
-                                if((*i) && (*i)->GetCharmerOrOwner())
+                                if(this && (*i))
                                 {
-                                    if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
+                                    if((*i)->GetCharmerOrOwner())
                                     {
-                                        if (!player)
+                                        if ((*i)->isSummon() && (*i)->GetCharmerOrOwner() == player)
                                         {
-                                            return;
+                                            if (!player)
+                                            {
+                                                return;
+                                            }
                                         }
+                                        else
+                                            list.remove((*i));
                                     }
-                                    else
-                                        list.remove((*i));
                                 }
 
                                 i++;
