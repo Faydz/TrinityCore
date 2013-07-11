@@ -6293,8 +6293,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     {
                         if (ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) == BS_PRIEST_DISCIPLINE)
                         {
-                            int32 bp = int32(2.0f + (2.5f * ToPlayer()->GetMasteryPoints()));
-                            triggerAmount += bp;
+                            int32 bp = int32(2.5f * ToPlayer()->GetMasteryPoints());
+                            triggerAmount += triggerAmount * bp / 100;
                         }
                     }
 
