@@ -25505,7 +25505,7 @@ void Player::RestoreBaseRune(uint8 index)
 {
     AuraEffect const* aura = m_runes->runes[index].ConvertAura;
     // If rune was converted by a non-pasive aura that still active we should keep it converted
-    if (aura && !(aura->GetSpellInfo()->Attributes & SPELL_ATTR0_PASSIVE))
+    if (aura && !(!aura->GetSpellInfo() || aura->GetSpellInfo()->Attributes & SPELL_ATTR0_PASSIVE))
         return;
     ConvertRune(index, GetBaseRune(index));
     SetRuneConvertAura(index, NULL);
