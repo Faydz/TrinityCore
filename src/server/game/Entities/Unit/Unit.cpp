@@ -11595,15 +11595,25 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                         // Smack
                         case 49966:
                             DoneTotal += ownerRAP * 0.168f;
+                            
+                            // Spiked Collar
+                            if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2934, EFFECT_0))
+                            {
+                                AddPct(DoneTotalMod, aurEff->GetAmount());
+                            }
+                
+                            // Wild Hunt
+                            if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_PET, 3748, EFFECT_0))
+                            {
+                                if(this->GetPower(POWER_FOCUS) + spellProto->CalcPowerCost(this, spellProto->GetSchoolMask()) >= 50)
+                                {
+                                    AddPct(DoneTotalMod, aurEff->GetAmount());
+                                }
+                            }
                             break;
                     }
                 }
 
-                // Spiked Collar
-                if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2934, EFFECT_0))
-                {
-                    AddPct(DoneTotalMod, aurEff->GetAmount());
-                }
             }
 
             // Master of the Beasts (Beast Mastery Mastery)
