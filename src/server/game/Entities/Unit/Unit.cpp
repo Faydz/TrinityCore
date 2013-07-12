@@ -11126,8 +11126,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             {
                 if (owner->HasAura(44544) && owner->HasAura(57761) && damagetype != DOT)
                 {
-                    DoneTotalMod *= 1.25f;
-
                     if(uint8 charges = owner->GetAura(44544)->GetStackAmount())
                     {
                         if (charges - 1 > 0)
