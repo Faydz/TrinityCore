@@ -29,7 +29,8 @@ enum Events
 
 enum Spells
 {
-
+    SPELL_SOUND_BAR_APPLY                         = 89683,
+    SPELL_SOUND_BAR                               = 88824,
 };
 
 
@@ -57,10 +58,14 @@ public:
         {
             _Reset();
             summons.DespawnAll();
+
+            if (instance)
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SOUND_BAR);
         }
 
         void EnterCombat(Unit* /*who*/)
         {
+            me->AddAura(SPELL_SOUND_BAR_APPLY, me);
             _EnterCombat();
         }
 
@@ -93,6 +98,9 @@ public:
             summons.DespawnAll();
 
             _JustDied();
+
+            if (instance)
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SOUND_BAR);
         }
     };
 };
