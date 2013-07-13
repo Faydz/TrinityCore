@@ -6444,6 +6444,15 @@ void AuraEffect::HandlePeriodicTriggerSpellAuraTick(Unit* target, Unit* caster) 
                     caster->CastSpell(target, triggerSpellId, false);
                 return;
             }
+            // Sonic Breath
+            case 78098:
+            case 92403:
+            case 92404:
+            case 92405:
+                target = caster->FindNearestCreature(41879, 100.0f, true);
+                if (!target)
+                    return;
+                break;
         }
     }
 

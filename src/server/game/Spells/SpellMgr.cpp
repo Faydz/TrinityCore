@@ -3457,6 +3457,14 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_PROC_TRIGGER_SPELL;
                 spellInfo->Effects[EFFECT_0].TriggerSpell = 82882;
                 break;
+            // Sonic Breath
+            case 78100:
+            case 92407:
+            case 92408:
+            case 92409:
+                spellInfo->Effects[0].RadiusEntry = sSpellRadiusStore.LookupEntry(14);
+                spellInfo->Effects[1].RadiusEntry = sSpellRadiusStore.LookupEntry(14);
+                break;
             default:
                 break;
         }
