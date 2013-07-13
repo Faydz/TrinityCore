@@ -18,16 +18,65 @@
 
 #include "ScriptMgr.h"
 #include "InstanceScript.h"
+#include "UnitAI.h"
 #include "zulgurub.h"
 
 DoorData const doorData[] =
 {
-    { GO_VENOXIS_COIL,                  DATA_VENOXIS,   DOOR_TYPE_ROOM, BOUNDARY_NONE },
-    { GO_ARENA_DOOR_1,                  DATA_MANDOKIR,  DOOR_TYPE_ROOM, BOUNDARY_NONE },
-    { GO_FORCEFIELD,                    DATA_KILNARA,   DOOR_TYPE_ROOM, BOUNDARY_NONE },
-    { GO_ZANZIL_DOOR,                   DATA_ZANZIL,    DOOR_TYPE_ROOM, BOUNDARY_NONE },
-    //{ GO_THE_CACHE_OF_MADNESS_DOOR,     DATA_xxxxxxx,   DOOR_TYPE_ROOM, BOUNDARY_NONE },
-    { 0,                                0,              DOOR_TYPE_ROOM, BOUNDARY_NONE }
+    { GO_VENOXIS_COIL,                  DATA_VENOXIS,           DOOR_TYPE_ROOM, BOUNDARY_NONE },
+    { GO_ARENA_DOOR_1,                  DATA_MANDOKIR,          DOOR_TYPE_ROOM, BOUNDARY_NONE },
+    { GO_FORCEFIELD,                    DATA_KILNARA,           DOOR_TYPE_ROOM, BOUNDARY_NONE },
+    { GO_ZANZIL_DOOR,                   DATA_ZANZIL,            DOOR_TYPE_ROOM, BOUNDARY_NONE },
+    { GO_THE_CACHE_OF_MADNESS_DOOR,     DATA_CACHE_OF_MADNESS,  DOOR_TYPE_ROOM, BOUNDARY_NONE },
+    { 0,                                0,                      DOOR_TYPE_ROOM, BOUNDARY_NONE }
+};
+
+const Position DwarvenArtifactSP[5]=
+{
+    {-11915.6f, -1893.65f, 63.8770f, 1.60570f},
+    {-11910.5f, -1902.63f, 63.7369f, 1.30900f},
+    {-11908.1f, -1913.17f, 64.2613f, 1.78024f},
+    {-11890.0f, -1902.46f, 63.5871f, 2.49582f},
+    {-11898.1f, -1866.09f, 63.8182f, 4.10152f},
+};
+
+const Position ElvenArtifactSP[5]=
+{
+    {-11854.2f, -1913.29f, 63.7067f, 2.02458f},
+    {-11848.1f, -1895.26f, 63.7176f, 2.63545f},
+    {-11864.6f, -1911.97f, 63.9063f, 1.72788f},
+    {-11857.9f, -1906.62f, 63.7067f, 5.56760f},
+    {-11851.6f, -1899.81f, 63.8158f, 2.33874f},
+};
+
+const Position TrollArtifactSP[5]=
+{
+    {-11914.3f, -1874.56f, 63.8285f, 5.75959f},
+    {-11885.0f, -1850.56f, 63.8087f, 5.28835f},
+    {-11873.8f, -1901.87f, 63.6181f, 1.72788f},
+    {-11887.3f, -1902.98f, 63.5894f, 0.80285f},
+    {-11845.6f, -1875.98f, 63.7353f, 3.31613f},
+};
+
+const Position FossilSP[5]=
+{
+    {-11851.8f, -1847.89f, 64.1662f, 0.00000f},
+    {-11868.0f, -1840.68f, 63.9099f, 4.32842f},
+    {-11852.5f, -1857.78f, 63.9159f, 4.43314f},
+    {-11858.1f, -1850.68f, 63.8261f, 0.00000f},
+    {-11857.6f, -1843.13f, 63.7030f, 2.86234f},
+};
+
+const Position EdgeofMadnessSP = {-11880.47f, -1880.661f, 64.04917f, 1.553343f};
+
+const Position TikiTorchSP[6]=
+{
+    {-11933.2f, -1824.54f, 51.7838f, 1.53589f},
+    {-11919.8f, -1824.58f, 51.4590f, 1.53589f},
+    {-11903.5f, -1824.38f, 51.5542f, 1.51844f},
+    {-11879.6f, -1824.81f, 50.8839f, 1.46608f},
+    {-11864.6f, -1824.44f, 51.1218f, 1.50098f},
+    {-11849.5f, -1824.58f, 51.4813f, 1.55334f},
 };
 
 class instance_zulgurub : public InstanceMapScript
@@ -35,60 +84,121 @@ class instance_zulgurub : public InstanceMapScript
     public:
         instance_zulgurub() : InstanceMapScript(ZGScriptName, 859) { }
 
+    private:
         struct instance_zulgurub_InstanceMapScript : public InstanceScript
         {
             instance_zulgurub_InstanceMapScript(Map* map) : InstanceScript(map)
             {
                 SetBossNumber(EncounterCount);
                 LoadDoorData(doorData);
-                venoxisGUID         = 0;
-                mandokirGUID        = 0;
-                kilnaraGUID         = 0;
-                zanzilGUID          = 0;
-                jindoGUID           = 0;
-                hazzarahGUID        = 0;
-                renatakiGUID        = 0;
-                wushoolayGUID       = 0;
-                grilekGUID          = 0;
-                jindoTiggerGUID     = 0;
+            }
+
+            uint64 jindoGUID;
+            uint8 activatedArtifactCount;
+            uint8 tikiMaskId;
+
+            void Initialize()
+            {
+                jindoGUID = 0;
+                activatedArtifactCount = 0;
+                tikiMaskId = 0;
+
+                for (int i = 0; i < 6; ++i)
+                    if (Creature* torch = instance->SummonCreature(52419, TikiTorchSP[i]))
+                        torch->GetAI()->SetData(DATA_POSITION_ID, i);
+
+                int d_roll = urand(0, 4);
+                int e_roll = urand(0, 4);
+                int t_roll = urand(0, 4);
+                int f_roll = urand(0, 4);
+
+                for (int i = 0; i < 5; ++i)
+                {
+                    instance->SummonCreature(i == d_roll ? 52446 : 52449, DwarvenArtifactSP[i]);
+                    instance->SummonCreature(i == e_roll ? 52450 : 52451, ElvenArtifactSP[i]);
+                    instance->SummonCreature(i == t_roll ? 52452 : 52453, TrollArtifactSP[i]);
+                    instance->SummonCreature(i == f_roll ? 52454 : 52455, FossilSP[i]);
+                }
+            }
+
+            bool SetBossState(uint32 type, EncounterState state)
+            {
+                if (!InstanceScript::SetBossState(type, state))
+                    return false;
+
+                if (state == DONE && type <= DATA_ZANZIL)
+                {
+                    uint8 count = 0;
+
+                    for (uint32 data = DATA_VENOXIS; data <= DATA_ZANZIL; ++data)
+                        if (GetBossState(data) == DONE)
+                            ++count;
+
+                    if (count >= 2)
+                        if (Creature* jindo = instance->GetCreature(jindoGUID))
+                        {
+                            jindo->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                            jindo->SetReactState(REACT_AGGRESSIVE);
+                        }
+                }
+
+                return true;
+            }
+
+            void SetData(uint32 type, uint32 data)
+            {
+                switch (type)
+                {
+                    case DATA_CACHE_OF_MADNESS_ARTIFACT:
+                        {
+                            switch (data)
+                            {
+                                case IN_PROGRESS:
+                                    ++activatedArtifactCount;
+                                    break;
+                                case DONE:
+                                    {
+                                        // TODO: must be random boss, one of four possible
+                                        if (Creature* boss = instance->SummonCreature(52269, EdgeofMadnessSP))
+                                            boss->CastSpell(boss, 74348, false);
+                                    }
+                                    break;
+                            }
+                        }
+                        break;
+                    case DATA_TIKI_MASK_ID:
+                        {
+                            switch (data)
+                            {
+                                case IN_PROGRESS:
+                                    ++tikiMaskId;
+                                    break;
+                                case NOT_STARTED:
+                                    tikiMaskId = 0;
+                                    break;
+                            }
+                        }
+                        break;
+                }
+            }
+
+            uint32 GetData(uint32 type) const
+            {
+                switch (type)
+                {
+                    case DATA_CACHE_OF_MADNESS_ARTIFACT: return activatedArtifactCount;
+                    case DATA_TIKI_MASK_ID:              return tikiMaskId;
+                }
+
+                return 0;
             }
 
             void OnCreatureCreate(Creature* creature)
             {
-                switch (creature->GetEntry())
+                if (creature->GetEntry() == NPC_JINDO)
                 {
-                    case NPC_VENOXIS:
-                        venoxisGUID = creature->GetGUID();
-                        break;
-                    case NPC_MANDOKIR:
-                        mandokirGUID = creature->GetGUID();
-                        break;
-                    case NPC_KILNARA:
-                        kilnaraGUID = creature->GetGUID();
-                        break;
-                    case NPC_ZANZIL:
-                        zanzilGUID = creature->GetGUID();
-                        break;
-                    case NPC_JINDO:
-                        jindoGUID = creature->GetGUID();
-                        break;
-                    case NPC_HAZZARAH:
-                        hazzarahGUID = creature->GetGUID();
-                        break;
-                    case NPC_RENATAKI:
-                        renatakiGUID = creature->GetGUID();
-                        break;
-                    case NPC_WUSHOOLAY:
-                        wushoolayGUID = creature->GetGUID();
-                        break;
-                    case NPC_GRILEK:
-                        grilekGUID = creature->GetGUID();
-                        break;
-                    case NPC_JINDO_TRIGGER:
-                        jindoTiggerGUID = creature->GetGUID();
-                        break;
-                    default:
-                        break;
+                    creature->setActive(true);
+                    jindoGUID = creature->GetGUID();
                 }
             }
 
@@ -102,8 +212,6 @@ class instance_zulgurub : public InstanceMapScript
                     case GO_ZANZIL_DOOR:
                     case GO_THE_CACHE_OF_MADNESS_DOOR:
                         AddDoor(go, true);
-                        break;
-                    default:
                         break;
                 }
             }
@@ -119,80 +227,13 @@ class instance_zulgurub : public InstanceMapScript
                     case GO_THE_CACHE_OF_MADNESS_DOOR:
                         AddDoor(go, false);
                         break;
-                    default:
-                        break;
                 }
             }
-
-            bool SetBossState(uint32 type, EncounterState state)
-            {
-                if (!InstanceScript::SetBossState(type, state))
-                    return false;
-
-                switch (type)
-                {
-                    case DATA_VENOXIS:
-                    case DATA_MANDOKIR:
-                    case DATA_KILNARA:
-                    case DATA_ZANZIL:
-                    case DATA_JINDO:
-                    case DATA_HAZZARAH:
-                    case DATA_RENATAKI:
-                    case DATA_WUSHOOLAY:
-                    case DATA_GRILEK:
-                        break;
-                    default:
-                        break;
-                }
-
-                return true;
-            }
-
-            /*
-            void SetData(uint32 type, uint32 data)
-            {
-                switch (type)
-                {
-                }
-            }
-
-            uint32 GetData(uint32 type) const
-            {
-                switch (type)
-                {
-                }
-
-                return 0;
-            }
-            */
 
             uint64 GetData64(uint32 type) const
             {
-                switch (type)
-                {
-                    case DATA_VENOXIS:
-                        return venoxisGUID;
-                    case DATA_MANDOKIR:
-                        return mandokirGUID;
-                    case DATA_KILNARA:
-                        return kilnaraGUID;
-                    case DATA_ZANZIL:
-                        return zanzilGUID;
-                    case DATA_JINDO:
-                        return jindoGUID;
-                    case DATA_HAZZARAH:
-                        return hazzarahGUID;
-                    case DATA_RENATAKI:
-                        return renatakiGUID;
-                    case DATA_WUSHOOLAY:
-                        return wushoolayGUID;
-                    case DATA_GRILEK:
-                        return grilekGUID;
-                    case DATA_JINDOR_TRIGGER:
-                        return jindoTiggerGUID;
-                    default:
-                        break;
-                }
+                if (type == DATA_JINDO)
+                    return jindoGUID;
 
                 return 0;
             }
@@ -240,18 +281,6 @@ class instance_zulgurub : public InstanceMapScript
 
                 OUT_LOAD_INST_DATA_COMPLETE;
             }
-
-        protected:
-             uint64 venoxisGUID;
-             uint64 mandokirGUID;
-             uint64 kilnaraGUID;
-             uint64 zanzilGUID;
-             uint64 jindoGUID;
-             uint64 hazzarahGUID;
-             uint64 renatakiGUID;
-             uint64 wushoolayGUID;
-             uint64 grilekGUID;
-             uint64 jindoTiggerGUID;
         };
 
         InstanceScript* GetInstanceScript(InstanceMap* map) const
