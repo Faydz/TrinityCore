@@ -236,18 +236,16 @@ void AddSC_boss_halazzi();
 void AddSC_boss_hex_lord_malacrass();
 void AddSC_boss_janalai();
 void AddSC_boss_nalorakk();
-void AddSC_boss_zuljin();
+void AddSC_boss_daakara();
 void AddSC_instance_zulaman();
 void AddSC_zulaman();
-void AddSC_boss_grilek();                   // Zul'Gurub
-void AddSC_boss_hazzarah();
+void AddSC_boss_grilek();                    // Zul'Gurub
 void AddSC_boss_jindo_the_godbreaker();
 void AddSC_boss_kilnara();
 void AddSC_boss_mandokir();
-void AddSC_boss_renataki();
 void AddSC_boss_venoxis();
-void AddSC_boss_wushoolay();
 void AddSC_boss_zanzil();
+void AddSC_zulgurub();
 void AddSC_instance_zulgurub();
 //void AddSC_alterac_mountains();
 void AddSC_arathi_highlands();
@@ -958,18 +956,16 @@ void AddEasternKingdomsScripts()
     AddSC_boss_hex_lord_malacrass();
     AddSC_boss_janalai();
     AddSC_boss_nalorakk();
-    AddSC_boss_zuljin();
+    AddSC_boss_daakara();
     AddSC_instance_zulaman();
     AddSC_zulaman();
     AddSC_boss_grilek();                    // Zul'Gurub
-    AddSC_boss_hazzarah();
     AddSC_boss_jindo_the_godbreaker();
     AddSC_boss_kilnara();
     AddSC_boss_mandokir();
-    AddSC_boss_renataki();
     AddSC_boss_venoxis();
-    AddSC_boss_wushoolay();
     AddSC_boss_zanzil();
+    AddSC_zulgurub();
     AddSC_instance_zulgurub();
 
     //AddSC_alterac_mountains();

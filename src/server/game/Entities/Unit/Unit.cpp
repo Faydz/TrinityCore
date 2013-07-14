@@ -6293,8 +6293,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     {
                         if (ToPlayer()->GetPrimaryTalentTree(ToPlayer()->GetActiveSpec()) == BS_PRIEST_DISCIPLINE)
                         {
-                            int32 bp = int32(2.0f + (2.5f * ToPlayer()->GetMasteryPoints()));
-                            triggerAmount += bp;
+                            int32 bp = int32(2.5f * ToPlayer()->GetMasteryPoints());
+                            triggerAmount += triggerAmount * bp / 100;
                         }
                     }
 
@@ -7183,7 +7183,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 case 3560: // Rapid Recuperation
                 {
                     // This effect only from Rapid Killing (focus regen)
-                    if (!(procSpell->SpellFamilyFlags[1] & 0x01000000))
+                    if (!(procSpell->Id == 35099))
                         return false;
 
                     target = this;
@@ -11126,8 +11126,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             {
                 if (owner->HasAura(44544) && owner->HasAura(57761) && damagetype != DOT)
                 {
-                    DoneTotalMod *= 1.25f;
-
                     if(uint8 charges = owner->GetAura(44544)->GetStackAmount())
                     {
                         if (charges - 1 > 0)
@@ -11595,15 +11593,25 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                         // Smack
                         case 49966:
                             DoneTotal += ownerRAP * 0.168f;
+                            
+                            // Spiked Collar
+                            if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2934, EFFECT_0))
+                            {
+                                AddPct(DoneTotalMod, aurEff->GetAmount());
+                            }
+                
+                            // Wild Hunt
+                            if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_PET, 3748, EFFECT_0))
+                            {
+                                if(this->GetPower(POWER_FOCUS) + spellProto->CalcPowerCost(this, spellProto->GetSchoolMask()) >= 50)
+                                {
+                                    AddPct(DoneTotalMod, aurEff->GetAmount());
+                                }
+                            }
                             break;
                     }
                 }
 
-                // Spiked Collar
-                if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2934, EFFECT_0))
-                {
-                    AddPct(DoneTotalMod, aurEff->GetAmount());
-                }
             }
 
             // Master of the Beasts (Beast Mastery Mastery)
@@ -12432,6 +12440,19 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
                     if(victim)
                     {
                         healamount = CalculatePct(GetMaxHealth(), float(spellProto->Effects[EFFECT_1].BasePoints) / 5);
+                    }
+                    break;
+            }
+            break;
+        case SPELLFAMILY_HUNTER:
+            switch(spellProto->Id)
+            {
+                // Spirit Mend
+                case 90361:
+                    if(Unit* owner = GetCharmerOrOwner())
+                    {
+                        float pct = damagetype == HEAL ? 0.175f : 0.02345f;
+                        DoneTotal += int32(owner->GetTotalAttackPowerValue(RANGED_ATTACK) * pct);
                     }
                     break;
             }
@@ -18687,11 +18708,12 @@ uint32 Unit::GetModelForForm(ShapeshiftForm form) const
                 switch (getRace()) 
                 {
                     case RACE_TROLL:
-                        return 12238;
+                        return 37174;
+                    case RACE_WORGEN:
+                        return 37173;
                     case RACE_TAUREN:
                         return 15375;
                     case RACE_NIGHTELF:
-                    case RACE_WORGEN:
                         return 15374;
                 }
             case FORM_FLIGHT_EPIC:

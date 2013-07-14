@@ -3899,6 +3899,33 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
         {
             switch (m_spellInfo->Id)
             {
+                // Energy Storm
+                case 42577:
+                    if (!unitTarget || !GetCaster())
+                        return;
+
+                    if(unitTarget->GetEntry() == 24136)
+                        unitTarget->CastSpell(GetCaster(), 43137, false);
+                    break;
+                // Sweeping Winds
+                /*case 97647:
+                {
+                    if (!unitTarget || !GetCaster())
+                        return;
+                
+                    if(unitTarget->GetEntry() == 24136)
+                    {
+                        if(unitTarget->getVictim())
+                        {
+                            unitTarget->getVictim()->ToPlayer()->Say("scripteffect", LANG_UNIVERSAL);
+                            unitTarget->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+                            Position pos;
+                            unitTarget->getVictim()->GetPosition(&pos);
+                            unitTarget->GetMotionMaster()->MovePoint(0, pos);
+                        }
+                    }
+                    break;
+                }*/
                 // Vigilance
                 case 50725:
                     if (!unitTarget || !GetCaster())

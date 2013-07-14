@@ -610,6 +610,14 @@ inline void Battleground::_ProcessLeave(uint32 diff)
     // *********************************************************
     // remove all players from battleground after 2 minutes
     SetRemainingTime(GetRemainingTime() - diff);
+
+    // Remove spectators
+    if (isArena())
+    {
+        if(BattlegroundMap* bgmap = GetBgMap())
+            bgmap->RemoveSpectators();
+    }
+
     if (GetRemainingTime() <= 0)
     {
         SetRemainingTime(0);

@@ -793,6 +793,15 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
 
     GetBase()->CallScriptEffectCalcAmountHandlers(this, amount, m_canBeRecalculated);
     amount *= GetBase()->GetStackAmount();
+
+    // Reduce Abssorbs in BG & Arena
+    if (GetAuraType() == SPELL_AURA_SCHOOL_ABSORB)
+    {
+        if (caster && caster->ToPlayer())
+            if (caster->ToPlayer()->InBattleground() || caster->ToPlayer()->InArena())
+                amount *= 0.9f;
+    }
+
     return amount;
 }
 
@@ -6435,6 +6444,15 @@ void AuraEffect::HandlePeriodicTriggerSpellAuraTick(Unit* target, Unit* caster) 
                     caster->CastSpell(target, triggerSpellId, false);
                 return;
             }
+            // Sonic Breath
+            case 78098:
+            case 92403:
+            case 92404:
+            case 92405:
+                target = caster->FindNearestCreature(41879, 100.0f, true);
+                if (!target)
+                    return;
+                break;
         }
     }
 

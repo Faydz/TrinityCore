@@ -70,9 +70,9 @@ enum Spells
     SPELL_ARCANE_ANNIHILATOR                      = 79710,
     SPELL_POWER_CONVERSION                        = 79729,
 
-    // Bombe de Poison
+    // Poison Bomb
     SPELL_FIXER                                   = 80094,
-    SPELL_BOMBE                                   = 80092,
+    SPELL_BOMB                                    = 80092,
 };
 
 enum Summons
@@ -754,6 +754,7 @@ public:
                     puddle->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_DISABLE_MOVE);
                     if (!puddle->HasAura(80095))
                         puddle->AddAura(80095, puddle);
+                    me->CastSpell(me, SPELL_BOMB, false);
                 }
                 me->DisappearAndDie();
             } else uiFixe -= uiDisappear;

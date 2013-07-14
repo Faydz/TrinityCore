@@ -634,7 +634,7 @@ int32 ArenaTeam::GetRatingMod(uint32 ownRating, uint32 ownMMRating, uint32 oppon
 {
     // 'Chance' calculation - to beat the opponent
     // This is a simulation. Not much info on how it really works
-    float chance = GetChanceAgainst(ownMMRating, opponentRating);
+    float chance = GetChanceAgainst(ownRating, opponentRating);
     float won_mod = (won) ? 1.0f : 0.0f;
 
     // Calculate the rating modification
@@ -653,12 +653,12 @@ int32 ArenaTeam::GetRatingMod(uint32 ownRating, uint32 ownMMRating, uint32 oppon
         if(ownRating < ownMMRating)
         {
             // Higher difference means more rating points
-            if (delta > 500.0f)
+            if (delta > 500.0f && ownRating < 1300)
             {
                 mod = 96.0f;
             }
             // At this point
-            else if (delta > 300.0f)
+            else if (delta > 300.0f && ownRating < 2000)
             {
                 mod = 24.0f + 24.0f * change;
             }
@@ -714,7 +714,7 @@ int32 ArenaTeam::WonAgainst(uint32 ownMMRating, uint32 opponentMMRating, int32& 
 {
     // Called when the team has won
     // Change in Matchmaker rating
-    int32 mod = GetMatchmakerRatingMod(ownMMRating, opponentMMRating, true);
+    int32 mod = GetMatchmakerRatingMod(Stats.Rating, opponentMMRating, true);
 
     // Change in Team Rating
     ratingChange = GetRatingMod(Stats.Rating, ownMMRating, opponentMMRating, true);
@@ -734,7 +734,7 @@ int32 ArenaTeam::LostAgainst(uint32 ownMMRating, uint32 opponentMMRating, int32&
 {
     // Called when the team has lost
     // Change in Matchmaker Rating
-    int32 mod = GetMatchmakerRatingMod(ownMMRating, opponentMMRating, false);
+    int32 mod = GetMatchmakerRatingMod(Stats.Rating, opponentMMRating, false);
 
     // Change in Team Rating
     ratingChange = GetRatingMod(Stats.Rating, ownMMRating, opponentMMRating, false);

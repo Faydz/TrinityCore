@@ -3415,6 +3415,13 @@ void SpellMgr::LoadSpellCustomAttr()
             case 93423:
                 spellInfo->Effects[EFFECT_2].BasePoints = 6;
                 break;
+            // Acquiring Target
+            case 79501:
+            case 92035:
+            case 92036:
+            case 92037:
+                spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
+                break;
             // Flamethrower
             case 79505:
             case 91531:
@@ -3444,6 +3451,19 @@ void SpellMgr::LoadSpellCustomAttr()
             case 91927:
             case 91928:
                 spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
+                break;
+            // Double Attack
+            case 88826:
+                spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_PROC_TRIGGER_SPELL;
+                spellInfo->Effects[EFFECT_0].TriggerSpell = 82882;
+                break;
+            // Sonic Breath
+            case 78100:
+            case 92407:
+            case 92408:
+            case 92409:
+                spellInfo->Effects[0].RadiusEntry = sSpellRadiusStore.LookupEntry(14);
+                spellInfo->Effects[1].RadiusEntry = sSpellRadiusStore.LookupEntry(14);
                 break;
             default:
                 break;
@@ -4108,6 +4128,17 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 8143:
                         spellInfo->AttributesEx5 |= SPELL_ATTR5_USABLE_WHILE_STUNNED;
                         spellInfo->PreventionType = SPELL_PREVENTION_TYPE_SILENCE;
+                        break;
+                }
+                break;
+            case SPELLFAMILY_PET:
+                switch(spellInfo->Id)
+                {
+                    // Wild Hunt
+                    case 62758:
+                    case 62762:
+                        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
+                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
                         break;
                 }
                 break;

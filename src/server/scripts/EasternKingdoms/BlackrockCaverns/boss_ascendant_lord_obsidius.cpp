@@ -95,12 +95,13 @@ public:
 			events.ScheduleEvent(EVENT_STONE_BLOW, 13000);
 
 			if(me->GetMap()->IsHeroic())
-			events.ScheduleEvent(EVENT_THUNDERCLAP, 7000);
+			    events.ScheduleEvent(EVENT_THUNDERCLAP, 7000);
 
 			Phase = 0;
 
 			for(uint8 i = 0; i <= RAID_MODE(1,2); i++)
-				ShadowOfObsidiusList[i]->Attack(me->getVictim(),false);
+                if(me->getVictim())
+				    ShadowOfObsidiusList[i]->Attack(me->getVictim(),false);
 
 			me->MonsterYell("You come seeking answers? Then have them! Look upon your answer to living!", LANG_UNIVERSAL, NULL);
 		}

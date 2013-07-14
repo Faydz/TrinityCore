@@ -27,7 +27,7 @@ enum DataTypes
     DATA_JANALAIEVENT                   = 3,
     DATA_HALAZZIEVENT                   = 4,
     DATA_HEXLORDEVENT                   = 5,
-    DATA_ZULJINEVENT                    = 6,
+    DATA_DAAKARAEVENT                    = 6,
     DATA_CHESTLOOTED                    = 7,
     TYPE_RAND_VENDOR_1                  = 8,
     TYPE_RAND_VENDOR_2                  = 9
@@ -37,20 +37,25 @@ enum CreatureIds
 {
     NPC_HARRISON_JONES                  = 24358,
     NPC_JANALAI                         = 23578,
-    NPC_ZULJIN                          = 23863,
+    NPC_DAAKARA                         = 23863,
     NPC_HEXLORD                         = 24239,
     NPC_HALAZZI                         = 23577,
-    NPC_NALORAKK                        = 23576
+    NPC_NALORAKK                        = 23576,
+
+    NPC_LYNX_SPIRIT                     = 23877,
+    NPC_BEAR_SPIRIT                     = 23878,
+    NPC_EAGLE_SPIRIT                    = 23880,
+    NPC_DRAGONHAWK_SPIRIT               = 23879
 };
 
 enum GameobjectIds
 {
     GO_DOOR_HALAZZI                     = 186303,
-    GO_GATE_ZULJIN                      = 186304,
+    GO_GATE_DAAKARA                     = 186304,
     GO_GATE_HEXLORD                     = 186305,
     GO_MASSIVE_GATE                     = 186728,
     GO_DOOR_AKILZON                     = 186858,
-    GO_DOOR_ZULJIN                      = 186859,
+    GO_DOOR_DAAKARA                     = 186859,
     GO_HARKORS_SATCHEL                  = 187021,
     GO_TANZARS_TRUNK                    = 186648,
     GO_ASHLIS_BAG                       = 186672,

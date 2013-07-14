@@ -3199,7 +3199,7 @@ void WorldObject::MovePositionToFirstCollision(Position &pos, float dist, float 
 
         // Hack for dalaran sewers
         if (GetMap()->GetId() == 617)
-            maxZ = 1.0f;
+            maxZ = 2.3f;
 
         // do not allow too big z changes
         if (fabs(pos.m_positionZ - destz) > maxZ)

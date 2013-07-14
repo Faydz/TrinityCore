@@ -562,6 +562,12 @@ void BattlegroundWS::EventPlayerClickedOnFlag(Player* Source, GameObject* target
         //target_obj->Delete();
     }
 
+    // Stealth with Vanish crashfix
+    if(Source->HasAura(1784))
+    {
+        Source->RemoveAura(1784);
+    }
+
     if (!message_id)
         return;
 

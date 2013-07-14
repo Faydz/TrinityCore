@@ -30,15 +30,16 @@ enum DataTypes
     DATA_KILNARA                    = 2,
     DATA_ZANZIL                     = 3,
     DATA_JINDO                      = 4,
+    DATA_CACHE_OF_MADNESS           = 5,
+    DATA_CACHE_OF_MADNESS_ARTIFACT  = 6,
 
-    // Cache of Madness
-    DATA_HAZZARAH                   = 5,
-    DATA_RENATAKI                   = 6,
-    DATA_WUSHOOLAY                  = 7,
-    DATA_GRILEK                     = 8,
+    DATA_HAZZARAH                   = 7,
+    DATA_RENATAKI                   = 8,
+    DATA_WUSHOOLAY                  = 9,
+    DATA_GRILEK                     = 10,
 
-    // Jin'do the Godbreaker
-    DATA_JINDOR_TRIGGER,
+    DATA_POSITION_ID                = 11,
+    DATA_TIKI_MASK_ID               = 12,
 };
 
 enum CreatureIds
