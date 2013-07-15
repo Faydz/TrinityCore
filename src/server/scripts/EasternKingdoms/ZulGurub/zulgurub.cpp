@@ -242,6 +242,9 @@ class BoulderSmashCheck : public std::unary_function<Unit*, bool>
 
         bool operator()(WorldObject* object)
         {
+            if (!caster)
+                return true;
+
             return !(caster->isInFront(object, 2.5f) && object->GetTypeId() == TYPEID_PLAYER);
         }
 
@@ -261,6 +264,9 @@ class spell_boulder_smash : public SpellScriptLoader
 
             void FilterTargets(std::list<WorldObject*>& unitList)
             {
+                if (!GetCaster()->GetVehicleBase())
+                    return;
+
                 unitList.remove_if(BoulderSmashCheck(GetCaster()->GetVehicleBase()));
             }
 
