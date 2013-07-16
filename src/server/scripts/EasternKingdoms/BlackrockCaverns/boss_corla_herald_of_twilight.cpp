@@ -324,7 +324,7 @@ public:
 			if (channelTarget == NULL/* || lastTarget == NULL */|| zealot == NULL)
 				return;
 
-			if(zealot->HasAura(SPELL_TWILIGHT_EVOLUTION) || zealot->isDead())
+			if(zealot && (zealot->HasAura(SPELL_TWILIGHT_EVOLUTION) || zealot->isDead()))
 				return;
 
 			if (uiCheckPlayerIsBetween <= diff)
