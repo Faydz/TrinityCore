@@ -3465,6 +3465,49 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[0].RadiusEntry = sSpellRadiusStore.LookupEntry(14);
                 spellInfo->Effects[1].RadiusEntry = sSpellRadiusStore.LookupEntry(14);
                 break;
+            // Tamed pet passive damage increase for each kind of pet
+            // Part 1
+            case 17206:
+            case 17208:
+            case 17209:
+            case 17210:
+            case 17211:
+            case 17212:
+            case 17214:
+            case 17215:
+            case 17216:
+            case 17217:
+            case 17218:
+            case 17219:
+            case 17220:
+            case 17221:
+            case 17222:
+            case 17223:
+            case 34887:
+            case 35253:
+            case 35254:
+            case 35257:
+            case 35258:
+            case 35386:
+            case 50297:
+            case 54642:
+            case 54676:
+            case 55192:
+            case 55729:
+            case 56634:
+            case 56635:
+            case 58598:
+            case 61199:
+            case 87467:
+            case 89601:
+            case 90348:
+            case 91083:
+            case 93246:
+            case 97228:
+                spellInfo->Effects[EFFECT_0].BasePoints = 0;
+                spellInfo->Effects[EFFECT_1].BasePoints = 0;
+                spellInfo->Effects[EFFECT_2].BasePoints = 0;
+                break;
             default:
                 break;
         }
