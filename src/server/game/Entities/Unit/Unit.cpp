@@ -7507,9 +7507,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     if (!victim)
                         return false;
 
-                    if (victim->GetGUID() == GetGUID())
-                        return false;
-
                     int32 bp0 = triggerAmount * damage / 100;
 
                     if (victim->HasAura(105284, GetGUID()))
