@@ -273,6 +273,9 @@ class spell_boulder_smash : public SpellScriptLoader
             void LeapBack(SpellEffIndex effIndex)
             {
                 PreventHitDefaultEffect(effIndex);
+                if (!GetCaster()->GetVehicleBase() || !GetHitUnit()->ToPlayer())
+                    return;
+
                 float speedXY = float(GetSpellInfo()->Effects[effIndex].MiscValue) / 10;
                 float speedZ = float(GetSpellInfo()->Effects[effIndex].BasePoints / 10);
                 float vcos = std::cos(GetCaster()->GetVehicleBase()->GetOrientation());
