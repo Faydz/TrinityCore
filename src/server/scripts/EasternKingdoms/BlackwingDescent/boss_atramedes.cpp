@@ -90,6 +90,8 @@ public:
             me->SetDisableGravity(false);
             me->SetCanFly(false);
 
+            me->SetReactState(REACT_AGGRESSIVE);
+
             // Respawn Shields
             std::list<Creature*> unitList;
             me->GetCreatureListWithEntryInGrid(unitList, 42949, 100.0f);
@@ -340,6 +342,7 @@ class npc_sonar_pulse : public CreatureScript
 enum flamesEvents
 {
     EVENT_SUMMON_FLAME = 1,
+    EVENT_CHECK_CHANNEL,
 };
 
 class npc_tracking_flames : public CreatureScript
@@ -368,7 +371,10 @@ class npc_tracking_flames : public CreatureScript
             void EnterCombat(Unit* who)
             {
                 if (me->GetEntry() == 41962)
+                {
                     events.ScheduleEvent(EVENT_SUMMON_FLAME, 1000);
+                    events.ScheduleEvent(EVENT_CHECK_CHANNEL, 1000);
+                }
             }
            
             void UpdateAI(uint32 diff)
@@ -393,6 +399,12 @@ class npc_tracking_flames : public CreatureScript
 
                                     events.ScheduleEvent(EVENT_SUMMON_FLAME, 1000);
                                 }
+                                break;
+                            case EVENT_CHECK_CHANNEL:
+                                if (!me->HasAura(78221))
+                                    me->DisappearAndDie();
+
+                                events.ScheduleEvent(EVENT_CHECK_CHANNEL, 1000);
                                 break;
                         }
                     }
