@@ -15172,6 +15172,15 @@ void Unit::SetPower(Powers power, int32 val)
         SendMessageToSet(&data, GetTypeId() == TYPEID_PLAYER ? true : false);
     }
 
+    // Custom cases
+    switch (power)
+    {
+        case POWER_ALTERNATE_POWER:
+            if (HasAura(88824) && val >= 100)
+                AddAura(78897, this);
+            break;
+    }
+
     // group update
     if (Player* player = ToPlayer())
     {
