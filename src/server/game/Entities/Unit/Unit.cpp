@@ -9188,7 +9188,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 pally->CastCustomSpell(pally, trigger_spell_id, &basepoints0, NULL, NULL, true, 0, 0);
                 
                 // Mando in cd la spell del sacred triggered
-                pally->AddSpellCooldown(trigger_spell_id, 0, time(NULL)+60000);
+                pally->AddSpellCooldown(trigger_spell_id, 0, time(NULL) + 60);
                 return true;
             }
             break;
