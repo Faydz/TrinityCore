@@ -934,10 +934,11 @@ class spell_hun_basic_attack : public SpellScriptLoader
 
             void HandleDummy()
             {
-                if(!GetCaster())
+                Unit* caster = GetCaster();
+                if(!caster)
                     return;
 
-                if(Unit* pl = GetCaster()->GetOwner())
+                if(Unit* pl = caster->GetOwner())
                 {
                     if(Aura* cs = pl->GetAura(53257))       // Cobra Strikes
                     {
@@ -949,14 +950,14 @@ class spell_hun_basic_attack : public SpellScriptLoader
                     if(AuraEffect* aurEff = pl->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER ,SPELLFAMILY_HUNTER, 1562, EFFECT_0))    // Frenzy
                     {
                         int32 bp0 = aurEff->GetAmount();
-                        GetCaster()->CastCustomSpell(GetCaster(), 19615, &bp0, NULL, NULL, true);
+                        caster->CastCustomSpell(caster, 19615, &bp0, NULL, NULL, true);
                     }
                 }
             }
 
             void Register()
             {
-                OnCast  += SpellCastFn(spell_hun_basic_attack_SpellScript::HandleDummy);
+                AfterCast  += SpellCastFn(spell_hun_basic_attack_SpellScript::HandleDummy);
             }
         };
 
