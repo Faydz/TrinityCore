@@ -952,6 +952,19 @@ class spell_hun_basic_attack : public SpellScriptLoader
                         int32 bp0 = aurEff->GetAmount();
                         caster->CastCustomSpell(caster, 19615, &bp0, NULL, NULL, true);
                     }
+                
+                    // Wild Hunt
+                    if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PET, 3748, EFFECT_0))
+                    {
+                        SpellInfo const* spellProto = GetSpellInfo();
+
+                        if(caster->GetPower(POWER_FOCUS) + spellProto->CalcPowerCost(caster, spellProto->GetSchoolMask()) >= 50)
+                        {
+                            sLog->outError(LOG_FILTER_GENERAL, "Set %d", caster->GetPower(POWER_FOCUS) - spellProto->CalcPowerCost(caster, spellProto->GetSchoolMask()));
+
+                            caster->SetPower(POWER_FOCUS, caster->GetPower(POWER_FOCUS) - spellProto->CalcPowerCost(caster, spellProto->GetSchoolMask()));
+                        }
+                    }
                 }
             }
 
