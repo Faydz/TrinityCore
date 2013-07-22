@@ -4209,12 +4209,7 @@ void Spell::SendSpellGo()
                 diffCool = 4500-cooldown;
             }
 
-            m_caster->ToPlayer()->AddSpellCooldown(m_spellInfo->Id, 0, uint32(time(NULL) + cooldown/1000));
-            WorldPacket data(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
-            data << uint32(m_spellInfo->Id);
-            data << uint64(m_caster->GetGUID());
-            data << int32(-diffCool);
-            m_caster->ToPlayer()->GetSession()->SendPacket(&data);
+            m_caster->ToPlayer()->ReduceSpellCooldown(m_spellInfo->Id, diffCool);
 
             //sLog->outError(LOG_FILTER_GENERAL, "GetFloatValue %f haste %f cooldown %d diffcool %d AddSpellCooldown %d", 
                 //m_caster->ToPlayer()->GetFloatValue(UNIT_MOD_CAST_SPEED), haste, cooldown, diffCool, uint32(time(NULL) + cooldown/1000));
