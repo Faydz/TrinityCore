@@ -18,9 +18,6 @@
 
 /* ContentData
 go_cat_figurine (the "trap" version of GO, two different exist)
-go_northern_crystal_pylon
-go_eastern_crystal_pylon
-go_western_crystal_pylon
 go_barov_journal
 go_ethereum_prison
 go_ethereum_stasis
@@ -76,69 +73,6 @@ public:
     {
         player->CastSpell(player, SPELL_SUMMON_GHOST_SABER, true);
         return false;
-    }
-};
-
-/*######
-## go_crystal_pylons (3x)
-######*/
-class go_northern_crystal_pylon : public GameObjectScript
-{
-public:
-    go_northern_crystal_pylon() : GameObjectScript("go_northern_crystal_pylon") { }
-
-    bool OnGossipHello(Player* player, GameObject* go) OVERRIDE
-    {
-        if (go->GetGoType() == GAMEOBJECT_TYPE_QUESTGIVER)
-        {
-            player->PrepareQuestMenu(go->GetGUID());
-            player->SendPreparedQuest(go->GetGUID());
-        }
-
-        if (player->GetQuestStatus(4285) == QUEST_STATUS_INCOMPLETE)
-            player->AreaExploredOrEventHappens(4285);
-
-        return true;
-    }
-};
-
-class go_eastern_crystal_pylon : public GameObjectScript
-{
-public:
-    go_eastern_crystal_pylon() : GameObjectScript("go_eastern_crystal_pylon") { }
-
-    bool OnGossipHello(Player* player, GameObject* go) OVERRIDE
-    {
-        if (go->GetGoType() == GAMEOBJECT_TYPE_QUESTGIVER)
-        {
-            player->PrepareQuestMenu(go->GetGUID());
-            player->SendPreparedQuest(go->GetGUID());
-        }
-
-        if (player->GetQuestStatus(4287) == QUEST_STATUS_INCOMPLETE)
-            player->AreaExploredOrEventHappens(4287);
-
-        return true;
-    }
-};
-
-class go_western_crystal_pylon : public GameObjectScript
-{
-public:
-    go_western_crystal_pylon() : GameObjectScript("go_western_crystal_pylon") { }
-
-    bool OnGossipHello(Player* player, GameObject* go) OVERRIDE
-    {
-        if (go->GetGoType() == GAMEOBJECT_TYPE_QUESTGIVER)
-        {
-            player->PrepareQuestMenu(go->GetGUID());
-            player->SendPreparedQuest(go->GetGUID());
-        }
-
-        if (player->GetQuestStatus(4288) == QUEST_STATUS_INCOMPLETE)
-            player->AreaExploredOrEventHappens(4288);
-
-        return true;
     }
 };
 
@@ -935,23 +869,6 @@ public:
 ## go_soulwell
 ######*/
 
-enum SoulWellData
-{
-    GO_SOUL_WELL_R1                     = 181621,
-    GO_SOUL_WELL_R2                     = 193169,
-
-    SPELL_IMPROVED_HEALTH_STONE_R1      = 18692,
-    SPELL_IMPROVED_HEALTH_STONE_R2      = 18693,
-
-    SPELL_CREATE_MASTER_HEALTH_STONE_R0 = 34130,
-    SPELL_CREATE_MASTER_HEALTH_STONE_R1 = 34149,
-    SPELL_CREATE_MASTER_HEALTH_STONE_R2 = 34150,
-
-    SPELL_CREATE_FEL_HEALTH_STONE_R0    = 58890,
-    SPELL_CREATE_FEL_HEALTH_STONE_R1    = 58896,
-    SPELL_CREATE_FEL_HEALTH_STONE_R2    = 58898,
-};
-
 class go_soulwell : public GameObjectScript
 {
     public:
@@ -961,39 +878,6 @@ class go_soulwell : public GameObjectScript
         {
             go_soulwellAI(GameObject* go) : GameObjectAI(go)
             {
-                _stoneSpell = 0;
-                _stoneId = 0;
-                switch (go->GetEntry())
-                {
-                    case GO_SOUL_WELL_R1:
-                        _stoneSpell = SPELL_CREATE_MASTER_HEALTH_STONE_R0;
-                        if (Unit* owner = go->GetOwner())
-                        {
-                            if (owner->HasAura(SPELL_IMPROVED_HEALTH_STONE_R1))
-                                _stoneSpell = SPELL_CREATE_MASTER_HEALTH_STONE_R1;
-                            else if (owner->HasAura(SPELL_CREATE_MASTER_HEALTH_STONE_R2))
-                                _stoneSpell = SPELL_CREATE_MASTER_HEALTH_STONE_R2;
-                        }
-                        break;
-                    case GO_SOUL_WELL_R2:
-                        _stoneSpell = SPELL_CREATE_FEL_HEALTH_STONE_R0;
-                        if (Unit* owner = go->GetOwner())
-                        {
-                            if (owner->HasAura(SPELL_IMPROVED_HEALTH_STONE_R1))
-                                _stoneSpell = SPELL_CREATE_FEL_HEALTH_STONE_R1;
-                            else if (owner->HasAura(SPELL_CREATE_MASTER_HEALTH_STONE_R2))
-                                _stoneSpell = SPELL_CREATE_FEL_HEALTH_STONE_R2;
-                        }
-                        break;
-                }
-                if (_stoneSpell == 0) // Should never happen
-                    return;
-
-                SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(_stoneSpell);
-                if (!spellInfo)
-                    return;
-
-                _stoneId = spellInfo->Effects[EFFECT_0].ItemType;
             }
 
             /// Due to the fact that this GameObject triggers CMSG_GAMEOBJECT_USE
@@ -1003,31 +887,10 @@ class go_soulwell : public GameObjectScript
             bool GossipHello(Player* player) OVERRIDE
             {
                 Unit* owner = go->GetOwner();
-                if (_stoneSpell == 0 || _stoneId == 0)
-                    return true;
-
                 if (!owner || owner->GetTypeId() != TYPEID_PLAYER || !player->IsInSameRaidWith(owner->ToPlayer()))
                     return true;
-
-                // Don't try to add a stone if we already have one.
-                if (player->HasItemCount(_stoneId))
-                {
-                    if (SpellInfo const* spell = sSpellMgr->GetSpellInfo(_stoneSpell))
-                        Spell::SendCastResult(player, spell, 0, SPELL_FAILED_TOO_MANY_OF_ITEM);
-                    return true;
-                }
-
-                owner->CastSpell(player, _stoneSpell, true);
-                // Item has to actually be created to remove a charge on the well.
-                if (player->HasItemCount(_stoneId))
-                    go->AddUse();
-
                 return false;
             }
-
-        private:
-            uint32 _stoneSpell;
-            uint32 _stoneId;
         };
 
         GameObjectAI* GetAI(GameObject* go) const OVERRIDE
@@ -1375,44 +1238,41 @@ public:
 
 void AddSC_go_scripts()
 {
-    new go_cat_figurine;
-    new go_northern_crystal_pylon;
-    new go_eastern_crystal_pylon;
-    new go_western_crystal_pylon;
-    new go_barov_journal;
-    new go_field_repair_bot_74A;
-    new go_gilded_brazier;
-    new go_orb_of_command;
-    new go_shrine_of_the_birds;
-    new go_southfury_moonstone;
-    new go_tablet_of_madness;
-    new go_tablet_of_the_seven;
-    new go_jump_a_tron;
-    new go_ethereum_prison;
-    new go_ethereum_stasis;
-    new go_resonite_cask;
-    new go_sacred_fire_of_life;
-    new go_tele_to_dalaran_crystal;
-    new go_tele_to_violet_stand;
-    new go_fel_crystalforge;
-    new go_bashir_crystalforge;
-    new go_matrix_punchograph;
-    new go_scourge_cage;
-    new go_arcane_prison;
-    new go_blood_filled_orb;
-    new go_jotunheim_cage;
-    new go_table_theka;
-    new go_inconspicuous_landmark;
-    new go_ethereal_teleport_pad;
-    new go_soulwell;
-    new go_tadpole_cage;
-    new go_dragonflayer_cage;
-    new go_amberpine_outhouse;
-    new go_hive_pod;
-    new go_massive_seaforium_charge;
-    new go_gjalerbron_cage;
-    new go_large_gjalerbron_cage;
-    new go_veil_skith_cage;
-    new go_frostblade_shrine;
-    new go_midsummer_bonfire;
+    new go_cat_figurine();
+    new go_barov_journal();
+    new go_field_repair_bot_74A();
+    new go_gilded_brazier();
+    new go_orb_of_command();
+    new go_shrine_of_the_birds();
+    new go_southfury_moonstone();
+    new go_tablet_of_madness();
+    new go_tablet_of_the_seven();
+    new go_jump_a_tron();
+    new go_ethereum_prison();
+    new go_ethereum_stasis();
+    new go_resonite_cask();
+    new go_sacred_fire_of_life();
+    new go_tele_to_dalaran_crystal();
+    new go_tele_to_violet_stand();
+    new go_fel_crystalforge();
+    new go_bashir_crystalforge();
+    new go_matrix_punchograph();
+    new go_scourge_cage();
+    new go_arcane_prison();
+    new go_blood_filled_orb();
+    new go_jotunheim_cage();
+    new go_table_theka();
+    new go_inconspicuous_landmark();
+    new go_ethereal_teleport_pad();
+    new go_soulwell();
+    new go_tadpole_cage();
+    new go_dragonflayer_cage();
+    new go_amberpine_outhouse();
+    new go_hive_pod();
+    new go_massive_seaforium_charge();
+    new go_gjalerbron_cage();
+    new go_large_gjalerbron_cage();
+    new go_veil_skith_cage();
+    new go_frostblade_shrine();
+    new go_midsummer_bonfire();
 }

@@ -32,28 +32,29 @@ enum DeathKnightSpells
     SPELL_DK_BLACK_ICE_R1                       = 49140,
     SPELL_DK_BLOOD_BOIL_TRIGGERED               = 65658,
     SPELL_DK_BLOOD_GORGED_HEAL                  = 50454,
+    SPELL_DK_BLOOD_PRESENCE                     = 48266,
+    SPELL_DK_BLOOD_SHIELD_MASTERY               = 77513,
+    SPELL_DK_BLOOD_SHIELD_ABSORB                = 77535,
+    SPELL_DK_BUTCHERY                           = 50163,
     SPELL_DK_CORPSE_EXPLOSION_TRIGGERED         = 43999,
     SPELL_DK_CORPSE_EXPLOSION_VISUAL            = 51270,
     SPELL_DK_DEATH_COIL_DAMAGE                  = 47632,
     SPELL_DK_DEATH_COIL_HEAL                    = 47633,
     SPELL_DK_DEATH_STRIKE_HEAL                  = 45470,
+    SPELL_DK_DEATH_STRIKE_ENABLER               = 89832,
     SPELL_DK_GHOUL_EXPLODE                      = 47496,
     SPELL_DK_GLYPH_OF_ICEBOUND_FORTITUDE        = 58625,
+    SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED  = 63611,
+    SPELL_DK_IMPROVED_DEATH_STRIKE              = 62905,
+    SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED = 63622,
+    SPELL_DK_ITEM_SIGIL_VENGEFUL_HEART          = 64962,
+    SPELL_DK_ITEM_T8_MELEE_4P_BONUS             = 64736,
     SPELL_DK_RUNIC_POWER_ENERGIZE               = 49088,
+    SPELL_DK_SCENT_OF_BLOOD                     = 50422,
     SPELL_DK_SCOURGE_STRIKE_TRIGGERED           = 70890,
     SPELL_DK_WILL_OF_THE_NECROPOLIS_TALENT_R1   = 49189,
     SPELL_DK_WILL_OF_THE_NECROPOLIS_AURA_R1     = 52284,
-    SPELL_DK_BLOOD_PRESENCE                     = 48266,
-    SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED  = 63611,
-    SPELL_DK_UNHOLY_PRESENCE                    = 48265,
-    SPELL_DK_IMPROVED_UNHOLY_PRESENCE_TRIGGERED = 63622,
-    SPELL_DK_ITEM_SIGIL_VENGEFUL_HEART          = 64962,
-    SPELL_DK_ITEM_T8_MELEE_4P_BONUS             = 64736
-};
-
-enum DeathKnightSpellIcons
-{
-    DK_ICON_ID_IMPROVED_DEATH_STRIKE            = 2751
+    SPELL_DK_UNHOLY_PRESENCE                    = 48265
 };
 
 // 50462 - Anti-Magic Shell (on raid member)
@@ -284,19 +285,53 @@ class spell_dk_blood_gorged : public SpellScriptLoader
 
             void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
             {
-                PreventDefaultAction();
-                int32 bp = int32(eventInfo.GetDamageInfo()->GetDamage() * 1.5f);
-                GetTarget()->CastCustomSpell(SPELL_DK_BLOOD_GORGED_HEAL, SPELLVALUE_BASE_POINT0, bp, _procTarget, true, NULL, aurEff);
+                int32 heal = int32(CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), 150));
+                GetTarget()->CastCustomSpell(SPELL_DK_BLOOD_GORGED_HEAL, SPELLVALUE_BASE_POINT0, heal, _procTarget, true, NULL, aurEff);
             }
 
             void Register() OVERRIDE
             {
                 DoCheckProc += AuraCheckProcFn(spell_dk_blood_gorged_AuraScript::CheckProc);
-                OnEffectProc += AuraEffectProcFn(spell_dk_blood_gorged_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+                OnEffectProc += AuraEffectProcFn(spell_dk_blood_gorged_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
             }
 
         private:
             Unit* _procTarget;
+        };
+
+        AuraScript* GetAuraScript() const OVERRIDE
+        {
+            return new spell_dk_blood_gorged_AuraScript();
+        }
+};
+
+// -48979 - Butchery
+class spell_dk_butchery : public SpellScriptLoader
+{
+    public:
+        spell_dk_butchery() : SpellScriptLoader("spell_dk_butchery") { }
+
+        class spell_dk_blood_gorged_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dk_blood_gorged_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_DK_BUTCHERY))
+                    return false;
+                return true;
+            }
+
+            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& /*eventInfo*/)
+            {
+                PreventDefaultAction();
+                GetTarget()->CastCustomSpell(SPELL_DK_BUTCHERY, SPELLVALUE_BASE_POINT0, aurEff->GetAmount(), GetTarget(), true, NULL, aurEff);
+            }
+
+            void Register() OVERRIDE
+            {
+                OnEffectProc += AuraEffectProcFn(spell_dk_blood_gorged_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+            }
         };
 
         AuraScript* GetAuraScript() const OVERRIDE
@@ -568,35 +603,118 @@ class spell_dk_death_strike : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
-                if (!sSpellMgr->GetSpellInfo(SPELL_DK_DEATH_STRIKE_HEAL))
+                if (!sSpellMgr->GetSpellInfo(SPELL_DK_DEATH_STRIKE_ENABLER) ||
+                    !sSpellMgr->GetSpellInfo(SPELL_DK_DEATH_STRIKE_HEAL) ||
+                    !sSpellMgr->GetSpellInfo(SPELL_DK_BLOOD_SHIELD_MASTERY) ||
+                    !sSpellMgr->GetSpellInfo(SPELL_DK_BLOOD_SHIELD_ABSORB))
                     return false;
                 return true;
             }
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
-                Unit* caster = GetCaster();
-                if (Unit* target = GetHitUnit())
+                if (AuraEffect* enabler = GetCaster()->GetAuraEffect(SPELL_DK_DEATH_STRIKE_ENABLER, EFFECT_0, GetCaster()->GetGUID()))
                 {
-                    uint32 count = target->GetDiseasesByCaster(caster->GetGUID());
-                    int32 bp = int32(count * caster->CountPctFromMaxHealth(int32(GetSpellInfo()->Effects[EFFECT_0].DamageMultiplier)));
-                    // Improved Death Strike
-                    if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, DK_ICON_ID_IMPROVED_DEATH_STRIKE, 0))
-                        AddPct(bp, caster->CalculateSpellDamage(caster, aurEff->GetSpellInfo(), 2));
-                    caster->CastCustomSpell(caster, SPELL_DK_DEATH_STRIKE_HEAL, &bp, NULL, NULL, false);
+                    // Call CalculateAmount() to constantly fire the AuraEffect's HandleCalcAmount method
+                    int32 heal = CalculatePct(enabler->CalculateAmount(GetCaster()), GetSpellInfo()->Effects[EFFECT_0].DamageMultiplier);
+
+                    if (AuraEffect const* aurEff = GetCaster()->GetAuraEffectOfRankedSpell(SPELL_DK_IMPROVED_DEATH_STRIKE, EFFECT_2))
+                        heal = AddPct(heal, aurEff->GetAmount());
+
+                    heal = std::max(heal, int32(GetCaster()->CountPctFromMaxHealth(GetEffectValue())));
+                    GetCaster()->CastCustomSpell(SPELL_DK_DEATH_STRIKE_HEAL, SPELLVALUE_BASE_POINT0, heal, GetCaster(), true);
                 }
+
+                if (!GetCaster()->HasAura(SPELL_DK_BLOOD_PRESENCE))
+                    return;
+
+                if (AuraEffect const* aurEff = GetCaster()->GetAuraEffect(SPELL_DK_BLOOD_SHIELD_MASTERY, EFFECT_0))
+                    GetCaster()->CastCustomSpell(SPELL_DK_BLOOD_SHIELD_ABSORB, SPELLVALUE_BASE_POINT0, GetCaster()->CountPctFromMaxHealth(aurEff->GetAmount()), GetCaster());
             }
 
             void Register() OVERRIDE
             {
                 OnEffectHitTarget += SpellEffectFn(spell_dk_death_strike_SpellScript::HandleDummy, EFFECT_2, SPELL_EFFECT_DUMMY);
             }
-
         };
 
         SpellScript* GetSpellScript() const OVERRIDE
         {
             return new spell_dk_death_strike_SpellScript();
+        }
+};
+
+// 89832 - Death Strike (Save damage taken in last 5 sec)
+class spell_dk_death_strike_enabler : public SpellScriptLoader
+{
+    public:
+        spell_dk_death_strike_enabler() : SpellScriptLoader("spell_dk_death_strike_enabler") { }
+
+        class spell_dk_death_strike_enabler_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dk_death_strike_enabler_AuraScript);
+
+            bool Load() OVERRIDE
+            {
+                for (uint8 i = 0; i < 5; ++i)
+                    _damagePerSecond[i] = 0;
+                return true;
+            }
+
+            bool CheckProc(ProcEventInfo& eventInfo)
+            {
+                return eventInfo.GetDamageInfo();
+            }
+
+            void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo)
+            {
+                if (!GetUnitOwner()->HasAura(SPELL_DK_BLOOD_PRESENCE))
+                {
+                    for (uint8 i = 0; i < 5; ++i)
+                        _damagePerSecond[i] = 0;
+                }
+                else
+                    _damagePerSecond[0] += eventInfo.GetDamageInfo()->GetDamage();
+            }
+
+            // Cheap hack to have update calls
+            void CalcPeriodic(AuraEffect const* /*aurEff*/, bool& isPeriodic, int32& amplitude)
+            {
+                isPeriodic = true;
+                amplitude = 1000;
+            }
+
+            void Update(AuraEffect* /*aurEff*/)
+            {
+                // Move backwards all datas by one
+                for (uint8 i = 4; i > 0; --i)
+                    _damagePerSecond[i] = _damagePerSecond[i - 1];
+                _damagePerSecond[0] = 0;
+            }
+
+            void HandleCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = true;
+                amount = 0;
+                for (uint8 i = 0; i < 5; ++i)
+                    amount += int32(_damagePerSecond[i]);
+            }
+
+            void Register() OVERRIDE
+            {
+                DoCheckProc += AuraCheckProcFn(spell_dk_death_strike_enabler_AuraScript::CheckProc);
+                OnEffectProc += AuraEffectProcFn(spell_dk_death_strike_enabler_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+                DoEffectCalcPeriodic += AuraEffectCalcPeriodicFn(spell_dk_death_strike_enabler_AuraScript::CalcPeriodic, EFFECT_0, SPELL_AURA_DUMMY);
+                OnEffectUpdatePeriodic += AuraEffectUpdatePeriodicFn(spell_dk_death_strike_enabler_AuraScript::Update, EFFECT_0, SPELL_AURA_DUMMY);
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dk_death_strike_enabler_AuraScript::HandleCalcAmount, EFFECT_0, SPELL_AURA_DUMMY);
+            }
+
+            uint32 _damagePerSecond[5];
+        };
+
+        AuraScript* GetAuraScript() const OVERRIDE
+        {
+            return new spell_dk_death_strike_enabler_AuraScript();
         }
 };
 
@@ -807,6 +925,42 @@ class spell_dk_rune_tap_party : public SpellScriptLoader
         }
 };
 
+// 50421 - Scent of Blood
+class spell_dk_scent_of_blood : public SpellScriptLoader
+{
+    public:
+        spell_dk_scent_of_blood() : SpellScriptLoader("spell_dk_scent_of_blood") { }
+
+        class spell_dk_scent_of_blood_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dk_scent_of_blood_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_DK_SCENT_OF_BLOOD))
+                    return false;
+                return true;
+            }
+
+            void OnProc(AuraEffect const* aurEff, ProcEventInfo& /*eventInfo*/)
+            {
+                PreventDefaultAction();
+                GetTarget()->CastSpell(GetTarget(), SPELL_DK_SCENT_OF_BLOOD, true, NULL, aurEff);
+                GetTarget()->RemoveAuraFromStack(GetId());
+            }
+
+            void Register() OVERRIDE
+            {
+                OnEffectProc += AuraEffectProcFn(spell_dk_scent_of_blood_AuraScript::OnProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
+            }
+        };
+
+        AuraScript* GetAuraScript() const OVERRIDE
+        {
+            return new spell_dk_scent_of_blood_AuraScript();
+        }
+};
+
 // 55090 - Scourge Strike (55265, 55270, 55271)
 class spell_dk_scourge_strike : public SpellScriptLoader
 {
@@ -953,11 +1107,15 @@ class spell_dk_will_of_the_necropolis : public SpellScriptLoader
 
             bool Validate(SpellInfo const* spellInfo) OVERRIDE
             {
-                // can't use other spell than will of the necropolis due to spell_ranks dependency
-                if (sSpellMgr->GetFirstSpellInChain(SPELL_DK_WILL_OF_THE_NECROPOLIS_AURA_R1) != sSpellMgr->GetFirstSpellInChain(spellInfo->Id))
+                SpellInfo const* firstRankSpellInfo = sSpellMgr->GetSpellInfo(SPELL_DK_WILL_OF_THE_NECROPOLIS_AURA_R1);
+                if (!firstRankSpellInfo)
                     return false;
 
-                uint8 rank = sSpellMgr->GetSpellRank(spellInfo->Id);
+                // can't use other spell than will of the necropolis due to spell_ranks dependency
+                if (!spellInfo->IsRankOf(firstRankSpellInfo))
+                    return false;
+
+                uint8 rank = spellInfo->GetRank();
                 if (!sSpellMgr->GetSpellWithRank(SPELL_DK_WILL_OF_THE_NECROPOLIS_TALENT_R1, rank, true))
                     return false;
 
@@ -981,7 +1139,7 @@ class spell_dk_will_of_the_necropolis : public SpellScriptLoader
             void Absorb(AuraEffect* /*aurEff*/, DamageInfo & dmgInfo, uint32 & absorbAmount)
             {
                 // min pct of hp is stored in effect 0 of talent spell
-                uint32 rank = sSpellMgr->GetSpellRank(GetSpellInfo()->Id);
+                uint8 rank = GetSpellInfo()->GetRank();
                 SpellInfo const* talentProto = sSpellMgr->GetSpellInfo(sSpellMgr->GetSpellWithRank(SPELL_DK_WILL_OF_THE_NECROPOLIS_TALENT_R1, rank));
 
                 int32 remainingHp = int32(GetTarget()->GetHealth() - dmgInfo.GetDamage());
@@ -1012,17 +1170,20 @@ void AddSC_deathknight_spell_scripts()
     new spell_dk_anti_magic_zone();
     new spell_dk_blood_boil();
     new spell_dk_blood_gorged();
+    new spell_dk_butchery();
     new spell_dk_corpse_explosion();
     new spell_dk_death_coil();
     new spell_dk_death_gate();
     new spell_dk_death_grip();
     new spell_dk_death_pact();
     new spell_dk_death_strike();
+    new spell_dk_death_strike_enabler();
     new spell_dk_ghoul_explode();
     new spell_dk_icebound_fortitude();
     new spell_dk_improved_blood_presence();
     new spell_dk_improved_unholy_presence();
     new spell_dk_rune_tap_party();
+    new spell_dk_scent_of_blood();
     new spell_dk_scourge_strike();
     new spell_dk_spell_deflection();
     new spell_dk_vampiric_blood();
