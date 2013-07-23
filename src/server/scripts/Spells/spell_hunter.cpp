@@ -57,6 +57,7 @@ enum HunterSpells
     SPELL_HUNTER_SNIPER_TRAINING_R1                 = 53302,
     SPELL_HUNTER_SNIPER_TRAINING_BUFF_R1            = 64418,
     SPELL_HUNTER_FOCUS_ENERGIZE                     = 82716,
+    SPELL_HUNTER_THRILL_OF_THE_HUNT                 = 34720,
     SPELL_DRAENEI_GIFT_OF_THE_NAARU                 = 59543,
 };
 
@@ -1285,6 +1286,44 @@ class spell_hun_multi_shot : public SpellScriptLoader
         }
 };
 
+// 34497 - Thrill of the Hunt
+class spell_hun_thrill_of_the_hunt : public SpellScriptLoader
+{
+    public:
+        spell_hun_thrill_of_the_hunt() : SpellScriptLoader("spell_hun_thrill_of_the_hunt") { }
+
+        class spell_hun_thrill_of_the_hunt_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_hun_thrill_of_the_hunt_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_HUNTER_THRILL_OF_THE_HUNT))
+                    return false;
+                return true;
+            }
+
+            void HandleEffectProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+            {
+                PreventDefaultAction();
+                int32 focus = eventInfo.GetDamageInfo()->GetSpellInfo()->CalcPowerCost(GetTarget(), SpellSchoolMask(eventInfo.GetDamageInfo()->GetSchoolMask()));
+                focus = CalculatePct(focus, aurEff->GetAmount());
+
+                GetTarget()->CastCustomSpell(GetTarget(), SPELL_HUNTER_THRILL_OF_THE_HUNT, &focus, NULL, NULL, true, NULL, aurEff);
+            }
+
+            void Register()
+            {
+                OnEffectProc += AuraEffectProcFn(spell_hun_thrill_of_the_hunt_AuraScript::HandleEffectProc, EFFECT_0, SPELL_AURA_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_hun_thrill_of_the_hunt_AuraScript();
+        }
+};
+
 void AddSC_hunter_spell_scripts()
 {
     new spell_hun_pet_intervene();
@@ -1314,4 +1353,5 @@ void AddSC_hunter_spell_scripts()
     new spell_hun_cobra_shot();
     new spell_hun_kill_shot();
     new spell_hun_multi_shot();
+    new spell_hun_thrill_of_the_hunt();
 }
