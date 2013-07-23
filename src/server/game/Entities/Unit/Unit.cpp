@@ -8057,7 +8057,10 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                             40120,      // Swift Flight Form
                             33943,      // Flight Form
                             2645,       // Ghost Wolf
-                            15473       // Shadowform
+                            15473,      // Shadowform
+                            78777,      // Wild Mushroom
+                            88747       // Wild Mushroom
+
                         };
 
                         // Form spell should not be copied
