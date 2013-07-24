@@ -671,7 +671,13 @@ class spell_dk_death_grip : public SpellScriptLoader
                 if (Unit* target = GetHitUnit())
                 {
                     if (!target->HasAuraType(SPELL_AURA_DEFLECT_SPELLS)) // Deterrence
-                        target->CastSpell(pos->GetPositionX(), pos->GetPositionY(), pos->GetPositionZ(), damage, true);
+                    {
+                        float speedZ = 10.0f;
+                        float dist = pos->GetExactDist2d(target->GetPositionX(),target->GetPositionY());
+                        float speedXY = (dist / 0.75f);
+
+                        target->GetMotionMaster()->MoveJump(pos->GetPositionX(),pos->GetPositionY(),pos->GetPositionZ(),speedXY,speedZ);
+                    }
                 }
             }
 
