@@ -217,7 +217,7 @@ class npc_arena_watcher : public CreatureScript
                         if (ArenaWatcherOnlyRated && !itr->second->isRated())
                             continue;
 
-                        if(itr->second->GetStatus()==STATUS_IN_PROGRESS)
+                        if(itr->second->GetStatus()==STATUS_WAIT_JOIN)
                             ++arenasCount[ArenaTeam::GetSlotByType(itr->second->GetArenaType())];
                     }
                 }
@@ -297,7 +297,7 @@ class npc_arena_watcher : public CreatureScript
                         if (ArenaWatcherOnlyRated && !itr->second->isRated())
                             continue;
 
-                        if (itr->second->GetStatus() != STATUS_IN_PROGRESS)
+                        if (itr->second->GetStatus() != STATUS_WAIT_JOIN)
                             continue;
 
                         if (itr->second->isRated())
@@ -347,7 +347,7 @@ class npc_arena_watcher : public CreatureScript
                     
                     if(Battleground* bg = arenas->m_Battlegrounds[arenaId]){
 
-                        if (bg->GetStatus() != STATUS_IN_PROGRESS) 
+                        if (bg->GetStatus() != STATUS_WAIT_JOIN) 
                         {
                             sCreatureTextMgr->SendChat(creature, SAY_ARENA_NOT_IN_PROGRESS, player->GetGUID());
                             player->PlayerTalkClass->ClearMenus();
@@ -393,7 +393,7 @@ class npc_arena_watcher : public CreatureScript
                         }
 
                         if(bg){
-                            if(bg->GetStatus()==STATUS_IN_PROGRESS){
+                            if(bg->GetStatus()==STATUS_WAIT_JOIN){
                                 player->SetBattlegroundId(bg->GetInstanceID(), bg->GetTypeID());
                                 player->SetBattlegroundEntryPoint();
                                 ArenaWatcherStart(player);
@@ -434,7 +434,7 @@ class npc_arena_watcher : public CreatureScript
                         {
                             if (Battleground* bg = target->GetBattleground())
                             {
-                                if(bg->GetStatus() != STATUS_IN_PROGRESS)
+                                if(bg->GetStatus() != STATUS_WAIT_JOIN)
                                 {
                                     sCreatureTextMgr->SendChat(creature, SAY_ARENA_NOT_IN_PROGRESS, player->GetGUID());
                                     return true;
