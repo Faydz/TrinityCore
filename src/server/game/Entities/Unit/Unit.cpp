@@ -9139,6 +9139,15 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
 			if(!victim)
 				return false;
 
+            if(victim->ToTempSummon())
+            {
+                if(victim->ToTempSummon()->GetSummoner()->GetTypeId() == TYPEID_PLAYER)
+                {
+                    if(!victim->isPet() || !victim->isHunterPet())
+                        return false;
+                }
+            }
+
 			// Pet check
 			if(Pet* pet = victim->ToPet())
 			{
