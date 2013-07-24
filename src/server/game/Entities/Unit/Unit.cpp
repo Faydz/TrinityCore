@@ -8064,7 +8064,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                         };
 
                         // Form spell should not be copied
-                        for(int i=0; i < 10; i++)
+                        for(int i=0; i < 12; i++)
                         {
                             if(procSpell->Id == ignoreSpellId[i])
                             {
