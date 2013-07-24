@@ -8057,11 +8057,14 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                             40120,      // Swift Flight Form
                             33943,      // Flight Form
                             2645,       // Ghost Wolf
-                            15473       // Shadowform
+                            15473,      // Shadowform
+                            78777,      // Wild Mushroom
+                            88747       // Wild Mushroom
+
                         };
 
                         // Form spell should not be copied
-                        for(int i=0; i < 10; i++)
+                        for(int i=0; i < 12; i++)
                         {
                             if(procSpell->Id == ignoreSpellId[i])
                             {
@@ -9135,6 +9138,15 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
 		case 32215:
 			if(!victim)
 				return false;
+
+            if(victim->ToTempSummon())
+            {
+                if(victim->ToTempSummon()->GetSummoner()->GetTypeId() == TYPEID_PLAYER)
+                {
+                    if(!victim->isPet() || !victim->isHunterPet())
+                        return false;
+                }
+            }
 
 			// Pet check
 			if(Pet* pet = victim->ToPet())
