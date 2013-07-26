@@ -25581,8 +25581,8 @@ void Player::ResyncRunes(uint8 count)
     data << uint32(count);
     for (uint32 i = 0; i < count; ++i)
     {
-        data << uint8(GetCurrentRune(i));                   // rune type
-        data << uint8(255 - (GetRuneCooldown(i) * 51));     // passed cooldown time (0-255)
+        data << uint8(GetCurrentRune(i));                                   // rune type
+        data << uint8(255.0f - (float(GetRuneCooldown(i)) * 0.0255f));      // passed cooldown time (0-255)
     }
     GetSession()->SendPacket(&data);
 }
