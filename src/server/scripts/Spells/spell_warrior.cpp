@@ -1079,6 +1079,18 @@ class spell_warr_heroic_leap : public SpellScriptLoader
                     }
                 }
 
+                if (Unit* caster = GetCaster())
+                {
+                    Position const* pos = GetExplTargetDest();
+                    MotionMaster* motionMaster = caster->GetMotionMaster();
+                    float x, y, z;
+                    caster->GetContactPoint(caster, x, y, z, CONTACT_DISTANCE);
+                    float dist = ((pos->GetPositionZ()) - z);
+
+                    if(dist > 5.0f || dist < -5.0f)
+                        return SPELL_FAILED_NOPATH;
+                }
+
                 return SPELL_CAST_OK;
             }
 
