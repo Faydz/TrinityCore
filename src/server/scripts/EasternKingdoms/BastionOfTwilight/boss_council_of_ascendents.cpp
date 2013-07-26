@@ -15,6 +15,15 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// DA AGGIUNGERE/SISTEMARE:
+// lo spawn di lava seed e water bomb procede sempre in un unica direzione
+// in fase due manca il cambio di treath list
+// vanno sistemati gli hp ai boss (non alla monstrosity, se ne funziona lo script)
+// il ciclone non si muove
+// spell hero fan crashare
+// --
+// chain lightning non fa nulla
+
 #include "ScriptPCH.h"
 #include "ScriptMgr.h"
 #include "bastion_of_twilight.h"
@@ -22,20 +31,21 @@
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
 #include "math.h"
+#include "time.h"
  
 enum Creatures
 {
     //BOSS_ELEMENTIUM               = 43735,
     //BOSS_IGNACIOUS                = 43686,
-    //BOSS_FELUDIUS                     = 43687,
-    //BOSS_ARION                        = 43688,
+    //BOSS_FELUDIUS                 = 43687,
+    //BOSS_ARION                    = 43688,
     //BOSS_TERRASTRA                = 43689,
     NPC_INFERNO_RUSH                = 47501,
     NPC_WATER_BOMB                  = 44201,
     NPC_VIOLENT_CYCLONE             = 44747,
     NPC_GRAVITY_WELL                = 44824,
     NPC_LIQUID_ICE                  = 45452,
-    NPC_LAVA_SEED                   = 00000, // da definire
+    NPC_LAVA_SEED                   = 45420,
     NPC_FROZEN_ORB_COUNCIL          = 49518,
     NPC_FLAMESTRIKE_COUNCIL         = 50297,
 };
@@ -100,7 +110,7 @@ enum spell_c
     // Feludius
     SPELL_FROZEN                 = 82772, //funziona
     SPELL_GLACIATE               = 82746, //funziona
-    SPELL_HEART_OF_ICE           = 82665, //danno da scriptare
+    SPELL_HEART_OF_ICE           = 82665, //funziona
     SPELL_ICY_REPRISAL           = 82817, //(danno di heart of ice)
     SPELL_HYDRO_LANCE            = 82752, //funziona
     SPELL_WATER_BOMB             = 82699, //funziona
@@ -110,7 +120,7 @@ enum spell_c
     SPELL_FROST_IMBUED           = 82666, //funziona
     // Ignacious
     SPELL_AEGIS_OF_FLAME         = 82631, //funziona
-    SPELL_BURNING_BLOOD          = 82660, //danno incrementale da scriptare
+    SPELL_BURNING_BLOOD          = 82660, //funziona
     SPELL_BURNING_SPITE          = 82813, //(danno di burning blood)
     SPELL_FLAME_TORRENT          = 82777, //funziona
     SPELL_INFERNO_LEAP           = 82856, //funziona
@@ -124,9 +134,9 @@ enum spell_c
     // Arion
     SPELL_THUNDERSHOCK           = 83067, //funziona
     SPELL_LIGHTNING_ROD          = 83099, //funziona
-    SPELL_CHAIN_LIGHTNING        = 83300, //non fa danno
+    SPELL_CHAIN_LIGHTNING        = 83300, //non fa nulla
     SPELL_DISPERSION             = 83087, //teleport da scriptare
-    SPELL_LIGHTNING_BLAST        = 83070, //non fa danno
+    SPELL_LIGHTNING_BLAST        = 83070, //funziona
     SPELL_CALL_WINDS             = 83491, //funziona
     SPELL_VIOLENT_CYCLONE        = 83500, //funziona
     SPELL_SWIRLING_WINDS         = 83500, //funziona
@@ -244,16 +254,11 @@ class boss_elementium_monstrosity : public CreatureScript
 public:
     boss_elementium_monstrosity() : CreatureScript("boss_elementium_monstrosity") { }
  
-    CreatureAI* GetAI(Creature* creature) const
+    struct boss_elementium_monstrosityAI : public BossAI
     {
-        return new boss_elementium_monstrosityAI (creature);
-    }
- 
-    struct boss_elementium_monstrosityAI : public ScriptedAI
-    {
-        boss_elementium_monstrosityAI(Creature* creature) : ScriptedAI(creature), eventActive(false), initialized(false)
+        boss_elementium_monstrosityAI(Creature* creature) : BossAI(creature, DATA_COUNCIL_EVENT), eventActive(false), initialized(false)
         {
-            instance = creature->GetInstanceScript();
+            instance = me->GetInstanceScript();
         }
  
         InstanceScript* instance;
@@ -277,32 +282,31 @@ public:
             me->SetReactState(REACT_PASSIVE);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
             me->SetVisible(false);
-            
             ascendant[0] = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_IGNACIOUS));
             ascendant[1] = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_FELUDIUS));
             ascendant[2] = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_ARION));
-			
-            if (Creature * terr = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_TERRASTRA)))
-			{	
-				ascendant[3] = terr;
-			}
+            ascendant[3] = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_TERRASTRA));
+            initialized = true;
            
             for(uint8 i = 0; i<=3; i++)
             {
                 if(ascendant[i] == NULL)
+                {
+                    initialized = false;
                     return;
+                }
 
                 ascendant[i]->SetMaxHealth(ascendant[i]->GetMaxHealth());
             }
 
-            eventActive = false;
-            initialized = true;
+            
             phase       = 0;
             count       = 0;
             killtimer   = 0;
             zap = 1;
             phasechange = false;
             DoAction(COUNCIL_EVENT_RESET);
+            eventActive = false;
             chaintargets[0]=NULL;
             chaintargets[1]=NULL;
             chaintargets[2]=NULL;
@@ -310,7 +314,7 @@ public:
 
         void UpdateAI(uint32 diff)
         {
-                if (!UpdateVictim())
+                if (!UpdateVictim() || !initialized)
                     return;
 
                 if (killtimer>=diff)
@@ -331,7 +335,7 @@ public:
                         else if (phase == 1)
                         {
                             //###############
-                            // here will begin phase 2
+                            //    phase 2
                             //###############
                             std::list<Creature*> unitList;
                             ascendant[0]->GetCreatureListWithEntryInGrid(unitList, NPC_INFERNO_RUSH, 100.0f);
@@ -380,35 +384,41 @@ public:
                         }
                         else if (phase == 2)
                         {
+                            //###############
+                            //    phase 3
+                            //###############
                             switch (count)
                             {
                             case 0:
+                                ascendant[3]->MonsterYell(SAY_MONSTR1, 0, 0);
+                                DoPlaySoundToSet(ascendant[3], SOU_MONSTR1);
+                                ascendant[3]->GetMotionMaster()->MovePoint(0, center[0]);
+                                events.ScheduleEvent(EVENT_SAY, 3000);
+                                break;
+                            case 1:
                                 ascendant[2]->MonsterYell(SAY_MONSTR2, 0, 0);
                                 DoPlaySoundToSet(ascendant[2], SOU_MONSTR2);
                                 events.ScheduleEvent(EVENT_SAY, 3000);
                                 ascendant[2]->GetMotionMaster()->MovePoint(0, center[0]);
                                 break;
-                            case 1:
+                            case 2:
                                 ascendant[1]->MonsterYell(SAY_MONSTR3, 0, 0);
                                 DoPlaySoundToSet(ascendant[1], SOU_MONSTR3);
                                 events.ScheduleEvent(EVENT_SAY, 3000);
                                 ascendant[1]->GetMotionMaster()->MovePoint(0, center[0]);
                                 break;
-                            case 2:
+                            case 3:
                                 ascendant[0]->MonsterYell(SAY_MONSTR4, 0, 0);
                                 DoPlaySoundToSet(ascendant[0], SOU_MONSTR4);
                                 events.ScheduleEvent(EVENT_SAY, 3000);
                                 ascendant[0]->GetMotionMaster()->MovePoint(0, center[0]);
                                 break;
-                            case 3:
-                                me->MonsterYell(SAY_MONSTR5, 0, 0);
-                                DoPlaySoundToSet(me, SOU_MONSTR5);
-                                DoPlaySoundToSet(me, SOU_MONSTR6);
-                                DoPlaySoundToSet(me, SOU_MONSTR7);
-                                DoPlaySoundToSet(me, SOU_MONSTR8);
-                                DoPlaySoundToSet(me, SOU_MONSTR9);
-                                events.ScheduleEvent(EVENT_SAY, 2000);
-                                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_ELEMENTAL_STASIS);
+                            case 4:
+                                me->NearTeleportTo(center[0].GetPositionX(), center[0].GetPositionY(), center[0].GetPositionZ(), center[0].GetOrientation());
+                                me->SetMaxHealth(ascendant[0]->GetMaxHealth()+ascendant[1]->GetMaxHealth()+ascendant[2]->GetMaxHealth()+ascendant[3]->GetMaxHealth());
+                                me->SetHealth(ascendant[0]->GetHealth()+ascendant[1]->GetHealth()+ascendant[2]->GetHealth()+ascendant[3]->GetHealth());
+                                me->SetVisible(true);
+                                me->CastSpell(me, SPELL_EXPLOSION_VISUAL, false);
                                 ascendant[0]->SetReactState(REACT_PASSIVE);
                                 ascendant[1]->SetReactState(REACT_PASSIVE);
                                 ascendant[2]->SetReactState(REACT_PASSIVE);
@@ -421,19 +431,29 @@ public:
                                 ascendant[1]->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                                 ascendant[2]->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                                 ascendant[3]->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-                                me->NearTeleportTo(center[0].GetPositionX(), center[0].GetPositionY(), center[0].GetPositionZ(), center[0].GetOrientation());
-                                me->SetVisible(true);
-                                me->CastSpell(me, SPELL_EXPLOSION_VISUAL, false);
+                                events.ScheduleEvent(EVENT_SAY, 500);
                                 break;
-                            case 4:
+                            case 5:
+                                DoZoneInCombat(me);
+                                me->MonsterYell(SAY_MONSTR5, 0, 0);
+                                DoPlaySoundToSet(me, SOU_MONSTR5);
+                                DoPlaySoundToSet(me, SOU_MONSTR6);
+                                DoPlaySoundToSet(me, SOU_MONSTR7);
+                                DoPlaySoundToSet(me, SOU_MONSTR8);
+                                DoPlaySoundToSet(me, SOU_MONSTR9);
+                                events.ScheduleEvent(EVENT_SAY, 1000);
+                                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_ELEMENTAL_STASIS);
+                                break;
+                            case 6:
                                 me->SetReactState(REACT_AGGRESSIVE);
                                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                                me->SetVisible(true);
                                 //AI Schedules
                                 events.ScheduleEvent(EVENT_ZAP, 2000);
                                 events.ScheduleEvent(EVENT_CRYOGENIC_AURA, 2000);
                                 events.ScheduleEvent(EVENT_ELECTRICAL_INSTABILITY, 10000);
-                                events.ScheduleEvent(EVENT_LAVA_SEED, 12000);
-                                events.ScheduleEvent(EVENT_GRAVITY_CRUSH, 6000);
+                                events.ScheduleEvent(EVENT_LAVA_SEED, 18000);
+                                events.ScheduleEvent(EVENT_GRAVITY_CRUSH, 8000);
                                 break;
                             default:
                                 break;
@@ -458,7 +478,7 @@ public:
                     case EVENT_HYDRO_LANCE:
                         if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0)){
                             if (ascendant[1] != NULL){
-                                ascendant[1]->CastSpell(ascendant[1], SPELL_HYDRO_LANCE, false);
+                                ascendant[1]->CastSpell(pTarget, SPELL_HYDRO_LANCE, false);
                             }
                         }
                         events.ScheduleEvent(EVENT_HYDRO_LANCE, 10000);
@@ -480,8 +500,8 @@ public:
                             uint32 num = urand(8, 12);
                             for(uint32 i=0; i<num; i++)
                             {
-                                float dir  = float(urand(0, 628))/100;
-                                float dist = float(urand(15, 50));
+                                float dir  = float(rand()/6.28f);
+                                float dist = float(urand(15, 60));
                                 ascendant[1]->SummonCreature(NPC_WATER_BOMB,
                                                         ascendant[1]->GetPositionX() + dist*cos(dir),
                                                         ascendant[1]->GetPositionY() + dist*cos(dir),
@@ -494,7 +514,7 @@ public:
                     case EVENT_HEART_OF_ICE:
                         if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0)){
                             if (ascendant[1] != NULL){
-                                ascendant[1]->CastSpell(ascendant[1], SPELL_HEART_OF_ICE, false);
+                                ascendant[1]->CastSpell(pTarget, SPELL_HEART_OF_ICE, false);
                             }
                         }
                         events.ScheduleEvent(EVENT_HEART_OF_ICE, urand(20000, 40000));
@@ -535,7 +555,7 @@ public:
                         if (Unit* pTarget = ascendant[0]->getVictim()){
                             if (ascendant[0] != NULL){
                                 ascendant[0]->CastSpell(pTarget, SPELL_INFERNO_RUSH, false);
-                                events.ScheduleEvent(EVENT_SPAWN_FLAME, 750);
+                                events.ScheduleEvent(EVENT_SPAWN_FLAME, 50);
                             }
                         }
                         return;
@@ -568,7 +588,7 @@ public:
                     case EVENT_BURNING_BLOOD:
                         if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0)){
                             if (ascendant[0] != NULL){
-                                ascendant[0]->CastSpell(ascendant[1], SPELL_BURNING_BLOOD, false);
+                                ascendant[0]->CastSpell(pTarget, SPELL_BURNING_BLOOD, false);
                             }
                         }
                         events.ScheduleEvent(EVENT_BURNING_BLOOD, urand(20000, 40000));
@@ -733,20 +753,21 @@ public:
                             {
                                 float dist = 4.0f;
                                 if ((*itr)->GetAura(SPELL_GROW))
-                                {
-                                    dist *= pow (1.4,(*itr)->GetAura(SPELL_GROW)->GetStackAmount());
+                                { //stack auras should be additive, not multiplicative :V
+                                    dist *= 1.4f * (*itr)->GetAura(SPELL_GROW)->GetStackAmount();
                                     //uint32 stack=(*itr)->GetAura(SPELL_GROW)->GetStackAmount();
                                     //for (int i=0; i<stack; i++)
                                     //    dist *= 1.4;
                                 }
-                                if (*itr && me->GetDistance2d(*itr) > dist)
+                                if (*itr && me->GetDistance2d(*itr) < dist)
                                 {
                                     newspawn = false;
                                     (*itr)->AddAura(SPELL_GROW, *itr);
                                 }
-                                if (newspawn)
-                                    me->SummonCreature(NPC_LIQUID_ICE, me->GetPositionX(),me->GetPositionY(), me->GetPositionZ(),me->GetOrientation());
                             }
+                            if (newspawn)
+                                me->SummonCreature(NPC_LIQUID_ICE, me->GetPositionX(),me->GetPositionY(), me->GetPositionZ(),me->GetOrientation());
+                            
  
                             if (me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
                                 events.ScheduleEvent(EVENT_CRYOGENIC_AURA, 1500);
@@ -765,7 +786,7 @@ public:
                                 for (std::list<Unit*>::const_iterator iter = chaintargetList.begin(); iter != chaintargetList.end(); ++iter)
                                 {
                                                 ascendant[2]->AddAura(SPELL_GRAVITY_CRUSH, (*iter));
-                                    DoTeleportPlayer((*iter), (*iter)->GetPositionX(), (*iter)->GetPositionY(), (*iter)->GetPositionZ()+35, (*iter)->GetOrientation());
+                                    DoTeleportPlayer((*iter), (*iter)->GetPositionX(), (*iter)->GetPositionY(), (*iter)->GetPositionZ()+20, (*iter)->GetOrientation());
                                 }
                             }
                         }
@@ -774,18 +795,18 @@ public:
                             if (ascendant[2] != NULL)
                             {
                                 ascendant[2]->AddAura(SPELL_GRAVITY_CRUSH, pTarget);
-                                DoTeleportPlayer(pTarget, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ()+35, pTarget->GetOrientation());
+                                DoTeleportPlayer(pTarget, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ()+20, pTarget->GetOrientation());
                             }
                         }
-                        me->CastSpell(me, SPELL_GRAVITY_CRUSH, false);
+                        //me->CastSpell(me, SPELL_GRAVITY_CRUSH, false);
                         me->MonsterYell(SAY_CRUSH, 0, 0);
                         DoPlaySoundToSet(me, SOU_CRUSH);
-                        events.ScheduleEvent(EVENT_GRAVITY_CRUSH, 12000);
+                        events.ScheduleEvent(EVENT_GRAVITY_CRUSH, 20000);
                         return;
                         break;
                     case EVENT_LAVA_SEED:
                         me->CastSpell(me, SPELL_LAVA_SEED, false);
-                        events.ScheduleEvent(EVENT_LAVA_SEED, 12000);
+                        events.ScheduleEvent(EVENT_LAVA_SEED, 20000);
                         events.ScheduleEvent(EVENT_LAVA_SEED_SPAWN, 2000);
                         return;
                         break;
@@ -794,12 +815,12 @@ public:
                             uint32 num = urand(12, 20);
                             for(uint32 i=0; i<num; i++)
                             {
-                                float dir  = float(urand(0, 628))/100;
-                                float dist = float(urand(15, 60));
-                               me->SummonCreature(NPC_LAVA_SEED,
+                                float dir  = frand(0, 6.28f);
+                                float dist = frand(15, 60);
+                                me->SummonCreature(NPC_LAVA_SEED,
                                                        me->GetPositionX() + dist*cos(dir),
                                                        me->GetPositionY() + dist*cos(dir),
-                                                       me->GetPositionZ()+35,
+                                                       me->GetPositionZ() + 35,
                                                        me->GetOrientation());
                             }
                             return;
@@ -847,32 +868,30 @@ public:
  
         void DoAction(int32 action)
         {
+            if (!initialized)
+                return;
             switch(action)
             {
             case COUNCIL_START_EVENT:
-				if (phase != 0 || eventActive)
+                
+                if (phase != 0 || eventActive)
                     return;
-				
                 if (instance)
                     instance->SetData(DATA_COUNCIL_EVENT, IN_PROGRESS);
-				
                 eventActive = true;
                 events.Reset();
                 //visibility
                 ascendant[2]->SetReactState(REACT_PASSIVE);
                 ascendant[2]->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                 ascendant[2]->SetVisible(false);
-				
                 ascendant[3]->SetReactState(REACT_PASSIVE);
                 ascendant[3]->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                 ascendant[3]->SetVisible(false);
-				
                 DoZoneInCombat(me);
                 DoZoneInCombat(ascendant[0]);
                 DoZoneInCombat(ascendant[1]);
-
                 //AI schedules
-                ascendant[0]->MonsterYell(SAY_AGGRO1, 0, 0);
+                ascendant[1]->MonsterYell(SAY_AGGRO1, 0, 0);
                 DoPlaySoundToSet(ascendant[0], SOU_AGGRO1);
                 events.ScheduleEvent(EVENT_SAY, 4000);
                 events.ScheduleEvent(EVENT_GLACIATE, 15000);
@@ -890,6 +909,12 @@ public:
                 if (phase==0)
                 {//here will comes arion and terrastra
                     phase = 1;
+                    ascendant[2]->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                    ascendant[3]->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                    ascendant[2]->NearTeleportTo(wayPos[0].GetPositionX(), wayPos[0].GetPositionY(), wayPos[0].GetPositionZ(), wayPos[0].GetOrientation());
+                    ascendant[3]->NearTeleportTo(wayPos[1].GetPositionX(), wayPos[1].GetPositionY(), wayPos[1].GetPositionZ(), wayPos[1].GetOrientation());
+                    ascendant[2]->SetVisible(true);
+                    ascendant[3]->SetVisible(true);
                     events.Reset();
                     ascendant[2]->MonsterYell(SAY_AGGRO3, 0, 0);
                     DoPlaySoundToSet(ascendant[2], SOU_AGGRO3);
@@ -928,6 +953,14 @@ public:
                     phase = 2;
                     events.Reset();
                     std::list<Unit*> targets;
+                    ascendant[0]->AttackStop();
+                    ascendant[1]->AttackStop();
+                    ascendant[2]->AttackStop();
+                    ascendant[3]->AttackStop();
+                    ascendant[0]->GetMotionMaster()->Clear();
+                    ascendant[1]->GetMotionMaster()->Clear();
+                    ascendant[2]->GetMotionMaster()->Clear();
+                    ascendant[3]->GetMotionMaster()->Clear();
                     ascendant[0]->SetReactState(REACT_PASSIVE);
                     ascendant[1]->SetReactState(REACT_PASSIVE);
                     ascendant[2]->SetReactState(REACT_PASSIVE);
@@ -948,10 +981,7 @@ public:
                     ascendant[1]->CastSpell(ascendant[0], SPELL_TELEPORT_VISUAL, false);
                     ascendant[2]->CastSpell(ascendant[0], SPELL_TELEPORT_VISUAL, false);
                     ascendant[3]->CastSpell(ascendant[0], SPELL_TELEPORT_VISUAL, false);
-                    ascendant[3]->MonsterYell(SAY_MONSTR1, 0, 0);
-                    DoPlaySoundToSet(ascendant[3], SOU_MONSTR1);
-                    ascendant[3]->GetMotionMaster()->MovePoint(0, center[0]);
-                    events.ScheduleEvent(EVENT_SAY, 3000);
+                    events.ScheduleEvent(EVENT_SAY, 1000);
                 }
                 break;
             case COUNCIL_EVENT_RESET:
@@ -959,16 +989,33 @@ public:
                 //################
                 //  da scriptare
                 //################
-                if(eventActive)
-                {
-                    me->SetFullHealth();
-                    eventActive = false;
+                
+                me->SetFullHealth();
  
-                    events.Reset();
+                events.Reset();
  
-                    if (instance)
+                if (instance && eventActive == true)
                     instance->SetData(DATA_COUNCIL_EVENT, FAIL);
-                }
+                eventActive = false;
+
+                ascendant[0]->SetFullHealth();
+                ascendant[1]->SetFullHealth();
+                ascendant[2]->SetFullHealth();
+                ascendant[3]->SetFullHealth();
+                ascendant[1]->NearTeleportTo(wayPos[0].GetPositionX(), wayPos[0].GetPositionY(), wayPos[0].GetPositionZ(), wayPos[0].GetOrientation());
+                ascendant[0]->NearTeleportTo(wayPos[1].GetPositionX(), wayPos[1].GetPositionY(), wayPos[1].GetPositionZ(), wayPos[1].GetOrientation());
+                ascendant[2]->NearTeleportTo(wayPos[0].GetPositionX(), wayPos[0].GetPositionY(), wayPos[0].GetPositionZ(), wayPos[0].GetOrientation());
+                ascendant[3]->NearTeleportTo(wayPos[1].GetPositionX(), wayPos[1].GetPositionY(), wayPos[1].GetPositionZ(), wayPos[1].GetOrientation());
+                ascendant[0]->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                ascendant[1]->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                ascendant[0]->SetReactState(REACT_AGGRESSIVE);
+                ascendant[1]->SetReactState(REACT_AGGRESSIVE);
+                ascendant[2]->SetReactState(REACT_PASSIVE);
+                ascendant[3]->SetReactState(REACT_PASSIVE);
+                ascendant[0]->SetVisible(true);
+                ascendant[1]->SetVisible(true);
+                ascendant[2]->SetVisible(false);
+                ascendant[3]->SetVisible(false);
                 break;
  
             case COUNCIL_EVENT_FINISHED:
@@ -980,6 +1027,10 @@ public:
                     instance->SetData(DATA_COUNCIL_EVENT, DONE);
                
                 events.Reset();
+                ascendant[0]->DisappearAndDie();
+                ascendant[1]->DisappearAndDie();
+                ascendant[2]->DisappearAndDie();
+                ascendant[3]->DisappearAndDie();
                 eventActive = false;
                 break;
  
@@ -1039,6 +1090,12 @@ public:
                 (*iter)->DespawnOrUnsummon();
         }
     };
+    
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new boss_elementium_monstrosityAI (creature);
+    }
+ 
 };
  
 class boss_ascendants : public CreatureScript
@@ -1053,30 +1110,28 @@ public:
  
     struct boss_ascendantsAI : public ScriptedAI
     {
-        boss_ascendantsAI(Creature* creature) : ScriptedAI(creature), activated(false), isFirstTron(false)
+        boss_ascendantsAI(Creature* creature) : ScriptedAI(creature)
         {
             instance = creature->GetInstanceScript();
  
             creature->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
             creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
-            creature->AddUnitMovementFlag(MOVEMENTFLAG_WALKING);
  
             homePosition = creature->GetHomePosition();
         }
  
         InstanceScript* instance;
         EventMap events;
-        bool activated;
-        bool isFirstTron;
-        bool isMovingHome;
         Position homePosition;
         Creature* elementium;
         uint32 killtimer;
- 
+        
         void EnterCombat(Unit * who)
         {
-            if (Creature* monstrosity = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_MONSTROSITY)))
+            if (Creature* monstrosity = ObjectAccessor::GetCreature(*me,instance->GetData64(DATA_MONSTROSITY)))
+            {
                 monstrosity->AI()->DoAction(COUNCIL_START_EVENT);
+            }
 
             killtimer =0;
         }
@@ -1086,7 +1141,7 @@ public:
             if (me->GetEntry() != BOSS_FELUDIUS && me->GetEntry() != BOSS_IGNACIOUS)
                 me->SetVisible(false);
 
-			if (Creature* elementium = ObjectAccessor::GetCreature(*me,instance->GetData64(DATA_MONSTROSITY)))
+            if (Creature* elementium = ObjectAccessor::GetCreature(*me,instance->GetData64(DATA_MONSTROSITY)))
                 elementium->AI()->DoAction(COUNCIL_EVENT_RESET);
         };
  
@@ -1125,7 +1180,7 @@ public:
  
         void KilledUnit(Unit* victim)
         {
-            if (victim->GetTypeId() != TYPEID_PLAYER || killtimer > 0)
+            if (!victim || victim->GetTypeId() != TYPEID_PLAYER || killtimer > 0)
                 return;
             switch (me->GetEntry())
             {
@@ -1160,13 +1215,13 @@ public:
     };
 };
  
-class npc_violent_cyclone : public CreatureScript
+class npc_council_violent_cyclone : public CreatureScript
 {
-public: npc_violent_cyclone() : CreatureScript("npc_violent_cyclone") { }
+public: npc_council_violent_cyclone() : CreatureScript("npc_council_violent_cyclone") { }
  
-    struct npc_violent_cycloneAI : public ScriptedAI
+    struct npc_council_violent_cycloneAI : public ScriptedAI
     {
-        npc_violent_cycloneAI(Creature* c) : ScriptedAI(c)
+        npc_council_violent_cycloneAI(Creature* c) : ScriptedAI(c)
         {
             me->SetReactState(REACT_PASSIVE);
         }
@@ -1174,7 +1229,7 @@ public: npc_violent_cyclone() : CreatureScript("npc_violent_cyclone") { }
         uint32 checkTimer;
         int chase;
  
-        void Reset()
+        void InitializeAI()
         {
             me->SetSpeed(MOVE_WALK,   0.8f, true);
             me->SetSpeed(MOVE_RUN,    0.8f, true);
@@ -1185,8 +1240,15 @@ public: npc_violent_cyclone() : CreatureScript("npc_violent_cyclone") { }
  
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
             me->SetReactState(REACT_PASSIVE);
+            me->SetVisible(true);
+            me->AddAura(32332, me); //cyclone visual effect
             //me->AddUnitMovementFlag(MOVEMENTFLAG_FLYING);
             //me->SetCanFly(true);
+        }
+
+        void Reset()
+        {
+            InitializeAI();
         }
  
         void CheckViolentCyclone(Unit *who)
@@ -1202,18 +1264,19 @@ public: npc_violent_cyclone() : CreatureScript("npc_violent_cyclone") { }
                 checkTimer = 1000;
                 if(me->GetDistance(cyclone[chase]) < 5.0f)
                 {
-                    chase++;
-                    if (chase==9)
-                        chase=0;
+                    chase= (chase+1) %10; 
                     me->GetMotionMaster()->MovePoint(0, cyclone[chase]);
+
+                    if (!me->HasAura(32332)) //cyclone visual effect repeat, just to be sure it's visible
+                        me->AddAura(32332, me);
                 }
                 std::list<Unit*> targets;
-                        Trinity::AnyUnfriendlyUnitInObjectRangeCheck u_check(me, me, 5.0f);
-                        Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, u_check);
-                        me->VisitNearbyObject(5.0f, searcher);
-                        for (std::list<Unit*>::const_iterator iter = targets.begin();iter != targets.end(); ++iter)
+                Trinity::AnyUnfriendlyUnitInObjectRangeCheck u_check(me, me, 5.0f);
+                Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, u_check);
+                me->VisitNearbyObject(5.0f, searcher);
+                for (std::list<Unit*>::const_iterator iter = targets.begin();iter != targets.end(); ++iter)
                 {
-                                CheckViolentCyclone(*iter);
+                    CheckViolentCyclone(*iter);
                 }
             }
             else
@@ -1223,17 +1286,17 @@ public: npc_violent_cyclone() : CreatureScript("npc_violent_cyclone") { }
     };
         CreatureAI* GetAI(Creature* creature) const
         {
-            return new npc_violent_cycloneAI(creature);
+            return new npc_council_violent_cycloneAI(creature);
         }
 };
  
-class npc_frozen_orb_council : public CreatureScript
+class npc_council_frozen_orb : public CreatureScript
 {
-public: npc_frozen_orb_council() : CreatureScript("npc_frozen_orb_council") { }
+public: npc_council_frozen_orb() : CreatureScript("npc_council_frozen_orb") { }
  
-    struct npc_frozen_orb_councilAI : public ScriptedAI
+    struct npc_council_frozen_orbAI : public ScriptedAI
     {
-        npc_frozen_orb_councilAI(Creature* c) : ScriptedAI(c)
+        npc_council_frozen_orbAI(Creature* c) : ScriptedAI(c)
         {
             me->SetReactState(REACT_PASSIVE);
         }
@@ -1303,17 +1366,17 @@ public: npc_frozen_orb_council() : CreatureScript("npc_frozen_orb_council") { }
     };
         CreatureAI* GetAI(Creature* creature) const
         {
-            return new npc_frozen_orb_councilAI(creature);
+            return new npc_council_frozen_orbAI(creature);
         }
 };
  
-class npc_gravity_well_council : public CreatureScript
+class npc_council_gravity_well : public CreatureScript
 {
-public: npc_gravity_well_council() : CreatureScript("npc_gravity_well_council") { }
+public: npc_council_gravity_well() : CreatureScript("npc_council_gravity_well") { }
  
-    struct npc_gravity_well_councilAI : public ScriptedAI
+    struct npc_council_gravity_wellAI : public ScriptedAI
     {
-        npc_gravity_well_councilAI(Creature* c) : ScriptedAI(c)
+        npc_council_gravity_wellAI(Creature* c) : ScriptedAI(c)
         {
             me->SetReactState(REACT_PASSIVE);
         }
@@ -1362,17 +1425,17 @@ public: npc_gravity_well_council() : CreatureScript("npc_gravity_well_council") 
     };
         CreatureAI* GetAI(Creature* creature) const
         {
-            return new npc_gravity_well_councilAI(creature);
+            return new npc_council_gravity_wellAI(creature);
         }
 };
  
-class npc_water_bomb: public CreatureScript
+class npc_council_water_bomb: public CreatureScript
 {
-public: npc_water_bomb() : CreatureScript("npc_water_bomb") {}
+public: npc_council_water_bomb() : CreatureScript("npc_council_water_bomb") {}
  
-    struct npc_water_bombAI: public ScriptedAI
+    struct npc_council_water_bombAI: public ScriptedAI
     {
-        npc_water_bombAI(Creature *c) :ScriptedAI(c) {}
+        npc_council_water_bombAI(Creature *c) :ScriptedAI(c) {}
  
         float distanza;
         uint32 timer;
@@ -1382,11 +1445,14 @@ public: npc_water_bomb() : CreatureScript("npc_water_bomb") {}
         void InitializeAI()
         {
             death = 5000;
-            feludius = me->GetOwner();
-            me->setFaction(feludius->getFaction());
+            InstanceScript* instance = me->ToCreature()->GetInstanceScript();
+            if (instance)
+                feludius = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_FELUDIUS));
+            else
+                me->DespawnOrUnsummon();
             distanza = me->GetDistance2d(feludius);
-            if (distanza >10.0f) distanza=10.0f;
-            timer = uint32((distanza - 10) * 50 + 500);
+            if (distanza <10.0f) distanza=10.0f;
+            timer = uint32((distanza - 10) * 75 + 500);
             feludius->CastSpell(me, SPELL_WATER_BOMB_VISUAL, true);
             me->SetReactState(REACT_PASSIVE);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -1404,6 +1470,7 @@ public: npc_water_bomb() : CreatureScript("npc_water_bomb") {}
             if (timer <= diff)
             {
                 me->CastSpell(me, SPELL_WATER_BOMB_EXPLO, true);
+                timer = 10000;
             }
             else
                 timer -= diff;
@@ -1412,40 +1479,44 @@ public: npc_water_bomb() : CreatureScript("npc_water_bomb") {}
  
     CreatureAI* GetAI(Creature* pCreature) const
     {
-        return new npc_water_bombAI(pCreature);
+        return new npc_council_water_bombAI(pCreature);
     }
 };
  
-class npc_lava_seed: public CreatureScript
+class npc_council_lava_seed: public CreatureScript
 {
-public: npc_lava_seed() : CreatureScript("npc_lava_seed") {}
+public: npc_council_lava_seed() : CreatureScript("npc_council_lava_seed") {}
  
-    struct npc_lava_seedAI: public ScriptedAI
+    struct npc_council_lava_seedAI: public ScriptedAI
     {
-        npc_lava_seedAI(Creature *c) :ScriptedAI(c) {}
+        npc_council_lava_seedAI(Creature *c) :ScriptedAI(c) {}
  
         uint32 timer;
         uint32 death;
         Unit* monstrosity;
  
-                void InitializeAI()
+        void InitializeAI()
         {
+            InstanceScript* instance = me->ToCreature()->GetInstanceScript();
+            if (instance)
+            monstrosity =  ObjectAccessor::GetCreature(*me,instance->GetData64(DATA_MONSTROSITY));
+            if (!monstrosity)
+                me->DisappearAndDie();
             death = 8000;
-            monstrosity = me->GetOwner();
             me->setFaction(monstrosity->getFaction());
             timer = 5000;
             me->AddAura(SPELL_LAVA_SEED_AURA, me);
-                        me->SetReactState(REACT_PASSIVE);
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            me->SetReactState(REACT_PASSIVE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             me->SetUnitMovementFlags(MOVEMENTFLAG_FLYING);
-            me->SetSpeed(MOVE_WALK,   4.0f, true);
-            me->SetSpeed(MOVE_RUN,    4.0f, true);
-            me->SetSpeed(MOVE_FLIGHT, 4.0f, true);
-            me->GetMotionMaster()->MovePoint(0,me->GetPositionX(),me->GetPositionY(), me->GetPositionZ()-35);
+            me->SetSpeed(MOVE_WALK,   3.0f, true);
+            me->SetSpeed(MOVE_RUN,    3.0f, true);
+            me->SetSpeed(MOVE_FLIGHT, 3.0f, true);
+            me->GetMotionMaster()->MovePoint(0,me->GetPositionX(),me->GetPositionY(), me->GetPositionZ() - 35);
                 }
  
-                void UpdateAI(uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (death <=diff)
                 me->DespawnOrUnsummon();
@@ -1457,69 +1528,79 @@ public: npc_lava_seed() : CreatureScript("npc_lava_seed") {}
             }
             else
                                 timer -= diff;
-                }
-        };
- 
-        CreatureAI* GetAI(Creature* pCreature) const
-    {
-                return new npc_lava_seedAI(pCreature);
         }
+    };
+ 
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_council_lava_seedAI(pCreature);
+    }
 };
  
-class npc_inferno_rush: public CreatureScript {
-public: npc_inferno_rush() : CreatureScript("npc_inferno_rush") {}
+class npc_council_inferno_rush: public CreatureScript {
+public: npc_council_inferno_rush() : CreatureScript("npc_council_inferno_rush") {}
  
-        struct npc_inferno_rushAI: public ScriptedAI
+        struct npc_council_inferno_rushAI: public ScriptedAI
     {
-                npc_inferno_rushAI(Creature *c) :ScriptedAI(c) {}
+        npc_council_inferno_rushAI(Creature *c) :ScriptedAI(c) {}
  
-                bool Isready;
-                uint32 timer;
+        bool Isready;
+        uint32 timer;
         Unit* igna;
  
-                void InitializeAI()
+         void InitializeAI()
         {
             Isready = false;
             timer = 250;
-            igna = me->GetOwner();
+            InstanceScript* instance = me->ToCreature()->GetInstanceScript();
+            if (instance)
+                igna = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_IGNACIOUS));
+            else
+                me->DespawnOrUnsummon();
             me->setFaction(igna->getFaction());
-                        me->SetReactState(REACT_PASSIVE);
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                }
+            me->SetReactState(REACT_PASSIVE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        }
  
-                void UpdateAI(uint32 diff)
+        void UpdateAI(uint32 diff)
         {
-                        if (timer <= diff)
+            if (timer <= diff && !Isready)
             {
+                Isready = true;
                 me->AddAura(88579, me);
                 if (!igna)
                     return;
                 me->SetFacingToObject(igna);
                 float ori = me->GetOrientation();
-                me->NearTeleportTo(me->GetPositionX()+ 6*cos(ori), me->GetPositionY()+ 6*sin(ori), me->GetPositionZ(), me->GetOrientation());
                 if(me->GetDistance2d(igna) > 6.0f)
                 {
-                    igna->SummonCreature(NPC_INFERNO_RUSH, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), me->GetOrientation());
+                    igna->SummonCreature(NPC_INFERNO_RUSH, 
+                                         me->GetPositionX()+ 6*cos(ori), 
+                                         me->GetPositionY()+ 6*sin(ori), 
+                                         me->GetPositionZ(), 
+                                         me->GetOrientation());
                 }
             }
             else
-                                timer -= diff;
-                }
-        };
- 
-        CreatureAI* GetAI(Creature* pCreature) const
-    {
-                return new npc_inferno_rushAI(pCreature);
+            {
+                timer -= diff;
+            }
         }
+    };
+ 
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_council_inferno_rushAI(pCreature);
+    }
 };
  
-class npc_flamestrike: public CreatureScript {
-public: npc_flamestrike() : CreatureScript("npc_flamestrike") {}
+class npc_council_flamestrike: public CreatureScript {
+public: npc_council_flamestrike() : CreatureScript("npc_council_flamestrike") {}
  
-        struct npc_flamestrikeAI: public ScriptedAI
+        struct npc_council_flamestrikeAI: public ScriptedAI
     {
-                npc_flamestrikeAI(Creature *c) :ScriptedAI(c) {}
+                npc_council_flamestrikeAI(Creature *c) :ScriptedAI(c) {}
  
                 uint32 timer;
  
@@ -1546,39 +1627,39 @@ public: npc_flamestrike() : CreatureScript("npc_flamestrike") {}
  
         CreatureAI* GetAI(Creature* pCreature) const
     {
-                return new npc_flamestrikeAI(pCreature);
+                return new npc_council_flamestrikeAI(pCreature);
         }
 };
  
-class npc_liquid_ice: public CreatureScript {
-public: npc_liquid_ice() : CreatureScript("npc_liquid_ice") {}
+class npc_council_liquid_ice: public CreatureScript {
+public: npc_council_liquid_ice() : CreatureScript("npc_council_liquid_ice") {}
  
-        struct npc_liquid_iceAI: public ScriptedAI
+    struct npc_council_liquid_iceAI: public ScriptedAI
     {
-                npc_liquid_iceAI(Creature *c) :ScriptedAI(c) {}
+        npc_council_liquid_iceAI(Creature *c) :ScriptedAI(c) {}
  
-                void InitializeAI()
+        void InitializeAI()
         {
             me->AddAura(SPELL_LIQUID_ICE, me);
-                        me->SetReactState(REACT_PASSIVE);
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                }
-        };
- 
-        CreatureAI* GetAI(Creature* pCreature) const
-    {
-                return new npc_liquid_iceAI(pCreature);
+            me->SetReactState(REACT_PASSIVE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         }
+    };
+ 
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_council_liquid_iceAI(pCreature);
+    }
 };
  
-class spell_glaciate : public SpellScriptLoader
+class spell_council_glaciate : public SpellScriptLoader
 {
-    public: spell_glaciate() : SpellScriptLoader("spell_glaciate") { }
+    public: spell_council_glaciate() : SpellScriptLoader("spell_council_glaciate") { }
  
-        class spell_glaciate_SpellScript : public SpellScript
+        class spell_council_glaciate_SpellScript : public SpellScript
         {
-            PrepareSpellScript(spell_glaciate_SpellScript);
+            PrepareSpellScript(spell_council_glaciate_SpellScript);
  
             void HandleGlaciate()
             {
@@ -1599,30 +1680,30 @@ class spell_glaciate : public SpellScriptLoader
                 uint32 damage = GetHitDamage();
                 float dist = target->GetDistance(caster);
                 if (dist > 5.0f)
-                    damage = uint32 (damage/(dist/3));
+                    damage = uint32 (damage/(dist-4.0f));
                 SetHitDamage(damage);  
             }
  
             void Register()
             {
-                AfterHit += SpellHitFn(spell_glaciate_SpellScript::HandleGlaciate);
-                BeforeHit += SpellHitFn(spell_glaciate_SpellScript::GlaciateDamage);
+                AfterHit += SpellHitFn(spell_council_glaciate_SpellScript::HandleGlaciate);
+                BeforeHit += SpellHitFn(spell_council_glaciate_SpellScript::GlaciateDamage);
             }
         };
  
         SpellScript* GetSpellScript() const
         {
-            return new spell_glaciate_SpellScript();
+            return new spell_council_glaciate_SpellScript();
         }
 };
  
-class spell_thundershock : public SpellScriptLoader
+class spell_council_thundershock : public SpellScriptLoader
 {
-    public: spell_thundershock() : SpellScriptLoader("spell_thundershock") { }
+    public: spell_council_thundershock() : SpellScriptLoader("spell_council_thundershock") { }
  
-        class spell_thundershock_SpellScript : public SpellScript
+        class spell_council_thundershock_SpellScript : public SpellScript
         {
-            PrepareSpellScript(spell_thundershock_SpellScript);
+            PrepareSpellScript(spell_council_thundershock_SpellScript);
  
             void ThundershockDamage()
             {
@@ -1637,23 +1718,23 @@ class spell_thundershock : public SpellScriptLoader
  
             void Register()
             {
-                BeforeHit += SpellHitFn(spell_thundershock_SpellScript::ThundershockDamage);
+                BeforeHit += SpellHitFn(spell_council_thundershock_SpellScript::ThundershockDamage);
             }
         };
  
         SpellScript* GetSpellScript() const
         {
-            return new spell_thundershock_SpellScript();
+            return new spell_council_thundershock_SpellScript();
         }
 };
  
-class spell_static_overload : public SpellScriptLoader
+class spell_council_static_overload : public SpellScriptLoader
 {
-    public: spell_static_overload() : SpellScriptLoader("static_overload") { }
+    public: spell_council_static_overload() : SpellScriptLoader("static_overload") { }
  
-        class spell_static_overload_SpellScript : public SpellScript
+        class spell_council_static_overload_SpellScript : public SpellScript
         {
-            PrepareSpellScript(spell_static_overload_SpellScript);
+            PrepareSpellScript(spell_council_static_overload_SpellScript);
  
             void StaticOverloadDamage()
             {
@@ -1672,23 +1753,23 @@ class spell_static_overload : public SpellScriptLoader
  
             void Register()
             {
-                BeforeHit += SpellHitFn(spell_static_overload_SpellScript::StaticOverloadDamage);
+                BeforeHit += SpellHitFn(spell_council_static_overload_SpellScript::StaticOverloadDamage);
             }
         };
  
         SpellScript* GetSpellScript() const
         {
-            return new spell_static_overload_SpellScript();
+            return new spell_council_static_overload_SpellScript();
         }
 };
  
-class spell_quake : public SpellScriptLoader
+class spell_council_quake : public SpellScriptLoader
 {
-    public: spell_quake() : SpellScriptLoader("spell_quake") { }
+    public: spell_council_quake() : SpellScriptLoader("spell_council_quake") { }
  
-        class spell_quake_SpellScript : public SpellScript
+        class spell_council_quake_SpellScript : public SpellScript
         {
-            PrepareSpellScript(spell_quake_SpellScript);
+            PrepareSpellScript(spell_council_quake_SpellScript);
  
             void QuakeDamage()
             {
@@ -1701,24 +1782,24 @@ class spell_quake : public SpellScriptLoader
  
             void Register()
             {
-                BeforeHit += SpellHitFn(spell_quake_SpellScript::QuakeDamage);
+                BeforeHit += SpellHitFn(spell_council_quake_SpellScript::QuakeDamage);
             }
         };
  
         SpellScript* GetSpellScript() const
         {
-            return new spell_quake_SpellScript();
+            return new spell_council_quake_SpellScript();
         }
 };
  
-class spell_rising_flames : public SpellScriptLoader
+class spell_council_rising_flames : public SpellScriptLoader
 {
     public:
-        spell_rising_flames() : SpellScriptLoader("spell_rising_flames") { }
+        spell_council_rising_flames() : SpellScriptLoader("spell_council_rising_flames") { }
  
-        class spell_rising_flames_SpellScript : public SpellScript
+        class spell_council_rising_flames_SpellScript : public SpellScript
         {
-            PrepareSpellScript(spell_rising_flames_SpellScript);
+            PrepareSpellScript(spell_council_rising_flames_SpellScript);
  
             SpellCastResult CheckCast()
             {
@@ -1740,25 +1821,107 @@ class spell_rising_flames : public SpellScriptLoader
  
             void Register()
             {
-                OnCheckCast += SpellCheckCastFn(spell_rising_flames_SpellScript::CheckCast);
+                OnCheckCast += SpellCheckCastFn(spell_council_rising_flames_SpellScript::CheckCast);
             }
            
         };
  
         SpellScript* GetSpellScript() const
         {
-            return new spell_rising_flames_SpellScript();
+            return new spell_council_rising_flames_SpellScript();
+        }
+};
+
+ class spell_council_burning_blood : public SpellScriptLoader
+{
+    public:
+        spell_council_burning_blood() : SpellScriptLoader("spell_council_burning_blood") { }
+ 
+        class spell_council_burning_blood_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_council_burning_blood_AuraScript);
+
+            void azzera(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+            {
+                this->GetEffect(EFFECT_0)->SetAmount(0);
+            }
+
+ 
+            void periodic(AuraEffect const* aurEff)
+            {
+                this->GetEffect(EFFECT_0)->SetAmount(this->GetEffect(EFFECT_0)->GetAmount() + 2000);
+                if (!this->GetAura() || !this->GetAura()->GetOwner() || this->GetAura()->GetOwner()->ToUnit() )
+                    return;
+                Unit *target = this->GetAura()->GetOwner()->ToUnit();
+                if (!this->GetCaster())
+                    return;
+                Unit *caster = this->GetCaster();
+            target->CastSpell(target, SPELL_FIRE_IMBUED, true, 0, 0, caster->GetGUID());
+            }
+ 
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_council_burning_blood_AuraScript::azzera, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_council_burning_blood_AuraScript::periodic, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE);
+            }
+           
+        };
+ 
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_council_burning_blood_AuraScript();
         }
 };
  
-class spell_harden_skin : public SpellScriptLoader
+ class spell_council_heart_of_ice : public SpellScriptLoader
+{
+    public:
+        spell_council_heart_of_ice() : SpellScriptLoader("spell_council_heart_of_ice") { }
+ 
+        class spell_council_heart_of_ice_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_council_heart_of_ice_AuraScript);
+
+            void azzera(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+            {
+                this->GetEffect(EFFECT_0)->SetAmount(0);
+            }
+
+ 
+            void periodic(AuraEffect const* aurEff)
+            {
+                this->GetEffect(EFFECT_0)->SetAmount(this->GetEffect(EFFECT_0)->GetAmount() + 2000);
+                if (!this->GetAura() || !this->GetAura()->GetOwner() || this->GetAura()->GetOwner()->ToUnit() )
+                    return;
+                Unit *target = this->GetAura()->GetOwner()->ToUnit();
+                if (!this->GetCaster())
+                    return;
+                Unit *caster = this->GetCaster();
+            target->CastSpell(target, SPELL_FROST_IMBUED, true, 0, 0, caster->GetGUID());
+            }
+ 
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_council_heart_of_ice_AuraScript::azzera, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_council_heart_of_ice_AuraScript::periodic, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE);
+            }
+           
+        };
+ 
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_council_heart_of_ice_AuraScript();
+        }
+};
+ 
+class spell_council_harden_skin : public SpellScriptLoader
 {
    public:
-       spell_harden_skin() : SpellScriptLoader("spell_harden_skin") { }
+       spell_council_harden_skin() : SpellScriptLoader("spell_council_harden_skin") { }
  
-       class spell_harden_skin_AuraScript : public AuraScript
+       class spell_council_harden_skin_AuraScript : public AuraScript
        {
-           PrepareAuraScript(spell_harden_skin_AuraScript);
+           PrepareAuraScript(spell_council_harden_skin_AuraScript);
  
            void AfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
            {
@@ -1787,33 +1950,72 @@ class spell_harden_skin : public SpellScriptLoader
  
            void Register()
            {
-               OnEffectAbsorb += AuraEffectAbsorbFn(spell_harden_skin_AuraScript::Absorb, EFFECT_1);
-               AfterEffectRemove += AuraEffectRemoveFn(spell_harden_skin_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB, AURA_EFFECT_HANDLE_REAL);
+               OnEffectAbsorb += AuraEffectAbsorbFn(spell_council_harden_skin_AuraScript::Absorb, EFFECT_1);
+               AfterEffectRemove += AuraEffectRemoveFn(spell_council_harden_skin_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB, AURA_EFFECT_HANDLE_REAL);
            }
        };
  
        AuraScript* GetAuraScript() const
        {
-           return new spell_harden_skin_AuraScript();
+           return new spell_council_harden_skin_AuraScript();
        }
+};
+
+class spell_council_liquid_ice : public SpellScriptLoader
+{
+    public: spell_council_liquid_ice() : SpellScriptLoader("spell_council_liquid_ice") { }
+ 
+        class spell_council_liquid_ice_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_council_liquid_ice_SpellScript);
+ 
+            void LiquidIceDamage()
+            {
+                Unit *target = GetHitUnit();
+                Unit *caster = GetCaster();
+                if (!target || !caster)
+                    return;
+                uint32 stack =0;
+                if (caster->HasAura(SPELL_GROW))
+                    stack = caster->GetAura(SPELL_GROW)->GetStackAmount();
+                float distance = 5.0f;
+                if (stack !=0)
+                    distance *= (1.4f * stack);
+                if (target->GetDistance2d(caster) > distance )
+                    SetHitDamage(0);  
+            }
+ 
+            void Register()
+            {
+                BeforeHit += SpellHitFn(spell_council_liquid_ice_SpellScript::LiquidIceDamage);
+            }
+        };
+ 
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_council_liquid_ice_SpellScript();
+        }
 };
  
 void AddSC_boss_ascendant_council()
 {
     new boss_elementium_monstrosity();
     new boss_ascendants();
-    new npc_violent_cyclone();
-    new npc_frozen_orb_council();
-    new npc_gravity_well_council();
-    new npc_water_bomb();
-    new npc_lava_seed();
-    new npc_inferno_rush();
-    new npc_flamestrike();
-    new npc_liquid_ice();
-    new spell_glaciate();
-    new spell_thundershock();
-    new spell_static_overload();
-    new spell_quake();
-    new spell_rising_flames();
-    new spell_harden_skin();
+    new npc_council_violent_cyclone();
+    new npc_council_frozen_orb();
+    new npc_council_gravity_well();
+    new npc_council_water_bomb();
+    new npc_council_lava_seed();
+    new npc_council_inferno_rush();
+    new npc_council_flamestrike();
+    new npc_council_liquid_ice();
+    new spell_council_glaciate();
+    new spell_council_thundershock();
+    new spell_council_static_overload();
+    new spell_council_quake();
+    new spell_council_rising_flames();
+    new spell_council_burning_blood();
+    new spell_council_heart_of_ice();
+    new spell_council_harden_skin();
+    new spell_council_liquid_ice();
 }
