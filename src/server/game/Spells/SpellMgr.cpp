@@ -3465,6 +3465,11 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[0].RadiusEntry = sSpellRadiusStore.LookupEntry(14);
                 spellInfo->Effects[1].RadiusEntry = sSpellRadiusStore.LookupEntry(14);
                 break;
+            // Roaring Flame
+            case 78384:
+                spellInfo->Effects[0].BasePoints = 9500;
+                spellInfo->Effects[1].BasePoints = 9500;
+                break;
             // Tamed pet passive damage increase for each kind of pet
             // Part 1
             case 17206:

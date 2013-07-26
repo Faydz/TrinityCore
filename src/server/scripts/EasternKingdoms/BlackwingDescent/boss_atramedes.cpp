@@ -26,6 +26,11 @@ enum Events
     EVENT_SONIC_BREATH,
     EVENT_SEARING_FLAMES,
     EVENT_REMOVE_TRACK,
+    EVENT_ROARING_FLAME_BREATH,
+    EVENT_SONAR_BOMB,
+    EVENT_BERSERK,
+    EVENT_PHASE_1,
+    EVENT_PHASE_2,
 };
 
 enum Spells
@@ -36,6 +41,20 @@ enum Spells
     SPELL_SONIC_BREATH                            = 78098,
     SPELL_TRACKING                                = 78092,
     SPELL_SEARING_FLAMES                          = 77840,
+    SPELL_ROARING_FLAME_BREATH                    = 78221,
+    SPELL_SONAR_BOMB                              = 92557,
+    SPELL_SONIC_FIREBALL                          = 78115,
+    SPELL_VERTIGO                                 = 77717,
+    SPELL_DEVASTION_TRIGGER                       = 78898,
+    SPELL_NOISY                                   = 78897,
+};
+
+
+enum points
+{
+    POINT_MIDDLE_ROOM = 1,
+    POINT_HOVER,
+    POINT_MIDDEL_ROOM_2
 };
 
 class boss_atramedes : public CreatureScript
@@ -57,11 +76,30 @@ public:
 
         InstanceScript* instance;
         SummonList summons;
+        uint8 flameCount;
+        uint8 phase;
 
         void Reset()
         {
             _Reset();
             summons.DespawnAll();
+            flameCount = 0;
+            phase = 0;
+
+            me->SetHover(false);
+            me->SetDisableGravity(false);
+            me->SetCanFly(false);
+
+            me->SetReactState(REACT_AGGRESSIVE);
+
+            // Respawn Shields
+            std::list<Creature*> unitList;
+            me->GetCreatureListWithEntryInGrid(unitList, 42949, 100.0f);
+            for (std::list<Creature*>::const_iterator itr = unitList.begin(); itr != unitList.end(); ++itr)
+            {
+                if (*itr)
+                    (*itr)->Respawn(true);
+            }
 
             if (instance)
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SOUND_BAR);
@@ -70,17 +108,21 @@ public:
         void EnterCombat(Unit* /*who*/)
         {
             me->AddAura(SPELL_SOUND_BAR_APPLY, me);
+            me->AddAura(SPELL_DEVASTION_TRIGGER, me);
 
             events.ScheduleEvent(EVENT_SONAR_PULSE, 12000);
             events.ScheduleEvent(EVENT_MODULATION,  10000);
             events.ScheduleEvent(EVENT_SONIC_BREATH, 25000);
             events.ScheduleEvent(EVENT_SEARING_FLAMES, 40000);
+            
+            flameCount = 0;
+            phase = 0;
             _EnterCombat();
         }
 
         void UpdateAI(uint32 diff)
         {
-            if (!UpdateVictim() || me->HasUnitState(UNIT_STATE_CASTING))
+            if (!UpdateVictim() || (me->HasUnitState(UNIT_STATE_CASTING) && phase != 1))
                 return;
 
             events.Update(diff);
@@ -101,6 +143,9 @@ public:
                                 {
                                     sonar->SetReactState(REACT_PASSIVE);
                                     sonar->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                                    sonar->SetHover(true);
+                                    sonar->SetDisableGravity(true);
+                                    sonar->SetCanFly(true);
                                     float ownerOrientation = me->GetAngle(target->GetPositionX(), target->GetPositionY());
                                     sonar->GetMotionMaster()->MovePoint(0, sonar->GetPositionX() + 120 / 2 * cos(ownerOrientation), sonar->GetPositionY() + 120 / 2 * sin(ownerOrientation), sonar->GetPositionZ());
                                 }
@@ -137,6 +182,66 @@ public:
                     case EVENT_SEARING_FLAMES:
                         DoCastAOE(SPELL_SEARING_FLAMES);
                         events.ScheduleEvent(EVENT_SEARING_FLAMES, 40000);
+                        events.ScheduleEvent(EVENT_PHASE_2, 8000);
+                        break;
+                    case EVENT_PHASE_2:
+                        events.CancelEvent(EVENT_SEARING_FLAMES);
+                        events.CancelEvent(EVENT_SONIC_BREATH);
+                        events.CancelEvent(EVENT_MODULATION);
+                        events.CancelEvent(EVENT_SONAR_PULSE);
+                        flameCount = 0;
+
+                        // Go To The Middle
+                        me->SetReactState(REACT_PASSIVE);
+                        me->AttackStop();
+                        me->GetMotionMaster()->MovePoint(POINT_MIDDLE_ROOM, 133.37f, -225.427f, 75.453f);
+                        break;
+                    case EVENT_PHASE_1:
+                        events.CancelEvent(EVENT_ROARING_FLAME_BREATH);
+                        events.CancelEvent(EVENT_SONAR_BOMB);
+                        events.ScheduleEvent(EVENT_SONAR_PULSE, 12000);
+                        events.ScheduleEvent(EVENT_MODULATION,  10000);
+                        events.ScheduleEvent(EVENT_SONIC_BREATH, 25000);
+                        events.ScheduleEvent(EVENT_SEARING_FLAMES, 40000);
+
+                        phase = 0;
+                        me->GetMotionMaster()->MovePoint(POINT_MIDDEL_ROOM_2, 133.37f, -225.427f, 75.453f);
+                        break;
+                    case EVENT_ROARING_FLAME_BREATH:
+                        if (flameCount == 4)
+                        {
+                            events.ScheduleEvent(EVENT_PHASE_1, 1000);
+                            return;
+                        }
+
+                        if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true, 0))
+                        {
+                            me->AddAura(SPELL_TRACKING, target);
+                            Position pos;
+                            target->GetPosition(&pos);
+                            if (Creature* trackMob = me->SummonCreature(41962, pos, TEMPSUMMON_TIMED_DESPAWN, 10000, 0))
+                            {
+                                trackMob->Attack(target, true);
+                                trackMob->AddThreat(target, 10000.0f);
+                                trackMob->GetMotionMaster()->MoveFollow(target, 0.5f, 0.0f);
+                                DoCast(trackMob, SPELL_ROARING_FLAME_BREATH, false);
+                            }
+                            flameCount++;
+                            events.ScheduleEvent(EVENT_REMOVE_TRACK, 11000);
+                            events.ScheduleEvent(EVENT_ROARING_FLAME_BREATH, urand(11000, 12000));
+                        }
+                        break;
+                    case EVENT_SONAR_BOMB:
+                        if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true, 0))
+                        {
+                            DoCast(target, SPELL_SONAR_BOMB, false);
+                            Position pos;
+                            target->GetPosition(&pos);
+                            if (Creature* trigger = me->SummonCreature(70000, pos))
+                                trigger->SetReactState(REACT_PASSIVE);
+
+                            events.ScheduleEvent(EVENT_SONAR_BOMB, urand(5000, 8000));
+                        }
                         break;
                     default:
                         break;
@@ -144,6 +249,40 @@ public:
             }		
 
             DoMeleeAttackIfReady();
+        }
+
+        void MovementInform(uint32 type, uint32 id)
+        {
+            if (type != POINT_MOTION_TYPE && type != EFFECT_MOTION_TYPE)
+                return;
+
+            switch (id)
+            {
+                case POINT_MIDDLE_ROOM:
+                    // Fly
+                    me->SetHover(true);
+                    me->SetDisableGravity(true);
+                    me->SetCanFly(true);
+
+                    Position pos;
+                    me->GetPosition(&pos);
+                    
+                    pos.m_positionZ += 45.0f;
+                    me->GetMotionMaster()->MoveTakeoff(POINT_HOVER, pos);
+                    break;
+                case POINT_MIDDEL_ROOM_2:
+                    me->SetHover(false);
+                    me->SetDisableGravity(false);
+                    me->SetCanFly(false);
+
+                    me->SetReactState(REACT_AGGRESSIVE);
+                    break;
+                case POINT_HOVER:
+                    events.ScheduleEvent(EVENT_ROARING_FLAME_BREATH, urand(1000, 3000));
+                    events.ScheduleEvent(EVENT_SONAR_BOMB, urand(5000, 8000));
+                    phase = 1;
+                    break;
+            }
         }
 
         void JustSummoned(Creature* summon)
@@ -200,6 +339,12 @@ class npc_sonar_pulse : public CreatureScript
         }
 };
 
+enum flamesEvents
+{
+    EVENT_SUMMON_FLAME = 1,
+    EVENT_CHECK_CHANNEL,
+};
+
 class npc_tracking_flames : public CreatureScript
 {
     public:
@@ -208,18 +353,62 @@ class npc_tracking_flames : public CreatureScript
         struct npc_tracking_flamesAI: public ScriptedAI
         {
             npc_tracking_flamesAI(Creature* creature) : ScriptedAI(creature)
-            { }
+            {
+                instance = me->GetInstanceScript();
+            }
+
+            EventMap events;
+            InstanceScript* instance;
 
             void Reset()
             {
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                 me->SetSpeed(MOVE_WALK, 0.8f);
                 me->SetSpeed(MOVE_RUN, 0.8f);
+                events.Reset();
+            }
+
+            void EnterCombat(Unit* who)
+            {
+                if (me->GetEntry() == 41962)
+                {
+                    events.ScheduleEvent(EVENT_SUMMON_FLAME, 1000);
+                    events.ScheduleEvent(EVENT_CHECK_CHANNEL, 1000);
+                }
             }
            
             void UpdateAI(uint32 diff)
             {
-                // We need this shit to prevent mob do melee attacks -.-
+                if (me->GetEntry() == 41962)
+                {
+                    events.Update(diff);
+
+                    while (uint32 eventId = events.ExecuteEvent())
+                    {
+                        switch (eventId)
+                        {
+                            case EVENT_SUMMON_FLAME:
+                                if (instance)
+                                {
+                                    if (Creature* atramedes = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_ATRAMEDES)))
+                                    {
+                                        Position pos;
+                                        me->GetPosition(&pos);
+                                        atramedes->SummonCreature(41807, pos, TEMPSUMMON_TIMED_DESPAWN, 35000, 0);
+                                    }
+
+                                    events.ScheduleEvent(EVENT_SUMMON_FLAME, 1000);
+                                }
+                                break;
+                            case EVENT_CHECK_CHANNEL:
+                                if (!me->HasAura(78221))
+                                    me->DisappearAndDie();
+
+                                events.ScheduleEvent(EVENT_CHECK_CHANNEL, 1000);
+                                break;
+                        }
+                    }
+                }
             }
 
         };
@@ -227,6 +416,68 @@ class npc_tracking_flames : public CreatureScript
         CreatureAI* GetAI(Creature* creature) const
         {
             return new npc_tracking_flamesAI(creature);
+        }
+};
+
+enum sonicFirbEvents
+{
+    EVENT_EXPLODE = 1,
+    EVENT_DISAPPEAR,
+};
+
+class npc_sonic_fireball : public CreatureScript
+{
+    public:
+        npc_sonic_fireball() : CreatureScript("npc_sonic_fireball") { }
+ 
+        struct npc_sonic_fireballAI: public ScriptedAI
+        {
+            npc_sonic_fireballAI(Creature* creature) : ScriptedAI(creature)
+            {
+                instance = me->GetInstanceScript();
+            }
+
+            EventMap events;
+            InstanceScript* instance;
+
+            void Reset()
+            {
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+
+                me->SetReactState(REACT_PASSIVE);
+                events.Reset();
+                events.ScheduleEvent(EVENT_EXPLODE, 10000);
+            }
+
+            void UpdateAI(uint32 diff)
+            {
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case EVENT_EXPLODE:
+                            if (instance)
+                            {
+                                if (Creature* atramedes = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_ATRAMEDES)))
+                                    atramedes->CastSpell(me, SPELL_SONIC_FIREBALL, false);
+
+                                events.ScheduleEvent(EVENT_DISAPPEAR, 3000);
+                            }
+                            break;
+                        case EVENT_DISAPPEAR:
+                            me->DisappearAndDie();
+                            break;
+                    }
+                }
+            }
+
+        };
+ 
+        CreatureAI* GetAI(Creature* creature) const
+        {
+            return new npc_sonic_fireballAI(creature);
         }
 };
 
@@ -240,24 +491,30 @@ class npc_ancient_dwarven_shield : public CreatureScript
         {
             if (InstanceScript* instance = player->GetInstanceScript())
             {
-                instance->DoSetPowerOnPlayers(POWER_ALTERNATE_POWER, -1);
                 if (Creature* atramedes = ObjectAccessor::GetCreature(*creature, instance->GetData64(BOSS_ATRAMEDES)))
+                {
+                    if (!atramedes->isInCombat())
+                        return false;
+
                     atramedes->InterruptNonMeleeSpells(false, 0, true, false);
+                    atramedes->CastSpell(atramedes, SPELL_VERTIGO, true);
+                }
+                instance->DoSetPowerOnPlayers(POWER_ALTERNATE_POWER, -1);
             }
 
             creature->CastSpell(creature, 77611, true);
-            creature->DisappearAndDie();
+            creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+            creature->DealDamage(creature, creature->GetHealth() + 100);
 
             return true;
         }
 };
-
-
 
 void AddSC_boss_atramedes()
 {
     new boss_atramedes();
     new npc_sonar_pulse();
     new npc_tracking_flames();
+    new npc_sonic_fireball();
     new npc_ancient_dwarven_shield();
 }

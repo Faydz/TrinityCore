@@ -671,7 +671,13 @@ class spell_dk_death_grip : public SpellScriptLoader
                 if (Unit* target = GetHitUnit())
                 {
                     if (!target->HasAuraType(SPELL_AURA_DEFLECT_SPELLS)) // Deterrence
-                        target->CastSpell(pos->GetPositionX(), pos->GetPositionY(), pos->GetPositionZ(), damage, true);
+                    {
+                        float speedZ = 10.0f;
+                        float dist = pos->GetExactDist2d(target->GetPositionX(),target->GetPositionY());
+                        float speedXY = (dist / 0.75f);
+
+                        target->GetMotionMaster()->MoveJump(pos->GetPositionX(),pos->GetPositionY(),pos->GetPositionZ(),speedXY,speedZ);
+                    }
                 }
             }
 
@@ -1398,6 +1404,35 @@ public:
     }
 };
 
+class spell_dk_runic_corruption : public SpellScriptLoader
+{
+    public:
+        spell_dk_runic_corruption() : SpellScriptLoader("spell_dk_runic_corruption") { }
+
+        class spell_dk_runic_corruption_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dk_runic_corruption_AuraScript);
+
+            void HandleEffect(AuraEffect const* aurEff, AuraEffectHandleModes mode)
+            {
+                if(Player* player = GetCaster()->ToPlayer())
+                {
+                    player->ResyncRunes(MAX_RUNES);
+                }
+            }
+
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_dk_runic_corruption_AuraScript::HandleEffect, EFFECT_0, SPELL_AURA_MOD_POWER_REGEN_PERCENT, AURA_EFFECT_HANDLE_REAL);
+                OnEffectRemove += AuraEffectApplyFn(spell_dk_runic_corruption_AuraScript::HandleEffect, EFFECT_0, SPELL_AURA_MOD_POWER_REGEN_PERCENT, AURA_EFFECT_HANDLE_REAL);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_dk_runic_corruption_AuraScript();
+        }
+};
 
 void AddSC_deathknight_spell_scripts()
 {
@@ -1430,5 +1465,6 @@ void AddSC_deathknight_spell_scripts()
     new spell_dk_leap();
     new spell_dk_huddle();
     new spell_dk_death_strike();
+    new spell_dk_runic_corruption();
 
 }

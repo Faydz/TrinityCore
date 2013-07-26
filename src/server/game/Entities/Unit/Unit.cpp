@@ -7507,9 +7507,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     if (!victim)
                         return false;
 
-                    if (victim->GetGUID() == GetGUID())
-                        return false;
-
                     int32 bp0 = triggerAmount * damage / 100;
 
                     if (victim->HasAura(105284, GetGUID()))
@@ -8060,11 +8057,14 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                             40120,      // Swift Flight Form
                             33943,      // Flight Form
                             2645,       // Ghost Wolf
-                            15473       // Shadowform
+                            15473,      // Shadowform
+                            78777,      // Wild Mushroom
+                            88747       // Wild Mushroom
+
                         };
 
                         // Form spell should not be copied
-                        for(int i=0; i < 10; i++)
+                        for(int i=0; i < 12; i++)
                         {
                             if(procSpell->Id == ignoreSpellId[i])
                             {
@@ -9139,6 +9139,14 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
 			if(!victim)
 				return false;
 
+            if(victim->ToTempSummon() && victim->ToTempSummon()->GetSummoner()
+                && victim->ToTempSummon()->GetSummoner()->GetTypeId() == TYPEID_PLAYER)
+            {
+                    if(!victim->isPet() || !victim->isHunterPet())
+                        return false;
+            }
+
+
 			// Pet check
 			if(Pet* pet = victim->ToPet())
 			{
@@ -9191,7 +9199,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 pally->CastCustomSpell(pally, trigger_spell_id, &basepoints0, NULL, NULL, true, 0, 0);
                 
                 // Mando in cd la spell del sacred triggered
-                pally->AddSpellCooldown(trigger_spell_id, 0, time(NULL)+60000);
+                pally->AddSpellCooldown(trigger_spell_id, 0, time(NULL) + 60);
                 return true;
             }
             break;
@@ -9566,7 +9574,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
         case 58679:
         {
             // Proc only from healing part of Death Coil. Check is essential as all Death Coil spells have 0x2000 mask in SpellFamilyFlags
-            if (!procSpell || !(procSpell->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT && procSpell->SpellFamilyFlags[0] == 0x80002000))
+            if (!procSpell || !(procSpell->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT && procSpell->SpellFamilyFlags[0] == 0x80002000) || victim->GetTypeId() == TYPEID_PLAYER)
                 return false;
             break;
         }
@@ -15173,6 +15181,15 @@ void Unit::SetPower(Powers power, int32 val)
         data << uint8(powerIndex);
         data << int32(val);
         SendMessageToSet(&data, GetTypeId() == TYPEID_PLAYER ? true : false);
+    }
+
+    // Custom cases
+    switch (power)
+    {
+        case POWER_ALTERNATE_POWER:
+            if (HasAura(88824) && val >= 100)
+                AddAura(78897, this);
+            break;
     }
 
     // group update

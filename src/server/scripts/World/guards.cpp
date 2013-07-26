@@ -58,6 +58,8 @@ public:
             owner = me->GetCharmerOrOwner();
             guardianEntry = me->GetEntry();
             isRetribution = guardianEntry == GOAK_RETRIBUTION_ENTRY;
+            me->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE);
+            me->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NOT_SELECTABLE);
 
             if (owner && !isRetribution)
             {

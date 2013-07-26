@@ -57,6 +57,7 @@ enum HunterSpells
     SPELL_HUNTER_SNIPER_TRAINING_R1                 = 53302,
     SPELL_HUNTER_SNIPER_TRAINING_BUFF_R1            = 64418,
     SPELL_HUNTER_FOCUS_ENERGIZE                     = 82716,
+    SPELL_HUNTER_THRILL_OF_THE_HUNT                 = 34720,
     SPELL_DRAENEI_GIFT_OF_THE_NAARU                 = 59543,
 };
 
@@ -934,10 +935,11 @@ class spell_hun_basic_attack : public SpellScriptLoader
 
             void HandleDummy()
             {
-                if(!GetCaster())
+                Unit* caster = GetCaster();
+                if(!caster)
                     return;
 
-                if(Unit* pl = GetCaster()->GetOwner())
+                if(Unit* pl = caster->GetOwner())
                 {
                     if(Aura* cs = pl->GetAura(53257))       // Cobra Strikes
                     {
@@ -949,14 +951,27 @@ class spell_hun_basic_attack : public SpellScriptLoader
                     if(AuraEffect* aurEff = pl->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER ,SPELLFAMILY_HUNTER, 1562, EFFECT_0))    // Frenzy
                     {
                         int32 bp0 = aurEff->GetAmount();
-                        GetCaster()->CastCustomSpell(GetCaster(), 19615, &bp0, NULL, NULL, true);
+                        caster->CastCustomSpell(caster, 19615, &bp0, NULL, NULL, true);
+                    }
+                
+                    // Wild Hunt
+                    if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PET, 3748, EFFECT_0))
+                    {
+                        SpellInfo const* spellProto = GetSpellInfo();
+
+                        if(caster->GetPower(POWER_FOCUS) + spellProto->CalcPowerCost(caster, spellProto->GetSchoolMask()) >= 50)
+                        {
+                            sLog->outError(LOG_FILTER_GENERAL, "Set %d", caster->GetPower(POWER_FOCUS) - spellProto->CalcPowerCost(caster, spellProto->GetSchoolMask()));
+
+                            caster->SetPower(POWER_FOCUS, caster->GetPower(POWER_FOCUS) - spellProto->CalcPowerCost(caster, spellProto->GetSchoolMask()));
+                        }
                     }
                 }
             }
 
             void Register()
             {
-                OnCast  += SpellCastFn(spell_hun_basic_attack_SpellScript::HandleDummy);
+                AfterCast  += SpellCastFn(spell_hun_basic_attack_SpellScript::HandleDummy);
             }
         };
 
@@ -1271,6 +1286,44 @@ class spell_hun_multi_shot : public SpellScriptLoader
         }
 };
 
+// 34497 - Thrill of the Hunt
+class spell_hun_thrill_of_the_hunt : public SpellScriptLoader
+{
+    public:
+        spell_hun_thrill_of_the_hunt() : SpellScriptLoader("spell_hun_thrill_of_the_hunt") { }
+
+        class spell_hun_thrill_of_the_hunt_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_hun_thrill_of_the_hunt_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_HUNTER_THRILL_OF_THE_HUNT))
+                    return false;
+                return true;
+            }
+
+            void HandleEffectProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+            {
+                PreventDefaultAction();
+                int32 focus = eventInfo.GetDamageInfo()->GetSpellInfo()->CalcPowerCost(GetTarget(), SpellSchoolMask(eventInfo.GetDamageInfo()->GetSchoolMask()));
+                focus = CalculatePct(focus, aurEff->GetAmount());
+
+                GetTarget()->CastCustomSpell(GetTarget(), SPELL_HUNTER_THRILL_OF_THE_HUNT, &focus, NULL, NULL, true, NULL, aurEff);
+            }
+
+            void Register()
+            {
+                OnEffectProc += AuraEffectProcFn(spell_hun_thrill_of_the_hunt_AuraScript::HandleEffectProc, EFFECT_0, SPELL_AURA_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_hun_thrill_of_the_hunt_AuraScript();
+        }
+};
+
 void AddSC_hunter_spell_scripts()
 {
     new spell_hun_pet_intervene();
@@ -1300,4 +1353,5 @@ void AddSC_hunter_spell_scripts()
     new spell_hun_cobra_shot();
     new spell_hun_kill_shot();
     new spell_hun_multi_shot();
+    new spell_hun_thrill_of_the_hunt();
 }

@@ -266,20 +266,16 @@ class spell_pri_leap_of_faith_effect_trigger : public SpellScriptLoader
 
             void HandleEffectDummy(SpellEffIndex /*effIndex*/)
             {
-                Position destPos;
-                GetHitDest()->GetPosition(&destPos);
+                int32 damage = GetEffectValue();
+                Position const* pos = GetExplTargetDest();
+                if (Unit* target = GetHitUnit())
+                {
+                    float speedZ = 10.0f;
+                    float dist = pos->GetExactDist2d(target->GetPositionX(),target->GetPositionY());
+                    float speedXY = (dist / 0.75f);
 
-                SpellCastTargets targets;
-                targets.SetDst(destPos);
-                targets.SetUnitTarget(GetCaster());
-                GetHitUnit()->CastSpell(targets, sSpellMgr->GetSpellInfo(GetEffectValue()), NULL);
-
-            // Body And Soul
-            if (AuraEffect* aurEff = GetCaster()->GetDummyAuraEffect(SPELLFAMILY_PRIEST, 2218, 0))
-            {
-                int32 bp0 = aurEff->GetAmount();
-                GetCaster()->CastCustomSpell(GetHitUnit(), 64128, &bp0, NULL, NULL, true);
-            }
+                    target->GetMotionMaster()->MoveJump(pos->GetPositionX(),pos->GetPositionY(),pos->GetPositionZ(),speedXY,speedZ);
+                }
             }
 
             void Register()
