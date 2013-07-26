@@ -1453,7 +1453,7 @@ class spell_mage_ignite : public SpellScriptLoader
                 SpellInfo const* igniteDot = sSpellMgr->GetSpellInfo(12654);
 
                 int32 amount = int32(CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), pct) / igniteDot->GetMaxTicks());
-                //amount += eventInfo.GetProcTarget()->GetRemainingPeriodicAmount(eventInfo.GetActor()->GetGUID(), 12654, SPELL_AURA_PERIODIC_DAMAGE);
+                amount += (eventInfo.GetProcTarget()->GetRemainingPeriodicAmount(eventInfo.GetActor()->GetGUID(), 12654, SPELL_AURA_PERIODIC_DAMAGE));
 
                 if(Unit* target = GetTarget())
                     GetTarget()->CastCustomSpell(12654, SPELLVALUE_BASE_POINT0, amount, eventInfo.GetProcTarget(), true, NULL, aurEff);
