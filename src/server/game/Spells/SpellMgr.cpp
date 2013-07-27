@@ -3517,6 +3517,16 @@ void SpellMgr::LoadSpellCustomAttr()
             case 99131:
                 spellInfo->Effects[0].Effect = SPELL_EFFECT_ENERGIZE_PCT;
                 break;
+            case 83565: //ascendant council: quake
+            case 92544:
+            case 92545:
+            case 92546:
+            case 83067: //ascendant council: thundershock
+            case 92469:
+            case 92470:
+            case 92471:
+                spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_100_YARDS);
+                break;
             default:
                 break;
         }
