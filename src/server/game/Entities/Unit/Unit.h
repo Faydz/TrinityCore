@@ -2140,7 +2140,7 @@ class Unit : public WorldObject
         bool IsFlying() const   { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_FLYING | MOVEMENTFLAG_DISABLE_GRAVITY); }
         void SetCanFly(bool apply);
 
-        void RewardRage(uint32 baseRage, bool attacker);
+        void RewardRage(uint32 baseRage, bool attacker, bool isPhysical = false);
 
         virtual float GetFollowAngle() const { return static_cast<float>(M_PI/2); }
 
