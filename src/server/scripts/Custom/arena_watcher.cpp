@@ -89,9 +89,12 @@ void ArenaWatcherAfterTeleport(Player* player)
 {
     player->AddUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
     player->setFaction(14);
+
+    // Se abilitato inserisco il silence
     if (ArenaWatcherSilence)
         player->GetSession()->m_muteTime = time(NULL) + 120 * MINUTE;
 
+    // Abilito altri blocchi al player
     player->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED );
     player->SetSpeed(MOVE_WALK, ArenaWatcherSpeed, true);
     player->SetSpeed(MOVE_RUN, ArenaWatcherSpeed*2, true);
@@ -103,31 +106,33 @@ void ArenaWatcherAfterTeleport(Player* player)
 
 void ArenaWatcherEnd(Player* player)
 {
-    uint32 guid = player->GetGUIDLow();
+    if(player){
+        uint32 guid = player->GetGUIDLow();
 
-    if (!IsWatcher(guid))
-        return;
+        // Se sono un watcher, ripristino il mio stato normale dopo essere stato teletrasportato fuori dall'arena
+        ArenaWatcherMap::iterator itr = ArenaWatcherPlayers.find(guid);
+        if (itr != ArenaWatcherPlayers.end())
+        {
+            // Eseguo prima i re-setup con le variabili salvate dentro alla mappa
+            if (ArenaWatcherSilence)
+                player->GetSession()->m_muteTime = ArenaWatcherPlayers[guid].mutetime;
 
-    // Se sono un watcher, ripristino il mio stato normale dopo essere stato teletrasportato fuori dall'arena
-    ArenaWatcherMap::iterator itr = ArenaWatcherPlayers.find(guid);
-    if (itr != ArenaWatcherPlayers.end())
-    {
-        // Eseguo prima i re-setup con le variabili salvate dentro alla mappa
-        if (ArenaWatcherSilence)
-            player->GetSession()->m_muteTime = ArenaWatcherPlayers[guid].mutetime;
-        player->setFaction(ArenaWatcherPlayers[guid].faction);
-        // Cancello l'occorrenza nella mappa
-        ArenaWatcherPlayers.erase(itr);
-        player->ResurrectPlayer(100.0f, false);
-        player->SetAcceptWhispers(true);
-        player->RemoveUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
-        player->SetSpeed(MOVE_WALK, 1.0f, true);
-        player->SetSpeed(MOVE_RUN, 1.0f, true);
-        player->SetSpeed(MOVE_SWIM, 1.0f, true);
-        player->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED );
-        player->SetVisible(true);
-        player->SetSpectator(false);
-        
+            player->setFaction(ArenaWatcherPlayers[guid].faction);
+
+            // Cancello l'occorrenza nella mappa
+            ArenaWatcherPlayers.erase(itr);
+
+            // Operazioni di riabilitazione player
+            player->ResurrectPlayer(100.0f, false);
+            player->SetAcceptWhispers(true);
+            player->RemoveUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
+            player->SetSpeed(MOVE_WALK, 1.0f, true);
+            player->SetSpeed(MOVE_RUN, 1.0f, true);
+            player->SetSpeed(MOVE_SWIM, 1.0f, true);
+            player->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED );
+            player->SetVisible(true);
+            player->SetSpectator(false);   
+        }
     }
 }
 
@@ -172,18 +177,19 @@ class mod_ArenaWatcher_PlayerScript : public PlayerScript
 
     void OnPlayerRemoveFromBattleground(Player* player, Battleground* /*bg*/)
     {
-        if (!ArenaWatcherEnable)
-            return;
-
-        ArenaWatcherEnd(player);
+        if(player->GetSpectator()){
+            
+            if(ArenaWatcherEnable){
+                ArenaWatcherEnd(player);
+            }   
+                
+        }
     }
 
     void OnLogout(Player* player)
     {
-        if (!ArenaWatcherEnable)
-            return;
-
-        ArenaWatcherEnd(player);
+        if (ArenaWatcherEnable)
+            ArenaWatcherEnd(player);
     }
 };
 
@@ -217,7 +223,7 @@ class npc_arena_watcher : public CreatureScript
                         if (ArenaWatcherOnlyRated && !itr->second->isRated())
                             continue;
 
-                        if(itr->second->GetStatus()==STATUS_WAIT_JOIN)
+                        if(itr->second->GetStatus()==STATUS_IN_PROGRESS)
                             ++arenasCount[ArenaTeam::GetSlotByType(itr->second->GetArenaType())];
                     }
                 }
@@ -283,43 +289,46 @@ class npc_arena_watcher : public CreatureScript
 
                     for (BattlegroundContainer::const_iterator itr = arenas->m_Battlegrounds.begin(); itr != arenas->m_Battlegrounds.end(); ++itr)
                     {
-                        Map* map = itr->second->FindBgMap();
-                        if (!map)
-                            continue;
 
-                        if (!(itr->second->GetStatus() & 2)) {
-                            continue;
-                        }
+                        if (Map* map = itr->second->FindBgMap()){
+                          
+                            if (!(itr->second->GetStatus() & 2)) {
+                                continue;
+                            }
 
-                        if (itr->second->GetArenaType() != GetArenaBySlot(playerCount))
-                            continue;
+                            if (itr->second->GetArenaType() != GetArenaBySlot(playerCount))
+                                continue;
 
-                        if (ArenaWatcherOnlyRated && !itr->second->isRated())
-                            continue;
+                            if (ArenaWatcherOnlyRated && !itr->second->isRated())
+                                continue;
 
-                        if (itr->second->GetStatus() != STATUS_WAIT_JOIN)
-                            continue;
+                            if (itr->second->GetStatus() != STATUS_IN_PROGRESS)
+                                continue;
 
-                        if (itr->second->isRated())
-                        {
-                            ArenaTeam* teamOne = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(0));
-                            ArenaTeam* teamTwo = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(1));
-
-                            if (teamOne && teamTwo)
+                            if (itr->second->isRated())
+                            {
+                                if(ArenaTeam* teamOne = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(0)))
+                                {
+                                    if(ArenaTeam* teamTwo = sArenaTeamMgr->GetArenaTeamById(itr->second->GetArenaTeamIdByIndex(1)))
+                                    {
+                                        if (teamOne && teamTwo)
+                                        {
+                                            char gossipTextFormat[100];
+                                            snprintf(gossipTextFormat, 100, "%s : %s (%u) vs. %s (%u)", map->GetMapName(), teamOne->GetName().c_str(), teamOne->GetRating(), teamTwo->GetName().c_str(), teamTwo->GetRating());
+                                            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, gossipTextFormat, GOSSIP_SENDER_MAIN + bgTypeId, itr->first + GOSSIP_OFFSET);
+                                        }
+                                    }
+                                }
+                            }
+                            else
                             {
                                 char gossipTextFormat[100];
-                                snprintf(gossipTextFormat, 100, "%s : %s (%u) vs. %s (%u)", map->GetMapName(), teamOne->GetName().c_str(), teamOne->GetRating(), teamTwo->GetName().c_str(), teamTwo->GetRating());
+                                snprintf(gossipTextFormat, 100, "[%u] %s : %u vs. %u", itr->first, map->GetMapName(), playerCount, playerCount);
                                 player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, gossipTextFormat, GOSSIP_SENDER_MAIN + bgTypeId, itr->first + GOSSIP_OFFSET);
                             }
-                        }
-                        else
-                        {
-                            char gossipTextFormat[100];
-                            snprintf(gossipTextFormat, 100, "[%u] %s : %u vs. %u", itr->first, map->GetMapName(), playerCount, playerCount);
-                            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, gossipTextFormat, GOSSIP_SENDER_MAIN + bgTypeId, itr->first + GOSSIP_OFFSET);
-                        }
 
-                        bracketExists = true;
+                            bracketExists = true;
+                        }
                     }
                 }
             }
@@ -347,7 +356,7 @@ class npc_arena_watcher : public CreatureScript
                     
                     if(Battleground* bg = arenas->m_Battlegrounds[arenaId]){
 
-                        if (bg->GetStatus() != STATUS_WAIT_JOIN) 
+                        if (bg->GetStatus() != STATUS_IN_PROGRESS) 
                         {
                             sCreatureTextMgr->SendChat(creature, SAY_ARENA_NOT_IN_PROGRESS, player->GetGUID());
                             player->PlayerTalkClass->ClearMenus();
@@ -393,7 +402,8 @@ class npc_arena_watcher : public CreatureScript
                         }
 
                         if(bg){
-                            if(bg->GetStatus()==STATUS_WAIT_JOIN){
+                            if(bg->GetStatus()==STATUS_IN_PROGRESS){
+                                player->SetSpectator(true);
                                 player->SetBattlegroundId(bg->GetInstanceID(), bg->GetTypeID());
                                 player->SetBattlegroundEntryPoint();
                                 ArenaWatcherStart(player);
@@ -434,13 +444,14 @@ class npc_arena_watcher : public CreatureScript
                         {
                             if (Battleground* bg = target->GetBattleground())
                             {
-                                if(bg->GetStatus() != STATUS_WAIT_JOIN)
+                                if(bg->GetStatus() != STATUS_IN_PROGRESS)
                                 {
                                     sCreatureTextMgr->SendChat(creature, SAY_ARENA_NOT_IN_PROGRESS, player->GetGUID());
                                     return true;
                                 }
                                 else 
                                 {
+                                    player->SetSpectator(true);
                                     player->SetBattlegroundId(bg->GetInstanceID(), bg->GetTypeID());
                                     player->SetBattlegroundEntryPoint();
                                     float x, y, z;
