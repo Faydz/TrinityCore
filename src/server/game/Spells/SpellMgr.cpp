@@ -3513,6 +3513,10 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_1].BasePoints = 0;
                 spellInfo->Effects[EFFECT_2].BasePoints = 0;
                 break;
+            // Divine Fire
+            case 99131:
+                spellInfo->Effects[0].Effect = SPELL_EFFECT_ENERGIZE_PCT;
+                break;
             default:
                 break;
         }
