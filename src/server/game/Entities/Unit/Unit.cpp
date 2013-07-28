@@ -728,7 +728,7 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
     // Rage from Damage made (only from direct weapon damage)
     if (cleanDamage && damagetype == DIRECT_DAMAGE && this != victim && getPowerType() == POWER_RAGE)
     {
-        uint32 rage = uint32(GetAttackTime(cleanDamage->attackType) / 1000 * 8.125f);
+        uint32 rage = uint32(GetAttackTime(cleanDamage->attackType) / 1000 * 6.5f);
 
         // Sentinel
         if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_GENERIC, 1916, EFFECT_1))
@@ -19887,7 +19887,7 @@ void Unit::RewardRage(uint32 baseRage, bool attacker, bool isPhysical)
             addRage = 18.92f * float(float(baseRage) / float(GetMaxHealth()));
         }
         else
-            addRage = 18.92f * float(float(baseRage) / float(GetMaxHealth()));
+            addRage = 20.25f * float(float(baseRage) / float(GetMaxHealth()));
 
         // Berserker Rage effect
         if (HasAura(18499))
