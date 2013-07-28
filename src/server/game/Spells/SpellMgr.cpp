@@ -3527,6 +3527,16 @@ void SpellMgr::LoadSpellCustomAttr()
             case 92471:
                 spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_100_YARDS);
                 break;
+            // Gust of Wind
+            case 97319:
+                spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_KNOCK_BACK;
+                spellInfo->Effects[EFFECT_0].BasePoints = 200;
+                spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_FLY;
+                break;
+            case 43648:
+                spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
+                break;
             default:
                 break;
         }
