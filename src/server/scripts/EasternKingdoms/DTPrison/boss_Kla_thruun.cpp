@@ -126,7 +126,7 @@ class boss_2_Kla_thruun : public CreatureScript
                         }   
                         case EVENT_FAEUSTEAUSSTEIN:
                         {
-                            DoCast(me->getVictim(), SPELL_FAEUSTEAUSSTEIN);
+                            DoCast(me->GetVictim(), SPELL_FAEUSTEAUSSTEIN);
                             break;    
                         }
                         case EVENT_ABSTUMPFEN:

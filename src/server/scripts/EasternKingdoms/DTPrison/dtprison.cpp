@@ -90,7 +90,7 @@ public:
 			
 			if (t_saurewunde <= diff)
 			{
-				DoCast(me->getVictim(), SPELL_SAUREWUNDE);
+				DoCast(me->GetVictim(), SPELL_SAUREWUNDE);
 				t_saurewunde = 10000;
 			} else t_saurewunde -= diff;
 			           						         

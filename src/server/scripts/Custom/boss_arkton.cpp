@@ -63,7 +63,7 @@ public:
 
 			if (t_ddc <= diff)
 			{
-				DoCast(me->getVictim(), SPELL_DEATHANDDECAY);
+				DoCast(me->GetVictim(), SPELL_DEATHANDDECAY);
 				me->MonsterYell("Ich bringe Verderben!", 0, 0);
 				t_ddc = urand(20000,30000);
 			}
@@ -71,7 +71,7 @@ public:
 
 			if (t_hellrain <= diff)
 			{
-				DoCast(me->getVictim(), SPELL_HELLRAIN);
+				DoCast(me->GetVictim(), SPELL_HELLRAIN);
 
 				switch (urand(1,3))
 				{
@@ -92,7 +92,7 @@ public:
 			
 			if (t_frostbolt <= diff)
 			{
-				DoCast(me->getVictim(), SPELL_FROSTBOLT);
+				DoCast(me->GetVictim(), SPELL_FROSTBOLT);
 				t_frostbolt = urand(3000,5000);
 			}
 			else t_frostbolt -= diff;

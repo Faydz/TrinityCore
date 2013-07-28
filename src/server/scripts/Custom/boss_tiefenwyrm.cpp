@@ -89,7 +89,7 @@ public:
 
 			if (t_frost <= diff)
 			{
-				DoCast(me->getVictim(), SPELL_FROSTATEM);
+				DoCast(me->GetVictim(), SPELL_FROSTATEM);
 				t_frost = 40000;
 			} else t_frost -= diff;
 
@@ -124,7 +124,7 @@ public:
 
 			if (t_deep <= diff)
 			{
-                 DoCast(me->getVictim(), SPELL_DEEPFREEZE);
+                 DoCast(me->GetVictim(), SPELL_DEEPFREEZE);
                  t_deep = 45000;
             } else t_deep -= diff;
 

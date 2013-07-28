@@ -17,7 +17,7 @@ public:
 	
 	bool OnGossipHello(Player* player, Creature* creature)
 	{
-		if (player->isInCombat())
+		if (player->IsInCombat())
 		{
 			creature->MonsterWhisper("Du bist im Kampf. Komme wieder sobald du den Kampf beendet hast.", player->GetGUID());
 			player->CLOSE_GOSSIP_MENU();
@@ -668,7 +668,7 @@ public: npc_startup() : CreatureScript("npc_startup") { }
 
 		bool OnGossipHello(Player* player, Creature* creature)
 		{
-		if (player->isInCombat())
+		if (player->IsInCombat())
 		{
 			creature->MonsterWhisper("Du bist im Kampf. Komme wieder sobald du den Kampf beendet hast.", player->GetGUID());
 			player->CLOSE_GOSSIP_MENU();
@@ -969,7 +969,7 @@ public: npc_donation() : CreatureScript("npc_donation") { }
 
 		bool OnGossipHello(Player* player, Creature* creature)
 			{
-				if (player->isInCombat())
+				if (player->IsInCombat())
 					{
 						creature->MonsterWhisper("Du bist im Kampf. Komme wieder sobald du den Kampf beendet hast.", player->GetGUID());
 						player->CLOSE_GOSSIP_MENU();

@@ -170,7 +170,7 @@ public:
             pPlayer->SaveToDB();
 
             pCreature->DestroyForNearbyPlayers();
-            if (pCreature->isAlive())
+            if (pCreature->IsAlive())
                 pCreature->setDeathState(JUST_DIED);
             pCreature->RemoveCorpse(true);
 

@@ -8,7 +8,7 @@ class LEVEL_NPC : public CreatureScript
 
     bool OnGossipHello(Player* player, Creature* creature)
     {
-        if (player->isInCombat())
+        if (player->IsInCombat())
         {
             creature->MonsterWhisper("Du bist in einen Kampf verwickelt. Komme wieder sobald du den Kampf beendet hast.", player->GetGUID());
             player->CLOSE_GOSSIP_MENU();
@@ -82,7 +82,7 @@ class CHANGE_NPC : public CreatureScript
 
     bool OnGossipHello(Player* player, Creature* creature)
     {
-        if (player->isInCombat())
+        if (player->IsInCombat())
         {
             creature->MonsterWhisper("Du bist in einen Kampf verwickelt. Komme wieder sobald du den Kampf beendet hast.", player->GetGUID());
             player->CLOSE_GOSSIP_MENU();

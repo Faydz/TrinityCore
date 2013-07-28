@@ -112,7 +112,7 @@ class boss_der_schwarzedoktor : public CreatureScript
                     {
                         case EVENT_ANTIAGGRO:
                         {
-                            DoCast(me->getVictim(), SPELL_ANTIAGGRO);
+                            DoCast(me->GetVictim(), SPELL_ANTIAGGRO);
                             break;    
                         } 
                         case EVENT_SAURESALVE:
@@ -144,7 +144,7 @@ class boss_der_schwarzedoktor : public CreatureScript
                         }
                         case EVENT_GIFTPFUETZE:
                         {
-                            DoCast(me->getVictim(), SPELL_GIFTPFUETZE);
+                            DoCast(me->GetVictim(), SPELL_GIFTPFUETZE);
                             events.ScheduleEvent(EVENT_GIFTPFUETZE, urand(5000, 7000), 0, 2);
                             break;    
                         } 

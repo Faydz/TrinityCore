@@ -132,7 +132,7 @@ class boss_sprixz_wunderling : public CreatureScript
                         }
                         case EVENT_SHADOWBOLT:
                         {
-                            DoCast(me->getVictim(), SPELL_SHADOWBOLT);
+                            DoCast(me->GetVictim(), SPELL_SHADOWBOLT);
                             events.ScheduleEvent(EVENT_SHADOWBOLT, urand(10000, 12500), 0, 1);
                             break;
                         }
@@ -161,13 +161,13 @@ class boss_sprixz_wunderling : public CreatureScript
                         }
                         case EVENT_SCORCH:
                         {
-                            DoCast(me->getVictim(), SPELL_SCORCH);
+                            DoCast(me->GetVictim(), SPELL_SCORCH);
                             events.ScheduleEvent(EVENT_SCORCH, urand(5000, 7000), 0, 2);
                             break;
                         }
                         case EVENT_FROSTFIREBOLT:
                         {
-                            DoCast(me->getVictim(), SPELL_FROSTFIREBOLT);
+                            DoCast(me->GetVictim(), SPELL_FROSTFIREBOLT);
                             events.ScheduleEvent(EVENT_FROSTFIREBOLT, 9500, 0, 2);
                             break;
                         }
@@ -179,7 +179,7 @@ class boss_sprixz_wunderling : public CreatureScript
                         }
                         case EVENT_FROSTBLITZ:
                         {
-                            DoCast(me->getVictim(), SPELL_FROSTBLITZ);
+                            DoCast(me->GetVictim(), SPELL_FROSTBLITZ);
                             events.ScheduleEvent(EVENT_FROSTBLITZ, urand(15000, 18000), 0, 3);
                             break;
                         }
