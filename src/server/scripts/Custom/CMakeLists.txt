@@ -11,6 +11,7 @@
 set(scripts_STAT_SRCS
   ${scripts_STAT_SRCS}
   Custom/custom_misc.cpp
+  Custom/Boss_Generall_Umbriss.cpp
 )
 
 message("  -> Prepared: Custom")

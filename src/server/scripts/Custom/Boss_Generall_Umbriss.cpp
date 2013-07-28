@@ -17,27 +17,23 @@
 		Spell_Frenzy			= 74853
     };
      
-    class General_Umbriss : public CreatueScript
+    class Generall_Umbriss : public CreatureScript
     {
             public:
                     Generall_Umbriss() : CreatureScript("Generall_Umbriss") {}
      
-					CreatureAI* GetAI(Creature* creature) const
-					 {
-						  return new Generall_UmbrissAI (creature);
-					 }
 
                     struct Generall_UmbrissAI : public ScriptedAI
                     {
 						 Generall_UmbrissAI(Creature* creature) : ScriptedAI(creature) {}
 
-						 unit32 Blitz_Timer;
-						 unit32 Bleeding_Wound_Timer;
-						 unit32 Ground_Siege_Timer;
+						 uint32 Blitz_Timer;
+						 uint32 Bleeding_Wound_Timer;
+						 uint32 Ground_Siege_Timer;
 
                             void Reset() OVERRIDE
                             {
-								float fulllife = me->getLife();
+
 								Blitz_Timer = 20000;
 								Bleeding_Wound_Timer = 5000;
 								Ground_Siege_Timer = 16000;
@@ -52,6 +48,12 @@
                             {
 								 if (!UpdateVictim())
 									 return;
+
+								 //Frenzy
+								 if(me->HealthBelowPct(30))
+								 {
+									 DoCast(me, Spell_Frenzy);
+								 }
 
 								 //Blitz
 
@@ -70,7 +72,7 @@
 
 								 if(Bleeding_Wound_Timer <=uiDiff)
 									{
-										DoCast(me->getVictim(), Spell_Bleeding_Wound);
+										DoCast(me->GetVictim(), Spell_Bleeding_Wound);
 										Bleeding_Wound_Timer = 5000;
 									}
 								 else
@@ -89,20 +91,17 @@
 								 else
 									 Ground_Siege_Timer -= uiDiff;
 
-								 //Frenzy
 
-								 if(me->getLife() <= fulllife*0.3)
-									 DoCast(me, Spell_Frenzy);
 
 
 								DoMeleeAttackIfReady();
                             }
-     
-     
-     
-     
-                    }
-    };
+					};
+		ScriptedAI* GetAI (Creature* creature) const
+    {
+        return new Generall_UmbrissAI(creature);
+    }
+         };
      
     void AddSC_Generall_Umbriss()
     {

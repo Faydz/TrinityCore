@@ -653,6 +653,7 @@ void AddSC_chat_log();
 
 // custom
 void AddSC_custom_misc();
+void AddSC_Generall_Umbriss();
 
 #endif
 
@@ -1354,5 +1355,6 @@ void AddCustomScripts()
 #ifdef SCRIPTS
     /* This is where custom scripts should be added. */
 	AddSC_LearnSpellsOnLevelUp();
+	AddSC_Generall_Umbriss();
 #endif
 }
