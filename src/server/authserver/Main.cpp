@@ -1,20 +1,20 @@
 /*
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+* Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+* Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+*
+* This program is free software; you can redistribute it and/or modify it
+* under the terms of the GNU General Public License as published by the
+* Free Software Foundation; either version 2 of the License, or (at your
+* option) any later version.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT
+* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+* more details.
+*
+* You should have received a copy of the GNU General Public License along
+* with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 
 /**
 * @file main.cpp
@@ -48,15 +48,15 @@
 #endif
 
 #ifndef _TRINITY_REALM_CONFIG
-# define _TRINITY_REALM_CONFIG  "authserver.conf"
+# define _TRINITY_REALM_CONFIG "authserver.conf"
 #endif
 
 bool StartDB();
 void StopDB();
 
-bool stopEvent = false;                                     // Setting it to true stops the server
+bool stopEvent = false; // Setting it to true stops the server
 
-LoginDatabaseWorkerPool LoginDatabase;                      // Accessor to the authserver database
+LoginDatabaseWorkerPool LoginDatabase; // Accessor to the authserver database
 
 /// Handle authserver's termination signals
 class AuthServerSignalHandler : public Trinity::SignalHandler
@@ -78,7 +78,7 @@ public:
 void usage(const char* prog)
 {
     TC_LOG_INFO(LOG_FILTER_AUTHSERVER, "Usage: \n %s [<options>]\n"
-        "    -c config_file           use config_file as configuration file\n\r",
+        " -c config_file use config_file as configuration file\n\r",
         prog);
 }
 
@@ -193,7 +193,7 @@ extern int main(int argc, char** argv)
 
             if (GetProcessAffinityMask(hProcess, &appAff, &sysAff))
             {
-                ULONG_PTR currentAffinity = affinity & appAff;            // remove non accessible processors
+                ULONG_PTR currentAffinity = affinity & appAff; // remove non accessible processors
 
                 if (!currentAffinity)
                     TC_LOG_ERROR(LOG_FILTER_AUTHSERVER, "Processors marked in UseProcessors bitmask (hex) %x are not accessible for the authserver. Accessible processors bitmask (hex): %x", affinity, appAff);
