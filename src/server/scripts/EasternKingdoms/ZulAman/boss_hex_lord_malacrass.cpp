@@ -336,8 +336,11 @@ class boss_hex_lord_malacrass : public CreatureScript
                             events.ScheduleEvent(EVENT_SIPHON_SOUL, 1);
                             break;
                         case EVENT_SIPHON_SOUL:
-                            if(Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0))
+                            if(Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true, 0))
                             {
+                                if (!target->ToPlayer())
+                                    return;
+
                                 playerClass = target->ToPlayer()->getClass();
                                 me->CastSpell(target, SPELL_SIPHON_SOUL, false);
                             }
@@ -350,7 +353,6 @@ class boss_hex_lord_malacrass : public CreatureScript
                                     events.ScheduleEvent(EVENT_DK_BLOOD_WORMS, 15000);
                                     break;
                                 case CLASS_DRUID:
-                                    sLog->outError(LOG_FILTER_GENERAL, "druid case");
                                     events.ScheduleEvent(EVENT_DR_TYPHOON, 13000);
                                     events.ScheduleEvent(EVENT_DR_MOONFIRE, urand(5000, 7000));
                                     events.ScheduleEvent(EVENT_DR_LIFEBLOOM, urand(10000, 12000));

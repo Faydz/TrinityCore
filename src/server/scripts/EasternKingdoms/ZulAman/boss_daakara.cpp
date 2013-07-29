@@ -437,23 +437,15 @@ class boss_daakara : public CreatureScript
                         case EVENT_SUMMON_FEATHER_CYCLONE:
                         {
                             me->CastSpell(me, SPELL_ENERGY_STORM, false);
-                            Map* map = me->GetMap();
-                            if (map && map->IsDungeon())
+
+                            if (Unit* player = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true, 0))
                             {
-                                std::list<Player*> PlayerList;
-                                Map::PlayerList const& Players = map->GetPlayers();
-                                for (Map::PlayerList::const_iterator itr = Players.begin(); itr != Players.end(); ++itr)
+                                if(Creature* summon = me->SummonCreature(NPC_CYCLONE, me->GetPositionX()+rand()%10, me->GetPositionY()+rand()%10, me->GetPositionZ(), me->GetOrientation(), TEMPSUMMON_MANUAL_DESPAWN, 0))
                                 {
-                                    if (Player* player = itr->getSource())
-                                    {
-                                        if(Creature* summon = me->SummonCreature(NPC_CYCLONE, me->GetPositionX()+rand()%10, me->GetPositionY()+rand()%10, me->GetPositionZ(), me->GetOrientation(), TEMPSUMMON_MANUAL_DESPAWN, 0))
-                                        {
-                                            summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
-                                            summon->CastSpell(summon, SPELL_CYCLONE_VISUAL, false);
-                                            summon->CastSpell(summon, SPELL_FEATHER_CYCLONE, false);
-                                            summon->AddThreat(player, 5000000.0f);
-                                        }
-                                    }
+                                    summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+                                    summon->CastSpell(summon, SPELL_CYCLONE_VISUAL, false);
+                                    summon->CastSpell(summon, SPELL_FEATHER_CYCLONE, false);
+                                    summon->AddThreat(player, 5000000.0f);
                                 }
                             }
                             break;
