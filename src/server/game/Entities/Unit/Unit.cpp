@@ -747,6 +747,10 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
             }
         }
 
+        // Critical hit rewards double rage
+        if(cleanDamage->hitOutCome == MELEE_HIT_CRIT)
+            rage*=2;
+
         switch (cleanDamage->attackType)
         {
             case OFF_ATTACK:
@@ -757,6 +761,8 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
             default:
                 break;
         }
+
+        
     }
 
     if (!damage)
@@ -19902,6 +19908,8 @@ void Unit::RewardRage(uint32 baseRage, bool attacker, bool isPhysical)
             }
         }
     }
+
+    addRage = addRage < 1.0f ? 1.0f : addRage;
 
     addRage *= sWorld->getRate(RATE_POWER_RAGE_INCOME);
 
