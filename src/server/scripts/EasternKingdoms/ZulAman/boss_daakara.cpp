@@ -434,7 +434,7 @@ class boss_daakara : public CreatureScript
                             me->CastSpell(me, SPELL_LIGHTNING_TOTEM, false);
                             events.ScheduleEvent(EVENT_LIGHTNING_TOTEM, 15000);
                             break;
-                        /*case EVENT_SUMMON_FEATHER_CYCLONE:
+                        case EVENT_SUMMON_FEATHER_CYCLONE:
                         {
                             me->CastSpell(me, SPELL_ENERGY_STORM, false);
                             Map* map = me->GetMap();
@@ -448,7 +448,6 @@ class boss_daakara : public CreatureScript
                                     {
                                         if(Creature* summon = me->SummonCreature(NPC_CYCLONE, me->GetPositionX()+rand()%10, me->GetPositionY()+rand()%10, me->GetPositionZ(), me->GetOrientation(), TEMPSUMMON_MANUAL_DESPAWN, 0))
                                         {
-                                            player->Say("check player", LANG_UNIVERSAL);
                                             summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
                                             summon->CastSpell(summon, SPELL_CYCLONE_VISUAL, false);
                                             summon->CastSpell(summon, SPELL_FEATHER_CYCLONE, false);
@@ -462,7 +461,7 @@ class boss_daakara : public CreatureScript
                         case EVENT_SWEEPING_WINDS:
                             me->CastSpell(me, SPELL_SWEEPING_WINDS, false);
                             events.ScheduleEvent(EVENT_SWEEPING_WINDS, 1);
-                            break;*/
+                            break;
                         
                     }
                 }

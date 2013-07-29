@@ -3908,7 +3908,7 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                         unitTarget->CastSpell(GetCaster(), 43137, false);
                     break;
                 // Sweeping Winds
-                /*case 97647:
+                case 97647:
                 {
                     if (!unitTarget || !GetCaster())
                         return;
@@ -3917,7 +3917,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     {
                         if(unitTarget->getVictim())
                         {
-                            unitTarget->getVictim()->ToPlayer()->Say("scripteffect", LANG_UNIVERSAL);
                             unitTarget->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
                             Position pos;
                             unitTarget->getVictim()->GetPosition(&pos);
@@ -3925,7 +3924,7 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                         }
                     }
                     break;
-                }*/
+                }
                 // Vigilance
                 case 50725:
                     if (!unitTarget || !GetCaster())
