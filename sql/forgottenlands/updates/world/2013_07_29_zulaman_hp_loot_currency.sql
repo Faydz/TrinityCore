@@ -1,6 +1,8 @@
 UPDATE `creature_template` SET `Health_mod`=55 WHERE (`entry`=23574);
 UPDATE `creature_template` SET `Health_mod`=65 WHERE (`entry`=23576);
 
+UPDATE `creature_loot_template` SET `item`=1 WHERE (`entry`=24239) AND (`item`=34078);
+UPDATE `creature_loot_template` SET `item`=1 WHERE (`entry`=23863) AND (`item`=34079);
 DELETE FROM `creature_loot_template` WHERE `entry` IN (23574, 23576, 23578, 23577, 24239, 23863) AND `item`=29434;
 DELETE FROM `creature_loot_template` WHERE `entry` IN (23574, 23576, 23578, 23577, 24239, 23863) AND `item`=33307;
 DELETE FROM `creature_loot_template` WHERE `entry` = 23863 AND `item`=33102;
