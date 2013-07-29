@@ -22291,7 +22291,11 @@ inline bool Player::_StoreOrEquipNewItem(uint32 vendorslot, uint32 item, uint8 c
                 continue;
 
             // Skip check only currencies.. 
-            if (entry->TotalCap > 0 && iece->RequiredCurrencyCount[i] * stacks > entry->TotalCap)
+            uint32 checkValue = entry->TotalCap;
+            if (entry->ID == CURRENCY_TYPE_CONQUEST_POINTS)
+                checkValue = 6000;
+                
+            if (checkValue > 0 && iece->RequiredCurrencyCount[i] * stacks > checkValue)
                 continue;
 
             if (iece->RequiredCurrency[i])
@@ -22559,7 +22563,11 @@ bool Player::BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 
             }
 
             // See if we mush check CurrentAmount or TotalSeasonAmount
-            if (entry->TotalCap != 0 && iece->RequiredCurrencyCount[i] * stacks > entry->TotalCap)
+            uint32 checkValue = entry->TotalCap;
+            if (entry->ID == CURRENCY_TYPE_CONQUEST_POINTS)
+                checkValue = 6000;
+                
+            if (checkValue != 0 && iece->RequiredCurrencyCount[i] * stacks > checkValue)
             {
                 // Check for total season amount
                 if (!HasCurrencySeasonCount(iece->RequiredCurrency[i], iece->RequiredCurrencyCount[i] * stacks))
@@ -27471,7 +27479,11 @@ void Player::RefundItem(Item* item)
             continue;
 
         // Skip check only currencies.. fucking lamers
-        if (entry->TotalCap > 0 && count > entry->TotalCap)
+        uint32 checkValue = entry->TotalCap;
+        if (entry->ID == CURRENCY_TYPE_CONQUEST_POINTS)
+            checkValue = 6000;
+
+        if (checkValue > 0 && count > checkValue)
             continue;
 
         if (count && currencyid)
