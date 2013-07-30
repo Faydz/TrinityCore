@@ -51,6 +51,7 @@
 #include "Group.h"
 #include "Battlefield.h"
 #include "BattlefieldMgr.h"
+#include "MMapFactory.h"
 
 uint32 GuidHigh2TypeId(uint32 guid_hi)
 {
@@ -2003,6 +2004,11 @@ void WorldObject::UpdateGroundPositionZ(float x, float y, float &z) const
 
 void WorldObject::UpdateAllowedPositionZ(float x, float y, float &z) const
 {
+    // Skip this no-sense check if MMAPS aren't enabled
+    uint32 mapId = GetMapId();
+    if (!MMAP::MMapFactory::IsPathfindingEnabled(mapId))
+        return;
+
     switch (GetTypeId())
     {
         case TYPEID_UNIT:
@@ -2949,7 +2955,9 @@ void WorldObject::GetNearPoint(WorldObject const* /*searcher*/, float &x, float 
 {
     GetNearPoint2D(x, y, distance2d+searcher_size, absAngle);
     z = GetPositionZ();
+    sLog->outError(LOG_FILTER_GENERAL, "PORCCCDDDLL %f %f %f", x, y, z);
     UpdateAllowedPositionZ(x, y, z);
+    sLog->outError(LOG_FILTER_GENERAL, "DIOCANEE %f %f %f", x, y, z);
 
     /*
     // if detection disabled, return first point
