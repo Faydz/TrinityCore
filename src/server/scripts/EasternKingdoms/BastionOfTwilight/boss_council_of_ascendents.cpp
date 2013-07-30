@@ -15,14 +15,15 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* 
+##### Script Info #####
+Author: Nagash
+Progress: 95%
+Website: www.forgottenlands.eu
+*/
+
 // DA AGGIUNGERE/SISTEMARE:
-// lo spawn di lava seed e water bomb procede sempre in un unica direzione
-// in fase due manca il cambio di treath list
-// vanno sistemati gli hp ai boss (non alla monstrosity, se ne funziona lo script)
-// il ciclone non si muove
-// spell hero fan crashare
-// --
-// chain lightning non fa nulla
+// le spell hero fan crashare
 
 #include "ScriptPCH.h"
 #include "ScriptMgr.h"
@@ -134,7 +135,7 @@ enum spell_c
     // Arion
     SPELL_THUNDERSHOCK           = 83067, //funziona
     SPELL_LIGHTNING_ROD          = 83099, //funziona
-    SPELL_CHAIN_LIGHTNING        = 83300, //non fa nulla
+    SPELL_CHAIN_LIGHTNING        = 83282, //non fa nulla
     SPELL_DISPERSION             = 83087, //teleport da scriptare
     SPELL_LIGHTNING_BLAST        = 83070, //funziona
     SPELL_CALL_WINDS             = 83491, //funziona
@@ -188,6 +189,7 @@ enum Events
     //Arion
     EVENT_THUNDERSHOCK,
     EVENT_DISPERSION,
+    EVENT_TELEPORT,
     EVENT_LIGHTNING_BLAST,
     EVENT_LIGHTNING_ROD,
     EVENT_CHAIN_LIGHTNING,
@@ -237,15 +239,15 @@ Position const center[5] =
  
 Position const cyclone[9] =
 {
-    { -993.250f,  -543.682f,  831.900f,  0.0f }, //start
+    { -993.250f,  -543.682f,  832.000f,  0.0f }, //start
     { -971.665f,  -581.682f,  831.900f,  0.0f },
     { -981.800f,  -609.682f,  831.900f,  0.0f },
-    {-1020.860f,  -619.882f,  831.900f,  0.0f },
+    {-1016.860f,  -619.882f,  831.900f,  0.0f },
     {-1032.665f,  -619.282f,  835.250f,  0.0f },
-    {-1049.995f,  -619.282f,  603.250f,  0.0f },
-    {-1053.165f,  -619.282f,  568.460f,  0.0f },
-    {-1030.965f,  -544.392f,  568.460f,  0.0f },
-    {-1018.965f,  -542.782f,  831.900f,  0.0f },
+    {-1049.995f,  -610.282f,  835.250f,  0.0f },
+    {-1053.165f,  -559.282f,  835.250f,  0.0f },
+    {-1030.965f,  -544.392f,  835.250f,  0.0f },
+    {-1016.965f,  -542.782f,  832.250f,  0.0f },
 };
  
  
@@ -287,6 +289,7 @@ public:
             ascendant[2] = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_ARION));
             ascendant[3] = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_TERRASTRA));
             initialized = true;
+            summons.DespawnAll();
            
             for(uint8 i = 0; i<=3; i++)
             {
@@ -374,8 +377,8 @@ public:
                             events.ScheduleEvent(EVENT_CYCLONE, 6000);                            
                             events.ScheduleEvent(EVENT_GRAVITY_WELL, 7000);
                             events.ScheduleEvent(EVENT_LIGHTNING_ROD, 7600);
+                            events.ScheduleEvent(EVENT_DISPERSION, 24000);
                             events.ScheduleEvent(EVENT_ERUPTION, 7000);
-                            events.ScheduleEvent(EVENT_CHAIN_LIGHTNING, 19400);
                             events.ScheduleEvent(EVENT_HARDEN_SKIN, 20000);
                             events.ScheduleEvent(EVENT_QUAKE, 30000);
                             events.ScheduleEvent(EVENT_THUNDERSHOCK, 60000);
@@ -432,6 +435,7 @@ public:
                                 ascendant[2]->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                                 ascendant[3]->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                                 events.ScheduleEvent(EVENT_SAY, 500);
+                                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_ELEMENTAL_STASIS);
                                 break;
                             case 5:
                                 DoZoneInCombat(me);
@@ -450,7 +454,7 @@ public:
                                 me->SetVisible(true);
                                 //AI Schedules
                                 events.ScheduleEvent(EVENT_ZAP, 2000);
-                                events.ScheduleEvent(EVENT_CRYOGENIC_AURA, 2000);
+                                events.ScheduleEvent(EVENT_CRYOGENIC_AURA, 6000);
                                 events.ScheduleEvent(EVENT_ELECTRICAL_INSTABILITY, 10000);
                                 events.ScheduleEvent(EVENT_LAVA_SEED, 18000);
                                 events.ScheduleEvent(EVENT_GRAVITY_CRUSH, 8000);
@@ -466,45 +470,53 @@ public:
                     // Feludius
                     //##############
                     case EVENT_GLACIATE:
-                        if (ascendant[1] && ascendant[1]->getVictim())
+                        if (ascendant[1] && ascendant[1]->getVictim() && !ascendant[1]->HasUnitState(UNIT_STATE_CASTING))
                         {
                             ascendant[1]->CastSpell(ascendant[1]->getVictim(), SPELL_GLACIATE, false);
                             ascendant[1]->MonsterYell(SAY_GLACIATE, 0, 0);
                             DoPlaySoundToSet(ascendant[1], SOU_GLACIATE);
+                            events.ScheduleEvent(EVENT_GLACIATE, 16000);
                         }
-                        events.ScheduleEvent(EVENT_GLACIATE, 16000);
+                        else
+                            events.ScheduleEvent(EVENT_GLACIATE, 1000);
                         return;
                         break;
                     case EVENT_HYDRO_LANCE:
                         if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0)){
-                            if (ascendant[1] != NULL){
-                                ascendant[1]->CastSpell(pTarget, SPELL_HYDRO_LANCE, false);
+                            if (ascendant[1] != NULL && !ascendant[1]->HasUnitState(UNIT_STATE_CASTING))
+                            {
+                                ascendant[1]->CastSpell(pTarget, SPELL_HYDRO_LANCE, true);
+                                events.ScheduleEvent(EVENT_HYDRO_LANCE, 10000);
                             }
+                            else
+                                events.ScheduleEvent(EVENT_HYDRO_LANCE, 1000);
                         }
-                        events.ScheduleEvent(EVENT_HYDRO_LANCE, 10000);
                         return;
                         break;
                     case EVENT_WATER_BOMB:
-                        if (ascendant[1])
+                        if (ascendant[1] && !ascendant[1]->HasUnitState(UNIT_STATE_CASTING))
                         {
-                            ascendant[1]->CastSpell(ascendant[1]->getVictim(), SPELL_WATER_BOMB, false);
+                            if (ascendant[1]->getVictim())
+                                ascendant[1]->CastSpell(ascendant[1]->getVictim(), SPELL_WATER_BOMB, true);
+                            events.ScheduleEvent(EVENT_WATER_BOMB, 16000);
+                            events.ScheduleEvent(EVENT_WATER_BOMB_SPAWN, 2000);
                         }
-                        events.ScheduleEvent(EVENT_WATER_BOMB, 16000);
-                        events.ScheduleEvent(EVENT_WATER_BOMB_SPAWN, 2000);
+                        else
+                            events.ScheduleEvent(EVENT_WATER_BOMB, 1000);
                         return;
                         break;
                     case EVENT_WATER_BOMB_SPAWN:
                         {
                             if (!ascendant[1])
                                 return;
-                            uint32 num = urand(8, 12);
+                            uint32 num = urand(10, 16);
                             for(uint32 i=0; i<num; i++)
                             {
-                                float dir  = float(rand()/6.28f);
-                                float dist = float(urand(15, 60));
+                                float dir  = float(rand_norm())*static_cast<float>(2*M_PI);
+                                float dist = 50.0f * (float)rand_norm() + 10.0f;
                                 ascendant[1]->SummonCreature(NPC_WATER_BOMB,
                                                         ascendant[1]->GetPositionX() + dist*cos(dir),
-                                                        ascendant[1]->GetPositionY() + dist*cos(dir),
+                                                        ascendant[1]->GetPositionY() + dist*sin(dir),
                                                         ascendant[1]->GetPositionZ(),
                                                         ascendant[1]->GetOrientation());
                             }
@@ -514,7 +526,7 @@ public:
                     case EVENT_HEART_OF_ICE:
                         if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0)){
                             if (ascendant[1] != NULL){
-                                ascendant[1]->CastSpell(pTarget, SPELL_HEART_OF_ICE, false);
+                                ascendant[1]->CastSpell(pTarget, SPELL_HEART_OF_ICE, true);
                             }
                         }
                         events.ScheduleEvent(EVENT_HEART_OF_ICE, urand(20000, 40000));
@@ -524,31 +536,42 @@ public:
                     // Ignacious
                     //##############
                     case EVENT_AEGIS_OF_FLAME:
-                        if (ascendant[0] != NULL)
+                        if (ascendant[0] != NULL && !ascendant[0]->HasUnitState(UNIT_STATE_CASTING))
                         {
-                            ascendant[0]->CastSpell(ascendant[0], SPELL_AEGIS_OF_FLAME, false);
-                            events.ScheduleEvent(EVENT_RISING_FLAMES, 1550);
-                        }
-                        events.ScheduleEvent(EVENT_AEGIS_OF_FLAME, 16000);
-                        return;
-                        break;
-                    case EVENT_RISING_FLAMES:
-                        if (ascendant[0] != NULL)
-                        {
-                            ascendant[0]->CastSpell(ascendant[0], SPELL_RISING_FLAMES, false);
+                            ascendant[0]->CastSpell(ascendant[0], SPELL_AEGIS_OF_FLAME, true);
+                            ascendant[0]->CastSpell(ascendant[0], SPELL_RISING_FLAMES, true);
                             ascendant[0]->MonsterYell(SAY_RISING, 0, 0);
                             DoPlaySoundToSet(ascendant[0], SOU_RISING);
+                            events.ScheduleEvent(EVENT_AEGIS_OF_FLAME, 16000);
+                            //events.ScheduleEvent(EVENT_RISING_FLAMES, 1550);
                         }
+                        else
+                            events.ScheduleEvent(EVENT_AEGIS_OF_FLAME, 1000);
                         return;
                         break;
+                    //case EVENT_RISING_FLAMES:
+                        //if (ascendant[0] != NULL)
+                        //{
+                            //ascendant[0]->CastSpell(ascendant[0], SPELL_RISING_FLAMES, true);
+                            //ascendant[0]->MonsterYell(SAY_RISING, 0, 0);
+                            //DoPlaySoundToSet(ascendant[0], SOU_RISING);
+                        //}
+                        //return;
+                        //break;
                     case EVENT_INFERNO_LEAP:
-                        if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, -10.0f)){
-                            if (ascendant[0] != NULL){
+                        if (Unit *pTarget = SelectTarget(SELECT_TARGET_FARTHEST, 0)){
+                            if (ascendant[0] != NULL && !ascendant[0]->HasUnitState(UNIT_STATE_CASTING))
+                            {
                                 ascendant[0]->CastSpell(ascendant[0], SPELL_INFERNO_LEAP, false);
-                                events.ScheduleEvent(EVENT_INFERNO_RUSH, 1550);
+                                events.ScheduleEvent(EVENT_INFERNO_RUSH, 2000);
+                                events.ScheduleEvent(EVENT_INFERNO_LEAP, 16000);
+                            }
+                            else
+                            {
+                                events.ScheduleEvent(EVENT_INFERNO_LEAP, 1000);
                             }
                         }
-                        events.ScheduleEvent(EVENT_INFERNO_LEAP, 16000);
+                        
                         return;
                         break;
                     case EVENT_INFERNO_RUSH:
@@ -575,20 +598,24 @@ public:
                         return;
                         break;
                     case EVENT_FLAME_TORRENT:
-                        if (Unit *pTarget = ascendant[0]->getVictim())
+                        if (ascendant[0] != NULL && !ascendant[0]->HasUnitState(UNIT_STATE_CASTING))
                         {
-                            if (ascendant[0] != NULL)
+                            if (Unit *pTarget = ascendant[0]->getVictim())
                             {
                                 ascendant[0]->CastSpell(pTarget, SPELL_FLAME_TORRENT, false);
                             }
+                            events.ScheduleEvent(EVENT_FLAME_TORRENT, 10000);
                         }
-                        events.ScheduleEvent(EVENT_FLAME_TORRENT, 10000);
+                        else
+                        {
+                            events.ScheduleEvent(EVENT_FLAME_TORRENT, 1000);
+                        }
                         return;
                         break;
                     case EVENT_BURNING_BLOOD:
                         if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0)){
                             if (ascendant[0] != NULL){
-                                ascendant[0]->CastSpell(pTarget, SPELL_BURNING_BLOOD, false);
+                                ascendant[0]->CastSpell(pTarget, SPELL_BURNING_BLOOD, true);
                             }
                         }
                         events.ScheduleEvent(EVENT_BURNING_BLOOD, urand(20000, 40000));
@@ -607,7 +634,7 @@ public:
                                 int i=0;
                                 for (std::list<Unit*>::const_iterator iter = chaintargetList.begin(); iter != chaintargetList.end(); ++iter)
                                 {
-                                                ascendant[2]->AddAura(SPELL_LIGHTNING_ROD, (*iter));
+                                    ascendant[2]->AddAura(SPELL_LIGHTNING_ROD, (*iter));
                                     if (i<3)
                                         chaintargets[i]= *iter;
                                     i++;
@@ -623,87 +650,112 @@ public:
                             }
                         }
                         events.ScheduleEvent(EVENT_LIGHTNING_ROD, 30000);
+                        events.ScheduleEvent(EVENT_CHAIN_LIGHTNING, 13000);
                         return;
                         break;
                     case EVENT_CHAIN_LIGHTNING:
-                        if (me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
-                        {//25 man mode, 3 targets
-                            for (int i=0; i<3; i++)
-                            {
-                                if (ascendant[2] != NULL && chaintargets[i]!= NULL)
+                        if (!ascendant[2]->HasUnitState(UNIT_STATE_CASTING))
+                        {
+                            if (me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
+                            {//25 man mode, 3 targets
+                                for (int i=0; i<3; i++)
                                 {
-                                    ascendant[2]->CastSpell(chaintargets[i], SPELL_CHAIN_LIGHTNING, false);
+                                    if (ascendant[2] != NULL && chaintargets[i]!= NULL)
+                                    {
+                                        ascendant[2]->CastSpell(chaintargets[i], SPELL_CHAIN_LIGHTNING, false);
+                                    }
+                                }
+                            }
+                            else
+                            {// 10 man mode, 1 target
+                                if (ascendant[2] != NULL && chaintargets[0] != NULL)
+                                {
+                                    ascendant[2]->CastSpell(chaintargets[0], SPELL_CHAIN_LIGHTNING, false);
                                 }
                             }
                         }
                         else
-                        {// 10 man mode, 1 target
-                            if (ascendant[2] != NULL && chaintargets[0] != NULL)
-                            {
-                                ascendant[2]->CastSpell(chaintargets[0], SPELL_CHAIN_LIGHTNING, false);
-                            }
-                        }
-                        events.ScheduleEvent(EVENT_CHAIN_LIGHTNING, 30000);
+                            events.ScheduleEvent(EVENT_CHAIN_LIGHTNING, 1000);
                         return;
                         break;
                     case EVENT_DISPERSION:
                         if (Unit *pTarget = ascendant[2]->getVictim())
                             prevtarget=pTarget;
-                        if (ascendant[2] != NULL)
+                        if (ascendant[2] != NULL && !ascendant[2]->HasUnitState(UNIT_STATE_CASTING))
                         {
                             ascendant[2]->CastSpell(ascendant[2], SPELL_DISPERSION, false);
+                            events.DelayEvents(4000);
+                            events.ScheduleEvent(EVENT_TELEPORT, 1550);
+                            events.ScheduleEvent(EVENT_LIGHTNING_BLAST, 3000);
+                            events.ScheduleEvent(EVENT_DISPERSION, 30000);
                         }
-                        events.ScheduleEvent(EVENT_LIGHTNING_BLAST, 1550);
+                        else 
+                            events.ScheduleEvent(EVENT_DISPERSION, 1000);
+                        return;
+                        break;
+                    case EVENT_TELEPORT:
+                        if (ascendant[2] != NULL)
+                        {
+                            ascendant[2]->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                            ascendant[2]->SetVisible(false);
+                        }
                         return;
                         break;
                     case EVENT_LIGHTNING_BLAST:
                         if (prevtarget && ascendant[2] != NULL)
                         {
+                            me->NearTeleportTo(urand(-1019,-975), urand(-624,-535), me->GetPositionZ(), me->GetOrientation());
+                            ascendant[2]->SetVisible(true);
+                            ascendant[2]->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                             ascendant[2]->CastSpell(prevtarget, SPELL_LIGHTNING_BLAST, false);
                         }
-                        ascendant[2]->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-                        ascendant[2]->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-                        me->NearTeleportTo(urand(-1019,-975), urand(-624,-535), me->GetPositionZ(), me->GetOrientation());
-                        events.ScheduleEvent(EVENT_DISPERSION, 13450);
                         return;
                         break;
                     case EVENT_CYCLONE:
-                        if (ascendant[2] != NULL)
+                        if (ascendant[2] != NULL && !ascendant[2]->HasUnitState(UNIT_STATE_CASTING))
                         {
                             ascendant[2]->CastSpell(ascendant[2], SPELL_CALL_WINDS, false);
                             ascendant[2]->MonsterYell(SAY_CALL_WIND, 0, 0);
                             DoPlaySoundToSet(ascendant[2], SOU_CALL_WIND);
+                            events.ScheduleEvent(EVENT_CYCLONE, 40000);
                         }
-                        events.ScheduleEvent(EVENT_CYCLONE, 60000);
+                        else
+                            events.ScheduleEvent(EVENT_CYCLONE, 40000);
                         return;
                         break;
                     case EVENT_THUNDERSHOCK:
-                        if (ascendant[2] != NULL)
+                        if (ascendant[2] != NULL && !ascendant[2]->HasUnitState(UNIT_STATE_CASTING))
                         {
                             ascendant[2]->CastSpell(ascendant[2], SPELL_THUNDERSHOCK, false);
+                            events.ScheduleEvent(EVENT_THUNDERSHOCK, 56000);
                         }
-                        events.ScheduleEvent(EVENT_THUNDERSHOCK, 60000);
+                        else
+                            events.ScheduleEvent(EVENT_THUNDERSHOCK, 1000);
                         return;
                         break;
                     //##############
                     // Terrastra
                     //##############
                     case EVENT_QUAKE:
-                        if (ascendant[3] != NULL)
+                        if (ascendant[3] != NULL && !ascendant[3]->HasUnitState(UNIT_STATE_CASTING))
                         {
-                            ascendant[3]->CastSpell(ascendant[2], SPELL_QUAKE, false);
+                            ascendant[3]->CastSpell(ascendant[3], SPELL_QUAKE, false);
                             ascendant[3]->MonsterYell(SAY_QUAKE, 0, 0);
                             DoPlaySoundToSet(ascendant[3], SOU_QUAKE);
+                            events.ScheduleEvent(EVENT_QUAKE, 56000);
                         }
-                        events.ScheduleEvent(EVENT_QUAKE, 60000);
+                        else
+                            events.ScheduleEvent(EVENT_QUAKE, 1000);
                         return;
                         break;
                     case EVENT_HARDEN_SKIN:
-                        if (ascendant[3] != NULL)
+                        if (ascendant[3] != NULL && !ascendant[3]->HasUnitState(UNIT_STATE_CASTING))
                         {
-                            ascendant[3]->CastSpell(ascendant[2], SPELL_HARDEN_SKIN, false);
+                            ascendant[3]->CastSpell(ascendant[2], SPELL_HARDEN_SKIN, true);
+                            events.ScheduleEvent(EVENT_HARDEN_SKIN, 20000);
                         }
-                        events.ScheduleEvent(EVENT_HARDEN_SKIN, 15000);
+                        else
+                            events.ScheduleEvent(EVENT_HARDEN_SKIN, 1000);
                         return;
                         break;
                     case EVENT_GRAVITY_WELL:
@@ -718,11 +770,13 @@ public:
                         return;
                         break;
                     case EVENT_ERUPTION:
-                        if (ascendant[3] != NULL)
+                        if (ascendant[3] != NULL && !ascendant[3]->HasUnitState(UNIT_STATE_CASTING))
                         {
-                            ascendant[3]->CastSpell(ascendant[3], SPELL_ERUPTION, false);
+                            ascendant[3]->CastSpell(ascendant[3], SPELL_ERUPTION, true);
+                            events.ScheduleEvent(EVENT_ERUPTION, 15000);
                         }
-                        events.ScheduleEvent(EVENT_ERUPTION, 15000);
+                        else 
+                            events.ScheduleEvent(EVENT_ERUPTION, 15000);
                         return;
                         break;
                     //##############
@@ -751,15 +805,16 @@ public:
                             bool newspawn = true;    
                             for (std::list<Creature*>::const_iterator itr = unitList.begin(); itr != unitList.end(); ++itr)
                             {
-                                float dist = 4.0f;
+                                float dist = 4.001f;
                                 if ((*itr)->GetAura(SPELL_GROW))
                                 { //stack auras should be additive, not multiplicative :V
-                                    dist *= 1.4f * (*itr)->GetAura(SPELL_GROW)->GetStackAmount();
+                                    dist *= 1.2f * (*itr)->GetAura(SPELL_GROW)->GetStackAmount();
                                     //uint32 stack=(*itr)->GetAura(SPELL_GROW)->GetStackAmount();
                                     //for (int i=0; i<stack; i++)
                                     //    dist *= 1.4;
                                 }
-                                if (*itr && me->GetDistance2d(*itr) < dist)
+                                dist -= 4.0f;
+                                if (*itr && me->IsWithinDist2d(*itr, dist))
                                 {
                                     newspawn = false;
                                     (*itr)->AddAura(SPELL_GROW, *itr);
@@ -770,9 +825,9 @@ public:
                             
  
                             if (me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
-                                events.ScheduleEvent(EVENT_CRYOGENIC_AURA, 1500);
-                            else
                                 events.ScheduleEvent(EVENT_CRYOGENIC_AURA, 3000);
+                            else
+                                events.ScheduleEvent(EVENT_CRYOGENIC_AURA, 5000);
                             return;
                             break;
                         }
@@ -812,14 +867,14 @@ public:
                         break;
                     case EVENT_LAVA_SEED_SPAWN:
                         {
-                            uint32 num = urand(12, 20);
+                            uint32 num = urand(20, 26);
                             for(uint32 i=0; i<num; i++)
                             {
-                                float dir  = frand(0, 6.28f);
-                                float dist = frand(15, 60);
+                                float dir  = float(rand_norm())*static_cast<float>(2*M_PI);
+                                float dist = 50.0f * (float)rand_norm();
                                 me->SummonCreature(NPC_LAVA_SEED,
                                                        me->GetPositionX() + dist*cos(dir),
-                                                       me->GetPositionY() + dist*cos(dir),
+                                                       me->GetPositionY() + dist*sin(dir),
                                                        me->GetPositionZ() + 35,
                                                        me->GetOrientation());
                             }
@@ -839,7 +894,7 @@ public:
                                     rTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true);
                                 if (pTarget->GetGUID() == rTarget->GetGUID())
                                     rTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true);
-                                //if the same target get chosen four times in a row, nevermind, its his/her fate (or maybe the only one left)
+                                //if the same target get chosen four times in a row, nevermind, its his/her fate (or maybe it is the only one left)
                                 me->AddAura(SPELL_GRAVITY_CORE, rTarget);
                             }
                         }
@@ -852,7 +907,7 @@ public:
                             me->SummonCreature(NPC_FLAMESTRIKE_COUNCIL, pTarget->GetPositionX(),pTarget->GetPositionY(), pTarget->GetPositionZ(),pTarget->GetOrientation());
                             if (Unit *rTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
                             {
-                                //if the same target get chosen four times in a row, nevermind, its his/her fate (or maybe the only one left)
+                                //if the same target get chosen it is the only one left
                                 me->SummonCreature(NPC_FROZEN_ORB_COUNCIL, rTarget->GetPositionX(),rTarget->GetPositionY(), rTarget->GetPositionZ(),rTarget->GetOrientation());
                             }
                         }
@@ -909,6 +964,16 @@ public:
                 if (phase==0)
                 {//here will comes arion and terrastra
                     phase = 1;
+                    if (ascendant[1]->getVictim()) //this is to prevent reset if the players are distant from the spawnpoint
+                    {
+                        ascendant[2]->CombatStart(ascendant[1]->getVictim());
+                        ascendant[2]->AddThreat(ascendant[1]->getVictim(), 1);
+                    }
+                    if (ascendant[0]->getVictim())                               //read this ^
+                    {
+                        ascendant[3]->CombatStart(ascendant[0]->getVictim());
+                        ascendant[3]->AddThreat(ascendant[0]->getVictim(), 1);
+                    }
                     ascendant[2]->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                     ascendant[3]->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                     ascendant[2]->NearTeleportTo(wayPos[0].GetPositionX(), wayPos[0].GetPositionY(), wayPos[0].GetPositionZ(), wayPos[0].GetOrientation());
@@ -925,6 +990,7 @@ public:
             case COUNCIL_PHASE_2:
                 if (phase==1)
                 {//here will summon the elementium monstrosity
+                    DoCast(SPELL_ELEMENTAL_STASIS); // freeze all!
                     std::list<Creature*> unitList;
                     ascendant[2]->GetCreatureListWithEntryInGrid(unitList, NPC_VIOLENT_CYCLONE, 100.0f);
                     for (std::list<Creature*>::const_iterator itr = unitList.begin(); itr != unitList.end(); ++itr)
@@ -1051,7 +1117,7 @@ public:
                 ascendant[i]->DisappearAndDie();
 
             for (std::list<Creature*>::const_iterator itr = unitList.begin(); itr != unitList.end(); ++itr)
-            {// this will despawn the cyclones
+            {// this will the liquid ice
                 if (*itr)
                     (*itr)->DespawnOrUnsummon();
             }
@@ -1227,23 +1293,27 @@ public: npc_council_violent_cyclone() : CreatureScript("npc_council_violent_cycl
         }
  
         uint32 checkTimer;
+        uint32 checkMovement;
         int chase;
  
         void InitializeAI()
         {
-            me->SetSpeed(MOVE_WALK,   0.8f, true);
-            me->SetSpeed(MOVE_RUN,    0.8f, true);
-            me->SetSpeed(MOVE_FLIGHT, 0.8f, true);
+            me->SetSpeed(MOVE_WALK,   0.5f, true);
+            me->SetSpeed(MOVE_RUN,    0.5f, true);
+            me->SetSpeed(MOVE_FLIGHT, 0.5f, true);
  
-            checkTimer = 100;
-            chase      =   0;
+            checkTimer    = 100;
+            checkMovement = 100;
+            chase         =   0;
  
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
             me->SetReactState(REACT_PASSIVE);
             me->SetVisible(true);
             me->AddAura(32332, me); //cyclone visual effect
-            //me->AddUnitMovementFlag(MOVEMENTFLAG_FLYING);
-            //me->SetCanFly(true);
+            me->AddUnitMovementFlag(MOVEMENTFLAG_FLYING);
+            me->SetCanFly(true);
+            me->SetDisableGravity(true);
+            me->SetHover(true);
         }
 
         void Reset()
@@ -1259,28 +1329,35 @@ public: npc_council_violent_cyclone() : CreatureScript("npc_council_violent_cycl
  
         void UpdateAI(uint32 diff)
         {
-            if (checkTimer <= diff)
+            if (checkTimer <= diff || checkMovement <= diff)
             {
-                checkTimer = 1000;
-                if(me->GetDistance(cyclone[chase]) < 5.0f)
+                if (checkMovement <= diff)
                 {
+                    checkMovement = urand(1000, 8000);
                     chase= (chase+1) %10; 
                     me->GetMotionMaster()->MovePoint(0, cyclone[chase]);
 
                     if (!me->HasAura(32332)) //cyclone visual effect repeat, just to be sure it's visible
                         me->AddAura(32332, me);
                 }
-                std::list<Unit*> targets;
-                Trinity::AnyUnfriendlyUnitInObjectRangeCheck u_check(me, me, 5.0f);
-                Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, u_check);
-                me->VisitNearbyObject(5.0f, searcher);
-                for (std::list<Unit*>::const_iterator iter = targets.begin();iter != targets.end(); ++iter)
+                if (checkTimer <= diff)
                 {
-                    CheckViolentCyclone(*iter);
+                    checkTimer = 1000;
+                    std::list<Unit*> targets;
+                    Trinity::AnyUnfriendlyUnitInObjectRangeCheck u_check(me, me, 5.0f);
+                    Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, u_check);
+                    me->VisitNearbyObject(5.0f, searcher);
+                    for (std::list<Unit*>::const_iterator iter = targets.begin();iter != targets.end(); ++iter)
+                    {
+                        CheckViolentCyclone(*iter);
+                    }
                 }
             }
             else
+            {
                 checkTimer -= diff;
+                checkMovement -= diff;
+            }
         }
        
     };
@@ -1326,8 +1403,10 @@ public: npc_council_frozen_orb() : CreatureScript("npc_council_frozen_orb") { }
  
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
             me->SetReactState(REACT_PASSIVE);
-            //me->AddUnitMovementFlag(MOVEMENTFLAG_FLYING);
-            //me->SetCanFly(true);
+            me->SetCanFly(true);
+            me->SetDisableGravity(true);
+            me->SetHover(true);
+            me->AddUnitMovementFlag(MOVEMENTFLAG_FLYING);
         }
  
         void UpdateAI(uint32 diff)
@@ -1345,7 +1424,7 @@ public: npc_council_frozen_orb() : CreatureScript("npc_council_frozen_orb") { }
                 me->SetSpeed(MOVE_FLIGHT, speed, true);
                 speed =  speed * 1.08;
                 checkTimer = 1000;
-                if(me->GetDistance(flamestrike) < 6.0f)
+                if(me->GetDistance2d(flamestrike) < 6.0f)
                 {
                     me->DespawnOrUnsummon();
                     if (flamestrike && flamestrike->ToCreature())
@@ -1382,12 +1461,10 @@ public: npc_council_gravity_well() : CreatureScript("npc_council_gravity_well") 
         }
  
         uint32 checkTimer;
-        int chase;
  
         void Reset()
         {
             checkTimer = 100;
-            chase      =   0;
             me->AddAura(83579, me);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
             me->SetReactState(REACT_PASSIVE);
@@ -1399,8 +1476,10 @@ public: npc_council_gravity_well() : CreatureScript("npc_council_gravity_well") 
         {
             if (who->isAlive() && !who->HasAura(SPELL_GROUNDED))
             {
-                                me->CastSpell(who, SPELL_GROUNDED, true);
+                me->AddAura(SPELL_GROUNDED, who);
                 me->CastSpell(who, SPELL_MAGNETIC_PULL, true);
+                if (who->HasAura(SPELL_SWIRLING_WINDS))
+                    who->GetAura(SPELL_SWIRLING_WINDS)->Remove();
             }
         }
  
@@ -1454,6 +1533,7 @@ public: npc_council_water_bomb() : CreatureScript("npc_council_water_bomb") {}
             if (distanza <10.0f) distanza=10.0f;
             timer = uint32((distanza - 10) * 75 + 500);
             feludius->CastSpell(me, SPELL_WATER_BOMB_VISUAL, true);
+            me->AddAura(76406, me);
             me->SetReactState(REACT_PASSIVE);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -1470,6 +1550,8 @@ public: npc_council_water_bomb() : CreatureScript("npc_council_water_bomb") {}
             if (timer <= diff)
             {
                 me->CastSpell(me, SPELL_WATER_BOMB_EXPLO, true);
+                if (me->GetAura(76406))
+                    me->GetAura(76406)->Remove();
                 timer = 10000;
             }
             else
@@ -1540,7 +1622,7 @@ public: npc_council_lava_seed() : CreatureScript("npc_council_lava_seed") {}
 class npc_council_inferno_rush: public CreatureScript {
 public: npc_council_inferno_rush() : CreatureScript("npc_council_inferno_rush") {}
  
-        struct npc_council_inferno_rushAI: public ScriptedAI
+    struct npc_council_inferno_rushAI: public ScriptedAI
     {
         npc_council_inferno_rushAI(Creature *c) :ScriptedAI(c) {}
  
@@ -1573,7 +1655,7 @@ public: npc_council_inferno_rush() : CreatureScript("npc_council_inferno_rush") 
                     return;
                 me->SetFacingToObject(igna);
                 float ori = me->GetOrientation();
-                if(me->GetDistance2d(igna) > 6.0f)
+                if(me->GetDistance2d(igna) > 5.0f)
                 {
                     igna->SummonCreature(NPC_INFERNO_RUSH, 
                                          me->GetPositionX()+ 6*cos(ori), 
@@ -1598,37 +1680,37 @@ public: npc_council_inferno_rush() : CreatureScript("npc_council_inferno_rush") 
 class npc_council_flamestrike: public CreatureScript {
 public: npc_council_flamestrike() : CreatureScript("npc_council_flamestrike") {}
  
-        struct npc_council_flamestrikeAI: public ScriptedAI
+    struct npc_council_flamestrikeAI: public ScriptedAI
     {
-                npc_council_flamestrikeAI(Creature *c) :ScriptedAI(c) {}
+    npc_council_flamestrikeAI(Creature *c) :ScriptedAI(c) {}
  
-                uint32 timer;
+    uint32 timer;
  
-                void InitializeAI()
-        {
-            timer = 3000;
-                        me->SetReactState(REACT_PASSIVE);
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            me->AddAura(SPELL_FLAMESTRIKE_VISUAL, me);
-                }
- 
-                void UpdateAI(uint32 diff)
-        {
-                        if (timer <= diff)
-            {
-                me->CastSpell(me, SPELL_FLAMESTRIKE, true);
-                me->RemoveAura(SPELL_FLAMESTRIKE_VISUAL);
-            }
-            else
-                                timer -= diff;
-                }
-        };
- 
-        CreatureAI* GetAI(Creature* pCreature) const
+    void InitializeAI()
     {
-                return new npc_council_flamestrikeAI(pCreature);
+        timer = 3000;
+                    me->SetReactState(REACT_PASSIVE);
+                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        me->AddAura(SPELL_FLAMESTRIKE_VISUAL, me);
+    }
+ 
+    void UpdateAI(uint32 diff)
+    {
+        if (timer <= diff)
+        {
+            me->CastSpell(me, SPELL_FLAMESTRIKE, true);
+            me->RemoveAura(SPELL_FLAMESTRIKE_VISUAL);
         }
+        else
+            timer -= diff;
+    }
+    };
+ 
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_council_flamestrikeAI(pCreature);
+    }
 };
  
 class npc_council_liquid_ice: public CreatureScript {
@@ -1640,10 +1722,18 @@ public: npc_council_liquid_ice() : CreatureScript("npc_council_liquid_ice") {}
  
         void InitializeAI()
         {
+            InstanceScript* instance = me->ToCreature()->GetInstanceScript();
+            Unit *monstrosity;
+            if (instance)
+                monstrosity = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_MONSTROSITY));
+            else
+                me->DespawnOrUnsummon();
+            me->setFaction(monstrosity->getFaction());
             me->AddAura(SPELL_LIQUID_ICE, me);
             me->SetReactState(REACT_PASSIVE);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            
         }
     };
  
@@ -1678,7 +1768,7 @@ class spell_council_glaciate : public SpellScriptLoader
                 if (!target || !caster)
                     return;
                 uint32 damage = GetHitDamage();
-                float dist = target->GetDistance(caster);
+                float dist = target->GetDistance2d(caster);
                 if (dist > 5.0f)
                     damage = uint32 (damage/(dist-4.0f));
                 SetHitDamage(damage);  
@@ -1845,18 +1935,13 @@ class spell_council_rising_flames : public SpellScriptLoader
             {
                 this->GetEffect(EFFECT_0)->SetAmount(0);
             }
-
  
             void periodic(AuraEffect const* aurEff)
             {
-                this->GetEffect(EFFECT_0)->SetAmount(this->GetEffect(EFFECT_0)->GetAmount() + 2000);
-                if (!this->GetAura() || !this->GetAura()->GetOwner() || this->GetAura()->GetOwner()->ToUnit() )
+                this->GetEffect(EFFECT_0)->SetAmount(this->GetEffect(EFFECT_0)->GetAmount() + 2000);if (!GetUnitOwner() )
                     return;
-                Unit *target = this->GetAura()->GetOwner()->ToUnit();
-                if (!this->GetCaster())
-                    return;
-                Unit *caster = this->GetCaster();
-            target->CastSpell(target, SPELL_FIRE_IMBUED, true, 0, 0, caster->GetGUID());
+                Unit *target = GetUnitOwner();
+                target->CastSpell(target, SPELL_FIRE_IMBUED, true);
             }
  
             void Register()
@@ -1891,13 +1976,10 @@ class spell_council_rising_flames : public SpellScriptLoader
             void periodic(AuraEffect const* aurEff)
             {
                 this->GetEffect(EFFECT_0)->SetAmount(this->GetEffect(EFFECT_0)->GetAmount() + 2000);
-                if (!this->GetAura() || !this->GetAura()->GetOwner() || this->GetAura()->GetOwner()->ToUnit() )
+                if (!GetUnitOwner() )
                     return;
-                Unit *target = this->GetAura()->GetOwner()->ToUnit();
-                if (!this->GetCaster())
-                    return;
-                Unit *caster = this->GetCaster();
-            target->CastSpell(target, SPELL_FROST_IMBUED, true, 0, 0, caster->GetGUID());
+                Unit *target = GetUnitOwner();
+                target->CastSpell(target, SPELL_FROST_IMBUED, true);
             }
  
             void Register()
@@ -1929,11 +2011,11 @@ class spell_council_harden_skin : public SpellScriptLoader
                    return;
                if (!GetCaster())
                    return;
-               Unit* caster = GetCaster();
-               uint32 damage = 500000;
-               if (this && this->GetAura() && this->GetAura()->GetEffect(EFFECT_1) )
-                   damage = this->GetAura()->GetEffect(EFFECT_1)->GetAmount();
-               caster->DealDamage(caster, damage);
+               //Unit* caster = GetCaster();
+               //uint32 damage = 500000;
+               //if (this && this->GetAura() && this->GetAura()->GetEffect(EFFECT_1) )
+               //    damage = this->GetAura()->GetEffect(EFFECT_1)->GetAmount();
+               //caster->DealDamage(caster, damage);
            }
  
            void Absorb(AuraEffect* aurEff, DamageInfo & dmgInfo, uint32 & absorbAmount)
@@ -1980,7 +2062,8 @@ class spell_council_liquid_ice : public SpellScriptLoader
                     stack = caster->GetAura(SPELL_GROW)->GetStackAmount();
                 float distance = 5.0f;
                 if (stack !=0)
-                    distance *= (1.4f * stack);
+                    distance *= (1.2f * stack);
+                distance -= 5.0f;
                 if (target->GetDistance2d(caster) > distance )
                     SetHitDamage(0);  
             }
