@@ -181,7 +181,7 @@ class boss_janalai : public CreatureScript
 
                 events.ScheduleEvent(EVENT_FLAME_BREATH, urand(8000, 10000));
                 events.ScheduleEvent(EVENT_HATCHER, 12000);
-                events.ScheduleEvent(EVENT_FIRE_BOMB, urand(55000, 60000));
+                events.ScheduleEvent(EVENT_FIRE_BOMB, 55000);
                 events.ScheduleEvent(EVENT_BERSERK, 600000);
             }
 
