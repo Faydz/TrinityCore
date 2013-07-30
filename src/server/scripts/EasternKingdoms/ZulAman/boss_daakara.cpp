@@ -237,9 +237,9 @@ class boss_daakara : public CreatureScript
                 {
                     if (me->HealthBelowPct(80) && phase == 0)
                     {
-                        /*if(roll_chance_i(50))
+                        if(roll_chance_i(50))
                             events.ScheduleEvent(EVENT_CHANGE_FORM_LYNX, 1);
-                        else*/
+                        else
                             events.ScheduleEvent(EVENT_CHANGE_FORM_BEAR, 1);
                     }
 
@@ -436,8 +436,6 @@ class boss_daakara : public CreatureScript
                             break;
                         case EVENT_SUMMON_FEATHER_CYCLONE:
                         {
-                            me->CastSpell(me, SPELL_ENERGY_STORM, false);
-
                             if (Unit* player = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true, 0))
                             {
                                 if(Creature* summon = me->SummonCreature(NPC_CYCLONE, me->GetPositionX()+rand()%10, me->GetPositionY()+rand()%10, me->GetPositionZ(), me->GetOrientation(), TEMPSUMMON_MANUAL_DESPAWN, 0))
@@ -446,6 +444,7 @@ class boss_daakara : public CreatureScript
                                     summon->CastSpell(summon, SPELL_CYCLONE_VISUAL, false);
                                     summon->CastSpell(summon, SPELL_FEATHER_CYCLONE, false);
                                     summon->AddThreat(player, 5000000.0f);
+                                    summon->CastSpell(player, SPELL_ENERGY_STORM, false);
                                 }
                             }
                             break;
@@ -631,11 +630,40 @@ class npc_flame_breath_daakara : public CreatureScript
         }
 };
 
+class spell_grievous_throw : public SpellScriptLoader
+{
+    public:
+        spell_grievous_throw() : SpellScriptLoader("spell_grievous_throw") { }
+
+        class spell_grievous_throw_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_grievous_throw_AuraScript);
+
+            void HandlePeriodic(AuraEffect const* aurEff)
+            {
+                if(Unit* target = GetUnitOwner())
+                    if(target->GetHealthPct() == 100)
+                        target->RemoveAura(SPELL_GRIEVOUS_THROW);
+            }
+
+            void Register()
+            {
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_grievous_throw_AuraScript::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_grievous_throw_AuraScript();
+        }
+};
+
 void AddSC_boss_daakara()
 {
     new boss_daakara();
     new mob_daakara_vortex();
     new mob_amani_lynx();
     new npc_flame_breath_daakara();
+    new spell_grievous_throw();
 }
 
