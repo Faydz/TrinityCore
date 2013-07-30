@@ -122,7 +122,7 @@ public:
 
         void UpdateAI(uint32 diff)
         {
-            if (!UpdateVictim() || (me->HasUnitState(UNIT_STATE_CASTING) && phase != 1))
+            if (!UpdateVictim() || me->HasUnitState(UNIT_STATE_CASTING))
                 return;
 
             events.Update(diff);
@@ -224,17 +224,17 @@ public:
                                 trackMob->Attack(target, true);
                                 trackMob->AddThreat(target, 10000.0f);
                                 trackMob->GetMotionMaster()->MoveFollow(target, 0.5f, 0.0f);
-                                DoCast(trackMob, SPELL_ROARING_FLAME_BREATH, false);
+                                DoCast(trackMob, SPELL_ROARING_FLAME_BREATH, true);
                             }
                             flameCount++;
-                            events.ScheduleEvent(EVENT_REMOVE_TRACK, 11000);
-                            events.ScheduleEvent(EVENT_ROARING_FLAME_BREATH, urand(11000, 12000));
+                            events.ScheduleEvent(EVENT_REMOVE_TRACK, 1000);
+                            events.ScheduleEvent(EVENT_ROARING_FLAME_BREATH, urand(1000, 2000));
                         }
                         break;
                     case EVENT_SONAR_BOMB:
                         if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true, 0))
                         {
-                            DoCast(target, SPELL_SONAR_BOMB, false);
+                            DoCast(target, SPELL_SONAR_BOMB, true);
                             Position pos;
                             target->GetPosition(&pos);
                             if (Creature* trigger = me->SummonCreature(70000, pos))
