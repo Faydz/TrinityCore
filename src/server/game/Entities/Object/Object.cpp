@@ -2955,9 +2955,7 @@ void WorldObject::GetNearPoint(WorldObject const* /*searcher*/, float &x, float 
 {
     GetNearPoint2D(x, y, distance2d+searcher_size, absAngle);
     z = GetPositionZ();
-    sLog->outError(LOG_FILTER_GENERAL, "PORCCCDDDLL %f %f %f", x, y, z);
     UpdateAllowedPositionZ(x, y, z);
-    sLog->outError(LOG_FILTER_GENERAL, "DIOCANEE %f %f %f", x, y, z);
 
     /*
     // if detection disabled, return first point
