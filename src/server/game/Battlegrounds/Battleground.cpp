@@ -1021,22 +1021,7 @@ void Battleground::BlockMovement(Player* player)
 
 void Battleground::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPacket)
 {
-    // FIRST OF ALL REMOVE SPECTATOR IN ANY CASE DON'T CARE ABOUT ANYTHING FUCK OFF SPECTATOR NIGGAS TUENTI DOLLAS IN MAI POKEEEE
-    if(Player* possibleSpectator = ObjectAccessor::FindPlayer(guid)){
 
-        if(possibleSpectator->GetSpectator())
-        {
-            // Arena Spectator - Script RemoveFromBattleground are called
-            sScriptMgr->OnPlayerRemoveFromBattleground(possibleSpectator, this);
-
-            BattlegroundPlayerMap::iterator itr = m_Players.find(guid);
-            if (itr != m_Players.end())
-            {
-                m_Players.erase(itr);
-            }
-        }
-    }
-    
     uint32 team = GetPlayerTeam(guid);
     bool participant = false;
     // Remove from lists/maps

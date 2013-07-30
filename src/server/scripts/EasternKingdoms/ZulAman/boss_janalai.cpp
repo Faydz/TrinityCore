@@ -181,7 +181,7 @@ class boss_janalai : public CreatureScript
 
                 events.ScheduleEvent(EVENT_FLAME_BREATH, urand(8000, 10000));
                 events.ScheduleEvent(EVENT_HATCHER, 12000);
-                events.ScheduleEvent(EVENT_FIRE_BOMB, urand(55000, 60000));
+                events.ScheduleEvent(EVENT_FIRE_BOMB, 55000);
                 events.ScheduleEvent(EVENT_BERSERK, 600000);
             }
 
@@ -251,7 +251,7 @@ class boss_janalai : public CreatureScript
                             break;
                         }
                         case EVENT_FIRE_BOMB_SUMMON:
-                            if(i < 40)
+                            if(i < 20)
                             {
                                 dx = float(irand(-area_dx/2, area_dx/2));
                                 dy = float(irand(-area_dy/2, area_dy/2));

@@ -51,6 +51,7 @@
 #include "Group.h"
 #include "Battlefield.h"
 #include "BattlefieldMgr.h"
+#include "MMapFactory.h"
 
 uint32 GuidHigh2TypeId(uint32 guid_hi)
 {
@@ -2003,6 +2004,11 @@ void WorldObject::UpdateGroundPositionZ(float x, float y, float &z) const
 
 void WorldObject::UpdateAllowedPositionZ(float x, float y, float &z) const
 {
+    // Skip this no-sense check if MMAPS aren't enabled
+    uint32 mapId = GetMapId();
+    if (!MMAP::MMapFactory::IsPathfindingEnabled(mapId))
+        return;
+
     switch (GetTypeId())
     {
         case TYPEID_UNIT:

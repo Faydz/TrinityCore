@@ -1,12 +1,12 @@
 -- Spawns
---DELETE FROM `creature` WHERE `id` IN (43735, 43689, 43688, 43686, 43687);
---INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES 
---(43686, 671, 15, 1, 0, 0, -1053.54, -598.477, 835.17, 0.226737, 300, 0, 0, 37964264, 0, 0, 0, 0, 0, 0),
---(43687, 671, 15, 1, 0, 0, -1053.52, -569.392, 835.189, 5.93502, 300, 0, 0, 37964264, 0, 0, 0, 0, 0, 0),
---(43688, 671, 15, 1, 0, 0, -1049.9, -605.693, 835.167, 0.606077, 300, 0, 0, 4564670, 2751000, 0, 0, 0, 0, 0),
---(43689, 671, 15, 1, 0, 0, -1050.84, -562.55, 835.184, 5.78657, 300, 0, 0, 4261950, 2206000, 0, 0, 0, 0, 0),
---(43735, 671, 15, 1, 0, 0, -1060.46, -582.656, 835.03, 0.027235, 300, 0, 0, 120839264, 0, 0, 0, 0, 0, 0);
---UPDATE `creature` SET `guid`=11859855 WHERE  `guid`=11859847 LIMIT 1;
+-- DELETE FROM `creature` WHERE `id` IN (43735, 43689, 43688, 43686, 43687);
+-- INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES 
+-- (43686, 671, 15, 1, 0, 0, -1053.54, -598.477, 835.17, 0.226737, 300, 0, 0, 37964264, 0, 0, 0, 0, 0, 0),
+-- (43687, 671, 15, 1, 0, 0, -1053.52, -569.392, 835.189, 5.93502, 300, 0, 0, 37964264, 0, 0, 0, 0, 0, 0),
+-- (43688, 671, 15, 1, 0, 0, -1049.9, -605.693, 835.167, 0.606077, 300, 0, 0, 4564670, 2751000, 0, 0, 0, 0, 0),
+-- (43689, 671, 15, 1, 0, 0, -1050.84, -562.55, 835.184, 5.78657, 300, 0, 0, 4261950, 2206000, 0, 0, 0, 0, 0),
+-- (43735, 671, 15, 1, 0, 0, -1060.46, -582.656, 835.03, 0.027235, 300, 0, 0, 120839264, 0, 0, 0, 0, 0, 0);
+-- UPDATE `creature` SET `guid`=11859855 WHERE  `guid`=11859847 LIMIT 1;
 
 
 -- Template Updates
@@ -28,7 +28,7 @@ UPDATE `creature_template` SET `modelid1`= 11686, `flags_extra`=1, `ScriptName`=
 UPDATE `creature_template` SET `modelid1`= 11686, `flags_extra`=1, `ScriptName`='npc_council_frozen_orb'      WHERE  `entry`=49518;
 UPDATE `creature_template` SET `modelid1`= 11686, `flags_extra`=1, `ScriptName`='npc_council_flamestrike'     WHERE  `entry`=50297;
 
---Spell Scripts Inserts
+-- Spell Scripts Inserts
 DELETE FROM `spell_linked_spell` WHERE `spell_trigger` IN (82860, 82817, 82813, 83500, 83581, 84948);
 INSERT INTO `spell_linked_spell` VALUES (82860, -82762, 1, 'ascendantCouncil');
 INSERT INTO `spell_linked_spell` VALUES (82817,  82666, 1, 'ascendantCouncil'); 

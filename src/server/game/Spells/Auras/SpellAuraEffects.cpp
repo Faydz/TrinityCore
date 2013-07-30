@@ -5126,6 +5126,18 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
 
             switch (m_spellInfo->SpellFamilyName)
             {
+                case SPELLFAMILY_GENERIC:
+                    switch (GetId())
+                    {
+                        // Electrical Storm immunity
+                        case 44007:
+                            target->ApplySpellImmune(0, IMMUNITY_ID, 97300, true);
+                            break;
+                        case 43648:
+                            target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+                            break;
+                    }
+                    break;
                 case SPELLFAMILY_DRUID:
                     switch (GetId())
                     {
@@ -5238,6 +5250,13 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                 case SPELLFAMILY_GENERIC:
                     switch (GetId())
                     {
+                        // Electrical Storm immunity
+                        case 44007:
+                            target->ApplySpellImmune(0, IMMUNITY_ID, 97300, false);
+                            break;
+                        case 43648:
+                            target->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+                            break;
                         case 2584: // Waiting to Resurrect
                             // Waiting to resurrect spell cancel, we must remove player from resurrect queue
                             if (target->GetTypeId() == TYPEID_PLAYER)

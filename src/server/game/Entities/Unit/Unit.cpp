@@ -728,7 +728,7 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
     // Rage from Damage made (only from direct weapon damage)
     if (cleanDamage && damagetype == DIRECT_DAMAGE && this != victim && getPowerType() == POWER_RAGE)
     {
-        uint32 rage = uint32(GetAttackTime(cleanDamage->attackType) / 1000 * 8.125f);
+        uint32 rage = uint32(GetAttackTime(cleanDamage->attackType) / 1000.0f * 6.5f);
 
         // Sentinel
         if(AuraEffect* aurEff = GetDummyAuraEffect(SPELLFAMILY_GENERIC, 1916, EFFECT_1))
@@ -747,6 +747,10 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
             }
         }
 
+        // Critical hit rewards double rage
+        if(cleanDamage->hitOutCome == MELEE_HIT_CRIT)
+            rage*=2;
+
         switch (cleanDamage->attackType)
         {
             case OFF_ATTACK:
@@ -757,13 +761,18 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
             default:
                 break;
         }
+
+        
     }
 
     if (!damage)
     {
         // Rage from absorbed damage
         if (cleanDamage && cleanDamage->absorbed_damage && victim->getPowerType() == POWER_RAGE)
-            victim->RewardRage(cleanDamage->absorbed_damage, false);
+        {
+            bool isPhysical =  damageSchoolMask == SPELL_SCHOOL_MASK_NORMAL ? true : false;
+            victim->RewardRage(cleanDamage->absorbed_damage, false, isPhysical);
+        }
 
         return 0;
     }
@@ -860,7 +869,8 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
         if (this != victim && victim->getPowerType() == POWER_RAGE)
         {
             uint32 rage_damage = damage + (cleanDamage ? cleanDamage->absorbed_damage : 0);
-            victim->RewardRage(rage_damage, false);
+            bool isPhysical =  damageSchoolMask == SPELL_SCHOOL_MASK_NORMAL ? true : false;
+            victim->RewardRage(rage_damage, false, isPhysical);
         }
 
         if (GetTypeId() == TYPEID_PLAYER)
@@ -19856,7 +19866,7 @@ void Unit::SendRemoveFromThreatListOpcode(HostileReference* pHostileReference)
 }
 
 // baseRage means damage taken when attacker = false
-void Unit::RewardRage(uint32 baseRage, bool attacker)
+void Unit::RewardRage(uint32 baseRage, bool attacker, bool isPhysical)
 {
     float addRage;
 
@@ -19868,34 +19878,22 @@ void Unit::RewardRage(uint32 baseRage, bool attacker)
     }
     else
     {
-        // Old formula: calculate rage from health and damage taken
-        // addRage = floor(0.5f + (25.7f * baseRage / GetMaxHealth()));
+        // Correct Formula:
+        // Magic-> Rage = 20.25 * (POSTmitigation damage/total health.)
+        // Phisical-> Rage = 18.92 * (PREmitigation damage/total health)
+        // Damage is already sended in baseRage as POST or PRE mitigation by the core
 
-        // http://www.wowwiki.com/Rage
-        // Rage conversion value
-        float c = 1.0f;
-        
-        switch(this->getLevel())
+        if (isPhysical)
         {
-            case 80:
-                c = 453.3f;
-                break;
-            case 81:
-            case 82:
-            case 83:
-            case 84:
-            case 85:
-                // For this coefficient it has been used the following inverse formula:
-                // c = damageTaken * 2.5 / rageGained
-                c = 575.125f;
-                break;
-            default:
-                c = 0.0091107836 * pow((float)this->getLevel(), 2) 
-                    + 3.225598133f * (float)this->getLevel() + 4.2652911f;
-                break;
-        }
+            float mod = 2.0f - GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN, SPELL_SCHOOL_MASK_NORMAL);
 
-        addRage = floor(2.5f * (baseRage / c));
+            baseRage += GetDamageReduction(baseRage);
+            baseRage *= mod;
+
+            addRage = 18.92f * float(float(baseRage) / float(GetMaxHealth()));
+        }
+        else
+            addRage = 20.25f * float(float(baseRage) / float(GetMaxHealth()));
 
         // Berserker Rage effect
         if (HasAura(18499))
@@ -19910,6 +19908,8 @@ void Unit::RewardRage(uint32 baseRage, bool attacker)
             }
         }
     }
+
+    addRage = addRage < 1.0f ? 1.0f : addRage;
 
     addRage *= sWorld->getRate(RATE_POWER_RAGE_INCOME);
 

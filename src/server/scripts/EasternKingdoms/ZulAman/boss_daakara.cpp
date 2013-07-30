@@ -63,10 +63,11 @@ enum Spells
     
     // Eagle Form
     SPELL_LIGHTNING_TOTEM           = 97492,
-    SPELL_SUMMON_CYCLONE            = 43112,
+    SPELL_SUMMON_CYCLONE            = 97649,
     SPELL_FEATHER_CYCLONE           = 43120,
     SPELL_CYCLONE_VISUAL            = 97835,
     SPELL_SWEEPING_WINDS            = 97647,
+    SPELL_SWEEPING_WINDS_MOVEMENT   = 97826,
     SPELL_ZAP                       = 43137,
     SPELL_ENERGY_STORM              = 43983,
     
@@ -141,6 +142,7 @@ enum Events
     EVENT_LIGHTNING_TOTEM,
     EVENT_SUMMON_FEATHER_CYCLONE,
     EVENT_SWEEPING_WINDS,
+    EVENT_SWEEPING_WINDS_MOVEMENT,
     
     // Dragonhawk Form
     EVENT_FLAME_WHIRL,
@@ -200,6 +202,13 @@ class boss_daakara : public CreatureScript
                 me->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, 33975);
                 //me->SetUInt32Value(UNIT_VIRTUAL_ITEM_INFO, 218172674);
                 //me->SetByteValue(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
+
+                std::list<Creature*> unitList;
+                me->GetCreatureListWithEntryInGrid(unitList, NPC_CYCLONE, 100.0f);
+                for (std::list<Creature*>::const_iterator itr = unitList.begin(); itr != unitList.end(); ++itr)
+                {
+                    (*itr)->DespawnOrUnsummon();               
+                }
             }
 
             void EnterCombat(Unit* /*who*/)
@@ -237,10 +246,16 @@ class boss_daakara : public CreatureScript
                 {
                     if (me->HealthBelowPct(80) && phase == 0)
                     {
-                        /*if(roll_chance_i(50))
+                        if(roll_chance_i(50))
+                        {
+                            phase++;
                             events.ScheduleEvent(EVENT_CHANGE_FORM_LYNX, 1);
-                        else*/
+                        }
+                        else
+                        {
+                            phase++;
                             events.ScheduleEvent(EVENT_CHANGE_FORM_BEAR, 1);
+                        }
                     }
 
                     if (me->HealthBelowPct(40) && phase == 1)
@@ -278,7 +293,6 @@ class boss_daakara : public CreatureScript
                             events.ScheduleEvent(EVENT_WHIRLWIND, 15000);
                             break;
                         case EVENT_CHANGE_FORM_LYNX:
-                            phase = 1;
                             me->GetMotionMaster()->MovePoint(0, CENTER_X, CENTER_Y, CENTER_Z);
 
                             if (Creature* lynxSpirit = me->GetCreature(*me, instance->GetData64(NPC_LYNX_SPIRIT)))
@@ -326,7 +340,6 @@ class boss_daakara : public CreatureScript
                             }
                             break;
                         case EVENT_CHANGE_FORM_BEAR:
-                            phase = 1;
                             me->GetMotionMaster()->MovePoint(0, CENTER_X, CENTER_Y, CENTER_Z);
 
                             if (Creature* bearSpirit = me->GetCreature(*me, instance->GetData64(NPC_BEAR_SPIRIT)))
@@ -335,7 +348,6 @@ class boss_daakara : public CreatureScript
                             events.ScheduleEvent(EVENT_BEAR, 2000);
                             break;
                         case EVENT_BEAR:
-                            phase = 1;
                             me->CastSpell(me, SPELL_SHAPE_OF_THE_BEAR, false);
                             me->GetMotionMaster()->MoveChase(me->getVictim());
 
@@ -434,35 +446,15 @@ class boss_daakara : public CreatureScript
                             me->CastSpell(me, SPELL_LIGHTNING_TOTEM, false);
                             events.ScheduleEvent(EVENT_LIGHTNING_TOTEM, 15000);
                             break;
-                        /*case EVENT_SUMMON_FEATHER_CYCLONE:
+                        case EVENT_SUMMON_FEATHER_CYCLONE:
                         {
-                            me->CastSpell(me, SPELL_ENERGY_STORM, false);
-                            Map* map = me->GetMap();
-                            if (map && map->IsDungeon())
-                            {
-                                std::list<Player*> PlayerList;
-                                Map::PlayerList const& Players = map->GetPlayers();
-                                for (Map::PlayerList::const_iterator itr = Players.begin(); itr != Players.end(); ++itr)
-                                {
-                                    if (Player* player = itr->getSource())
-                                    {
-                                        if(Creature* summon = me->SummonCreature(NPC_CYCLONE, me->GetPositionX()+rand()%10, me->GetPositionY()+rand()%10, me->GetPositionZ(), me->GetOrientation(), TEMPSUMMON_MANUAL_DESPAWN, 0))
-                                        {
-                                            player->Say("check player", LANG_UNIVERSAL);
-                                            summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
-                                            summon->CastSpell(summon, SPELL_CYCLONE_VISUAL, false);
-                                            summon->CastSpell(summon, SPELL_FEATHER_CYCLONE, false);
-                                            summon->AddThreat(player, 5000000.0f);
-                                        }
-                                    }
-                                }
-                            }
+                            me->CastSpell(me, SPELL_SUMMON_CYCLONE, false);
                             break;
                         }
                         case EVENT_SWEEPING_WINDS:
                             me->CastSpell(me, SPELL_SWEEPING_WINDS, false);
                             events.ScheduleEvent(EVENT_SWEEPING_WINDS, 1);
-                            break;*/
+                            break;
                         
                     }
                 }
@@ -486,20 +478,49 @@ class mob_daakara_vortex : public CreatureScript
         {
             mob_daakara_vortexAI(Creature* creature) : ScriptedAI(creature) {}
 
+            EventMap events;
+            
             void Reset() 
-            {}
-
-            void KilledUnit(Unit* victim)
             {
-                if(me->getVictim())
-                    if(me->getVictim()->GetGUID() == victim->GetGUID())
-                        me->DespawnOrUnsummon();
+                events.Reset();
             }
 
-            void EnterCombat(Unit* /*target*/) {}
+            void EnterCombat(Unit* /*target*/) 
+            { }
+
+            void IsSummonedBy(Unit* summoner)
+            {
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+                me->CastSpell(me, SPELL_ENERGY_STORM, false);
+                events.ScheduleEvent(EVENT_SWEEPING_WINDS_MOVEMENT, 8000);
+            }
 
             void UpdateAI(uint32 diff)
-            {}
+            {
+                if (!UpdateVictim())
+                    return;
+
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case EVENT_SWEEPING_WINDS_MOVEMENT:
+                            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+
+                            if (me->isSummon())
+                                if(Unit* target = me->ToTempSummon()->GetSummoner())
+                                    if(target->isAlive())
+                                        me->CastSpell(target, 97826, false);                                        
+                                    else
+                                        me->DespawnOrUnsummon();
+
+                            events.ScheduleEvent(EVENT_SWEEPING_WINDS_MOVEMENT, 8000);
+                            break;
+                    }
+                }
+            }
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -598,7 +619,6 @@ class npc_flame_breath_daakara : public CreatureScript
                 if(summoner->GetEntry() == NPC_DAAKARA)
                 {
                     z= summoner->GetPositionZ();
-                    sLog->outError(LOG_FILTER_GENERAL, "z %f", z);
                     events.ScheduleEvent(EVENT_SUMMON_FLAME_BREATH, 1);
                 }
             }
@@ -640,11 +660,40 @@ class npc_flame_breath_daakara : public CreatureScript
         }
 };
 
+class spell_grievous_throw : public SpellScriptLoader
+{
+    public:
+        spell_grievous_throw() : SpellScriptLoader("spell_grievous_throw") { }
+
+        class spell_grievous_throw_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_grievous_throw_AuraScript);
+
+            void HandlePeriodic(AuraEffect const* aurEff)
+            {
+                if(Unit* target = GetUnitOwner())
+                    if(target->GetHealthPct() == 100)
+                        target->RemoveAura(SPELL_GRIEVOUS_THROW);
+            }
+
+            void Register()
+            {
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_grievous_throw_AuraScript::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_grievous_throw_AuraScript();
+        }
+};
+
 void AddSC_boss_daakara()
 {
     new boss_daakara();
     new mob_daakara_vortex();
     new mob_amani_lynx();
     new npc_flame_breath_daakara();
+    new spell_grievous_throw();
 }
 

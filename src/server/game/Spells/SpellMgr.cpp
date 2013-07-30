@@ -3513,10 +3513,10 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_1].BasePoints = 0;
                 spellInfo->Effects[EFFECT_2].BasePoints = 0;
                 break;
-            case 82746: //ascendant council: glaciate
-            case 92506:
-            case 92507:
-            case 92508:
+            // Divine Fire
+            case 99131:
+                spellInfo->Effects[0].Effect = SPELL_EFFECT_ENERGIZE_PCT;
+                break;
             case 83565: //ascendant council: quake
             case 92544:
             case 92545:
@@ -3526,6 +3526,21 @@ void SpellMgr::LoadSpellCustomAttr()
             case 92470:
             case 92471:
                 spellInfo->Effects[EFFECT_1].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_100_YARDS);
+                break;
+            // Gust of Wind
+            case 97319:
+                spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_KNOCK_BACK;
+                spellInfo->Effects[EFFECT_0].BasePoints = 200;
+                spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+                spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_FLY;
+                break;
+            // Electrical Storm
+            case 43648:
+                spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
+                break;
+            // Surge
+            case 42402:
+                spellInfo->AttributesCu |= SPELL_ATTR0_CU_NEGATIVE_EFF2;
                 break;
             default:
                 break;

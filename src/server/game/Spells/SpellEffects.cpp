@@ -804,6 +804,17 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                         m_caster->ToPlayer()->toggleWorgenForm();
                     return;
                 }
+                // Sweeping Winds
+                case 97826:
+                {
+                    if(!unitTarget)
+                        return;
+                    
+                    Position pos;
+                    unitTarget->GetPosition(&pos);
+                    m_caster->GetMotionMaster()->MovePoint(0, pos);
+                    break;
+                }
             }
             break;
         case SPELLFAMILY_DRUID:
@@ -3901,31 +3912,20 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
             {
                 // Energy Storm
                 case 42577:
-                    if (!unitTarget || !GetCaster())
+                    if (!unitTarget)
                         return;
 
                     if(unitTarget->GetEntry() == 24136)
-                        unitTarget->CastSpell(GetCaster(), 43137, false);
+                        unitTarget->CastSpell(m_caster, 43137, false);
                     break;
-                // Sweeping Winds
-                /*case 97647:
-                {
-                    if (!unitTarget || !GetCaster())
+                // Summon Cyclone
+                case 97649:
+                    if (!unitTarget)
                         return;
-                
-                    if(unitTarget->GetEntry() == 24136)
-                    {
-                        if(unitTarget->getVictim())
-                        {
-                            unitTarget->getVictim()->ToPlayer()->Say("scripteffect", LANG_UNIVERSAL);
-                            unitTarget->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
-                            Position pos;
-                            unitTarget->getVictim()->GetPosition(&pos);
-                            unitTarget->GetMotionMaster()->MovePoint(0, pos);
-                        }
-                    }
+
+                    if(unitTarget->ToPlayer())
+                        unitTarget->CastSpell(unitTarget, m_spellInfo->Effects[effIndex].CalcValue(), false);
                     break;
-                }*/
                 // Vigilance
                 case 50725:
                     if (!unitTarget || !GetCaster())

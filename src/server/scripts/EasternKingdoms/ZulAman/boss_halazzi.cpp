@@ -168,10 +168,16 @@ class boss_halazzi : public CreatureScript
                     if (!me->HasAura(SPELL_TRANSFIGURE_FORM))
                     {
                         if (me->HealthBelowPct(60) && split == 0)
+                        {
+                            split++;
                             events.ScheduleEvent(EVENT_SPLIT, 1);
+                        }
 
                         if (me->HealthBelowPct(30) && split == 1)
+                        {
+                            split++;
                             events.ScheduleEvent(EVENT_SPLIT, 1);
+                        }
                     
                         if (me->HealthBelowPct(25))
                             events.ScheduleEvent(EVENT_LIGHTNING_TOTEM, urand (13000, 15000));
@@ -207,7 +213,6 @@ class boss_halazzi : public CreatureScript
                             me->CastSpell(me, SPELL_TRANSFIGURE_FORM, true);
                             me->CastSpell(me, SPELL_SUMMON_LYNX, true);
                             me->SetMaxHealth(2074850);
-                            split++;
 
                             events.ScheduleEvent(EVENT_LIGHTNING_TOTEM, urand (13000, 15000));
                             events.ScheduleEvent(EVENT_FLAME_SHOCK, 10000);

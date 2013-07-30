@@ -372,7 +372,7 @@ class boss_nalorakk : public CreatureScript
                         case EVENT_SURGE:
                             if(Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0))
                                 me->CastSpell(target, SPELL_SURGE, true);
-                            events.ScheduleEvent(EVENT_SURGE, 10000);
+                            events.ScheduleEvent(EVENT_SURGE, 9000);
                             break;
                         case EVENT_BRUTAL_STRIKE:
                             me->CastSpell(me->getVictim(), SPELL_BRUTAL_STRIKE, true);

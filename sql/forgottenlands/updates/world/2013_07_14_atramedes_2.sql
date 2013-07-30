@@ -1,4 +1,4 @@
-DELETE FROM `creature_template_addon` WHERE `entry` IN (49623, 78387);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (49623, 41807);
 INSERT INTO `creature_template_addon` (`entry`, `auras`) VALUES (49623, '77674');
 INSERT INTO `creature_template_addon` (`entry`, `auras`) VALUES (41807, '78387 78385');
 
