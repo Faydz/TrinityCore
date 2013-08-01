@@ -1011,7 +1011,7 @@ bool Guardian::UpdateStats(Stats stat)
     {
         switch (stat)
         {
-            case STAT_STAMINA:  mod = 0.88f; break;                // Default Owner's Stamina scale
+            case STAT_STAMINA:  mod = 0.48f; break;                // Default Owner's Stamina scale
             case STAT_STRENGTH: mod = 0.7f; break;                // Default Owner's Strength scale
             default: break;
         }
