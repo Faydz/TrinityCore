@@ -402,17 +402,17 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             case SPELLFAMILY_WARLOCK:
                 switch (m_spellInfo->Id)
                 {
-					// Searing Pain
-					case 5676:
-						// Soulburn: Searing Pain check
+                    // Searing Pain
+                    case 5676:
+                        // Soulburn: Searing Pain check
                         if(m_caster)
                         {
-							if(m_caster->HasAura(74434))
-							{
-								m_caster->CastSpell(m_caster, 79440, true);
-							}
-						}
-						break;
+                            if(m_caster->HasAura(74434))
+                            {
+                                m_caster->CastSpell(m_caster, 79440, true);
+                            }
+                        }
+                        break;
                     // Firebolt (basic attack)
                     case 3110:
                         if(m_caster && m_caster->isPet() && m_caster->ToPet()->GetOwner())
@@ -512,7 +512,7 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     // Victory Rush
                     case 34428:
                         ApplyPct(damage, m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
-						m_caster->RemoveAurasDueToSpell(32216);
+                        m_caster->RemoveAurasDueToSpell(32216);
                         break;
                     // Shockwave
                     case 46968: 
@@ -3810,14 +3810,14 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
                         break;
                     case SPELLFAMILY_WARRIOR:
                         //Rude Interruption
-			            if (m_spellInfo->Id == 6552) 
-			            {
-				            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61216))
-					            m_caster->AddAura(86662, m_caster); //Rank 1
-				            else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61221))
-					            m_caster->AddAura(86663, m_caster); //Rank 2
+                        if (m_spellInfo->Id == 6552) 
+                        {
+                            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61216))
+                                m_caster->AddAura(86662, m_caster); //Rank 1
+                            else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61221))
+                                m_caster->AddAura(86663, m_caster); //Rank 2
                         }
-			            break;
+                        break;
                 }
             }
         }

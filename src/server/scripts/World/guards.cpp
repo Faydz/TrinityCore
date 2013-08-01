@@ -73,11 +73,11 @@ public:
             // All operations available only for Retribution Guardian
             if(owner && isRetribution)
             {
-				if(!me->GetAura(86703))
-				{
-					// Cast Ancient Crusader on the guardian
-					owner->AddAura(86703, me);
-				}
+                if(!me->GetAura(86703))
+                {
+                    // Cast Ancient Crusader on the guardian
+                    owner->AddAura(86703, me);
+                }
 
                 Unit* ownerVictim = owner->getVictim();
                 

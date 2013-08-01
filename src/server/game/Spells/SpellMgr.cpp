@@ -2957,7 +2957,7 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_NEGATIVE_EFF0;
                 break;
             case 76838: //Warrior - Arms mastery
-			    spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
                 break;
             case 20711: // Spirit of redemption
                 spellInfo->Effects[0].ApplyAuraName = SPELL_AURA_DUMMY;
@@ -3140,8 +3140,8 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[EFFECT_1].MiscValue = 150;
                 spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
                 break;
-			// Scare Beast
-			case 1513:
+            // Scare Beast
+            case 1513:
             // Polymorph
             case 118:
             case 61305: // Polymorph (other animal)
@@ -3650,14 +3650,14 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 2812:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
                         break;
-					// Ancient Fury
-					case 86704:
-						spellInfo->AttributesEx6 |= SPELL_ATTR6_NO_DONE_PCT_DAMAGE_MODS;
-						break;
-					// Ancient Crusader
-					case 86701:
+                    // Ancient Fury
+                    case 86704:
+                        spellInfo->AttributesEx6 |= SPELL_ATTR6_NO_DONE_PCT_DAMAGE_MODS;
+                        break;
+                    // Ancient Crusader
+                    case 86701:
                         spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(9); // 30 seconds
-						break;
+                        break;
                     // Ancient Healer
                     case 86674: 
                         spellInfo->ProcCharges = 5;
@@ -3918,10 +3918,10 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 50622:
                         spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
                         break;
-					// Demoralizing Shout
-					case 1160:
+                    // Demoralizing Shout
+                    case 1160:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
-						break;
+                        break;
                     // Piercing Howl
                     case 12323:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
@@ -4017,10 +4017,10 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 78675:
                         spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_SILENCE;
                         break;
-					// Demoralizing Roar
-					case 99:
+                    // Demoralizing Roar
+                    case 99:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
-						break;
+                        break;
                     // Rake
                     case 1822:
                         spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_ARMOR;
@@ -4180,16 +4180,16 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 39666:
                         spellInfo->Effects[0].BasePoints = -200;
                         break;
-					// Shadow Dance
-					case 51713:
+                    // Shadow Dance
+                    case 51713:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
-						break;
+                        break;
                     // Glyph of Hemorrhage
                     case 56807:
-						spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
-						break;
-				}
-				break;
+                        spellInfo->Effects[EFFECT_0].TriggerSpell = 0;
+                        break;
+                }
+                break;
             case SPELLFAMILY_SHAMAN:
                 switch(spellInfo->Id)
                 {

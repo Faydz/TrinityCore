@@ -109,7 +109,7 @@ class spell_pal_ancient_fury : public SpellScriptLoader
         class spell_pal_ancient_fury_SpellScript : public SpellScript
         {
             PrepareSpellScript(spell_pal_ancient_fury_SpellScript);
-			
+            
             void CountTargets(std::list<WorldObject*>& targetList)
             {
                 _targetCount = targetList.size();
@@ -117,11 +117,11 @@ class spell_pal_ancient_fury : public SpellScriptLoader
 
             void ChangeDamage(SpellEffIndex /*effIndex*/)
             {
-				Unit* caster = GetCaster();
-				Unit* target = GetHitUnit();
+                Unit* caster = GetCaster();
+                Unit* target = GetHitUnit();
 
-				if(caster && target && _targetCount)
-				{
+                if(caster && target && _targetCount)
+                {
                     int32 damage = GetHitDamage();
 
                     if(Aura* aura = caster->GetAura(SPELL_PALADIN_GOAK_ANCIENT_POWER))
@@ -129,8 +129,8 @@ class spell_pal_ancient_fury : public SpellScriptLoader
                         damage = caster->SpellDamageBonusDone(target, GetSpellInfo(), damage, SPELL_DIRECT_DAMAGE);
                         damage = (damage * aura->GetStackAmount());
 
-						// "divided evenly among all targets"
-						damage /= _targetCount;
+                        // "divided evenly among all targets"
+                        damage /= _targetCount;
                     }
 
                     SetHitDamage(damage);
@@ -369,13 +369,13 @@ class spell_pal_inquisition : public SpellScriptLoader
 
                     if (caster->HasAura(SPELL_PALADIN_DIVINE_PURPOSE_PROC))
                     {
-						calculatedDuration = 12;
+                        calculatedDuration = 12;
 
                         caster->RemoveAurasDueToSpell(SPELL_PALADIN_DIVINE_PURPOSE_PROC);
                     }
                     else
                     {
-						calculatedDuration = caster->GetPower(POWER_HOLY_POWER) * 4;
+                        calculatedDuration = caster->GetPower(POWER_HOLY_POWER) * 4;
 
                         // If the Divine Purpose is not active, gives to Inquisition the normal behaviour
                         caster->SetPower(POWER_HOLY_POWER, 0);
@@ -2080,7 +2080,7 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 
 void AddSC_paladin_spell_scripts()
 {
-	new spell_pal_ancient_fury();
+    new spell_pal_ancient_fury();
     new spell_pal_cleanse();
     new spell_pal_guardian_of_ancient_kings_retri();
     new spell_pal_guardian_of_ancient_kings();

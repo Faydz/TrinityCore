@@ -819,10 +819,10 @@ void Player::UpdateMastery()
 {
     if (HasAuraType(SPELL_AURA_MASTERY))
     {
-		if(HasAura(76671))
-			GetAura(76671)->RecalculateAmountOfEffects();//Paladin Protection Mastery
-		if(HasAura(77514))
-			GetAura(77514)->RecalculateAmountOfEffects();//DK Frost Mastery
+        if(HasAura(76671))
+            GetAura(76671)->RecalculateAmountOfEffects();//Paladin Protection Mastery
+        if(HasAura(77514))
+            GetAura(77514)->RecalculateAmountOfEffects();//DK Frost Mastery
         if(HasAura(48517))
             GetAura(48517)->RecalculateAmountOfEffects();// Druid Balance Mastery
         if(HasAura(48518))
