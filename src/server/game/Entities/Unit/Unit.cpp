@@ -9089,6 +9089,11 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Glyph of Backstab
+        case 56800:
+            if(!(procSpell->Id == 53))
+                return false;
+            break;
         // Master Marksman
         case 34485:  // Rank 1
         case 34486:  // Rank 2
