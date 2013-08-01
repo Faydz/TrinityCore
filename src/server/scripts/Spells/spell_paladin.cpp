@@ -311,22 +311,25 @@ class spell_pal_inquisition : public SpellScriptLoader
             {
                 if(Unit* caster = GetCaster())
                 {
-                    calculatedDuration = caster->GetPower(POWER_HOLY_POWER) * 4;
-                    
-                    // Inquiry of Faith
-                    if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_PALADIN, 3025, EFFECT_1))
-                        AddPct(calculatedDuration, float(aurEff->GetAmount()));
                     
 
                     if (caster->HasAura(SPELL_PALADIN_DIVINE_PURPOSE_PROC))
                     {
+						calculatedDuration = 12;
+
                         caster->RemoveAurasDueToSpell(SPELL_PALADIN_DIVINE_PURPOSE_PROC);
                     }
                     else
                     {
+						calculatedDuration = caster->GetPower(POWER_HOLY_POWER) * 4;
+
                         // If the Divine Purpose is not active, gives to Inquisition the normal behaviour
                         caster->SetPower(POWER_HOLY_POWER, 0);
                     }
+                    
+                    // Inquiry of Faith
+                    if(AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_PALADIN, 3025, EFFECT_1))
+                        AddPct(calculatedDuration, float(aurEff->GetAmount()));
                 }
             }
             
