@@ -3623,13 +3623,6 @@ void SpellMgr::LoadSpellCustomAttr()
                         spellInfo->EquippedItemClass = -1;
                         spellInfo->EquippedItemInventoryTypeMask = 0;
                         break;
-                    // Improved Corruption
-                    case 17810:
-                    case 17811:
-                    case 17812:
-                        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
-                        spellInfo->Effects[EFFECT_0].MiscValue = 32;
-                        break;
                     // Soulburn: Seed of Corruption
                     case 86664:
                         spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
