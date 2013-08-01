@@ -397,7 +397,7 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                             {
                                 if(Unit* owner = caster->GetCharmerOrOwner())
                                 {
-                                    damage += owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.4f;
+                                    damage += owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.45f;
                                 }
                             }
                         }
