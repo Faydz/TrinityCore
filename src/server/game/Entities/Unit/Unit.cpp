@@ -9100,8 +9100,8 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
         case 48965:
         case 49571:
         case 49572:
-            // Cant's proc while in arena preparation
-            if (this->HasAura(32727))
+            // Cant's proc while in arena preparation or while having Dark Trasformation
+            if (this->HasAura(32727) || victim->HasAura(63560))
             {
                 return false;
             }
