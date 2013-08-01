@@ -358,17 +358,6 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
 
                 switch (m_spellInfo->Id)                     // better way to check unknown
                 {
-                    // Ancient Fury
-                    case 86704:
-                        if(m_caster)
-                        {
-                            if(Aura* aura = m_caster->GetAura(86700))
-                            {
-                                damage = m_caster->SpellDamageBonusDone(unitTarget, GetSpellInfo(), damage, SPELL_DIRECT_DAMAGE);
-                                damage += (damage * aura->GetStackAmount());
-                            }
-                        }
-                        break;
                     // Consumption
                     case 28865:
                         damage = (((InstanceMap*)m_caster->GetMap())->GetDifficulty() == REGULAR_DIFFICULTY ? 2750 : 4250);

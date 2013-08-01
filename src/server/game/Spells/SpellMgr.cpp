@@ -3650,6 +3650,14 @@ void SpellMgr::LoadSpellCustomAttr()
                     case 2812:
                         spellInfo->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
                         break;
+					// Ancient Fury
+					case 86704:
+						spellInfo->AttributesEx6 |= SPELL_ATTR6_NO_DONE_PCT_DAMAGE_MODS;
+						break;
+					// Ancient Crusader
+					case 86701:
+                        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(9); // 30 seconds
+						break;
                     // Ancient Healer
                     case 86674: 
                         spellInfo->ProcCharges = 5;

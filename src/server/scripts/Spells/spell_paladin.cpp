@@ -94,8 +94,62 @@ enum PaladinGuardianOfAncientKingsSpells
     SPELL_PALADIN_GOAK_PROTECTION_SUMMON         = 86659,
 
     SPELL_PALADIN_GOAK_RETRIBUTION_SUMMON        = 86698,
+    SPELL_PALADIN_GOAK_ANCIENT_POWER             = 86700,
     SPELL_PALADIN_GOAK_ANCIENT_CRUSADER          = 86701,
+    SPELL_PALADIN_GOAK_ANCIENT_CRUSADER_GUARDIAN = 86703,
     SPELL_PALADIN_GOAK_ANCIENT_FURY              = 86704,
+};
+
+// 86704 - Ancient Fury
+class spell_pal_ancient_fury : public SpellScriptLoader
+{
+    public:
+        spell_pal_ancient_fury() : SpellScriptLoader("spell_pal_ancient_fury") { }
+
+        class spell_pal_ancient_fury_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_pal_ancient_fury_SpellScript);
+			
+            void CountTargets(std::list<WorldObject*>& targetList)
+            {
+                _targetCount = targetList.size();
+            }
+
+            void ChangeDamage(SpellEffIndex /*effIndex*/)
+            {
+				Unit* caster = GetCaster();
+				Unit* target = GetHitUnit();
+
+				if(caster && target && _targetCount)
+				{
+                    int32 damage = GetHitDamage();
+
+                    if(Aura* aura = caster->GetAura(SPELL_PALADIN_GOAK_ANCIENT_POWER))
+                    {
+                        damage = caster->SpellDamageBonusDone(target, GetSpellInfo(), damage, SPELL_DIRECT_DAMAGE);
+                        damage = (damage * aura->GetStackAmount());
+
+						// "divided evenly among all targets"
+						damage /= _targetCount;
+                    }
+
+                    SetHitDamage(damage);
+                }
+            }
+        private:
+            uint32 _targetCount;
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_ancient_fury_SpellScript::CountTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
+                OnEffectHitTarget += SpellEffectFn(spell_pal_ancient_fury_SpellScript::ChangeDamage, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_pal_ancient_fury_SpellScript();
+        }
 };
 
 // 4987 - Cleanse
@@ -2026,6 +2080,7 @@ class spell_pal_seal_of_righteousness : public SpellScriptLoader
 
 void AddSC_paladin_spell_scripts()
 {
+	new spell_pal_ancient_fury();
     new spell_pal_cleanse();
     new spell_pal_guardian_of_ancient_kings_retri();
     new spell_pal_guardian_of_ancient_kings();

@@ -7214,6 +7214,14 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     if(!victim || this == victim)
                         return false;
                     break;
+				// Ancient Crusader (guardian)
+				case 86703:
+					if(Unit* owner = GetCharmerOrOwner())
+					{
+						owner->CastSpell(owner, 86700, true);
+						return true;
+					}
+					break;
                 // Ancient Crusader
                 case 86701:
                     triggered_spell_id = 86700;
