@@ -309,6 +309,7 @@ class Spell
         void EffectDurabilityDamagePCT(SpellEffIndex effIndex);
         void EffectModifyThreatPercent(SpellEffIndex effIndex);
         void EffectResurrectNew(SpellEffIndex effIndex);
+        void EffectMassResurrect(SpellEffIndex effIndex);
         void EffectAddExtraAttacks(SpellEffIndex effIndex);
         void EffectSpiritHeal(SpellEffIndex effIndex);
         void EffectSkinPlayerCorpse(SpellEffIndex effIndex);
@@ -439,7 +440,7 @@ class Spell
         void SendInterrupted(uint8 result);
         void SendChannelUpdate(uint32 time);
         void SendChannelStart(uint32 duration);
-        void SendResurrectRequest(Player* target);
+        void SendResurrectRequest(Player* target, bool forced = false);
 
         void HandleHolyPower(Player* caster);
         void HandleEffects(Unit* pUnitTarget, Item* pItemTarget, GameObject* pGOTarget, uint32 i, SpellEffectHandleMode mode);

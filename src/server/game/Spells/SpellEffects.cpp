@@ -358,17 +358,6 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
 
                 switch (m_spellInfo->Id)                     // better way to check unknown
                 {
-                    // Ancient Fury
-                    case 86704:
-                        if(m_caster)
-                        {
-                            if(Aura* aura = m_caster->GetAura(86700))
-                            {
-                                damage = m_caster->SpellDamageBonusDone(unitTarget, GetSpellInfo(), damage, SPELL_DIRECT_DAMAGE);
-                                damage += (damage * aura->GetStackAmount());
-                            }
-                        }
-                        break;
                     // Consumption
                     case 28865:
                         damage = (((InstanceMap*)m_caster->GetMap())->GetDifficulty() == REGULAR_DIFFICULTY ? 2750 : 4250);
@@ -397,7 +386,7 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                             {
                                 if(Unit* owner = caster->GetCharmerOrOwner())
                                 {
-                                    damage += owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.4f;
+                                    damage += owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.45f;
                                 }
                             }
                         }
@@ -413,17 +402,17 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             case SPELLFAMILY_WARLOCK:
                 switch (m_spellInfo->Id)
                 {
-					// Searing Pain
-					case 5676:
-						// Soulburn: Searing Pain check
+                    // Searing Pain
+                    case 5676:
+                        // Soulburn: Searing Pain check
                         if(m_caster)
                         {
-							if(m_caster->HasAura(74434))
-							{
-								m_caster->CastSpell(m_caster, 79440, true);
-							}
-						}
-						break;
+                            if(m_caster->HasAura(74434))
+                            {
+                                m_caster->CastSpell(m_caster, 79440, true);
+                            }
+                        }
+                        break;
                     // Firebolt (basic attack)
                     case 3110:
                         if(m_caster && m_caster->isPet() && m_caster->ToPet()->GetOwner())
@@ -523,7 +512,7 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     // Victory Rush
                     case 34428:
                         ApplyPct(damage, m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
-						m_caster->RemoveAurasDueToSpell(32216);
+                        m_caster->RemoveAurasDueToSpell(32216);
                         break;
                     // Shockwave
                     case 46968: 
@@ -2886,6 +2875,10 @@ void Spell::EffectDistract(SpellEffIndex /*effIndex*/)
     if (unitTarget->HasUnitState(UNIT_STATE_CONFUSED | UNIT_STATE_STUNNED | UNIT_STATE_FLEEING))
         return;
 
+    // Check if vision is obscured for that target
+    if (m_caster && m_caster->IsVisionObscured(unitTarget))
+        return;
+
     unitTarget->SetFacingTo(unitTarget->GetAngle(destTarget));
     unitTarget->ClearUnitState(UNIT_STATE_MOVING);
 
@@ -3817,14 +3810,14 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
                         break;
                     case SPELLFAMILY_WARRIOR:
                         //Rude Interruption
-			            if (m_spellInfo->Id == 6552) 
-			            {
-				            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61216))
-					            m_caster->AddAura(86662, m_caster); //Rank 1
-				            else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61221))
-					            m_caster->AddAura(86663, m_caster); //Rank 2
+                        if (m_spellInfo->Id == 6552) 
+                        {
+                            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61216))
+                                m_caster->AddAura(86662, m_caster); //Rank 1
+                            else if (m_caster->GetTypeId() == TYPEID_PLAYER && m_originalCaster->HasAura(61221))
+                                m_caster->AddAura(86663, m_caster); //Rank 2
                         }
-			            break;
+                        break;
                 }
             }
         }
@@ -5221,10 +5214,15 @@ void Spell::EffectResurrect(SpellEffIndex effIndex)
     uint32 health = target->CountPctFromMaxHealth(damage);
     uint32 mana   = CalculatePct(target->GetMaxPower(POWER_MANA), damage);
 
-    ExecuteLogEffectResurrect(effIndex, target);
+    bool forced = false;
 
+    // Force resurrection with Rebirth spell
+    if (GetSpellInfo())
+        forced = GetSpellInfo()->Id == 20484;
+
+    ExecuteLogEffectResurrect(effIndex, target);
     target->SetResurrectRequestData(m_caster, health, mana, 0);
-    SendResurrectRequest(target);
+    SendResurrectRequest(target, forced);
 }
 
 void Spell::EffectAddExtraAttacks(SpellEffIndex effIndex)

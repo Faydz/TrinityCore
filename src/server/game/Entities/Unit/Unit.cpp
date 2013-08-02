@@ -7214,6 +7214,14 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     if(!victim || this == victim)
                         return false;
                     break;
+				// Ancient Crusader (guardian)
+				case 86703:
+					if(Unit* owner = GetCharmerOrOwner())
+					{
+						owner->CastSpell(owner, 86700, true);
+						return true;
+					}
+					break;
                 // Ancient Crusader
                 case 86701:
                     triggered_spell_id = 86700;
@@ -9089,6 +9097,11 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+        // Glyph of Backstab
+        case 56800:
+            if(!(procSpell->Id == 53))
+                return false;
+            break;
         // Master Marksman
         case 34485:  // Rank 1
         case 34486:  // Rank 2
@@ -9100,8 +9113,8 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
         case 48965:
         case 49571:
         case 49572:
-            // Cant's proc while in arena preparation
-            if (this->HasAura(32727))
+            // Cant's proc while in arena preparation or while having Dark Trasformation
+            if (this->HasAura(32727) || victim->HasAura(63560))
             {
                 return false;
             }
@@ -20538,5 +20551,27 @@ void Unit::CheckCorruption()
     {
         AddAura(82170, this);
         AddAura(82193, this);
+    }
+}
+
+void Unit::GetResurectableRaidMember(std::list <Unit*> &nearMembers, float radius)
+{
+    Player *owner = GetCharmerOrOwnerPlayerOrPlayerItself();
+    if (!owner)
+        return;
+
+    Group* group = owner->GetGroup();
+    if (group)
+    {
+        for (GroupReference *itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+        {
+            Player* target = itr->getSource();
+
+            if (target && !IsHostileTo(target))
+            {
+                if (!target->isAlive() && IsWithinDistInMap(target, radius)) 
+                    nearMembers.push_back(target);
+            }
+        }
     }
 }

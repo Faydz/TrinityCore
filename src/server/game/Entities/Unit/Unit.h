@@ -2203,6 +2203,7 @@ class Unit : public WorldObject
         void ResetDamageDoneInPastSecs(uint32 secs);
         void ResetHealingDoneInPastSecs(uint32 secs);
         void CheckCorruption();
+        void GetResurectableRaidMember(std::list <Unit*> &nearMembers, float radius);
 
     protected:
         explicit Unit (bool isWorldObject);
