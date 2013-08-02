@@ -18,12 +18,12 @@
 /* 
 ##### Script Info #####
 Author: Nagash
-Progress: 95%
+Progress: 100%
 Website: www.forgottenlands.eu
 */
 
 // DA AGGIUNGERE/SISTEMARE:
-// le spell hero fan crashare
+//gli achievements vengon dati tutti alla prima uccisione senza criterio
 
 #include "ScriptPCH.h"
 #include "ScriptMgr.h"
@@ -105,66 +105,67 @@ enum Creatures
  
 enum spell_c
 {
-    SPELL_TELEPORT_VISUAL        = 26638, //funziona
-    SPELL_EXPLOSION_VISUAL       = 84207, //funziona
-    SPELL_ELEMENTAL_STASIS       = 82285, //da sistemare il range in spellmgr.cpp
+    SPELL_TELEPORT_VISUAL        = 26638, //ok
+    SPELL_EXPLOSION_VISUAL       = 84207, //ok
+    SPELL_ELEMENTAL_STASIS       = 82285, //works
     // Feludius
-    SPELL_FROZEN                 = 82772, //funziona
-    SPELL_GLACIATE               = 82746, //funziona
-    SPELL_HEART_OF_ICE           = 82665, //funziona
-    SPELL_ICY_REPRISAL           = 82817, //(danno di heart of ice)
-    SPELL_HYDRO_LANCE            = 82752, //funziona
-    SPELL_WATER_BOMB             = 82699, //funziona
-    SPELL_WATER_BOMB_EXPLO       = 82700, //solo danno, da testare se mette waterlogged
-    SPELL_WATER_BOMB_VISUAL      = 54260, //###### visuale da cambiare
-    SPELL_WATERLOGGED            = 82762, //funziona
-    SPELL_FROST_IMBUED           = 82666, //funziona
+    SPELL_FROZEN                 = 82772, //works
+    SPELL_GLACIATE               = 82746, //works
+    SPELL_HEART_OF_ICE           = 82665, //works
+    SPELL_ICY_REPRISAL           = 82817, //(heart of ice damage)
+    SPELL_HYDRO_LANCE            = 82752, //works
+    SPELL_WATER_BOMB             = 82699, //works
+    SPELL_WATER_BOMB_EXPLO       = 82700, //works
+    SPELL_WATER_BOMB_VISUAL      = 54260, //ok
+    SPELL_WATERLOGGED            = 82762, //works
+    SPELL_FROST_IMBUED           = 82666, //works
     // Ignacious
-    SPELL_AEGIS_OF_FLAME         = 82631, //funziona
-    SPELL_BURNING_BLOOD          = 82660, //funziona
-    SPELL_BURNING_SPITE          = 82813, //(danno di burning blood)
-    SPELL_FLAME_TORRENT          = 82777, //funziona
-    SPELL_INFERNO_LEAP           = 82856, //funziona
-    SPELL_INFERNO_RUSH           = 82859, //funziona
-    SPELL_INFERNO_AURA           = 88579, //funziona (aura delle fiamme, tikka la successiva)
-    SPELL_INFERNO_PERIODIC       = 82860, //funziona (tick periodico)
-    SPELL_RISING_FLAMES          = 82636, //funziona
-    SPELL_RISING_FLAMES_TICK     = 82643, //funziona
-    SPELL_RISING_FLAMES_BUFF     = 82639, //funziona
-    SPELL_FIRE_IMBUED            = 82663, //funziona
+    SPELL_AEGIS_OF_FLAME         = 82631, //works
+    SPELL_BURNING_BLOOD          = 82660, //works
+    SPELL_BURNING_SPITE          = 82813, //(burning blood damage)
+    SPELL_FLAME_TORRENT          = 82777, //works
+    SPELL_INFERNO_LEAP           = 82856, //works
+    SPELL_INFERNO_RUSH           = 82859, //works
+    SPELL_INFERNO_AURA           = 88579, //works (only aura, tick the next one)
+    SPELL_INFERNO_PERIODIC       = 82860, //works (DoT tick)
+    SPELL_RISING_FLAMES          = 82636, //works
+    SPELL_RISING_FLAMES_TICK     = 82643, //works
+    SPELL_RISING_FLAMES_BUFF     = 82639, //works
+    SPELL_FIRE_IMBUED            = 82663, //works
     // Arion
-    SPELL_THUNDERSHOCK           = 83067, //funziona
-    SPELL_LIGHTNING_ROD          = 83099, //funziona
-    SPELL_CHAIN_LIGHTNING        = 83282, //non fa nulla
-    SPELL_DISPERSION             = 83087, //teleport da scriptare
-    SPELL_LIGHTNING_BLAST        = 83070, //funziona
-    SPELL_CALL_WINDS             = 83491, //funziona
-    SPELL_VIOLENT_CYCLONE        = 83500, //funziona
-    SPELL_SWIRLING_WINDS         = 83500, //funziona
+    SPELL_THUNDERSHOCK           = 83067, //works
+    SPELL_LIGHTNING_ROD          = 83099, //works
+    SPELL_CHAIN_LIGHTNING        = 83282, //ok
+    SPELL_DISPERSION             = 83087, //ok
+    SPELL_LIGHTNING_BLAST        = 83070, //works
+    SPELL_CALL_WINDS             = 83491, //works
+    SPELL_VIOLENT_CYCLONE        = 83500, //works
+    SPELL_SWIRLING_WINDS         = 83500, //works
     // Terrastra
-    SPELL_QUAKE                  = 83565, //funziona
-    SPELL_MAGNETIC_PULL          = 28337, //funziona
+    SPELL_QUAKE                  = 83565, //works
+    SPELL_MAGNETIC_PULL          = 28337, //works
     SPELL_GRAVITY_WELL_AURA      = 83579,
-    SPELL_GROUNDED               = 83581, //funziona
-    SPELL_HARDEN_SKIN            = 83718, //funziona
-    SPELL_ERUPTION               = 83692, //funziona
+    SPELL_GROUNDED               = 83581, //works
+    SPELL_HARDEN_SKIN            = 83718, //works
+    SPELL_ERUPTION               = 83692, //works
     // Elementium Monstrosity
-    SPELL_GROW                   = 84917, //funziona
-    SPELL_LIQUID_ICE             = 84914, //danno da scriptare
-    SPELL_CRYOGENIC_AURA         = 84918, //da scriptare
-    SPELL_LAVA_SEED              = 84913, //manca npc
-    SPELL_LAVA_PLUME             = 84912, //funziona
+    SPELL_GROW                   = 84917, //works
+    SPELL_LIQUID_ICE             = 84914, //works
+    SPELL_CRYOGENIC_AURA         = 84918, //ok
+    SPELL_LAVA_SEED              = 84913, //works
+    SPELL_LAVA_PLUME             = 84912, //works
     SPELL_LAVA_SEED_AURA         = 84911,
-    SPELL_GRAVITY_CRUSH          = 84948, //funziona
+    SPELL_GRAVITY_CRUSH          = 84948, //works
     SPELL_GRAVITY_LAPSE_AURA     = 39432,
     SPELL_ELECTRICAL_INSTABILITY = 84529,
     // Heroics
     SPELL_STATIC_OVERLOAD        = 92067, // ok
     SPELL_GRAVITY_CORE           = 92075, // ok
-    SPELL_FLAMESTRIKE            = 92212, //funziona
-    SPELL_FLAMESTRIKE_VISUAL     = 36730,
-    SPELL_FROZEN_ORB_GLACIATE    = 92548,
-    SPELL_FROST_BEACON           = 92307,
+    SPELL_FLAMESTRIKE            = 92215, // works
+    SPELL_FLAMESTRIKE_VISUAL     = 92211, // Hell yeah!
+    SPELL_FROZEN_ORB_GLACIATE    = 92548, // works
+    SPELL_FROST_AURA             = 92302, // works
+    SPELL_FROST_BEACON           = 92307, // ok
  
 };
  
@@ -209,7 +210,8 @@ enum Events
     // Heroics
     EVENT_OVERLOAD_AND_CORE,
     EVENT_FLAMESTRIKE_AND_ORB,
- 
+    
+    DATA_ELEMENTARY,
 };
  
 enum BossActions
@@ -249,7 +251,6 @@ Position const cyclone[9] =
     {-1030.965f,  -544.392f,  835.250f,  0.0f },
     {-1016.965f,  -542.782f,  832.250f,  0.0f },
 };
- 
  
 class boss_elementium_monstrosity : public CreatureScript
 {
@@ -485,7 +486,7 @@ public:
                         if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0)){
                             if (ascendant[1] != NULL && !ascendant[1]->HasUnitState(UNIT_STATE_CASTING))
                             {
-                                ascendant[1]->CastSpell(pTarget, SPELL_HYDRO_LANCE, true);
+                                ascendant[1]->CastSpell(pTarget, SPELL_HYDRO_LANCE, false);
                                 events.ScheduleEvent(EVENT_HYDRO_LANCE, 10000);
                             }
                             else
@@ -497,7 +498,7 @@ public:
                         if (ascendant[1] && !ascendant[1]->HasUnitState(UNIT_STATE_CASTING))
                         {
                             if (ascendant[1]->getVictim())
-                                ascendant[1]->CastSpell(ascendant[1]->getVictim(), SPELL_WATER_BOMB, true);
+                                ascendant[1]->CastSpell(ascendant[1]->getVictim(), SPELL_WATER_BOMB, false);
                             events.ScheduleEvent(EVENT_WATER_BOMB, 16000);
                             events.ScheduleEvent(EVENT_WATER_BOMB_SPAWN, 2000);
                         }
@@ -539,7 +540,7 @@ public:
                         if (ascendant[0] != NULL && !ascendant[0]->HasUnitState(UNIT_STATE_CASTING))
                         {
                             ascendant[0]->CastSpell(ascendant[0], SPELL_AEGIS_OF_FLAME, true);
-                            ascendant[0]->CastSpell(ascendant[0], SPELL_RISING_FLAMES, true);
+                            ascendant[0]->CastSpell(ascendant[0], SPELL_RISING_FLAMES, false);
                             ascendant[0]->MonsterYell(SAY_RISING, 0, 0);
                             DoPlaySoundToSet(ascendant[0], SOU_RISING);
                             events.ScheduleEvent(EVENT_AEGIS_OF_FLAME, 16000);
@@ -562,7 +563,7 @@ public:
                         if (Unit *pTarget = SelectTarget(SELECT_TARGET_FARTHEST, 0)){
                             if (ascendant[0] != NULL && !ascendant[0]->HasUnitState(UNIT_STATE_CASTING))
                             {
-                                ascendant[0]->CastSpell(ascendant[0], SPELL_INFERNO_LEAP, false);
+                                ascendant[0]->CastSpell(ascendant[0], SPELL_INFERNO_LEAP, true);
                                 events.ScheduleEvent(EVENT_INFERNO_RUSH, 2000);
                                 events.ScheduleEvent(EVENT_INFERNO_LEAP, 16000);
                             }
@@ -577,7 +578,7 @@ public:
                     case EVENT_INFERNO_RUSH:
                         if (Unit* pTarget = ascendant[0]->getVictim()){
                             if (ascendant[0] != NULL){
-                                ascendant[0]->CastSpell(pTarget, SPELL_INFERNO_RUSH, false);
+                                ascendant[0]->CastSpell(pTarget, SPELL_INFERNO_RUSH, true);
                                 events.ScheduleEvent(EVENT_SPAWN_FLAME, 50);
                             }
                         }
@@ -821,8 +822,9 @@ public:
                                 }
                             }
                             if (newspawn)
+                            {
                                 me->SummonCreature(NPC_LIQUID_ICE, me->GetPositionX(),me->GetPositionY(), me->GetPositionZ(),me->GetOrientation());
-                            
+                            }                            
  
                             if (me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
                                 events.ScheduleEvent(EVENT_CRYOGENIC_AURA, 3000);
@@ -902,7 +904,7 @@ public:
                         return;
                         break;
                     case EVENT_FLAMESTRIKE_AND_ORB:
-                        if (Unit *pTarget = SelectTarget(SELECT_TARGET_FARTHEST, 0))
+                        if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true))
                         {
                             me->SummonCreature(NPC_FLAMESTRIKE_COUNCIL, pTarget->GetPositionX(),pTarget->GetPositionY(), pTarget->GetPositionZ(),pTarget->GetOrientation());
                             if (Unit *rTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
@@ -1063,7 +1065,15 @@ public:
                 if (instance && eventActive == true)
                     instance->SetData(DATA_COUNCIL_EVENT, FAIL);
                 eventActive = false;
-
+                
+                DespawnCreatures(NPC_INFERNO_RUSH );
+                DespawnCreatures(NPC_WATER_BOMB);
+                DespawnCreatures(NPC_VIOLENT_CYCLONE);
+                DespawnCreatures(NPC_GRAVITY_WELL );
+                DespawnCreatures(NPC_LIQUID_ICE );
+                DespawnCreatures(NPC_LAVA_SEED);
+                DespawnCreatures(NPC_FROZEN_ORB_COUNCIL);
+                DespawnCreatures(NPC_FLAMESTRIKE_COUNCIL);
                 ascendant[0]->SetFullHealth();
                 ascendant[1]->SetFullHealth();
                 ascendant[2]->SetFullHealth();
@@ -1384,20 +1394,36 @@ public: npc_council_frozen_orb() : CreatureScript("npc_council_frozen_orb") { }
         Unit* chase;
         Unit* flamestrike;
  
-        void Reset()
+        void InitializeAI()
         {
+            InstanceScript* instance = me->ToCreature()->GetInstanceScript();
+            Unit *monstrosity;
+            if (instance)
+                monstrosity = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_TERRASTRA));
+            else
+                me->DespawnOrUnsummon();
+            if (monstrosity != NULL && monstrosity->getVictim())
+            {
+                me->Attack(monstrosity->getVictim(), false);
+                DoZoneInCombat(me);
+                me->AttackStop();
+            }
+            else
+                me->DespawnOrUnsummon();
+            me->setFaction(monstrosity->getFaction());
             speed = 0.8f;
             me->SetSpeed(MOVE_WALK,   speed, true);
             me->SetSpeed(MOVE_RUN,    speed, true);
             me->SetSpeed(MOVE_FLIGHT, speed, true);
-            chase = SelectTarget(SELECT_TARGET_RANDOM, -10);
-            if (chase)
+            chase = SelectTarget(SELECT_TARGET_FARTHEST, 0);
+            if (chase != NULL)
             {
                 me->AddAura(SPELL_FROST_BEACON, chase);
+                me->AddAura(SPELL_FROST_AURA, me);
                 me->GetMotionMaster()->MoveChase(chase, 0, 0);
             }
             if (me->GetInstanceScript())
-                flamestrike = ObjectAccessor::GetCreature(*me, me->GetInstanceScript()->GetData64(NPC_FLAMESTRIKE_COUNCIL));
+                flamestrike = me->FindNearestCreature(NPC_FLAMESTRIKE_COUNCIL, 100, true);
             checkTimer = 100;
             dying = false;
  
@@ -1413,24 +1439,29 @@ public: npc_council_frozen_orb() : CreatureScript("npc_council_frozen_orb") { }
         {
             if (checkTimer <= diff)
             {
-                if (dying)
+                if (chase == NULL)
+                    chase = SelectTarget(SELECT_TARGET_FARTHEST, 0);
+                if (flamestrike == NULL && me->GetInstanceScript())
+                    flamestrike = me->FindNearestCreature(NPC_FLAMESTRIKE_COUNCIL, 100, true);
+                if (dying || chase == NULL || flamestrike == NULL)
+                {
                     me->DespawnOrUnsummon();
-                else if (!chase)
-                    chase = SelectTarget(SELECT_TARGET_RANDOM, -10);
-                if (!flamestrike && me->GetInstanceScript())
-                    flamestrike = ObjectAccessor::GetCreature(*me, me->GetInstanceScript()->GetData64(NPC_FLAMESTRIKE_COUNCIL));
+                    return;
+                }
+                me->GetMotionMaster()->MoveChase(chase, 0, 0);
+
                 me->SetSpeed(MOVE_WALK,   speed, true);
                 me->SetSpeed(MOVE_RUN,    speed, true);
                 me->SetSpeed(MOVE_FLIGHT, speed, true);
-                speed =  speed * 1.08;
+                speed =  speed * 1.05;
                 checkTimer = 1000;
-                if(me->GetDistance2d(flamestrike) < 6.0f)
+                if(me->GetDistance2d(flamestrike) < 3.0f)
                 {
                     me->DespawnOrUnsummon();
-                    if (flamestrike && flamestrike->ToCreature())
+                    if (flamestrike != NULL && flamestrike->ToCreature())
                         flamestrike->ToCreature()->DespawnOrUnsummon();
                 }
-                if(me->GetDistance(chase) < 5.0f)
+                if(me->GetDistance2d(chase) < 3.0f)
                 {
                     me->CastSpell(me, SPELL_FROZEN_ORB_GLACIATE, false);
                     dying=true;
@@ -1685,21 +1716,30 @@ public: npc_council_flamestrike() : CreatureScript("npc_council_flamestrike") {}
     npc_council_flamestrikeAI(Creature *c) :ScriptedAI(c) {}
  
     uint32 timer;
+    bool casted;
  
     void InitializeAI()
     {
-        timer = 3000;
-                    me->SetReactState(REACT_PASSIVE);
-                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        casted= false;
+        InstanceScript* instance = me->ToCreature()->GetInstanceScript();
+        Unit *monstrosity;
+        if (instance)
+            monstrosity = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_MONSTROSITY));
+        else
+            me->DespawnOrUnsummon();
+        me->setFaction(monstrosity->getFaction());
+        timer = 5000;
+        me->SetReactState(REACT_PASSIVE);
+        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         me->AddAura(SPELL_FLAMESTRIKE_VISUAL, me);
     }
  
     void UpdateAI(uint32 diff)
     {
-        if (timer <= diff)
+        if (timer <= diff && !casted)
         {
-            me->CastSpell(me, SPELL_FLAMESTRIKE, true);
+            casted = true;
+            me->AddAura(SPELL_FLAMESTRIKE, me);
             me->RemoveAura(SPELL_FLAMESTRIKE_VISUAL);
         }
         else
@@ -2079,7 +2119,7 @@ class spell_council_liquid_ice : public SpellScriptLoader
             return new spell_council_liquid_ice_SpellScript();
         }
 };
- 
+
 void AddSC_boss_ascendant_council()
 {
     new boss_elementium_monstrosity();
