@@ -20553,3 +20553,25 @@ void Unit::CheckCorruption()
         AddAura(82193, this);
     }
 }
+
+void Unit::GetResurectableRaidMember(std::list <Unit*> &nearMembers, float radius)
+{
+    Player *owner = GetCharmerOrOwnerPlayerOrPlayerItself();
+    if (!owner)
+        return;
+
+    Group* group = owner->GetGroup();
+    if (group)
+    {
+        for (GroupReference *itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+        {
+            Player* target = itr->getSource();
+
+            if (target && !IsHostileTo(target))
+            {
+                if (!target->isAlive() && IsWithinDistInMap(target, radius)) 
+                    nearMembers.push_back(target);
+            }
+        }
+    }
+}
