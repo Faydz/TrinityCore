@@ -5214,10 +5214,15 @@ void Spell::EffectResurrect(SpellEffIndex effIndex)
     uint32 health = target->CountPctFromMaxHealth(damage);
     uint32 mana   = CalculatePct(target->GetMaxPower(POWER_MANA), damage);
 
-    ExecuteLogEffectResurrect(effIndex, target);
+    bool forced = false;
 
+    // Force resurrection with Rebirth spell
+    if (GetSpellInfo())
+        forced = GetSpellInfo()->Id == 20484;
+
+    ExecuteLogEffectResurrect(effIndex, target);
     target->SetResurrectRequestData(m_caster, health, mana, 0);
-    SendResurrectRequest(target);
+    SendResurrectRequest(target, forced);
 }
 
 void Spell::EffectAddExtraAttacks(SpellEffIndex effIndex)

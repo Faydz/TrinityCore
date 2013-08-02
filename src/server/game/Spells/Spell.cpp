@@ -4448,8 +4448,16 @@ void Spell::SendChannelStart(uint32 duration)
     m_caster->SetUInt32Value(UNIT_CHANNEL_SPELL, m_spellInfo->Id);
 }
 
-void Spell::SendResurrectRequest(Player* target)
+void Spell::SendResurrectRequest(Player* target, bool forced)
 {
+    // Check if instance is in combat.. 
+    if (InstanceScript* instance = target->GetInstanceScript())
+    {
+        // If encounter is in progress and ress is not forced.. don't ress that player
+        if (instance->IsEncounterInProgress() && !forced)
+            return;
+    }
+
     // get ressurector name for creature resurrections, otherwise packet will be not accepted
     // for player resurrections the name is looked up by guid
     std::string const sentName(m_caster->GetTypeId() == TYPEID_PLAYER
