@@ -163,7 +163,6 @@ class boss_theralion : public CreatureScript
                         events.ScheduleEvent(EVENT_FABULOUS_FLAMES, urand(10000, 15000), 0, 0);
                         events.ScheduleEvent(EVENT_VALIONA_LAND, 95000, 0, 0);
                         events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_METEORITE, urand(5000, 8000), 0, 0);
-                        breathcount = 0;
                     case POINT_THERALION_HOME:
                         SetFlyState(false);
                         break;
@@ -321,43 +320,6 @@ class boss_theralion : public CreatureScript
                                 }
                             }
                             events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_METEORITE, urand(6000, 8000), 0, 0);
-                            break;
-                        case EVENT_VALIONA_TWILIGHT_BREATH:
-                            events.CancelEvent(EVENT_VALIONA_TWILIGHT_METEORITE);
-                            if (Creature* valiona = me->GetCreature(*me, instance->GetData64(DATA_VALIONA)))
-                            {
-                                switch(breathcount)
-                                {
-                                case 0:
-                                    valiona->SetSpeed(MOVE_FLIGHT, 3.0f, true);
-                                    valiona->GetMotionMaster()->MovePoint(0, flightpoints[0]);
-                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_BREATH, 5000, 0, 0);
-                                    break;
-                                case 1:
-                                    valiona->SetSpeed(MOVE_FLIGHT, 6.0f, true);
-                                    valiona->GetMotionMaster()->MovePoint(0, flightpoints[1]);
-                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_BREATH, 6000, 0, 0);
-                                    break;
-                                case 2:
-                                    valiona->SetFacingToObject(me);
-                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_BREATH, 4000, 0, 0);
-                                    break;
-                                case 3:
-                                    valiona->GetMotionMaster()->MovePoint(0, flightpoints[0]);
-                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_BREATH, 6000, 0, 0);
-                                    break;
-                                case 4:
-                                    valiona->SetFacingToObject(me);
-                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_BREATH, 4000, 0, 0);
-                                    break;
-                                case 5:
-                                    valiona->GetMotionMaster()->MovePoint(0, flightpoints[1]);
-                                    break;
-
-                                }
-                                breathcount++;
-                                //valiona->GetMotionMaster()->MovePoint(0, flightpoints[0])
-                            }
                             break;
                     }
                 }
