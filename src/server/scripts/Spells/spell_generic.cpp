@@ -3863,5 +3863,4 @@ void AddSC_generic_spell_scripts()
     new spell_gen_searing_bolt();
     new spell_gen_ring_of_frost();
     new spell_gen_forged_fury();
-    new spell_mass_resurrect();
 }
