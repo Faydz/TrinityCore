@@ -153,6 +153,7 @@ class boss_halfus_wyrmbreaker : public CreatureScript
                 instance->SetData(DATA_WYRMBREAKER_EVENT, IN_PROGRESS);
 
                 me->MonsterYell("Cho'gall will have your heads! ALL OF THEM!", LANG_UNIVERSAL, 0);
+                DoPlaySoundToSet(me, 20186);
 
                 // Increased Attack Speed
                 me->AddAura(SPELL_FRENZIED_ASSAULT, me);
@@ -201,6 +202,7 @@ class boss_halfus_wyrmbreaker : public CreatureScript
             void KilledUnit(Unit* victim)
             {
                 me->MonsterYell("The burden of the damned falls upon you!", LANG_UNIVERSAL, 0);
+                DoPlaySoundToSet(me, 20188);
             }
 
             void DamageTaken(Unit* who, uint32 &damage)
