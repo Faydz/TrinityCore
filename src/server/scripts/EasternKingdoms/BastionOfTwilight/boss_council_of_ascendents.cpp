@@ -457,8 +457,8 @@ public:
                                 events.ScheduleEvent(EVENT_ZAP, 2000);
                                 events.ScheduleEvent(EVENT_CRYOGENIC_AURA, 6000);
                                 events.ScheduleEvent(EVENT_ELECTRICAL_INSTABILITY, 10000);
-                                events.ScheduleEvent(EVENT_LAVA_SEED, 18000);
-                                events.ScheduleEvent(EVENT_GRAVITY_CRUSH, 8000);
+                                events.ScheduleEvent(EVENT_LAVA_SEED, 20000);
+                                events.ScheduleEvent(EVENT_GRAVITY_CRUSH, 10000);
                                 break;
                             default:
                                 break;
@@ -476,7 +476,7 @@ public:
                             ascendant[1]->CastSpell(ascendant[1]->getVictim(), SPELL_GLACIATE, false);
                             ascendant[1]->MonsterYell(SAY_GLACIATE, 0, 0);
                             DoPlaySoundToSet(ascendant[1], SOU_GLACIATE);
-                            events.ScheduleEvent(EVENT_GLACIATE, 16000);
+                            events.ScheduleEvent(EVENT_GLACIATE, 56000);
                         }
                         else
                             events.ScheduleEvent(EVENT_GLACIATE, 1000);
@@ -487,7 +487,7 @@ public:
                             if (ascendant[1] != NULL && !ascendant[1]->HasUnitState(UNIT_STATE_CASTING))
                             {
                                 ascendant[1]->CastSpell(pTarget, SPELL_HYDRO_LANCE, false);
-                                events.ScheduleEvent(EVENT_HYDRO_LANCE, 10000);
+                                events.ScheduleEvent(EVENT_HYDRO_LANCE, 18000);
                             }
                             else
                                 events.ScheduleEvent(EVENT_HYDRO_LANCE, 1000);
@@ -499,7 +499,7 @@ public:
                         {
                             if (ascendant[1]->getVictim())
                                 ascendant[1]->CastSpell(ascendant[1]->getVictim(), SPELL_WATER_BOMB, false);
-                            events.ScheduleEvent(EVENT_WATER_BOMB, 16000);
+                            events.ScheduleEvent(EVENT_WATER_BOMB, 26000);
                             events.ScheduleEvent(EVENT_WATER_BOMB_SPAWN, 2000);
                         }
                         else
@@ -543,7 +543,7 @@ public:
                             ascendant[0]->CastSpell(ascendant[0], SPELL_RISING_FLAMES, false);
                             ascendant[0]->MonsterYell(SAY_RISING, 0, 0);
                             DoPlaySoundToSet(ascendant[0], SOU_RISING);
-                            events.ScheduleEvent(EVENT_AEGIS_OF_FLAME, 16000);
+                            events.ScheduleEvent(EVENT_AEGIS_OF_FLAME, 56000);
                             //events.ScheduleEvent(EVENT_RISING_FLAMES, 1550);
                         }
                         else
@@ -565,7 +565,7 @@ public:
                             {
                                 ascendant[0]->CastSpell(ascendant[0], SPELL_INFERNO_LEAP, true);
                                 events.ScheduleEvent(EVENT_INFERNO_RUSH, 2000);
-                                events.ScheduleEvent(EVENT_INFERNO_LEAP, 16000);
+                                events.ScheduleEvent(EVENT_INFERNO_LEAP, 26000);
                             }
                             else
                             {
@@ -605,7 +605,7 @@ public:
                             {
                                 ascendant[0]->CastSpell(pTarget, SPELL_FLAME_TORRENT, false);
                             }
-                            events.ScheduleEvent(EVENT_FLAME_TORRENT, 10000);
+                            events.ScheduleEvent(EVENT_FLAME_TORRENT, 30000);
                         }
                         else
                         {
@@ -858,12 +858,12 @@ public:
                         //me->CastSpell(me, SPELL_GRAVITY_CRUSH, false);
                         me->MonsterYell(SAY_CRUSH, 0, 0);
                         DoPlaySoundToSet(me, SOU_CRUSH);
-                        events.ScheduleEvent(EVENT_GRAVITY_CRUSH, 20000);
+                        events.ScheduleEvent(EVENT_GRAVITY_CRUSH, 24000);
                         return;
                         break;
                     case EVENT_LAVA_SEED:
                         me->CastSpell(me, SPELL_LAVA_SEED, false);
-                        events.ScheduleEvent(EVENT_LAVA_SEED, 20000);
+                        events.ScheduleEvent(EVENT_LAVA_SEED, 24000);
                         events.ScheduleEvent(EVENT_LAVA_SEED_SPAWN, 2000);
                         return;
                         break;
@@ -951,13 +951,13 @@ public:
                 ascendant[1]->MonsterYell(SAY_AGGRO1, 0, 0);
                 DoPlaySoundToSet(ascendant[0], SOU_AGGRO1);
                 events.ScheduleEvent(EVENT_SAY, 4000);
-                events.ScheduleEvent(EVENT_GLACIATE, 15000);
-                events.ScheduleEvent(EVENT_HYDRO_LANCE, 6500);
-                events.ScheduleEvent(EVENT_WATER_BOMB, urand(8000, 10000));
+                events.ScheduleEvent(EVENT_GLACIATE, 25000);
+                events.ScheduleEvent(EVENT_HYDRO_LANCE, 15500);
+                events.ScheduleEvent(EVENT_WATER_BOMB, urand(12000, 14000));
                 events.ScheduleEvent(EVENT_HEART_OF_ICE, urand(20000, 40000));
-                events.ScheduleEvent(EVENT_AEGIS_OF_FLAME, urand(15000, 20000));
+                events.ScheduleEvent(EVENT_AEGIS_OF_FLAME, urand(50000, 60000));
                 events.ScheduleEvent(EVENT_INFERNO_LEAP, urand(10000, 10000));
-                events.ScheduleEvent(EVENT_FLAME_TORRENT, 6500);
+                events.ScheduleEvent(EVENT_FLAME_TORRENT, 15500);
                 events.ScheduleEvent(EVENT_BURNING_BLOOD, urand(20000, 40000));
                 if (me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
                     events.ScheduleEvent(EVENT_OVERLOAD_AND_CORE, 19000);
@@ -1725,8 +1725,12 @@ public: npc_council_flamestrike() : CreatureScript("npc_council_flamestrike") {}
         Unit *monstrosity;
         if (instance)
             monstrosity = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_MONSTROSITY));
-        else
+        if (monstrosity == NULL || !instance)
+        {
             me->DespawnOrUnsummon();
+            return;
+        }
+
         me->setFaction(monstrosity->getFaction());
         timer = 5000;
         me->SetReactState(REACT_PASSIVE);
