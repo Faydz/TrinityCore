@@ -3772,58 +3772,6 @@ public:
 };
 
 
-enum MassResurrectIds
-{
-    SPELL_MASS_RESURRECT_DEBUFF     = 95223
-};
-
-class spell_mass_resurrect : public SpellScriptLoader
-{
-    public:
-        spell_mass_resurrect() : SpellScriptLoader("spell_mass_resurrect") { }
-
-        class spell_mass_resurrect_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_mass_resurrect_SpellScript);
-
-            void DoMassResurrect()
-            {
-                if(GetCaster()){
-                    if(Player *caster = GetCaster()->ToPlayer()){
-                        if(Map *castermap = GetCaster()->GetMap()){
-                            Map::PlayerList const &players = castermap->GetPlayers();
-                            for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-                            {
-                                if(itr->getSource()->IsInSameGroupWith(caster) || itr->getSource()->IsInSameRaidWith(caster)){
-                                    if(itr->getSource()->GetDistance(caster) <= 100){
-                                        if(!itr->getSource()->HasAura(SPELL_MASS_RESURRECT_DEBUFF)){
-                                            itr->getSource()->ResurrectPlayer(35);
-                                            itr->getSource()->AddAura(SPELL_MASS_RESURRECT_DEBUFF,itr->getSource());
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            void Register()
-            {
-                AfterCast += SpellCastFn(spell_mass_resurrect_SpellScript::DoMassResurrect);
-            }
-        };
-
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_mass_resurrect_SpellScript();
-        }
-};
-
-
-
-
-
 void AddSC_generic_spell_scripts()
 {
     new spell_gen_absorb0_hitlimit1();
