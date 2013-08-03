@@ -15253,7 +15253,9 @@ void Unit::SetMaxPower(Powers power, int32 val)
         {
             Unit* owner = GetOwner();
             if (owner && (owner->GetTypeId() == TYPEID_PLAYER) && owner->ToPlayer()->GetGroup())
+            {
                 owner->ToPlayer()->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_MAX_POWER);
+            }
         }
     }
 
@@ -15270,7 +15272,11 @@ uint32 Unit::GetPowerIndex(uint32 powerType) const
     uint32 classId = getClass();
     if (ToPet() && ToPet()->getPetType() == HUNTER_PET)
         classId = CLASS_HUNTER;
-
+    
+    // Same for ghoul.. it should have energy!
+    if (ToPet() && ToPet()->IsPetGhoul())
+        classId = CLASS_ROGUE;
+    
     return GetPowerIndexByClass(powerType, classId);
 }
 

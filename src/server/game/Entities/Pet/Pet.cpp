@@ -439,7 +439,7 @@ void Pet::SavePetToDB(PetSaveMode mode)
 
         // Non ci stò a capì una sega
         uint32 slot = mode;
-        if (mode == PET_SAVE_AS_CURRENT)
+        if (mode == PET_SAVE_AS_CURRENT && getPetType() == HUNTER_PET)
             slot = uint32(owner->m_currentPetSlot);
 
         // prevent existence another hunter pet in PET_SAVE_AS_CURRENT and PET_SAVE_NOT_IN_SLOT
@@ -643,9 +643,6 @@ void Pet::Update(uint32 diff)
                 }
             }
 
-            //if (IsPetGhoul())
-            //    setPowerType(POWER_ENERGY);
-
             //regenerate focus for hunter pets or energy for deathknight's ghoul
             if (m_regenTimer)
             {
@@ -665,7 +662,7 @@ void Pet::Update(uint32 diff)
                                 m_regenTimer = PET_FOCUS_REGEN_INTERVAL;
                             break;
                         // in creature::update
-                        case POWER_ENERGY:
+                        case POWER_ENERGY:                    
                             Regenerate(POWER_ENERGY);
                             m_regenTimer += CREATURE_REGEN_INTERVAL - diff;
                             if (!m_regenTimer) 
@@ -709,7 +706,7 @@ void Creature::Regenerate(Powers power)
         case POWER_ENERGY:
         {
             // For deathknight's ghoul.
-            addvalue = 20;
+            addvalue = 10;
             break;
         }
         default:
@@ -967,7 +964,7 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
             if (IsPetGhoul())
             {
                 setPowerType(POWER_ENERGY);
-                SetCreateMana(100);
+                SetMaxPower(POWER_ENERGY, 100);
             }
 
             //SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(cinfo->attackpower));
