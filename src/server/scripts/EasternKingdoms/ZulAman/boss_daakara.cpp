@@ -660,40 +660,11 @@ class npc_flame_breath_daakara : public CreatureScript
         }
 };
 
-class spell_grievous_throw : public SpellScriptLoader
-{
-    public:
-        spell_grievous_throw() : SpellScriptLoader("spell_grievous_throw") { }
-
-        class spell_grievous_throw_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_grievous_throw_AuraScript);
-
-            void HandlePeriodic(AuraEffect const* aurEff)
-            {
-                if(Unit* target = GetUnitOwner())
-                    if(target->GetHealthPct() == 100)
-                        target->RemoveAura(SPELL_GRIEVOUS_THROW);
-            }
-
-            void Register()
-            {
-                OnEffectPeriodic += AuraEffectPeriodicFn(spell_grievous_throw_AuraScript::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
-            }
-        };
-
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_grievous_throw_AuraScript();
-        }
-};
-
 void AddSC_boss_daakara()
 {
     new boss_daakara();
     new mob_daakara_vortex();
     new mob_amani_lynx();
     new npc_flame_breath_daakara();
-    new spell_grievous_throw();
 }
 
