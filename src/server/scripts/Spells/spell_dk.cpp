@@ -906,6 +906,34 @@ class spell_dk_improved_unholy_presence : public SpellScriptLoader
         }
 };
 
+// 73975 - Necrotic Strike
+class spell_dk_necrotic_strike : public SpellScriptLoader
+{
+    public:
+        spell_dk_necrotic_strike() : SpellScriptLoader("spell_dk_necrotic_strike") { }
+
+        class spell_dk_necrotic_strike_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_dk_necrotic_strike_AuraScript);
+
+            void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool & /*canBeRecalculated*/)
+            {
+                if (Unit* caster = GetCaster())
+                    amount = int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.7f);
+            }
+
+            void Register() OVERRIDE
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dk_necrotic_strike_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_HEAL_ABSORB);
+            }
+        };
+
+        AuraScript* GetAuraScript() const OVERRIDE
+        {
+            return new spell_dk_necrotic_strike_AuraScript();
+        }
+};
+
 // 48266 - Blood Presence
 // 48263 - Frost Presence
 // 48265 - Unholy Presence
@@ -1167,7 +1195,7 @@ class spell_dk_will_of_the_necropolis : public SpellScriptLoader
         {
             PrepareAuraScript(spell_dk_will_of_the_necropolis_AuraScript);
 
-            bool Validate(SpellInfo const* spellInfo) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_DK_WILL_OF_THE_NECROPOLIS))
                     return false;
@@ -1184,7 +1212,7 @@ class spell_dk_will_of_the_necropolis : public SpellScriptLoader
                return GetTarget()->HealthBelowPctDamaged(30, eventInfo.GetDamageInfo()->GetDamage());
             }
 
-            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+            void HandleProc(AuraEffect const* aurEff, ProcEventInfo& /*eventInfo*/)
             {
                 GetTarget()->CastSpell(GetTarget(), SPELL_DK_WILL_OF_THE_NECROPOLIS, true, NULL, aurEff);
 
@@ -1227,6 +1255,7 @@ void AddSC_deathknight_spell_scripts()
     new spell_dk_improved_blood_presence();
     new spell_dk_improved_frost_presence();
     new spell_dk_improved_unholy_presence();
+    new spell_dk_necrotic_strike();
     new spell_dk_presence();
     new spell_dk_rune_tap_party();
     new spell_dk_scent_of_blood();
