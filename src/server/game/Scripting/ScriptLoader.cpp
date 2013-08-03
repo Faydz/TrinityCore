@@ -1347,6 +1347,8 @@ void AddBattlegroundScripts()
 #ifdef SCRIPTS
 /* This is where custom scripts' loading functions should be declared. */
 void AddSC_LearnSpellsOnLevelUp();
+void AddSC_boss_halfus();
+void AddSC_boss_theralion();
 
 #endif
 
@@ -1356,5 +1358,7 @@ void AddCustomScripts()
     /* This is where custom scripts should be added. */
 	AddSC_LearnSpellsOnLevelUp();
 	AddSC_Generall_Umbriss();
+	AddSC_boss_halfus();
+	AddSC_boss_theralion();
 #endif
 }

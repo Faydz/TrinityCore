@@ -205,6 +205,9 @@ set(scripts_STAT_SRCS
   EasternKingdoms/Karazhan/boss_moroes.cpp
   EasternKingdoms/Karazhan/boss_terestian_illhoof.cpp
   EasternKingdoms/Karazhan/karazhan.h
+  EasternKingdoms/BastionOfTwilight/boss_halfus.cpp
+  EasternKingdoms/BastionOfTwilight/boss_theralion.cpp
+  EasternKingdoms/BastionOfTwilight/bastion_of_twilight.h
 )
 
 message("  -> Prepared: Eastern Kingdoms")
