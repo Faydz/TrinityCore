@@ -665,6 +665,7 @@ void AddSC_boss_chogall();
 void AddSC_boss_ascendant_council();
 void AddSC_boss_halfus_wyrmbreaker();
 void AddSC_boss_theralion();
+void AddSC_boss_sinestra();
 void AddSC_instance_the_bastion_of_twilight();
 void AddSC_mob_trash_throne_of_tides();
 // Blackwing Descent
@@ -817,6 +818,7 @@ void AddEasternKingdomsScripts()
     AddSC_boss_ascendant_council();
     AddSC_boss_halfus_wyrmbreaker();
     AddSC_boss_theralion();
+    AddSC_boss_sinestra();
     AddSC_instance_the_bastion_of_twilight();
     AddSC_boss_chimaeron();                 //Blackwing Descent
     AddSC_boss_atramedes();

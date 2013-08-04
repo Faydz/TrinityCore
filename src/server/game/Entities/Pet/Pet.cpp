@@ -437,13 +437,18 @@ void Pet::SavePetToDB(PetSaveMode mode)
             trans->Append(stmt);
         }*/
 
+        // Non ci stò a capì una sega
+        uint32 slot = mode;
+        if (mode == PET_SAVE_AS_CURRENT && getPetType() == HUNTER_PET)
+            slot = uint32(owner->m_currentPetSlot);
+
         // prevent existence another hunter pet in PET_SAVE_AS_CURRENT and PET_SAVE_NOT_IN_SLOT
         // Remove pet of the same slot
         if (getPetType() == HUNTER_PET && ((mode >= PET_SAVE_AS_CURRENT && mode < PET_SAVE_FIRST_STABLE_SLOT) || mode > PET_SAVE_LAST_STABLE_SLOT))
         {
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_PET_BY_SLOT);
             stmt->setUInt32(0, ownerLowGUID);
-            stmt->setUInt8(1, uint8(mode));
+            stmt->setUInt8(1, uint8(slot));
             stmt->setUInt8(2, uint8(PET_SAVE_LAST_STABLE_SLOT));
             trans->Append(stmt);
         }
@@ -459,7 +464,7 @@ void Pet::SavePetToDB(PetSaveMode mode)
             << uint32(getLevel()) << ','
             << GetUInt32Value(UNIT_FIELD_PETEXPERIENCE) << ','
             << uint32(GetReactState()) << ','
-            << uint32(mode) << ", '"
+            << uint32(slot) << ", '"
             << name.c_str() << "', "
             << uint32(HasByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_RENAMED) ? 0 : 1) << ','
             << curhealth << ','
@@ -638,9 +643,6 @@ void Pet::Update(uint32 diff)
                 }
             }
 
-            //if (IsPetGhoul())
-            //    setPowerType(POWER_ENERGY);
-
             //regenerate focus for hunter pets or energy for deathknight's ghoul
             if (m_regenTimer)
             {
@@ -660,7 +662,7 @@ void Pet::Update(uint32 diff)
                                 m_regenTimer = PET_FOCUS_REGEN_INTERVAL;
                             break;
                         // in creature::update
-                        case POWER_ENERGY:
+                        case POWER_ENERGY:                    
                             Regenerate(POWER_ENERGY);
                             m_regenTimer += CREATURE_REGEN_INTERVAL - diff;
                             if (!m_regenTimer) 
@@ -704,7 +706,7 @@ void Creature::Regenerate(Powers power)
         case POWER_ENERGY:
         {
             // For deathknight's ghoul.
-            addvalue = 20;
+            addvalue = 10;
             break;
         }
         default:
@@ -962,7 +964,7 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
             if (IsPetGhoul())
             {
                 setPowerType(POWER_ENERGY);
-                SetCreateMana(100);
+                SetMaxPower(POWER_ENERGY, 100);
             }
 
             //SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(cinfo->attackpower));
