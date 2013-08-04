@@ -42,22 +42,22 @@ enum sharedDatas
 
 class boss_sinestra : public CreatureScript
 {
-	public:
-		boss_sinestra() : CreatureScript("boss_sinestra") {}
+    public:
+        boss_sinestra() : CreatureScript("boss_sinestra") {}
 
-		struct boss_sinestraAI : public BossAI
-		{
-			boss_sinestraAI(Creature * creature) : BossAI(creature, DATA_SINESTRA)
-			{
-				instance = me->GetInstanceScript();
-			}
+        struct boss_sinestraAI : public BossAI
+        {
+            boss_sinestraAI(Creature * creature) : BossAI(creature, DATA_SINESTRA)
+            {
+                instance = me->GetInstanceScript();
+            }
 
             InstanceScript* instance;
             EventMap events;
             Creature* orbs[2];
 
-			void Reset()
-			{
+            void Reset()
+            {
                 if (instance)
                     instance->SetData(DATA_SINESTRA_EVENT, NOT_STARTED);
                 
@@ -65,10 +65,10 @@ class boss_sinestra : public CreatureScript
 
                 orbs[0] = NULL;
                 orbs[1] = NULL;
-			}
+            }
 
-			void EnterCombat(Unit* /*who*/)
-			{
+            void EnterCombat(Unit* /*who*/)
+            {
                 DoZoneInCombat(me);
 
                 if (instance)
@@ -77,13 +77,13 @@ class boss_sinestra : public CreatureScript
                 events.ScheduleEvent(EVENT_WRACK, 15000);
                 events.ScheduleEvent(EVENT_FLAME_BREATH, 20000);
                 events.ScheduleEvent(EVENT_TWILIGHT_SLICER, 28000);
-			}
+            }
 
-			void JustDied(Unit* killer)
-			{
+            void JustDied(Unit* killer)
+            {
                 if (instance)
                     instance->SetData(DATA_SINESTRA_EVENT, DONE);
-			}
+            }
 
             uint64 GetData64(uint32 type)
             {
@@ -98,9 +98,9 @@ class boss_sinestra : public CreatureScript
                 return 0;
             }
             void UpdateAI(uint32 diff)
-			{
-				if (!UpdateVictim())
-					return;
+            {
+                if (!UpdateVictim())
+                    return;
 
                 events.Update(diff);
                 
@@ -164,13 +164,13 @@ class boss_sinestra : public CreatureScript
                     }                
                 }
 
-				DoMeleeAttackIfReady();
-			}
-		};
+                DoMeleeAttackIfReady();
+            }
+        };
 
-		CreatureAI* GetAI(Creature* creature) const
+        CreatureAI* GetAI(Creature* creature) const
         {
-			return new boss_sinestraAI(creature);
+            return new boss_sinestraAI(creature);
         }
 };
 
@@ -315,7 +315,7 @@ class spell_sinestra_twilight_slicer : public SpellScriptLoader
 
 void AddSC_boss_sinestra()
 {
-	new boss_sinestra();
+    new boss_sinestra();
     new spell_sinestra_wreck();
     new spell_sinestra_wrack_jump();
     new spell_sinestra_twilight_slicer();
