@@ -563,7 +563,7 @@ public:
                         if (Unit *pTarget = SelectTarget(SELECT_TARGET_FARTHEST, 0)){
                             if (ascendant[0] != NULL && !ascendant[0]->HasUnitState(UNIT_STATE_CASTING))
                             {
-                                ascendant[0]->CastSpell(ascendant[0], SPELL_INFERNO_LEAP, true);
+                                ascendant[0]->CastSpell(pTarget, SPELL_INFERNO_LEAP, true);
                                 events.ScheduleEvent(EVENT_INFERNO_RUSH, 2000);
                                 events.ScheduleEvent(EVENT_INFERNO_LEAP, 26000);
                             }
@@ -1235,9 +1235,9 @@ public:
         void DamageTaken(Unit* who, uint32& damage)
         {
             if (me->GetEntry() == BOSS_FELUDIUS && who->HasAura(SPELL_FIRE_IMBUED))
-                damage *=2;
+                damage *=1.5;
             else if (me->GetEntry() == BOSS_IGNACIOUS && who->HasAura(SPELL_FROST_IMBUED))
-                damage *=2;
+                damage *=1.5;
  
             if (Creature* elementium = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_MONSTROSITY)))
             {
@@ -1607,15 +1607,17 @@ public: npc_council_lava_seed() : CreatureScript("npc_council_lava_seed") {}
         uint32 timer;
         uint32 death;
         Unit* monstrosity;
+        bool casted;
  
         void InitializeAI()
         {
+            casted = false;
             InstanceScript* instance = me->ToCreature()->GetInstanceScript();
             if (instance)
-            monstrosity =  ObjectAccessor::GetCreature(*me,instance->GetData64(DATA_MONSTROSITY));
+                monstrosity =  ObjectAccessor::GetCreature(*me,instance->GetData64(DATA_MONSTROSITY));
             if (!monstrosity)
                 me->DisappearAndDie();
-            death = 8000;
+            death = 7000;
             me->setFaction(monstrosity->getFaction());
             timer = 5000;
             me->AddAura(SPELL_LAVA_SEED_AURA, me);
@@ -1627,7 +1629,7 @@ public: npc_council_lava_seed() : CreatureScript("npc_council_lava_seed") {}
             me->SetSpeed(MOVE_RUN,    3.0f, true);
             me->SetSpeed(MOVE_FLIGHT, 3.0f, true);
             me->GetMotionMaster()->MovePoint(0,me->GetPositionX(),me->GetPositionY(), me->GetPositionZ() - 35);
-                }
+        }
  
         void UpdateAI(uint32 diff)
         {
@@ -1635,12 +1637,13 @@ public: npc_council_lava_seed() : CreatureScript("npc_council_lava_seed") {}
                 me->DespawnOrUnsummon();
             else
                 death -=diff;
-                        if (timer <= diff)
+            if (timer <= diff && !casted)
             {
                 me->CastSpell(me, SPELL_LAVA_PLUME, false);
+                casted = true;
             }
             else
-                                timer -= diff;
+                timer -= diff;
         }
     };
  
@@ -1812,7 +1815,7 @@ class spell_council_glaciate : public SpellScriptLoader
                 if (!target || !caster)
                     return;
                 uint32 damage = GetHitDamage();
-                float dist = target->GetDistance2d(caster);
+                float dist = target->GetDistance(caster);
                 if (dist > 5.0f)
                     damage = uint32 (damage/(dist-4.0f));
                 SetHitDamage(damage);  
@@ -2048,30 +2051,25 @@ class spell_council_harden_skin : public SpellScriptLoader
        class spell_council_harden_skin_AuraScript : public AuraScript
        {
            PrepareAuraScript(spell_council_harden_skin_AuraScript);
+
+           uint32 dispeldamage;
  
-           void AfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+           void AfterRemove(AuraEffect const* aurEff, AuraEffectHandleModes mode)
            {
                if (GetTargetApplication()->GetRemoveMode() != AURA_REMOVE_BY_ENEMY_SPELL)
                    return;
                if (!GetCaster())
                    return;
-               //Unit* caster = GetCaster();
-               //uint32 damage = 500000;
-               //if (this && this->GetAura() && this->GetAura()->GetEffect(EFFECT_1) )
-               //    damage = this->GetAura()->GetEffect(EFFECT_1)->GetAmount();
-               //caster->DealDamage(caster, damage);
+               Unit* caster = GetCaster();
+               caster->DealDamage(caster, dispeldamage);
+               dispeldamage =0;
            }
  
            void Absorb(AuraEffect* aurEff, DamageInfo & dmgInfo, uint32 & absorbAmount)
            {
                if (!dmgInfo.GetVictim() || !dmgInfo.GetAttacker())
                    return;
-               Unit* caster = dmgInfo.GetVictim();
-               Unit* who = dmgInfo.GetAttacker();
-               uint32 damage = absorbAmount/2;
-               caster->SetHealth(caster->GetHealth()-damage);
-               if (caster->GetAI())
-                   caster->GetAI()->DamageTaken(who, damage);
+               dispeldamage += absorbAmount/2;
            }
  
            void Register()
