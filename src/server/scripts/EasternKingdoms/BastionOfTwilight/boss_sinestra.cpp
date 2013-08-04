@@ -22,11 +22,22 @@ enum spells
 {
     SPELL_WRACK                                   = 89421,
     SPELL_WRACK_JUMP                              = 89435,
+    SPELL_FLAME_BREATH                            = 90125,
+    SPELL_TWILIGHT_SLICER                         = 92851,
+    SPELL_TWILIGHT_PULSE                          = 92957,
 };
 
 enum events
 {
     EVENT_WRACK = 1,
+    EVENT_FLAME_BREATH,
+    EVENT_TWILIGHT_SLICER,
+    EVENT_RESET_ORBS,
+};
+
+enum sharedDatas
+{
+    DATA_PRIVATE_ORB0 = 0,
 };
 
 class boss_sinestra : public CreatureScript
@@ -43,6 +54,7 @@ class boss_sinestra : public CreatureScript
 
             InstanceScript* instance;
             EventMap events;
+            Creature* orbs[2];
 
 			void Reset()
 			{
@@ -50,6 +62,9 @@ class boss_sinestra : public CreatureScript
                     instance->SetData(DATA_SINESTRA_EVENT, NOT_STARTED);
                 
                 events.Reset();
+
+                orbs[0] = NULL;
+                orbs[1] = NULL;
 			}
 
 			void EnterCombat(Unit* /*who*/)
@@ -59,7 +74,9 @@ class boss_sinestra : public CreatureScript
                 if (instance)
                     instance->SetData(DATA_SINESTRA_EVENT, IN_PROGRESS);
 
-                events.ScheduleEvent(EVENT_WRACK, urand(10000, 20000));
+                events.ScheduleEvent(EVENT_WRACK, 15000);
+                events.ScheduleEvent(EVENT_FLAME_BREATH, 20000);
+                events.ScheduleEvent(EVENT_TWILIGHT_SLICER, 28000);
 			}
 
 			void JustDied(Unit* killer)
@@ -68,6 +85,18 @@ class boss_sinestra : public CreatureScript
                     instance->SetData(DATA_SINESTRA_EVENT, DONE);
 			}
 
+            uint64 GetData64(uint32 type)
+            {
+                switch (type)
+                {
+                    case DATA_PRIVATE_ORB0: 
+                        if (orbs[0])
+                            return orbs[0]->GetGUID();
+                        break;
+                }
+
+                return 0;
+            }
             void UpdateAI(uint32 diff)
 			{
 				if (!UpdateVictim())
@@ -83,7 +112,52 @@ class boss_sinestra : public CreatureScript
                             if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0.0f, 100.0f, true, 0))
                                 DoCast(target, SPELL_WRACK, true);
                             
-                            events.ScheduleEvent(EVENT_WRACK, urand(10000, 20000));
+                            events.ScheduleEvent(EVENT_WRACK, urand(75000, 80000));
+                            break;
+                        case EVENT_FLAME_BREATH:
+                            DoCastAOE(SPELL_FLAME_BREATH);
+
+                            events.ScheduleEvent(EVENT_FLAME_BREATH, 20000);
+                            break;
+                        case EVENT_TWILIGHT_SLICER:
+                            for (uint8 i = 0; i < 2; i++)
+                            {
+                                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0.0f, 100.0f, true, 0))
+                                {
+                                    Position pos;
+                                    target->GetPosition(&pos);
+                                    if (Creature* orb = me->SummonCreature(49863, pos, TEMPSUMMON_TIMED_DESPAWN, 15500, 0))
+                                    {
+                                        if (!orbs[0]) 
+                                            orbs[0] = orb;
+                                        else
+                                            orbs[1] = orb;
+
+                                        orb->AddThreat(target, 100000.0f);
+                                        orb->Attack(target, true);
+
+                                        // Damaging aura
+                                        if (orbs[1] && orbs[0])
+                                            orb->CastSpell(orbs[0], SPELL_TWILIGHT_SLICER, true);
+
+                                        // We Love my little hacks :D
+                                        orb->ClearUnitState(UNIT_STATE_CASTING);
+                                        orb->GetMotionMaster()->MoveChase(target);
+                                        
+                                        // Twilight pulse!
+                                        orb->CastSpell(orb, SPELL_TWILIGHT_PULSE, true);
+
+                                        // Fixate
+                                        // We need to research this spell..
+                                    }
+                                }
+                            }
+                            events.ScheduleEvent(EVENT_RESET_ORBS, 18000);
+                            events.ScheduleEvent(EVENT_TWILIGHT_SLICER, 28000);
+                            break;
+                        case EVENT_RESET_ORBS:
+                            orbs[0] = NULL;
+                            orbs[1] = NULL;
                             break;
                         default:
                             break;
@@ -195,7 +269,48 @@ class spell_sinestra_wrack_jump : public SpellScriptLoader
         {
             return new spell_sinestra_wrack_jump_SpellScript();
         }
+};
 
+class OrientationCheck : public std::unary_function<Unit*, bool>
+{
+    public:
+        explicit OrientationCheck(Unit* _orb1, Unit* _orb2) : orb1(_orb1), orb2(_orb2) { }
+        bool operator()(WorldObject* object)
+        {
+            return !object->IsInBetween(orb1, orb2, 2.0f);
+        }
+
+    private:
+        Unit* orb1;
+        Unit* orb2;
+};
+
+class spell_sinestra_twilight_slicer : public SpellScriptLoader
+{
+    public:
+        spell_sinestra_twilight_slicer() :  SpellScriptLoader("spell_sinestra_twilight_slicer") { }
+
+        class spell_sinestra_twilight_slicer_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_sinestra_twilight_slicer_SpellScript);
+
+            void SelectTarget(std::list<WorldObject*>& targets)
+            {
+                // Select Other orb, and filter targets between twos
+                if (Unit* orb0 =  GetCaster()->FindNearestCreature(GetCaster()->GetEntry(), 100.0f, true))
+                    targets.remove_if(OrientationCheck(GetCaster(), orb0));
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_sinestra_twilight_slicer_SpellScript::SelectTarget, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_sinestra_twilight_slicer_SpellScript();
+        }
 };
 
 void AddSC_boss_sinestra()
@@ -203,4 +318,5 @@ void AddSC_boss_sinestra()
 	new boss_sinestra();
     new spell_sinestra_wreck();
     new spell_sinestra_wrack_jump();
+    new spell_sinestra_twilight_slicer();
 }
