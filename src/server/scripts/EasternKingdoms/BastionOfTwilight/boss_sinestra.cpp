@@ -18,7 +18,6 @@
 #include "ScriptPCH.h"
 #include "bastion_of_twilight.h"
 
-
 #define YELL_AGGRO  "We were fools to entrust an imbecile like Cho'gall with such a sacred duty. I will deal with you intruders myself!"
 #define YELL_KILL_0 "My brood will feed on your bones!"
 #define YELL_KILL_1 "Powerless..."
@@ -31,6 +30,7 @@ enum spells
     SPELL_TWILIGHT_SLICER                         = 92851,
     SPELL_TWILIGHT_PULSE                          = 92957,
     SPELL_DRAINED                                 = 89350,
+    SPELL_PURPLE_BEAM                             = 39123,
 };
 
 enum events
@@ -109,6 +109,8 @@ class boss_sinestra : public CreatureScript
             void JustSummoned(Creature* summon)
             {
                 summons.Summon(summon);
+
+                DoZoneInCombat(summon);
             }
 
             void JustDied(Unit* killer)
@@ -174,7 +176,7 @@ class boss_sinestra : public CreatureScript
                                     target->GetPosition(&pos);
                                     if (Creature* orb = me->SummonCreature(49863, pos, TEMPSUMMON_TIMED_DESPAWN, 15500, 0))
                                     {
-                                        if (!orbs[0]) 
+                                        if (!orbs[0])
                                             orbs[0] = orb;
                                         else
                                             orbs[1] = orb;
@@ -183,21 +185,17 @@ class boss_sinestra : public CreatureScript
                                         orb->AddThreat(target, 100000.0f);
                                         orb->Attack(target, true);
 
-                                        // Damaging aura
-                                        if (orbs[1] && orbs[0])
-                                            orb->CastSpell(orbs[0], SPELL_TWILIGHT_SLICER, true);
-
-                                        // We Love my little hacks :D
-                                        orb->ClearUnitState(UNIT_STATE_CASTING);
-                                        orb->GetMotionMaster()->MoveChase(target);
-                                        
                                         // Twilight pulse!
                                         orb->CastSpell(orb, SPELL_TWILIGHT_PULSE, true);
 
-                                        orb->SetReactState(REACT_PASSIVE);
-
                                         // Fixate
-                                        // We need to research this spell..
+                                        orb->CastSpell(target, SPELL_PURPLE_BEAM, true);
+                                        
+                                        // We Love my little hacks :D
+                                        orb->ClearUnitState(UNIT_STATE_CASTING);
+                                        orb->GetMotionMaster()->MoveChase(target);
+
+                                        orb->SetReactState(REACT_PASSIVE);
                                     }
                                 }
                             }
@@ -220,6 +218,69 @@ class boss_sinestra : public CreatureScript
         CreatureAI* GetAI(Creature* creature) const
         {
             return new boss_sinestraAI(creature);
+        }
+};
+
+enum shadowOrbEvents
+{
+    EVENT_SLICE = 1,
+};
+
+class npc_sinestra_shadow_orb : public CreatureScript
+{
+	public:
+		npc_sinestra_shadow_orb() : CreatureScript("npc_sinestra_shadow_orb")
+        { }
+
+		struct npc_sinestra_shadow_orbAI : public ScriptedAI
+        {
+			npc_sinestra_shadow_orbAI(Creature * creature) : ScriptedAI(creature)
+			{
+				pInstance = (InstanceScript*)creature->GetInstanceScript();
+			}
+
+			InstanceScript* pInstance;
+            EventMap events;
+
+			void Reset()
+			{
+                events.Reset();
+			}
+
+            void SummonedBy(Unit* summoner)
+            {
+                events.ScheduleEvent(EVENT_SLICE, urand(4500, 5000));
+            }
+
+			void UpdateAI(uint32 uiDiff)
+			{
+				events.Update(uiDiff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case EVENT_SLICE:
+                            if (Unit* orb =  me->FindNearestCreature(me->GetEntry(), 100.0f, true))
+                            {
+                                if (!orb->HasAura(SPELL_TWILIGHT_SLICER))
+                                {
+                                    me->CastSpell(orb, SPELL_TWILIGHT_SLICER, true);
+                                   
+                                    // We Love my little hacks :D
+                                    me->ClearUnitState(UNIT_STATE_CASTING);
+                                    me->GetMotionMaster()->MoveChase(me->getVictim());
+                                }
+                            }
+                            break;
+                    }
+                }
+			}
+		};
+
+		CreatureAI* GetAI(Creature* creature) const
+        {
+			return new npc_sinestra_shadow_orbAI(creature);
         }
 };
 
@@ -365,6 +426,7 @@ class spell_sinestra_twilight_slicer : public SpellScriptLoader
 void AddSC_boss_sinestra()
 {
     new boss_sinestra();
+    new npc_sinestra_shadow_orb();
     new spell_sinestra_wreck();
     new spell_sinestra_wrack_jump();
     new spell_sinestra_twilight_slicer();
