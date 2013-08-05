@@ -325,9 +325,7 @@ uint32 Object::GetUInt32Value(uint16 index) const
 
 uint64 Object::GetUInt64Value(uint16 index) const
 {
-    if (index + 1 < m_valuesCount || PrintIndexError(index, false))
-        return 0;
-
+    ASSERT(index + 1 < m_valuesCount || PrintIndexError(index, false));
     return *((uint64*)&(m_uint32Values[index]));
 }
 
