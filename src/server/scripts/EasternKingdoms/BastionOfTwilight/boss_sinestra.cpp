@@ -75,7 +75,10 @@ class boss_sinestra : public CreatureScript
             void Reset()
             {
                 if (instance)
+                {
                     instance->SetData(DATA_SINESTRA_EVENT, NOT_STARTED);
+                    instance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, me);
+                }
                 
                 events.Reset();
                 summons.DespawnAll();
@@ -90,11 +93,14 @@ class boss_sinestra : public CreatureScript
                 DoZoneInCombat(me);
 
                 if (instance)
+                {
                     instance->SetData(DATA_SINESTRA_EVENT, IN_PROGRESS);
+                    instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
+                }
 
                 // Sinestra begin fight with 60 % hp
                 phase = PHASE_ONE;
-                me->SetHealth(me->GetHealth() * 0.60f);
+                me->SetHealth(me->GetMaxHealth() * 0.60f);
 
                 // Sinestra damage is reduced by 40% in first phase
                 me->AddAura(SPELL_DRAINED, me);
