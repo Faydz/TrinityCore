@@ -228,33 +228,33 @@ enum shadowOrbEvents
 
 class npc_sinestra_shadow_orb : public CreatureScript
 {
-	public:
-		npc_sinestra_shadow_orb() : CreatureScript("npc_sinestra_shadow_orb")
+    public:
+        npc_sinestra_shadow_orb() : CreatureScript("npc_sinestra_shadow_orb")
         { }
 
-		struct npc_sinestra_shadow_orbAI : public ScriptedAI
+        struct npc_sinestra_shadow_orbAI : public ScriptedAI
         {
-			npc_sinestra_shadow_orbAI(Creature * creature) : ScriptedAI(creature)
-			{
-				pInstance = (InstanceScript*)creature->GetInstanceScript();
-			}
+            npc_sinestra_shadow_orbAI(Creature * creature) : ScriptedAI(creature)
+            {
+                pInstance = (InstanceScript*)creature->GetInstanceScript();
+            }
 
-			InstanceScript* pInstance;
+            InstanceScript* pInstance;
             EventMap events;
 
-			void Reset()
-			{
+            void Reset()
+            {
                 events.Reset();
-			}
+            }
 
             void SummonedBy(Unit* summoner)
             {
                 events.ScheduleEvent(EVENT_SLICE, urand(4500, 5000));
             }
 
-			void UpdateAI(uint32 uiDiff)
-			{
-				events.Update(uiDiff);
+            void UpdateAI(uint32 uiDiff)
+            {
+                events.Update(uiDiff);
 
                 while (uint32 eventId = events.ExecuteEvent())
                 {
@@ -275,12 +275,12 @@ class npc_sinestra_shadow_orb : public CreatureScript
                             break;
                     }
                 }
-			}
-		};
+            }
+        };
 
-		CreatureAI* GetAI(Creature* creature) const
+        CreatureAI* GetAI(Creature* creature) const
         {
-			return new npc_sinestra_shadow_orbAI(creature);
+            return new npc_sinestra_shadow_orbAI(creature);
         }
 };
 
