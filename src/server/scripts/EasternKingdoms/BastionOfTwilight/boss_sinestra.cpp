@@ -18,6 +18,11 @@
 #include "ScriptPCH.h"
 #include "bastion_of_twilight.h"
 
+
+#define YELL_AGGRO  "We were fools to entrust an imbecile like Cho'gall with such a sacred duty. I will deal with you intruders myself!"
+#define YELL_KILL_0 "My brood will feed on your bones!"
+#define YELL_KILL_1 "Powerless..."
+
 enum spells 
 {
     SPELL_WRACK                                   = 89421,
@@ -25,6 +30,7 @@ enum spells
     SPELL_FLAME_BREATH                            = 90125,
     SPELL_TWILIGHT_SLICER                         = 92851,
     SPELL_TWILIGHT_PULSE                          = 92957,
+    SPELL_DRAINED                                 = 89350,
 };
 
 enum events
@@ -40,6 +46,14 @@ enum sharedDatas
     DATA_PRIVATE_ORB0 = 0,
 };
 
+enum phases
+{
+    PHASE_NONE = 0,
+    PHASE_ONE,
+    PHASE_TWO,
+    PHASE_THREE
+};
+
 class boss_sinestra : public CreatureScript
 {
     public:
@@ -47,7 +61,7 @@ class boss_sinestra : public CreatureScript
 
         struct boss_sinestraAI : public BossAI
         {
-            boss_sinestraAI(Creature * creature) : BossAI(creature, DATA_SINESTRA)
+            boss_sinestraAI(Creature * creature) : BossAI(creature, DATA_SINESTRA), summons(me)
             {
                 instance = me->GetInstanceScript();
             }
@@ -55,6 +69,8 @@ class boss_sinestra : public CreatureScript
             InstanceScript* instance;
             EventMap events;
             Creature* orbs[2];
+            SummonList summons;
+            uint8 phase;
 
             void Reset()
             {
@@ -62,9 +78,11 @@ class boss_sinestra : public CreatureScript
                     instance->SetData(DATA_SINESTRA_EVENT, NOT_STARTED);
                 
                 events.Reset();
+                summons.DespawnAll();
 
                 orbs[0] = NULL;
                 orbs[1] = NULL;
+                phase = PHASE_NONE;
             }
 
             void EnterCombat(Unit* /*who*/)
@@ -74,15 +92,43 @@ class boss_sinestra : public CreatureScript
                 if (instance)
                     instance->SetData(DATA_SINESTRA_EVENT, IN_PROGRESS);
 
-                events.ScheduleEvent(EVENT_WRACK, 15000);
-                events.ScheduleEvent(EVENT_FLAME_BREATH, 20000);
-                events.ScheduleEvent(EVENT_TWILIGHT_SLICER, 28000);
+                // Sinestra begin fight with 60 % hp
+                phase = PHASE_ONE;
+                me->SetHealth(me->GetHealth() * 0.60f);
+
+                // Sinestra damage is reduced by 40% in first phase
+                me->AddAura(SPELL_DRAINED, me);
+
+                me->MonsterYell(YELL_AGGRO, LANG_UNIVERSAL, 0);
+
+                events.ScheduleEvent(EVENT_WRACK, 15000, PHASE_ONE);
+                events.ScheduleEvent(EVENT_FLAME_BREATH, 20000, PHASE_ONE);
+                events.ScheduleEvent(EVENT_TWILIGHT_SLICER, 28000, PHASE_ONE);
+            }
+
+            void JustSummoned(Creature* summon)
+            {
+                summons.Summon(summon);
             }
 
             void JustDied(Unit* killer)
             {
                 if (instance)
                     instance->SetData(DATA_SINESTRA_EVENT, DONE);
+            }
+
+            void KilledUnit(Unit* victim)
+            {
+                me->MonsterYell(urand(0, 1) == 1 ? YELL_KILL_0 : YELL_KILL_1, LANG_UNIVERSAL, 0);
+            }
+
+            void DamageTaken(Unit* who, uint32& damage)
+            {
+                if (me->GetHealthPct() <= 30.0f && phase == PHASE_ONE)
+                {
+                    phase = PHASE_TWO;
+                    events.CancelEventGroup(PHASE_ONE);
+                }
             }
 
             uint64 GetData64(uint32 type)
@@ -133,6 +179,7 @@ class boss_sinestra : public CreatureScript
                                         else
                                             orbs[1] = orb;
 
+                                        orb->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                                         orb->AddThreat(target, 100000.0f);
                                         orb->Attack(target, true);
 
@@ -146,6 +193,8 @@ class boss_sinestra : public CreatureScript
                                         
                                         // Twilight pulse!
                                         orb->CastSpell(orb, SPELL_TWILIGHT_PULSE, true);
+
+                                        orb->SetReactState(REACT_PASSIVE);
 
                                         // Fixate
                                         // We need to research this spell..
