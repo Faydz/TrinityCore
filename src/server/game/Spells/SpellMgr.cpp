@@ -3542,6 +3542,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case 42402:
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_NEGATIVE_EFF2;
                 break;
+            // Twilight Essence
+            case 89288:
+                spellInfo->Effects[0].BasePoints = 6;
+                break;
             default:
                 break;
         }

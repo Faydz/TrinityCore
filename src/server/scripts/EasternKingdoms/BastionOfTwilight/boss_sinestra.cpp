@@ -21,6 +21,7 @@
 #define YELL_AGGRO  "We were fools to entrust an imbecile like Cho'gall with such a sacred duty. I will deal with you intruders myself!"
 #define YELL_KILL_0 "My brood will feed on your bones!"
 #define YELL_KILL_1 "Powerless..."
+#define YELL_SUMMON "Feed, children! Take your fill from their meaty husks!"
 
 enum spells 
 {
@@ -44,6 +45,7 @@ enum events
     EVENT_RESET_ORBS,
     EVENT_ORB_START_CHANNEL,
     EVENT_CHECK_MELEE,
+    EVENT_WHELP,
 };
 
 enum sharedDatas
@@ -57,6 +59,19 @@ enum phases
     PHASE_ONE,
     PHASE_TWO,
     PHASE_THREE
+};
+
+Position const spawnPos[9] =
+{
+    {-985.92f, -819.84f, 438.59f, 0.87f},
+    {-975.81f, -815.15f, 438.59f, 1.02f},
+    {-962.71f, -805.22f, 438.59f, 1.77f},
+    {-948.02f, -799.14f, 438.59f, 2.09f},
+    {-943.09f, -787.05f, 438.59f, 2.59f},
+    {-994.34f, -739.91f, 438.59f, 5.39f},
+    {-1005.45f, -746.29f, 438.59f, 5.51f},
+    {-1018.57f, -760.42f, 438.59f, 5.71f},
+    {-1029.42f, -774.76f, 438.59f, 0.22f},
 };
 
 class boss_sinestra : public CreatureScript
@@ -116,6 +131,7 @@ class boss_sinestra : public CreatureScript
                 events.ScheduleEvent(EVENT_FLAME_BREATH, 20000, PHASE_ONE);
                 events.ScheduleEvent(EVENT_TWILIGHT_SLICER, 28000, PHASE_ONE);
                 events.ScheduleEvent(EVENT_CHECK_MELEE, 2000, PHASE_ONE);
+                events.ScheduleEvent(EVENT_WHELP, 15000, PHASE_ONE);
             }
 
             void JustSummoned(Creature* summon)
@@ -244,6 +260,16 @@ class boss_sinestra : public CreatureScript
                             }
                             events.ScheduleEvent(EVENT_CHECK_MELEE, 2000, PHASE_ONE);
                             break;
+                        case EVENT_WHELP:
+                            for (uint8 i = 0; i < 5; i++)
+                            {
+                                uint8 posId = urand(0, 8);
+                                me->SummonCreature(48050, spawnPos[posId]);
+                            }
+
+                            me->MonsterYell(YELL_SUMMON, LANG_UNIVERSAL, 0);
+                            events.ScheduleEvent(EVENT_WHELP, 50000, PHASE_ONE);
+                            break;
                         default:
                             break;
                     }                
@@ -292,8 +318,9 @@ class npc_sinestra_twilight_whelp : public CreatureScript
                 {
                     Position pos;
                     me->GetPosition(&pos);
-                    if (Creature* essence = sinestra->SummonCreature(48018, pos, TEMPSUMMON_MANUAL_DESPAWN, 0, 0))
+                    if (Creature* essence = me->SummonCreature(48018, pos, TEMPSUMMON_MANUAL_DESPAWN, 0, 0))
                     {
+                        DoZoneInCombat(essence);
                         essence->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE | UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                         essence->SetReactState(REACT_PASSIVE);
                         essence->AttackStop();
@@ -499,16 +526,16 @@ class spell_sinestra_twilight_essence : public SpellScriptLoader
 
             void CorrectRange1(std::list<WorldObject*>& targets)
             {
-                targets.remove_if(ExactDistanceCheck(GetCaster(), 10.0f * GetCaster()->GetFloatValue(OBJECT_FIELD_SCALE_X)));
+                targets.remove_if(ExactDistanceCheck(GetCaster(), 5.0f * GetCaster()->GetFloatValue(OBJECT_FIELD_SCALE_X)));
 
                 // Remove also the nearest dragon
-                if (Unit* dragon = GetCaster()->FindNearestCreature(48050, 100.0f, false))
-                    targets.remove(dragon);
+                if (GetCaster()->ToTempSummon() && GetCaster()->ToTempSummon()->GetSummoner())
+                    targets.remove(GetCaster()->ToTempSummon()->GetSummoner());
             }
 
             void CorrectRange2(std::list<WorldObject*>& targets)
             {
-                targets.remove_if(ExactDistanceCheck(GetCaster(), 10.0f * GetCaster()->GetFloatValue(OBJECT_FIELD_SCALE_X)));
+                targets.remove_if(ExactDistanceCheck(GetCaster(), 5.0f * GetCaster()->GetFloatValue(OBJECT_FIELD_SCALE_X)));
             }
 
             void Hit(SpellEffIndex effIndex)
@@ -529,7 +556,7 @@ class spell_sinestra_twilight_essence : public SpellScriptLoader
             {
                 OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_sinestra_twilight_essence_SpellScript::CorrectRange1, EFFECT_0, TARGET_UNIT_SRC_AREA_ENTRY);
                 OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_sinestra_twilight_essence_SpellScript::CorrectRange2, EFFECT_1, TARGET_UNIT_SRC_AREA_ENEMY);
-                OnEffectHit += SpellEffectFn(spell_sinestra_twilight_essence_SpellScript::Hit, EFFECT_0, SPELL_EFFECT_APPLY_AURA);
+                OnEffectHitTarget += SpellEffectFn(spell_sinestra_twilight_essence_SpellScript::Hit, EFFECT_0, SPELL_EFFECT_APPLY_AURA);
             }
         };
 
