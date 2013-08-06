@@ -142,6 +142,8 @@ class boss_sinestra : public CreatureScript
                 {
                     phase = PHASE_TWO;
                     events.CancelEventGroup(PHASE_ONE);
+                    summons.DespawnAll();
+
                 }
             }
 
