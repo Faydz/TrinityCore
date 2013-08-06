@@ -471,6 +471,73 @@ class spell_sinestra_twilight_slicer : public SpellScriptLoader
         }
 };
 
+class ExactDistanceCheck
+{
+    public:
+        ExactDistanceCheck(Unit* source, float dist) : _source(source), _dist(dist) {}
+
+        bool operator()(WorldObject* unit)
+        {
+            return _source->GetExactDist2d(unit) > _dist;
+        }
+
+    private:
+        Unit* _source;
+        float _dist;
+};
+
+class spell_sinestra_twilight_essence : public SpellScriptLoader
+{
+    public:
+        spell_sinestra_twilight_essence() : SpellScriptLoader("spell_sinestra_twilight_essence") { }
+
+        class spell_sinestra_twilight_essence_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_sinestra_twilight_essence_SpellScript);
+
+            void CorrectRange1(std::list<WorldObject*>& targets)
+            {
+                targets.remove_if(ExactDistanceCheck(GetCaster(), 10.0f * GetCaster()->GetFloatValue(OBJECT_FIELD_SCALE_X)));
+
+                // Remove also the nearest dragon
+                if (Unit* dragon = GetCaster()->FindNearestCreature(48050, 100.0f, false))
+                    targets.remove(dragon);
+            }
+
+            void CorrectRange2(std::list<WorldObject*>& targets)
+            {
+                targets.remove_if(ExactDistanceCheck(GetCaster(), 10.0f * GetCaster()->GetFloatValue(OBJECT_FIELD_SCALE_X)));
+            }
+
+            void Hit(SpellEffIndex effIndex)
+            {
+                if (!GetHitUnit())
+                    return;
+
+                if (GetHitUnit()->isAlive())
+                    return;
+
+                if (!GetHitUnit()->ToCreature())
+                    return;
+
+                GetHitUnit()->ToCreature()->Respawn();
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_sinestra_twilight_essence_SpellScript::CorrectRange1, EFFECT_0, TARGET_UNIT_SRC_AREA_ENTRY);
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_sinestra_twilight_essence_SpellScript::CorrectRange2, EFFECT_1, TARGET_UNIT_SRC_AREA_ENEMY);
+                OnEffectHit += SpellEffectFn(spell_sinestra_twilight_essence_SpellScript::Hit, EFFECT_0, SPELL_EFFECT_APPLY_AURA);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_sinestra_twilight_essence_SpellScript();
+        }
+};
+
+
 void AddSC_boss_sinestra()
 {
     new boss_sinestra();
@@ -478,4 +545,5 @@ void AddSC_boss_sinestra()
     new spell_sinestra_wreck();
     new spell_sinestra_wrack_jump();
     new spell_sinestra_twilight_slicer();
+    new spell_sinestra_twilight_essence();
 }
