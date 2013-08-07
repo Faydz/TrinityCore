@@ -35,6 +35,10 @@ enum spells
     SPELL_SIN_TWILIGHT_BLAST                      = 89280,
     SPELL_TWILIGHT_SPIT                           = 89299,
     SPELL_TWILIGHT_ESSENCE                        = 89284,
+    SPELL_TWILIGHT_POWER                          = 87220,
+    SPELL_FIERY_RESOLVE                           = 87221,
+    SPELL_MANA_BARRIER                            = 87299,
+    SPELL_PYRRHIC_FOCUS                           = 87323,
 };
 
 enum events
@@ -46,6 +50,7 @@ enum events
     EVENT_ORB_START_CHANNEL,
     EVENT_CHECK_MELEE,
     EVENT_WHELP,
+    EVENT_START_MAGIC_FIGHT,
 };
 
 enum sharedDatas
@@ -59,6 +64,11 @@ enum phases
     PHASE_ONE,
     PHASE_TWO,
     PHASE_THREE
+};
+
+enum sinestraActions 
+{
+    ACTION_START_PHASE_3 = 1,
 };
 
 Position const spawnPos[9] =
@@ -159,7 +169,10 @@ class boss_sinestra : public CreatureScript
                     phase = PHASE_TWO;
                     events.CancelEventGroup(PHASE_ONE);
                     summons.DespawnAll();
-
+                    
+                    me->RemoveAura(SPELL_DRAINED);
+                    DoCast(SPELL_MANA_BARRIER);
+                    events.ScheduleEvent(EVENT_START_MAGIC_FIGHT, 2000);
                 }
             }
 
@@ -270,6 +283,27 @@ class boss_sinestra : public CreatureScript
                             me->MonsterYell(YELL_SUMMON, LANG_UNIVERSAL, 0);
                             events.ScheduleEvent(EVENT_WHELP, 50000, PHASE_ONE);
                             break;
+                        case EVENT_START_MAGIC_FIGHT:
+                            if (Creature* calen = me->SummonCreature(46277, -1009.35f, -801.97f, 438.59f, 0.81f))
+                            {
+                                calen->CastSpell(calen, SPELL_PYRRHIC_FOCUS, true);
+                                
+                                if (Creature* target = me->SummonCreature(46288, -988.828f, -787.879f, 449.618f, 0.49f))
+                                {
+                                    target->SetHover(true);
+                                    target->SetDisableGravity(true);
+                                    target->SetCanFly(true);
+
+                                    target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                                    target->GetMotionMaster()->MoveTakeoff(0, target->GetHomePosition());
+
+                                    calen->CastSpell(target, SPELL_FIERY_RESOLVE, false);
+                                    me->CastSpell(target, SPELL_TWILIGHT_POWER, false);
+
+                                    calen->setRegeneratingHealth(false);
+                                }
+                            }
+                            break;
                         default:
                             break;
                     }                
@@ -290,6 +324,11 @@ enum whelpEvents
     EVENT_SPIT = 1,
 };
 
+enum whelpActions 
+{
+    ACTION_SET_AS_RESPWANED = 1,
+};
+
 class npc_sinestra_twilight_whelp : public CreatureScript
 {
     public:
@@ -305,27 +344,39 @@ class npc_sinestra_twilight_whelp : public CreatureScript
 
             InstanceScript* pInstance;
             EventMap events;
+            bool respawned;
 
             void Reset()
             {
+                respawned = false;
                 events.Reset();
                 events.ScheduleEvent(EVENT_SPIT, urand(4500, 5000));
             }
 
+            void DoAction(int32 actionId)
+            {
+                switch (actionId)
+                {
+                    case ACTION_SET_AS_RESPWANED:
+                        respawned = true;
+                        break;
+                }
+            }
+
             void JustDied(Unit* killer)
             {
-                if (Creature* sinestra = ObjectAccessor::GetCreature(*me, pInstance->GetData64(DATA_SINESTRA)))
+                if (respawned)
+                    return;
+
+                Position pos;
+                me->GetPosition(&pos);
+                if (Creature* essence = me->SummonCreature(48018, pos, TEMPSUMMON_MANUAL_DESPAWN, 0, 0))
                 {
-                    Position pos;
-                    me->GetPosition(&pos);
-                    if (Creature* essence = me->SummonCreature(48018, pos, TEMPSUMMON_MANUAL_DESPAWN, 0, 0))
-                    {
-                        DoZoneInCombat(essence);
-                        essence->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE | UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-                        essence->SetReactState(REACT_PASSIVE);
-                        essence->AttackStop();
-                        essence->StopMoving();
-                    }
+                    DoZoneInCombat(essence);
+                    essence->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE | UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                    essence->SetReactState(REACT_PASSIVE);
+                    essence->AttackStop();
+                    essence->StopMoving();
                 }
             }
 
@@ -550,6 +601,7 @@ class spell_sinestra_twilight_essence : public SpellScriptLoader
                     return;
 
                 GetHitUnit()->ToCreature()->Respawn();
+                GetHitUnit()->ToCreature()->AI()->DoAction(ACTION_SET_AS_RESPWANED);
             }
 
             void Register()
@@ -566,6 +618,47 @@ class spell_sinestra_twilight_essence : public SpellScriptLoader
         }
 };
 
+class spell_sinestra_phyrric_focus : public SpellScriptLoader
+{
+    public:
+        spell_sinestra_phyrric_focus() : SpellScriptLoader("spell_sinestra_phyrric_focus") { }
+
+        class spell_sinestra_phyrric_focus_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_sinestra_phyrric_focus_AuraScript);
+
+            void HandlePeriodicTick(AuraEffect const* /*aurEff*/)
+            {
+                PreventDefaultAction();
+                if (Unit* caster = GetCaster())
+                {
+                    if (caster->GetHealthPct() <= 1)
+                    {
+                        if (InstanceScript* instance = caster->GetInstanceScript())
+                        {
+                            if (Creature* sinestra = ObjectAccessor::GetCreature(*caster, instance->GetData64(DATA_SINESTRA)))
+                            {
+                                sinestra->CastStop();
+                                sinestra->AI()->DoAction(ACTION_START_PHASE_3);
+                            }
+                        }
+                        return;
+                    }
+                    caster->DealDamage(caster, caster->GetMaxHealth() * 0.01f);
+                }
+            }
+
+            void Register()
+            {
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_sinestra_phyrric_focus_AuraScript::HandlePeriodicTick, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_sinestra_phyrric_focus_AuraScript();
+        }
+};
 
 void AddSC_boss_sinestra()
 {
@@ -575,4 +668,5 @@ void AddSC_boss_sinestra()
     new spell_sinestra_wrack_jump();
     new spell_sinestra_twilight_slicer();
     new spell_sinestra_twilight_essence();
+    new spell_sinestra_phyrric_focus();
 }
