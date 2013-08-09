@@ -321,6 +321,12 @@ public:
             instance->DoRemoveAurasDueToSpellOnPlayers(82170);
             instance->DoRemoveAurasDueToSpellOnPlayers(82193);
             instance->SetData(DATA_CHOGALL_EVENT, DONE);
+
+            if (me->GetMap()->IsHeroic()
+            {
+                if (GameObject* floor = me->FindNearestGameObject(205898, 150.0f))
+                    instance->HandleGameObject(floor->GetGUID(), true, floor);
+            }
         }
     };
 };
