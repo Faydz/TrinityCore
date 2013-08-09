@@ -5390,6 +5390,16 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         {
             switch (dummySpell->Id)
             {
+                case 86622: // Engulfing Magic 
+                case 95639: 
+                case 95640: 
+                case 95641: 
+                    if (Unit* boss = triggeredByAura->GetCaster()) 
+                    { 
+                        int32 bp0 = damage; 
+                        CastCustomSpell(victim, 86631,  &bp0, NULL, NULL, true, 0, 0, boss->GetGUID()); 
+                    } 
+                    break;
                 // Unstable Power
                 case 24658:
                 {

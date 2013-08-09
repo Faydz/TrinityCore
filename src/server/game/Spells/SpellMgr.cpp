@@ -3542,6 +3542,30 @@ void SpellMgr::LoadSpellCustomAttr()
             case 42402:
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_NEGATIVE_EFF2;
                 break;
+            case 86825: // Blackout (dmg) 
+            case 92879: 
+            case 92880: 
+            case 92881: 
+                spellInfo->AttributesCu |= SPELL_ATTR0_CU_SHARE_DAMAGE;
+                break; 
+            case 86844: // Devouring Flames 
+            case 92872: 
+            case 92873:
+            case 92874:
+                //spellInfo->EffectRadiusIndex[0] = 81;    //not sure about this line
+                break; 
+            case 86014: // Twilight Meteorite speed % share dmg 
+            case 92863: 
+            case 92864: 
+            case 92865: 
+                spellInfo->AttributesCu |= SPELL_ATTR0_CU_SHARE_DAMAGE; 
+                break; 
+            case 86199:
+            case 92868:
+            case 92869:
+            case 92870:
+                spellInfo->Effects[EFFECT_1].TriggerSpell = 74807;
+                break;
             default:
                 break;
         }

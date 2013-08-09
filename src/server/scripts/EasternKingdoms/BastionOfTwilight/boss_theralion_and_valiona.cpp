@@ -15,11 +15,46 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+//Da sistemare:
+//mancano i suoni/yell di alcune mosse
+
 #include "bastion_of_twilight.h"
 #include "SpellScript.h"
 #include "SpellAuras.h"
 #include "SpellAuraEffects.h"
 #include "ScriptPCH.h"
+
+#define SAY_AGGRO1       "Valiona, Theralion, put them in their place." 
+#define SOU_AGGRO1       22063 
+#define SAY_AGGRO2       "Do as the master commands, Theralion! Kill them!" 
+#define SOU_AGGRO2       21894 
+#define SAY_AGGRO3       "The master was clearly speaking to you, Valiona. I am far too busy to attack ANYONE." 
+#define SOU_AGGRO3       20300 
+#define SAY_AGGRO4       "You are worthless, Theralion!" 
+#define SOU_AGGRO4       21895 
+#define SAY_AGGRO5       "How dare you call me worthless! You will see why I am Mother's favored child!" 
+#define SOU_AGGRO5       20301
+#define SAY_THER_KILL    "Bare your soul to me, mortal." 
+#define SOU_THER_KILL    20302
+#define SAY_VAL_KILL     "Breathe your dying breath!" 
+#define SOU_VAL_KILL     21896
+#define SAY_THER_ENG     "Writhe in AGONY!" 
+#define SOU_THER_ENG     20306
+#define SOU_THER_LAU     20307
+#define SAY_VAL_ENG      "Theralion! I will engulf the Hallway! Cover their escape!" 
+#define SOU_VAL_ENG      21898
+#define SAY_VAL_BLA      "Enter Twilight!" 
+#define SOU_VAL_BLA      21899
+#define SAY_THER_DAZ     "You are not the boss of me Valiona! I will engulf as I please!"
+#define SOU_THER_DAZ     20304
+#define SAY_THER_DA2    "There is no escape from the fury of the Twilight Flight!" 
+#define SOU_THER_DA2     20305
+#define SAY_THER_DEA    "I knew I should have stayed out of this..." 
+#define SOU_THER_DEA     20303
+#define SAY_VAL_DEA     "At least Theralion dies with me..." 
+#define SOU_VAL_DEA      21897
+
+
 
 #define MAX_DAZZLIN_DESTRUCTION 6
 
@@ -40,6 +75,7 @@ enum BossActions
     ACTION_THERALION_LAND                         = 3,
     ACTION_THERALION_FLY                          = 4,
     ACTION_VALIONA_LAND_MOVE                      = 5,
+    ACTION_EMOTE_BREATH                           = 6,
 };
 
 enum Points
@@ -51,6 +87,25 @@ enum Points
 
     POINT_CENTER_ROOM                             = 53,
     POINT_THERALION_ABOVE_HOME                    = 54,
+};
+
+Position const flightpoints[2] =
+{
+    {-740.000f,  -550.000f, 862.000f, 0.0f   }, //behind valiona
+    {-740.665f,  -800.682f, 862.000f, 0.0f   }, //behind theralion
+};
+
+Position const flamepoints[9] =
+{
+    {-760.000f,  -600.000f, 837.000f, 0.0f   }, //0
+    {-760.665f,  -620.682f, 837.000f, 0.0f   }, //1
+    {-760.665f,  -640.682f, 836.700f, 0.0f   }, //2
+    {-760.665f,  -660.682f, 836.700f, 0.0f   }, //3
+    {-760.665f,  -680.682f, 832.000f, 0.0f   }, //4
+    {-760.665f,  -700.682f, 835.000f, 0.0f   }, //5
+    {-760.665f,  -720.682f, 835.000f, 0.0f   }, //6
+    {-760.665f,  -740.682f, 837.000f, 0.0f   }, //7
+    {-760.665f,  -760.682f, 837.000f, 0.0f   }, //8
 };
 
 enum valionaEvents
@@ -67,11 +122,14 @@ enum valionaEvents
 enum theralionEvents
 {
     EVENT_0                                       = 0,
+    EVENT_INTRO,
     EVENT_ENGULFING_MAGIC,
     EVENT_TWILIGHT_SHIFT_THERALION,
     EVENT_FABULOUS_FLAMES,
     EVENT_VALIONA_LAND,
     EVENT_VALIONA_TWILIGHT_METEORITE,
+    EVENT_VALIONA_TWILIGHT_BREATH,
+    EVENT_VALIONA_TWILIGHT_SPAWN,
 };
 
 class boss_theralion : public CreatureScript
@@ -89,6 +147,18 @@ class boss_theralion : public CreatureScript
             InstanceScript* instance;
             SummonList summons;
             uint32 phase;
+            uint32 killtimer;
+            uint8  breathcount;
+            uint8  spawncount;
+            uint8  talkcount;
+            int    spost;
+            bool   forw;
+            bool   introDone;
+
+            void InitializeAI()
+            {
+                introDone = false;
+            }            
 
             void SetFlyState(bool fly)
             {                
@@ -97,15 +167,30 @@ class boss_theralion : public CreatureScript
                 me->SetCanFly(fly);
                 if (fly)
                 {
+                    me->SetSpeed(MOVE_FLIGHT, 3.0f, true);
                     me->SetReactState(REACT_PASSIVE);
-                    me->AddUnitMovementFlag(MOVEMENTFLAG_HOVER);
+                    me->AddUnitMovementFlag(MOVEMENTFLAG_FLYING);
                 }
                 else
                 {
                     me->SetReactState(REACT_AGGRESSIVE);
-                    me->RemoveUnitMovementFlag(MOVEMENTFLAG_HOVER);
+                    me->RemoveUnitMovementFlag(MOVEMENTFLAG_FLYING);
                 }
             }
+
+            /*void MoveInLineOfSight(Unit* who)
+            {
+                if (!introDone && me->IsWithinDistInMap(who, 70.0f))
+                {
+                    Unit *chogall = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_CHOGALL));
+                    if (chogall)
+                        chogall->MonsterYell(SAY_AGGRO1, 0, 0);
+                    DoPlaySoundToSet(me, SOU_AGGRO1);
+                    events.ScheduleEvent(EVENT_INTRO, 5000, 0, 0);
+                    talkcount =0;
+                    introDone = true;
+                }
+            }*/
 
             void JustSummoned(Creature* summon)
             {
@@ -113,6 +198,7 @@ class boss_theralion : public CreatureScript
                 {
                     summon->CastSpell(summon, SPELL_FABOLOUS_FLAME_VISUAL, true);
                     DoZoneInCombat(summon);
+                    summon->setFaction(me->getFaction());
                     summon->SetReactState(REACT_PASSIVE);
                     summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                     summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -128,9 +214,10 @@ class boss_theralion : public CreatureScript
                 events.Reset();
                 phase = PHASE_NONE;
                 summons.DespawnAll();
+                me->LowerPlayerDamageReq(me->GetMaxHealth());
     
-                me->SetHealth(me->GetMaxHealth());
-                me->GetMotionMaster()->MovePoint(POINT_THERALION_HOME, me->GetHomePosition());
+                //me->SetHealth(me->GetMaxHealth());
+                //me->GetMotionMaster()->MovePoint(POINT_THERALION_HOME, me->GetHomePosition());
 
                 if (instance)
                 {
@@ -162,7 +249,9 @@ class boss_theralion : public CreatureScript
                         events.ScheduleEvent(EVENT_TWILIGHT_SHIFT_THERALION, 6000, 0, 0);
                         events.ScheduleEvent(EVENT_FABULOUS_FLAMES, urand(10000, 15000), 0, 0);
                         events.ScheduleEvent(EVENT_VALIONA_LAND, 95000, 0, 0);
+                        events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_BREATH, 60000, 0, 0);
                         events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_METEORITE, urand(5000, 8000), 0, 0);
+                        breathcount = 0;
                     case POINT_THERALION_HOME:
                         SetFlyState(false);
                         break;
@@ -183,6 +272,7 @@ class boss_theralion : public CreatureScript
                         events.CancelEvent(EVENT_ENGULFING_MAGIC);
                         events.CancelEvent(EVENT_VALIONA_LAND);
                         events.CancelEvent(EVENT_VALIONA_TWILIGHT_METEORITE);
+                        events.CancelEvent(EVENT_VALIONA_TWILIGHT_BREATH);
 
                         phase = PHASE_THERALION_FLY;
                         SetFlyState(true);
@@ -196,8 +286,24 @@ class boss_theralion : public CreatureScript
                 if (!me || !me->isAlive())
                     return;
                 
-                if (instance)
+                if (instance){
                     instance->SetData(DATA_VALIONA_TERALION_HP, me->GetHealth() >= damage ? me->GetHealth() - damage : 0);
+                    }
+
+                if (damage > me->GetHealth() )
+                {//teleport to center when dying
+                    SetFlyState(false);
+                    me->NearTeleportTo(-741.23f, -706.75, 831.88f, 0);
+                    me->MonsterYell(SAY_THER_DEA, 0, 0);
+                    DoPlaySoundToSet(me, SOU_THER_DEA);
+                    /*Unit *valiona = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_VALIONA));
+                    if (valiona && valiona->isAlive())
+                    {
+                        who->DealDamage(valiona,2);
+                        me->MonsterYell(SAY_THER_DEA, 0, 0);
+                        DoPlaySoundToSet(me, SOU_THER_DEA);
+                    }*/
+                }
             }
 
             void EnterCombat(Unit* victim)
@@ -217,19 +323,32 @@ class boss_theralion : public CreatureScript
                     }
                 }
 
+                if (!introDone)
+                {
+                    Unit *chogall = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_CHOGALL));
+                    if (chogall)
+                        chogall->MonsterYell(SAY_AGGRO1, 0, 0);
+                    DoPlaySoundToSet(me, SOU_AGGRO1);
+                    events.ScheduleEvent(EVENT_INTRO, 5000, 0, 0);
+                    talkcount =0;
+                    introDone = true;
+                }
+
                 instance->SetData(DATA_VALIONA_THERALION_EVENT, IN_PROGRESS);
 
                 events.ScheduleEvent(EVENT_ENGULFING_MAGIC, 35000, 0, 0);
                 events.ScheduleEvent(EVENT_TWILIGHT_SHIFT_THERALION, 20000, 0, 0);
                 events.ScheduleEvent(EVENT_FABULOUS_FLAMES, urand(10000, 16000), 0, 0);
                 events.ScheduleEvent(EVENT_VALIONA_LAND, 95000, 0, 0);
+                events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_BREATH, 60000, 0, 0);
                 events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_METEORITE, urand(5000, 8000), 0, 0);
+                breathcount = 0;
             }
 
             void JustDied(Unit* killer)
             {
                 summons.DespawnAll();
-
+                /*
                 if (me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL)
                     killer->SummonGameObject(8000015, -741.23f, -686.75, 831.88f, 1.593f, 0.0f, 0.0f, 0.0f, 0.0f, 100000000);
                 else if (me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
@@ -238,20 +357,33 @@ class boss_theralion : public CreatureScript
                     killer->SummonGameObject(8000017, -741.23f, -686.75, 831.88f, 1.593f, 0.0f, 0.0f, 0.0f, 0.0f, 100000000);
                 else 
                     killer->SummonGameObject(8000016, -741.23f, -686.75, 831.88f, 1.593f, 0.0f, 0.0f, 0.0f, 0.0f, 100000000);
-
+                */
                 me->LowerPlayerDamageReq(me->GetMaxHealth());
 
                 /*if (instance->GetData(DATA_FIEND_KILLS) >= 6)
                     instance->DoCompleteAchievement(4852);*/
 
+                bool is25 = (me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || me->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC);
                 if (!me->GetMap()->GetPlayers().isEmpty())
                 {
-                   for (Map::PlayerList::const_iterator i = me->GetMap()->GetPlayers().begin(); i != me->GetMap()->GetPlayers().end(); ++i)
-                   {
-                       i->getSource()->ModifyCurrency(396, 105 * 100);
-                   }
+                    for (Map::PlayerList::const_iterator i = me->GetMap()->GetPlayers().begin(); i != me->GetMap()->GetPlayers().end(); ++i)
+                    {
+                        if (is25)
+                            i->getSource()->ModifyCurrency(396, 70 * 100);
+                        else
+                            i->getSource()->ModifyCurrency(396, 40 * 100);
+                    }
                 }
                 instance->SetData(DATA_VALIONA_THERALION_EVENT, DONE);
+            }
+
+            void KilledUnit(Unit* victim)
+            {
+                if (!victim || victim->GetTypeId() != TYPEID_PLAYER || killtimer > 0)
+                    return;
+                me->MonsterYell(SAY_THER_KILL, 0, 0);
+                DoPlaySoundToSet(me, SOU_THER_KILL);
+                killtimer = 8000;
             }
 
             void UpdateAI(uint32 diff)
@@ -264,17 +396,60 @@ class boss_theralion : public CreatureScript
                 if (!UpdateVictim() && phase != PHASE_THERALION_FLY)
                     return;
 
+                if (killtimer>=diff)
+                killtimer -= diff;
+
                 events.Update(diff);
 
                 while (uint32 eventid = events.ExecuteEvent())
                 {
                     switch (eventid)
                     {
+                        case EVENT_INTRO:
+                            switch(talkcount)
+                            {
+                            case 0:
+                                if (Creature* valiona = me->GetCreature(*me, instance->GetData64(DATA_VALIONA)))
+                                {
+                                    valiona->MonsterYell(SAY_AGGRO2, 0, 0);
+                                    DoPlaySoundToSet(valiona, SOU_AGGRO2);
+                                    events.ScheduleEvent(EVENT_INTRO, 6000, 0, 0);
+                                }
+                                break;
+                            case 1:
+                                me->MonsterYell(SAY_AGGRO3, 0, 0);
+                                DoPlaySoundToSet(me, SOU_AGGRO3);
+                                events.ScheduleEvent(EVENT_INTRO, 8000, 0, 0);
+                                break;
+                            case 2:
+                                if (Creature* valiona = me->GetCreature(*me, instance->GetData64(DATA_VALIONA)))
+                                {
+                                    valiona->MonsterYell(SAY_AGGRO4, 0, 0);
+                                    DoPlaySoundToSet(valiona, SOU_AGGRO4);
+                                    events.ScheduleEvent(EVENT_INTRO, 6000, 0, 0);
+                                }
+                                break;
+                            case 3:
+                                me->MonsterYell(SAY_AGGRO5, 0, 0);
+                                DoPlaySoundToSet(me, SOU_AGGRO5);
+                                break;
+                            }
+                            talkcount++;
+                            break;
                         case EVENT_ENGULFING_MAGIC:
                             for (int8 i = 0; i < RAID_MODE(1, 3, 1, 3); i++)
                             {
                                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true))
                                     me->AddAura(SPELL_ENGULFING_MAGIC, target);
+                            }
+                            if (roll_chance_i(50))
+                            {
+                                me->MonsterYell(SAY_THER_ENG, 0, 0);
+                                DoPlaySoundToSet(me, SOU_THER_ENG);
+                            }
+                            else
+                            {
+                                DoPlaySoundToSet(me, SOU_THER_LAU);
                             }
                             events.ScheduleEvent(EVENT_ENGULFING_MAGIC, 35000, 0, 0);
                             break;
@@ -300,6 +475,7 @@ class boss_theralion : public CreatureScript
                             events.CancelEvent(EVENT_TWILIGHT_SHIFT_THERALION);
                             events.CancelEvent(EVENT_ENGULFING_MAGIC);
                             events.CancelEvent(EVENT_VALIONA_TWILIGHT_METEORITE);
+                            events.CancelEvent(EVENT_VALIONA_TWILIGHT_BREATH);
                             phase = PHASE_THERALION_FLY;
                             SetFlyState(true);
                             me->GetMotionMaster()->MovePoint(POINT_THERALION_ABOVE_HOME, me->GetHomePosition().m_positionX, me->GetHomePosition().m_positionY, me->GetHomePosition().m_positionZ + 20.0f);
@@ -320,6 +496,84 @@ class boss_theralion : public CreatureScript
                                 }
                             }
                             events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_METEORITE, urand(6000, 8000), 0, 0);
+                            break;
+                        case EVENT_VALIONA_TWILIGHT_BREATH:
+                            events.CancelEvent(EVENT_VALIONA_TWILIGHT_METEORITE);
+                            if (Creature* valiona = me->GetCreature(*me, instance->GetData64(DATA_VALIONA)))
+                            {
+                                switch(breathcount)
+                                {
+                                case 0:
+                                    valiona->SetSpeed(MOVE_FLIGHT, 3.0f, true);
+                                    valiona->AddUnitMovementFlag(MOVEMENTFLAG_FLYING);
+                                    valiona->MonsterYell(SAY_VAL_ENG, 0, 0);
+                                    DoPlaySoundToSet(me, SOU_VAL_ENG);
+                                    //if (valiona->AI())
+                                    //    valiona->AI()->DoAction(ACTION_EMOTE_BREATH);
+                                    valiona->GetMotionMaster()->MovePoint(0, flightpoints[0]);
+                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_BREATH, 5000, 0, 0);
+                                    break;
+                                case 1:
+                                    valiona->SetSpeed(MOVE_FLIGHT, 6.0f, true);
+                                    valiona->GetMotionMaster()->MovePoint(0, flightpoints[1]);
+                                    spost = 0;
+                                    spawncount = 0;
+                                    forw = true;
+                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_BREATH, 6000, 0, 0);
+                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_SPAWN, 1000, 0, 0);
+                                    break;
+                                case 2:
+                                    valiona->SetFacingToObject(me);
+                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_BREATH, 4000, 0, 0);
+                                    break;
+                                case 3:
+                                    valiona->GetMotionMaster()->MovePoint(0, flightpoints[0]);
+                                    spawncount = 0;
+                                    spost++;
+                                    forw = false;
+                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_SPAWN, 1000, 0, 0);
+                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_BREATH, 6000, 0, 0);
+                                    break;
+                                case 4:
+                                    valiona->SetFacingToObject(me);
+                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_BREATH, 4000, 0, 0);
+                                    break;
+                                case 5:
+                                    valiona->GetMotionMaster()->MovePoint(0, flightpoints[1]);
+                                    spawncount = 0;
+                                    spost++;
+                                    forw = true;
+                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_SPAWN, 1000, 0, 0);
+                                    break;
+
+                                }
+                                breathcount++;
+                            }
+                            break;
+                        case EVENT_VALIONA_TWILIGHT_SPAWN:
+                            if (Creature* valiona = me->GetCreature(*me, instance->GetData64(DATA_VALIONA)))
+                            {
+                                float X = flamepoints[spawncount].GetPositionX() + float(spost* 20.0f);
+                                if (forw)
+                                {
+                                    valiona->SummonCreature(NPC_TWILIGHT_FLAME,
+                                                       X,
+                                                       flamepoints[spawncount].GetPositionY(),
+                                                       flamepoints[spawncount].GetPositionZ(),
+                                                       0);
+                                }
+                                else
+                                {
+                                    valiona->SummonCreature(NPC_TWILIGHT_FLAME,
+                                                       X,
+                                                       flamepoints[8-spawncount].GetPositionY(),
+                                                       flamepoints[8-spawncount].GetPositionZ(),
+                                                       0);
+                                }
+                                spawncount++;
+                                if (spawncount < 9)
+                                    events.ScheduleEvent(EVENT_VALIONA_TWILIGHT_SPAWN, 500, 0, 0);
+                            }
                             break;
                     }
                 }
@@ -349,6 +603,7 @@ class boss_valiona : public CreatureScript
             InstanceScript* instance;
             SummonList summons;
             uint32 phase;
+            uint32 killtimer;
             uint8 dazzlingCount;
 
             void SetFlyState(bool fly)
@@ -358,14 +613,24 @@ class boss_valiona : public CreatureScript
                 me->SetCanFly(fly);
                 if (fly)
                 {
+                    me->SetSpeed(MOVE_FLIGHT, 3.0f, true);
                     me->SetReactState(REACT_PASSIVE);
-                    me->AddUnitMovementFlag(MOVEMENTFLAG_HOVER);
+                    me->AddUnitMovementFlag(MOVEMENTFLAG_FLYING);
                 }
                 else
                 {
                     me->SetReactState(REACT_AGGRESSIVE);
-                    me->RemoveUnitMovementFlag(MOVEMENTFLAG_HOVER);
+                    me->RemoveUnitMovementFlag(MOVEMENTFLAG_FLYING);
                 }
+            }
+
+            void KilledUnit(Unit* victim)
+            {
+                if (!victim || victim->GetTypeId() != TYPEID_PLAYER || killtimer > 0)
+                    return;
+                me->MonsterYell(SAY_VAL_KILL, 0, 0);
+                DoPlaySoundToSet(me, SOU_VAL_KILL);
+                killtimer = 8000;
             }
 
             void MovementInform(uint32 type, uint32 point)
@@ -400,6 +665,7 @@ class boss_valiona : public CreatureScript
                 phase = PHASE_NONE;
                 dazzlingCount = 0;
                 summons.DespawnAll();
+                me->LowerPlayerDamageReq(me->GetMaxHealth());
 
                 if (instance)
                 {
@@ -424,7 +690,22 @@ class boss_valiona : public CreatureScript
                     return;
                 
                 if (instance)
+                {
                     instance->SetData(DATA_VALIONA_TERALION_HP, me->GetHealth() >= damage ? me->GetHealth() - damage : 0);
+                }
+
+                if (damage > me->GetHealth())
+                {//teleport to center when dying
+                    SetFlyState(false);
+                    me->NearTeleportTo(-741.23f, -666.75, 831.88f, 0);
+                    me->MonsterYell(SAY_VAL_DEA, 0, 0);
+                    DoPlaySoundToSet(me, SOU_VAL_DEA);
+                    /*Unit *theralion = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_THERALION));
+                    if (theralion && theralion->isAlive())
+                    {
+                        who->DealDamage(theralion,2);
+                    }*/
+                }
             }
 
             void JustSummoned(Creature* summon)
@@ -439,7 +720,17 @@ class boss_valiona : public CreatureScript
                     summon->AttackStop();
                     summon->StopMoving();
                 }
-
+                else if (summon->GetEntry() ==  NPC_TWILIGHT_FLAME)
+                {
+                    DoZoneInCombat(summon);
+                    summon->AddAura(SPELL_TWILIGHT_FLAME, summon);
+                    summon->setFaction(me->getFaction());
+                    summon->SetReactState(REACT_PASSIVE);
+                    summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    summon->AttackStop();
+                    summon->StopMoving();
+                }
                 summons.Summon(summon);
             }
 
@@ -453,6 +744,9 @@ class boss_valiona : public CreatureScript
                 if (!UpdateVictim())
                     return;
 
+                if (killtimer>=diff)
+                killtimer -= diff;
+
                 events.Update(diff);
 
                 while (uint32 eventid = events.ExecuteEvent())
@@ -462,6 +756,8 @@ class boss_valiona : public CreatureScript
                         case EVENT_BLACKOUT:
                             if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true))
                                 me->CastSpell(target, SPELL_BLACKOUT, true);
+                            me->MonsterYell(SAY_VAL_BLA, 0, 0);
+                            DoPlaySoundToSet(me, SOU_VAL_BLA);
                             
                             events.ScheduleEvent(EVENT_BLACKOUT, 45000, 0, 0);
                             break;
@@ -496,6 +792,20 @@ class boss_valiona : public CreatureScript
                             events.ScheduleEvent(EVENT_TWILIGHT_SHIFT, urand(20000, 25000), 0, 0);
                             break;
                         case EVENT_DAZZLING_DESTRUCTION:
+                            if (dazzlingCount == 0)
+                            {
+                                if (roll_chance_i(50))
+                                {
+                                    me->MonsterYell(SAY_THER_DAZ, 0, 0);
+                                    DoPlaySoundToSet(me, SOU_THER_DAZ);
+                                }
+                                else
+                                {
+                                    me->MonsterYell(SAY_THER_DA2, 0, 0);
+                                    DoPlaySoundToSet(me, SOU_THER_DA2);
+                                }
+
+                            }
                             // Cast 2 flames per time, 6 total
                             for (uint8 i = 0; i < 2; i++)
                             {
@@ -550,6 +860,9 @@ class boss_valiona : public CreatureScript
             {
                 switch (actionId)
                 {
+                    case ACTION_EMOTE_BREATH:
+                        Talk(0);
+                        break;
                     case ACTION_VALIONA_LAND:
                         phase = PHASE_VALIONA_LAND;
                         dazzlingCount = 0;
@@ -607,6 +920,7 @@ class boss_valiona : public CreatureScript
             return new boss_valionaAI(creature);
         }
 };
+
 
 class spell_dazzling_destruction : public SpellScriptLoader
 {
@@ -868,11 +1182,13 @@ void AddSC_boss_theralion()
 {
     new boss_theralion();
     new boss_valiona();
+
     new spell_dazzling_destruction();
     new spell_blackout();
     new spell_devouring_flame();
     new spell_engulfing_magic();
     new spell_shifting_reality();
+
     new npc_twilight_portal_bot();
     new npc_twilight_fiend();
 }
