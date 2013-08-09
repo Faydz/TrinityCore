@@ -60,6 +60,8 @@ public:
              uiCyclonWinds = 0;
              uiFiendKills = 0;
              uiTeralionValionaHP = 0;
+             uiOrb0 = 0;
+             uiOrb1 = 0;
              if (instance->IsHeroic())
                  uiSinestra = 0;
              uiAscendantCouncilPhase = 1;
@@ -194,6 +196,12 @@ public:
                 case DATA_HB_VALIONA_THERALION:
                     uiValionaTheralionHealth = data ;
                     break;
+                case DATA_ORB_0:
+                    uiOrb0 = data;
+                    break;
+                case DATA_ORB_1:
+                    uiOrb1 = data;
+                    break;
             }
         }
 
@@ -212,6 +220,8 @@ public:
 					case DATA_CHOGALL:						return uiChogall;
                     case DATA_SINESTRA:                     return uiSinestra;
                     case DATA_HB_VALIONA_THERALION:         return uiValionaTheralionHealth;
+                    case DATA_ORB_0:                        return uiOrb0;
+                    case DATA_ORB_1:                        return uiOrb1;
 					case NPC_SLATE_DRAKE:					return uiSlateDrake;
 					case NPC_STORM_RIDER:					return uiStormRider;
 					case NPC_NETHER_SCION:					return uiNetherScion;
@@ -460,6 +470,8 @@ public:
 		uint64 uiTimeWarden;
         uint64 uiValionaTheralionHealth;
         uint64 uiCyclonWinds;
+        uint64 uiOrb0;
+        uint64 uiOrb1;
         uint32 uiTeralionValionaHP;
 		uint32 uiRandomDragons[3];
 		uint32 uiRandomNumber;

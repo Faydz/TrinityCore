@@ -954,6 +954,8 @@ class instance_icecrown_citadel : public InstanceMapScript
 
             bool CheckRequiredBosses(uint32 bossId, Player const* player = NULL) const
             {
+                return true;
+
                 if (player && player->GetSession()->HasPermission(RBAC_PERM_SKIP_CHECK_INSTANCE_REQUIRED_BOSSES))
                     return true;
 

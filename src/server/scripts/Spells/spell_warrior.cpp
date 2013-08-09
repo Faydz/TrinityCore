@@ -264,6 +264,15 @@ class spell_warr_colussus_smash : public SpellScriptLoader
         {
             PrepareAuraScript(spell_warr_colussus_smash_AuraScript);
 
+            void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                // Glyph of Colossus Smash
+                if(Unit* caster = GetCaster())
+                    if(Unit* target = GetUnitOwner())
+                        if(caster->GetDummyAuraEffect(SPELLFAMILY_WARRIOR, 5288, EFFECT_0))
+                            caster->AddAura(58567, target);
+            }
+
             void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
             {
                 if (Unit* target = GetUnitOwner())
@@ -278,7 +287,8 @@ class spell_warr_colussus_smash : public SpellScriptLoader
 
             void Register()
             {
-                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_colussus_smash_AuraScript::CalculateAmount, EFFECT_1, SPELL_AURA_BYPASS_ARMOR_FOR_CASTER);
+                OnEffectApply += AuraEffectApplyFn(spell_warr_colussus_smash_AuraScript::HandleApply, EFFECT_1, SPELL_AURA_BYPASS_ARMOR_FOR_CASTER, AURA_EFFECT_HANDLE_REAL);
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warr_colussus_smash_AuraScript::CalculateAmount, EFFECT_1, SPELL_AURA_BYPASS_ARMOR_FOR_CASTER);
             }
         };
 

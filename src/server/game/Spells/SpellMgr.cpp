@@ -3542,6 +3542,10 @@ void SpellMgr::LoadSpellCustomAttr()
             case 42402:
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_NEGATIVE_EFF2;
                 break;
+            // Twilight Essence
+            case 89288:
+                spellInfo->Effects[0].BasePoints = 6;
+                break;
             case 86825: // Blackout (dmg) 
             case 92879: 
             case 92880: 
@@ -3925,7 +3929,6 @@ void SpellMgr::LoadSpellCustomAttr()
                 {
                     // Ring of Frost freeze
                     case 82691:
-                        spellInfo->AuraInterruptFlags = AURA_INTERRUPT_FLAG_TAKE_DAMAGE;
                         spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(31); // 8 seconds
                         spellInfo->Effects[EFFECT_0].MaxRadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_0_YARDS);
                         break;
