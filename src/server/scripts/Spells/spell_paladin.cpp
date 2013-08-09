@@ -1950,7 +1950,8 @@ class spell_pal_templar_s_verdict : public SpellScriptLoader
                     return;
 
                 // (((AP/14) * Weaponspeed) + Weapon damage) * 30% = (AP/14) * Weaponspeed) * 30% + (Weapon damage * 30%)
-                damage += int32((caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.07f * caster->GetAttackTime(BASE_ATTACK)/1000)*0.3f);
+                //paladin's weaponspeed is normalized a 3.3 for special attacks
+                damage += int32((caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.07f * 3.3f)*0.3f);
                 
                 if (caster->HasAura(SPELL_PALADIN_DIVINE_PURPOSE_PROC))
                 {
