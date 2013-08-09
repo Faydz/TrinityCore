@@ -1343,7 +1343,7 @@ public: npc_council_violent_cyclone() : CreatureScript("npc_council_violent_cycl
             {
                 if (checkMovement <= diff)
                 {
-                    checkMovement = urand(1000, 8000);
+                    checkMovement = urand(5000, 8000);
                     chase= (chase+1) %10; 
                     me->GetMotionMaster()->MovePoint(0, cyclone[chase]);
 
@@ -2042,48 +2042,6 @@ class spell_council_rising_flames : public SpellScriptLoader
             return new spell_council_heart_of_ice_AuraScript();
         }
 };
- 
-class spell_council_harden_skin : public SpellScriptLoader
-{
-   public:
-       spell_council_harden_skin() : SpellScriptLoader("spell_council_harden_skin") { }
- 
-       class spell_council_harden_skin_AuraScript : public AuraScript
-       {
-           PrepareAuraScript(spell_council_harden_skin_AuraScript);
-
-           uint32 dispeldamage;
- 
-           void AfterRemove(AuraEffect const* aurEff, AuraEffectHandleModes mode)
-           {
-               if (GetTargetApplication()->GetRemoveMode() != AURA_REMOVE_BY_ENEMY_SPELL)
-                   return;
-               if (!GetCaster())
-                   return;
-               Unit* caster = GetCaster();
-               caster->DealDamage(caster, dispeldamage);
-               dispeldamage =0;
-           }
- 
-           void Absorb(AuraEffect* aurEff, DamageInfo & dmgInfo, uint32 & absorbAmount)
-           {
-               if (!dmgInfo.GetVictim() || !dmgInfo.GetAttacker())
-                   return;
-               dispeldamage += absorbAmount/2;
-           }
- 
-           void Register()
-           {
-               OnEffectAbsorb += AuraEffectAbsorbFn(spell_council_harden_skin_AuraScript::Absorb, EFFECT_1);
-               AfterEffectRemove += AuraEffectRemoveFn(spell_council_harden_skin_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB, AURA_EFFECT_HANDLE_REAL);
-           }
-       };
- 
-       AuraScript* GetAuraScript() const
-       {
-           return new spell_council_harden_skin_AuraScript();
-       }
-};
 
 class spell_council_liquid_ice : public SpellScriptLoader
 {
@@ -2141,6 +2099,5 @@ void AddSC_boss_ascendant_council()
     new spell_council_rising_flames();
     new spell_council_burning_blood();
     new spell_council_heart_of_ice();
-    new spell_council_harden_skin();
     new spell_council_liquid_ice();
 }
