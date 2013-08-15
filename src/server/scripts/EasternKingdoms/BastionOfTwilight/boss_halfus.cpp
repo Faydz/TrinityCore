@@ -91,10 +91,10 @@
      
      
                     };
-				ScriptedAI* GetAI (Creature* creature) const
-				{
-					return new boss_creatureAI(creature);
-				}
+				//ScriptedAI* GetAI (Creature* creature) const
+				//{
+				//	return new boss_creatureAI(creature);
+				//}
 
     };
      
