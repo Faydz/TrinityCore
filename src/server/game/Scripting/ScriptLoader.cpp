@@ -276,8 +276,7 @@ void AddSC_western_plaguelands();
 void AddSC_westfall();
 void AddSC_wetlands();
 
-void AddSC_boss_argaloth();
-void AddSC_boss_occuthar();
+
 
 void AddSC_boss_ammunae();
 void AddSC_boss_isiset();
@@ -962,8 +961,6 @@ void AddEasternKingdomsScripts()
     AddSC_western_plaguelands();
     AddSC_westfall();
     AddSC_wetlands();
-	AddSC_boss_argaloth();
-	AddSC_boss_occuthar();
 	AddSC_boss_ammunae(); 
 	AddSC_boss_temple_guardian_anhuur();
 	AddSC_boss_isiset();
