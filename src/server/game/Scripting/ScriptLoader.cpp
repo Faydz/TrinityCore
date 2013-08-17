@@ -1073,7 +1073,6 @@ void AddKalimdorScripts()
     AddSC_winterspring();
 
     AddSC_instance_halls_of_origination();
-    AddSC_boss_temple_guardian_anhuur();
     AddSC_boss_earthrager_ptah();
     AddSC_boss_anraphet();
 
