@@ -12,6 +12,7 @@ set(scripts_STAT_SRCS
   ${scripts_STAT_SRCS}
   Custom/custom_misc.cpp
   Custom/Boss_Generall_Umbriss.cpp
+  Custom/boss_Forgemaster_Throngus.cpp
 )
 
 message("  -> Prepared: Custom")
