@@ -184,13 +184,9 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
     uint8  updateType = UPDATETYPE_CREATE_OBJECT;
     uint16 flags      = m_updateFlag;
 
-    uint32 valCount = m_valuesCount;
-
     /** lower flag1 **/
     if (target == this)                                      // building packet for yourself
         flags |= UPDATEFLAG_SELF;
-    else if (GetTypeId() == TYPEID_PLAYER)
-        valCount = PLAYER_END_NOT_SELF;
 
     switch (GetGUIDHigh())
     {
@@ -401,8 +397,7 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
             hasTransportTime2 = self->HasExtraUnitMovementFlag(MOVEMENTFLAG2_INTERPOLATED_MOVEMENT);
             hasPitch = ((movementFlags & (MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_FLYING)) ||
                 (movementFlagsExtra & MOVEMENTFLAG2_ALWAYS_ALLOW_PITCHING));
-            hasFallDirection = movementFlags & MOVEMENTFLAG_FALLING;
-            hasFallData = hasFallDirection; // FallDirection implies that FallData is set as well
+            hasFallData = hasFallDirection = movementFlags & MOVEMENTFLAG_FALLING;
             hasSplineElevation = movementFlags & MOVEMENTFLAG_SPLINE_ELEVATION;
 
             movementFlags &= MOVEMENTFLAG_MASK_CREATURE_ALLOWED;
@@ -416,9 +411,9 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
         if (movementFlags)
             data->WriteBits(movementFlags, 30);
 
-        data->WriteBit(0);
+        data->WriteBit(hasSpline && GetTypeId() == TYPEID_PLAYER);              // Has spline (from MovementInfo)
         data->WriteBit(!hasPitch);                                              // Has pitch
-        data->WriteBit(hasSpline);                                              // Has spline data
+        data->WriteBit(hasSpline);                                              // Has spline data (independent)
         data->WriteBit(hasFallData);                                            // Has fall data
         data->WriteBit(!hasSplineElevation);                                    // Has spline elevation
         data->WriteBit(guid[5]);

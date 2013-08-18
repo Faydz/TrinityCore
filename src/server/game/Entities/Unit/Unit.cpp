@@ -162,7 +162,7 @@ ProcEventInfo::ProcEventInfo(Unit* actor, Unit* actionTarget, Unit* procTarget,
 #endif
 Unit::Unit(bool isWorldObject) :
     WorldObject(isWorldObject), m_movedPlayer(NULL), m_lastSanctuaryTime(0),
-    m_TempSpeed(0.0f), IsAIEnabled(false), NeedChangeAI(false),
+    IsAIEnabled(false), NeedChangeAI(false),
     m_ControlledByPlayer(false), movespline(new Movement::MoveSpline()),
     i_AI(NULL), i_disabledAI(NULL), m_AutoRepeatFirstCast(false), m_procDeep(0),
     m_removedAurasCount(0), i_motionMaster(this), m_ThreatManager(this),
@@ -194,8 +194,6 @@ Unit::Unit(bool isWorldObject) :
 
     for (uint8 i = 0; i < CURRENT_MAX_SPELL; ++i)
         m_currentSpells[i] = NULL;
-
-    m_addDmgOnce = 0;
 
     for (uint8 i = 0; i < MAX_SUMMON_SLOT; ++i)
         m_SummonSlot[i] = 0;
@@ -720,10 +718,14 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
         if (victim->GetTypeId() == TYPEID_PLAYER)
             victim->ToPlayer()->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_TOTAL_DAMAGE_RECEIVED, damage);
 
-        victim->ModifyHealth(- (int32)damage);
+        victim->ModifyHealth(-(int32)damage);
 
         if (damagetype == DIRECT_DAMAGE || damagetype == SPELL_DIRECT_DAMAGE)
+        {
             victim->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_DIRECT_DAMAGE, spellProto ? spellProto->Id : 0);
+            if (victim->GetTypeId() == TYPEID_UNIT && !victim->IsPet())
+                victim->SetLastDamagedTime(time(NULL));
+        }
 
         if (victim->GetTypeId() != TYPEID_PLAYER)
             victim->AddThreat(this, float(damage), damageSchoolMask, spellProto);
@@ -2732,11 +2734,11 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
             if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL])
             {
                 // break autorepeat if not Auto Shot
-                if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo->Id != 75)
+                if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->GetSpellInfo()->Id != 75)
                     InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
                 m_AutoRepeatFirstCast = true;
             }
-            if (pSpell->m_spellInfo->CalcCastTime(this) > 0)
+            if (pSpell->GetCastTime() > 0)
                 AddUnitState(UNIT_STATE_CASTING);
 
             break;
@@ -2749,7 +2751,7 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
 
             // it also does break autorepeat if not Auto Shot
             if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL] &&
-                m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo->Id != 75)
+                m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->GetSpellInfo()->Id != 75)
                 InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
             AddUnitState(UNIT_STATE_CASTING);
 
@@ -2758,7 +2760,7 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
         case CURRENT_AUTOREPEAT_SPELL:
         {
             // only Auto Shoot does not break anything
-            if (pSpell->m_spellInfo->Id != 75)
+            if (pSpell->GetSpellInfo()->Id != 75)
             {
                 // generic autorepeats break generic non-delayed and channeled non-delayed spells
                 InterruptSpell(CURRENT_GENERIC_SPELL, false);
@@ -3832,19 +3834,40 @@ void Unit::RemoveAllAurasExceptType(AuraType type)
     for (AuraApplicationMap::iterator iter = m_appliedAuras.begin(); iter != m_appliedAuras.end();)
     {
         Aura const* aura = iter->second->GetBase();
-        if (!aura->GetSpellInfo()->HasAura(type))
-            _UnapplyAura(iter, AURA_REMOVE_BY_DEFAULT);
-        else
+        if (aura->GetSpellInfo()->HasAura(type))
             ++iter;
+        else
+            _UnapplyAura(iter, AURA_REMOVE_BY_DEFAULT);
     }
 
     for (AuraMap::iterator iter = m_ownedAuras.begin(); iter != m_ownedAuras.end();)
     {
         Aura* aura = iter->second;
-        if (!aura->GetSpellInfo()->HasAura(type))
-            RemoveOwnedAura(iter, AURA_REMOVE_BY_DEFAULT);
-        else
+        if (aura->GetSpellInfo()->HasAura(type))
             ++iter;
+        else
+            RemoveOwnedAura(iter, AURA_REMOVE_BY_DEFAULT);
+    }
+}
+
+void Unit::RemoveAllAurasExceptType(AuraType type1, AuraType type2)
+{
+    for (AuraApplicationMap::iterator iter = m_appliedAuras.begin(); iter != m_appliedAuras.end();)
+    {
+        Aura const* aura = iter->second->GetBase();
+        if (aura->GetSpellInfo()->HasAura(type1) || aura->GetSpellInfo()->HasAura(type2))
+            ++iter;
+        else
+            _UnapplyAura(iter, AURA_REMOVE_BY_DEFAULT);
+    }
+
+    for (AuraMap::iterator iter = m_ownedAuras.begin(); iter != m_ownedAuras.end();)
+    {
+        Aura* aura = iter->second;
+        if (aura->GetSpellInfo()->HasAura(type1) || aura->GetSpellInfo()->HasAura(type2))
+            ++iter;
+        else
+            RemoveOwnedAura(iter, AURA_REMOVE_BY_DEFAULT);
     }
 }
 
@@ -4931,6 +4954,9 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                 {
                     case 0:
                     {
+                        if (HasAura(trigger_spell_id))
+                            return false;
+
                         // Do not proc if proc spell isnt starfire and starsurge
                         if (procSpell->Id != 2912 && procSpell->Id != 78674)
                             return false;
@@ -4944,6 +4970,9 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
                     }
                     case 1:
                     {
+                        if (HasAura(trigger_spell_id))
+                            return false;
+
                         // Do not proc if proc spell isnt wrath and starsurge
                         if (procSpell->Id != 5176 && procSpell->Id != 78674)
                             return false;
@@ -5251,18 +5280,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     // Remove any stun effect on target
                     victim->RemoveAurasWithMechanic(1<<MECHANIC_STUN, AURA_REMOVE_BY_ENEMY_SPELL);
                     return true;
-                }
-                // Glyph of Scourge Strike
-                case 58642:
-                {
-                    triggered_spell_id = 69961; // Glyph of Scourge Strike
-                    break;
-                }
-                // Glyph of Life Tap
-                case 63320:
-                {
-                    triggered_spell_id = 63321; // Life Tap
-                    break;
                 }
                 // Purified Shard of the Scale - Onyxia 10 Caster Trinket
                 case 69755:
@@ -5711,69 +5728,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
         }
         case SPELLFAMILY_PALADIN:
         {
-            // Light's Beacon - Beacon of Light
-            if (dummySpell->Id == 53651)
-            {
-                if (!victim)
-                    return false;
-                triggered_spell_id = 0;
-                Unit* beaconTarget = NULL;
-                if (GetTypeId() != TYPEID_PLAYER)
-                {
-                    beaconTarget = triggeredByAura->GetBase()->GetCaster();
-                    if (!beaconTarget || beaconTarget == this || !(beaconTarget->GetAura(53563, victim->GetGUID())))
-                        return false;
-                    basepoints0 = int32(damage);
-                    triggered_spell_id = procSpell->IsRankOf(sSpellMgr->GetSpellInfo(635)) ? 53652 : 53654;
-                }
-                else
-                {    // Check Party/Raid Group
-                    if (Group* group = ToPlayer()->GetGroup())
-                    {
-                        for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
-                        {
-                            if (Player* member = itr->GetSource())
-                            {
-                                // check if it was heal by paladin which casted this beacon of light
-                                if (member->GetAura(53563, victim->GetGUID()))
-                                {
-                                    // do not proc when target of beacon of light is healed
-                                    if (member == this)
-                                        return false;
-
-                                    beaconTarget = member;
-                                    basepoints0 = int32(damage);
-                                    triggered_spell_id = procSpell->IsRankOf(sSpellMgr->GetSpellInfo(635)) ? 53652 : 53654;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (triggered_spell_id && beaconTarget)
-                {
-                    int32 percent = 0;
-                    switch (procSpell->Id)
-                    {
-                        case 85673: // Word of Glory
-                        case 20473: // Holy Shock
-                        case 19750: // Flash of Light
-                        case 82326: // Divine Light
-                        case 85222: // Light of Dawn
-                            percent = triggerAmount; // 50% heal from these spells
-                            break;
-                        case 635:   // Holy Light
-                            percent = triggerAmount * 2; // 100% heal from Holy Light
-                            break;
-                    }
-                    basepoints0 = CalculatePct(damage, percent);
-                    victim->CastCustomSpell(beaconTarget, triggered_spell_id, &basepoints0, NULL, NULL, true, 0, triggeredByAura);
-                    return true;
-                }
-
-                return false;
-            }
             // Judgements of the Wise
             if (dummySpell->SpellIconID == 3017)
             {
@@ -6910,12 +6864,6 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                             return false;
                         break;
                     }
-                    // Rogue T10 4P bonus, should proc on victim
-                    case 70803:
-                    {
-                        target = victim;
-                        break;
-                    }
                 }
                 break;
             }
@@ -7818,7 +7766,7 @@ Player* Unit::GetAffectingPlayer() const
     return NULL;
 }
 
-Minion *Unit::GetFirstMinion() const
+Minion* Unit::GetFirstMinion() const
 {
     if (uint64 pet_guid = GetMinionGUID())
     {
@@ -8994,16 +8942,6 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                                 crit_chance += rendAndTear->GetAmount();
                             break;
                         }
-                    break;
-                    case SPELLFAMILY_WARRIOR:
-                       // Victory Rush
-                       if (spellProto->SpellFamilyFlags[1] & 0x100)
-                       {
-                           // Glyph of Victory Rush
-                           if (AuraEffect const* aurEff = GetAuraEffect(58382, 0))
-                               crit_chance += aurEff->GetAmount();
-                           break;
-                       }
                     break;
                 }
             }
@@ -10340,10 +10278,6 @@ int32 Unit::ModifyHealth(int32 dVal)
 
     if (dVal == 0)
         return 0;
-
-    // Part of Evade mechanics. Only track health lost, not gained.
-    if (dVal < 0 && GetTypeId() != TYPEID_PLAYER && !IsPet())
-        SetLastDamagedTime(time(NULL));
 
     int32 curHealth = (int32)GetHealth();
 
@@ -12398,11 +12332,10 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
         if (spellInfo->AttributesEx3 & SPELL_ATTR3_DISABLE_PROC)
             SetCantProc(true);
 
-        i->aura->CallScriptProcHandlers(aurApp, eventInfo);
+        bool handled = i->aura->CallScriptProcHandlers(aurApp, eventInfo);
 
-        // This bool is needed till separate aura effect procs are still here
-        bool handled = false;
-        if (HandleAuraProc(target, damage, i->aura, procSpell, procFlag, procExtra, cooldown, &handled))
+        // "handled" is needed as long as proc can be handled in multiple places
+        if (!handled && HandleAuraProc(target, damage, i->aura, procSpell, procFlag, procExtra, cooldown, &handled))
         {
             TC_LOG_DEBUG(LOG_FILTER_SPELLS_AURAS, "ProcDamageAndSpell: casting spell %u (triggered with value by %s aura of spell %u)", spellInfo->Id, (isVictim?"a victim's":"an attacker's"), Id);
             takeCharges = true;
@@ -12505,7 +12438,7 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
                     }
                     case SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK:
                         // Skip melee hits or instant cast spells
-                        if (procSpell && procSpell->CalcCastTime() != 0)
+                        if (procSpell && procSpell->CalcCastTime(getLevel()) > 0)
                             takeCharges = true;
                         break;
                     case SPELL_AURA_REFLECT_SPELLS_SCHOOL:
@@ -12695,18 +12628,6 @@ Player* Unit::GetSpellModOwner() const
 }
 
 ///----------Pet responses methods-----------------
-void Unit::SendPetCastFail(uint8 castCount, SpellInfo const* spellInfo, SpellCastResult result)
-{
-    if (result == SPELL_CAST_OK)
-        return;
-
-    Unit* owner = GetCharmerOrOwner();
-    if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
-        return;
-
-    Spell::SendCastResult(owner->ToPlayer(), spellInfo, castCount, result, SPELL_CUSTOM_ERROR_NONE, SMSG_PET_CAST_FAILED);
-}
-
 void Unit::SendPetActionFeedback(uint8 msg)
 {
     Unit* owner = GetOwner();
@@ -13035,7 +12956,7 @@ uint32 Unit::GetCastingTimeForBonus(SpellInfo const* spellProto, DamageEffectTyp
     if (overTime > 0 && CastingTime > 0 && DirectDamage)
     {
         // mainly for DoTs which are 3500 here otherwise
-        uint32 OriginalCastTime = spellProto->CalcCastTime();
+        uint32 OriginalCastTime = spellProto->CalcCastTime(getLevel());
         if (OriginalCastTime > 7000) OriginalCastTime = 7000;
         if (OriginalCastTime < 1500) OriginalCastTime = 1500;
         // Portion to Over Time
@@ -13124,7 +13045,7 @@ float Unit::CalculateDefaultCoefficient(SpellInfo const* spellInfo, DamageEffect
             DotFactor /= DotTicks;
     }
 
-    int32 CastingTime = spellInfo->IsChanneled() ? spellInfo->GetDuration() : spellInfo->CalcCastTime();
+    int32 CastingTime = spellInfo->IsChanneled() ? spellInfo->GetDuration() : spellInfo->CalcCastTime(getLevel());
     // Distribute Damage over multiple effects, reduce by AoE
     CastingTime = GetCastingTimeForBonus(spellInfo, damagetype, CastingTime);
 
@@ -16076,16 +15997,14 @@ bool Unit::SetDisableGravity(bool disable, bool packetOnly /*= false*/)
         if (disable)
         {
             AddUnitMovementFlag(MOVEMENTFLAG_DISABLE_GRAVITY);
-            RemoveUnitMovementFlag(MOVEMENTFLAG_FALLING);
+            RemoveUnitMovementFlag(MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_SPLINE_ELEVATION);
+            SetFall(false);
         }
         else
         {
             RemoveUnitMovementFlag(MOVEMENTFLAG_DISABLE_GRAVITY);
             if (!HasUnitMovementFlag(MOVEMENTFLAG_CAN_FLY))
-            {
-                m_movementInfo.SetFallTime(0);
-                AddUnitMovementFlag(MOVEMENTFLAG_FALLING);
-            }
+                SetFall(true);
         }
     }
 
@@ -16093,6 +16012,28 @@ bool Unit::SetDisableGravity(bool disable, bool packetOnly /*= false*/)
         Movement::PacketSender(this, SMSG_SPLINE_MOVE_GRAVITY_DISABLE, SMSG_MOVE_GRAVITY_DISABLE).Send();
     else
         Movement::PacketSender(this, SMSG_SPLINE_MOVE_GRAVITY_ENABLE, SMSG_MOVE_GRAVITY_ENABLE).Send();
+
+    return true;
+}
+
+bool Unit::SetFall(bool enable)
+{
+    if (enable == HasUnitMovementFlag(MOVEMENTFLAG_FALLING))
+        return false;
+
+    if (enable)
+    {
+        AddUnitMovementFlag(MOVEMENTFLAG_FALLING);
+        m_movementInfo.SetFallTime(0);
+        m_movementInfo.bits.hasFallData = true;
+        m_movementInfo.bits.hasFallDirection = true;
+    }
+    else
+    {
+        RemoveUnitMovementFlag(MOVEMENTFLAG_FALLING | MOVEMENTFLAG_FALLING_FAR);
+        m_movementInfo.bits.hasFallDirection = false;
+        // Do not remove hasFallData marker
+    }
 
     return true;
 }
@@ -16123,16 +16064,14 @@ bool Unit::SetCanFly(bool enable)
     if (enable)
     {
         AddUnitMovementFlag(MOVEMENTFLAG_CAN_FLY);
-        RemoveUnitMovementFlag(MOVEMENTFLAG_FALLING);
+        RemoveUnitMovementFlag(MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_SPLINE_ELEVATION);
+        SetFall(false);
     }
     else
     {
         RemoveUnitMovementFlag(MOVEMENTFLAG_CAN_FLY | MOVEMENTFLAG_MASK_MOVING_FLY);
         if (!IsLevitating())
-        {
-            m_movementInfo.SetFallTime(0);
-            AddUnitMovementFlag(MOVEMENTFLAG_FALLING);
-        }
+            SetFall(true);
     }
 
     if (enable)

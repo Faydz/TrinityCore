@@ -883,8 +883,10 @@ SpellInfo::SpellInfo(SpellEntry const* spellEntry, SpellEffectEntry const** effe
     PowerType = spellEntry->powerType;
     RangeEntry = spellEntry->rangeIndex ? sSpellRangeStore.LookupEntry(spellEntry->rangeIndex) : NULL;
     Speed = spellEntry->speed;
+
     for (uint8 i = 0; i < 2; ++i)
         SpellVisual[i] = spellEntry->SpellVisual[i];
+
     SpellIconID = spellEntry->SpellIconID;
     ActiveIconID = spellEntry->activeIconID;
     SpellName = spellEntry->SpellName;
@@ -1015,7 +1017,6 @@ SpellInfo::SpellInfo(SpellEntry const* spellEntry, SpellEffectEntry const** effe
     for (uint8 i = 0; i < 2; ++i)
         Totem[i] = _totem ? _totem->Totem[i] : 0;
 
-    ExplicitTargetMask = _GetExplicitTargetMask();
     ChainEntry = NULL;
 }
 
@@ -1171,8 +1172,12 @@ bool SpellInfo::NeedsExplicitUnitTarget() const
 
 bool SpellInfo::NeedsToBeTriggeredByCaster() const
 {
+    if (AttributesCu & SPELL_ATTR0_CU_TRIGGERED_BY_CASTER)
+        return true;
+
     if (NeedsExplicitUnitTarget())
         return true;
+
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
     {
         if (Effects[i].IsEffect())
@@ -1182,6 +1187,7 @@ bool SpellInfo::NeedsToBeTriggeredByCaster() const
                 return true;
         }
     }
+
     return false;
 }
 
@@ -1890,7 +1896,7 @@ uint32 SpellInfo::GetAllEffectsMechanicMask() const
     uint32 mask = 0;
     if (Mechanic)
         mask |= 1 << Mechanic;
-    for (int i = 0; i < MAX_SPELL_EFFECTS; ++i)
+    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
         if (Effects[i].IsEffect() && Effects[i].Mechanic)
             mask |= 1 << Effects[i].Mechanic;
     return mask;
@@ -1900,9 +1906,9 @@ uint32 SpellInfo::GetEffectMechanicMask(uint8 effIndex) const
 {
     uint32 mask = 0;
     if (Mechanic)
-        mask |= 1<< Mechanic;
+        mask |= 1 << Mechanic;
     if (Effects[effIndex].IsEffect() && Effects[effIndex].Mechanic)
-        mask |= 1<< Effects[effIndex].Mechanic;
+        mask |= 1 << Effects[effIndex].Mechanic;
     return mask;
 }
 
@@ -1910,10 +1916,10 @@ uint32 SpellInfo::GetSpellMechanicMaskByEffectMask(uint32 effectMask) const
 {
     uint32 mask = 0;
     if (Mechanic)
-        mask |= 1<< Mechanic;
-    for (int i = 0; i < MAX_SPELL_EFFECTS; ++i)
+        mask |= 1 << Mechanic;
+    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
         if ((effectMask & (1 << i)) && Effects[i].Mechanic)
-            mask |= 1<< Effects[i].Mechanic;
+            mask |= 1 << Effects[i].Mechanic;
     return mask;
 }
 
@@ -2232,16 +2238,18 @@ int32 SpellInfo::GetMaxDuration() const
     return (DurationEntry->Duration[2] == -1) ? -1 : abs(DurationEntry->Duration[2]);
 }
 
-uint32 SpellInfo::CalcCastTime(Unit* caster, Spell* spell) const
+uint32 SpellInfo::CalcCastTime(uint8 level, Spell* spell /*= NULL*/) const
 {
     int32 castTime = 0;
+    if (!level && spell)
+        level = spell->GetCaster()->getLevel();
 
     // not all spells have cast time index and this is all is pasiive abilities
-    if (caster && CastTimeMax > 0)
+    if (level && CastTimeMax > 0)
     {
         castTime = CastTimeMax;
-        if (CastTimeMaxLevel > int32(caster->getLevel()))
-            castTime = CastTimeMin + int32(caster->getLevel() - 1) * (CastTimeMax - CastTimeMin) / (CastTimeMaxLevel - 1);
+        if (CastTimeMaxLevel > level)
+            castTime = CastTimeMin + int32(level - 1) * (CastTimeMax - CastTimeMin) / (CastTimeMaxLevel - 1);
     }
     else if (CastTimeEntry)
         castTime = CastTimeEntry->CastTime;
@@ -2249,8 +2257,8 @@ uint32 SpellInfo::CalcCastTime(Unit* caster, Spell* spell) const
     if (!castTime)
         return 0;
 
-    if (caster)
-        caster->ModSpellCastTime(this, castTime, spell);
+    if (spell)
+        spell->GetCaster()->ModSpellCastTime(this, castTime, spell);
 
     if (Attributes & SPELL_ATTR0_REQ_AMMO && (!IsAutoRepeatRangedSpell()) && !(AttributesEx9 & SPELL_ATTR9_AIMED_SHOT))
         castTime += 500;
@@ -2484,15 +2492,14 @@ bool SpellInfo::IsDifferentRankOf(SpellInfo const* spellInfo) const
 bool SpellInfo::IsHighRankOf(SpellInfo const* spellInfo) const
 {
     if (ChainEntry && spellInfo->ChainEntry)
-    {
         if (ChainEntry->first == spellInfo->ChainEntry->first)
             if (ChainEntry->rank > spellInfo->ChainEntry->rank)
                 return true;
-    }
+
     return false;
 }
 
-uint32 SpellInfo::_GetExplicitTargetMask() const
+void SpellInfo::_InitializeExplicitTargetMask()
 {
     bool srcSet = false;
     bool dstSet = false;
@@ -2502,6 +2509,7 @@ uint32 SpellInfo::_GetExplicitTargetMask() const
     {
         if (!Effects[i].IsEffect())
             continue;
+
         targetMask |= Effects[i].TargetA.GetExplicitTargetMask(srcSet, dstSet);
         targetMask |= Effects[i].TargetB.GetExplicitTargetMask(srcSet, dstSet);
 
@@ -2515,9 +2523,11 @@ uint32 SpellInfo::_GetExplicitTargetMask() const
         // don't add explicit object/dest flags when spell has no max range
         if (GetMaxRange(true) == 0.0f && GetMaxRange(false) == 0.0f)
             effectTargetMask &= ~(TARGET_FLAG_UNIT_MASK | TARGET_FLAG_GAMEOBJECT | TARGET_FLAG_CORPSE_MASK | TARGET_FLAG_DEST_LOCATION);
+
         targetMask |= effectTargetMask;
     }
-    return targetMask;
+
+    ExplicitTargetMask = targetMask;
 }
 
 bool SpellInfo::_IsPositiveEffect(uint8 effIndex, bool deep) const
@@ -2534,8 +2544,6 @@ bool SpellInfo::_IsPositiveEffect(uint8 effIndex, bool deep) const
                 case 29214: // Wrath of the Plaguebringer
                 case 34700: // Allergic Reaction
                 case 54836: // Wrath of the Plaguebringer
-                case 61987: // Avenging Wrath Marker
-                case 61988: // Divine Shield exclude aura
                     return false;
                 case 30877: // Tag Murloc
                 case 61716: // Rabbit Costume
@@ -2547,9 +2555,6 @@ bool SpellInfo::_IsPositiveEffect(uint8 effIndex, bool deep) const
             }
             break;
         case SPELLFAMILY_MAGE:
-            // Amplify Magic, Dampen Magic
-            if (SpellFamilyFlags[0] == 0x00002000)
-                return true;
             // Ignite
             if (SpellIconID == 45)
                 return true;
@@ -2565,23 +2570,11 @@ bool SpellInfo::_IsPositiveEffect(uint8 effIndex, bool deep) const
                     break;
             }
             break;
-        case SPELLFAMILY_HUNTER:
-            // Aspect of the Viper
-            if (Id == 34074)
-                return true;
-            break;
-        case SPELLFAMILY_SHAMAN:
-            if (Id == 30708)
-                return false;
-            break;
         case SPELLFAMILY_ROGUE:
             switch (Id)
             {
                 // Envenom must be considered as a positive effect even though it deals damage
-                case 32645:     // Envenom (Rank 1)
-                case 32684:     // Envenom (Rank 2)
-                case 57992:     // Envenom (Rank 3)
-                case 57993:     // Envenom (Rank 4)
+                case 32645: // Envenom
                     return true;
                 default:
                     break;

@@ -113,9 +113,9 @@
                             }
 					};
 		ScriptedAI* GetAI (Creature* creature) const
-    {
-        return new Generall_UmbrissAI(creature);
-    }
+		{
+			return new Generall_UmbrissAI(creature);
+		}
          };
      
     void AddSC_Generall_Umbriss()

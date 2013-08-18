@@ -446,7 +446,7 @@ void LFGMgr::InitializeLockedDungeons(Player* player, uint8 level /* = 0 */)
 void LFGMgr::JoinLfg(Player* player, uint8 roles, LfgDungeonSet& dungeons, const std::string& comment)
 {
     if (!player || !player->GetSession() || dungeons.empty())
-       return;
+        return;
 
     Group* grp = player->GetGroup();
     uint64 guid = player->GetGUID();
@@ -774,7 +774,7 @@ void LFGMgr::UpdateRoleCheck(uint64 gguid, uint64 guid /* = 0 */, uint8 roles /*
     if (roleCheck.state == LFG_ROLECHECK_MISSING_ROLE || roleCheck.state == LFG_ROLECHECK_WRONG_ROLES)
         joinResult = LFG_JOIN_ROLE_CHECK_FAILED;
 
-    LfgJoinResultData joinData = LfgJoinResultData(LFG_JOIN_FAILED, roleCheck.state);
+    LfgJoinResultData joinData = LfgJoinResultData(joinResult, roleCheck.state);
     for (LfgRolesMap::const_iterator it = roleCheck.roles.begin(); it != roleCheck.roles.end(); ++it)
     {
         uint64 pguid = it->first;

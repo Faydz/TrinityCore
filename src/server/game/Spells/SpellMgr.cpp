@@ -29,7 +29,6 @@
 #include "BattlegroundMgr.h"
 #include "CreatureAI.h"
 #include "MapManager.h"
-#include "BattlegroundIC.h"
 #include "BattlefieldWG.h"
 #include "BattlefieldMgr.h"
 #include "Player.h"
@@ -358,7 +357,7 @@ bool SpellMgr::IsSpellValid(SpellInfo const* spellInfo, Player* player, bool msg
     if (!spellInfo)
         return false;
 
-    bool need_check_reagents = false;
+    bool needCheckReagents = false;
 
     // check effects
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
@@ -401,7 +400,7 @@ bool SpellMgr::IsSpellValid(SpellInfo const* spellInfo, Player* player, bool msg
                     return false;
                 }
 
-                need_check_reagents = true;
+                needCheckReagents = true;
                 break;
             }
             case SPELL_EFFECT_LEARN_SPELL:
@@ -423,7 +422,7 @@ bool SpellMgr::IsSpellValid(SpellInfo const* spellInfo, Player* player, bool msg
         }
     }
 
-    if (need_check_reagents)
+    if (needCheckReagents)
     {
         for (uint8 j = 0; j < MAX_SPELL_REAGENTS; ++j)
         {
@@ -447,7 +446,7 @@ bool SpellMgr::IsSpellValid(SpellInfo const* spellInfo, Player* player, bool msg
 uint32 SpellMgr::GetSpellDifficultyId(uint32 spellId) const
 {
     SpellDifficultySearcherMap::const_iterator i = mSpellDifficultySearcherMap.find(spellId);
-    return i == mSpellDifficultySearcherMap.end() ? 0 : (*i).second;
+    return i == mSpellDifficultySearcherMap.end() ? 0 : i->second;
 }
 
 void SpellMgr::SetSpellDifficultyId(uint32 spellId, uint32 id)
@@ -1102,7 +1101,13 @@ bool SpellArea::IsFitToRequirements(Player const* player, uint32 newZone, uint32
         if (!player || (auraSpell > 0 && !player->HasAura(auraSpell)) || (auraSpell < 0 && player->HasAura(-auraSpell)))
             return false;
 
-    // Extra conditions -- leaving the possibility add extra conditions...
+    if (player)
+    {
+        if (Battleground* bg = player->GetBattleground())
+            return bg->IsSpellAllowed(spellId, player);
+    }
+
+    // Extra conditions
     switch (spellId)
     {
         case 91604: // No fly Zone - Wintergrasp
@@ -1114,21 +1119,6 @@ bool SpellArea::IsFitToRequirements(Player const* player, uint32 newZone, uint32
             if (!Bf || Bf->CanFlyIn() || (!player->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) && !player->HasAuraType(SPELL_AURA_FLY)))
                 return false;
             break;
-        }
-        case 68719: // Oil Refinery - Isle of Conquest.
-        case 68720: // Quarry - Isle of Conquest.
-        {
-            if (!player || player->GetBattlegroundTypeId() != BATTLEGROUND_IC || !player->GetBattleground())
-                return false;
-
-            uint8 nodeType = spellId == 68719 ? NODE_TYPE_REFINERY : NODE_TYPE_QUARRY;
-            uint8 nodeState = player->GetTeamId() == TEAM_ALLIANCE ? NODE_STATE_CONTROLLED_A : NODE_STATE_CONTROLLED_H;
-
-            BattlegroundIC* pIC = static_cast<BattlegroundIC*>(player->GetBattleground());
-            if (pIC->GetNodeState(nodeType) == nodeState)
-                return true;
-
-            return false;
         }
         case 56618: // Horde Controls Factory Phase Shift
         case 56617: // Alliance Controls Factory Phase Shift
@@ -1669,7 +1659,7 @@ void SpellMgr::LoadSpellTargetPositions()
         SpellInfo const* spellInfo = GetSpellInfo(Spell_ID);
         if (!spellInfo)
         {
-            TC_LOG_ERROR(LOG_FILTER_SQL, "Spell (ID:%u) listed in `spell_target_position` does not exist.", Spell_ID);
+            TC_LOG_ERROR(LOG_FILTER_SQL, "Spell (Id: %u) listed in `spell_target_position` does not exist.", Spell_ID);
             continue;
         }
 
@@ -2779,20 +2769,16 @@ void SpellMgr::LoadSpellInfoStore()
 void SpellMgr::UnloadSpellInfoStore()
 {
     for (uint32 i = 0; i < GetSpellInfoStoreSize(); ++i)
-    {
-        if (mSpellInfoMap[i])
-            delete mSpellInfoMap[i];
-    }
+        delete mSpellInfoMap[i];
+
     mSpellInfoMap.clear();
 }
 
 void SpellMgr::UnloadSpellInfoImplicitTargetConditionLists()
 {
     for (uint32 i = 0; i < GetSpellInfoStoreSize(); ++i)
-    {
         if (mSpellInfoMap[i])
             mSpellInfoMap[i]->_UnloadImplicitTargetConditionLists();
-    }
 }
 
 void SpellMgr::LoadSpellInfoCustomAttributes()
@@ -2909,10 +2895,6 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
 
         switch (spellInfo->Id)
         {
-            case 60256:
-                //Crashes client on pressing ESC (Maybe because of ReqSpellFocus and GameObject)
-                spellInfo->AttributesEx4 &= ~SPELL_ATTR4_TRIGGERED;
-                break;
             case 1776: // Gouge
             case 1777:
             case 8629:
@@ -3065,6 +3047,11 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
                 break;
             case 72293: // Mark of the Fallen Champion (Deathbringer Saurfang)
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_NEGATIVE_EFF0;
+                break;            
+            case 38729:  // Rod of Purification
+            case 96946:  // Gaze of Occu'thar
+            case 101005: // Gaze of Occu'thar
+                spellInfo->AttributesCu |= SPELL_ATTR0_CU_TRIGGERED_BY_CASTER;
                 break;
             default:
                 break;
@@ -3085,6 +3072,8 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
             default:
                 break;
         }
+
+        spellInfo->_InitializeExplicitTargetMask();
     }
 
     CreatureAI::FillAISpellInfo();
@@ -3183,6 +3172,9 @@ void SpellMgr::LoadSpellInfoCorrections()
             case 53232: // Rapid Killing (Rank 2)
                 // Entries were not updated after spell effect change, we have to do that manually :/
                 spellInfo->AttributesEx3 |= SPELL_ATTR3_CAN_PROC_WITH_TRIGGERED;
+                break;
+            case 5308: // Execute
+                spellInfo->AttributesEx3 |= SPELL_ATTR3_CANT_TRIGGER_PROC;
                 break;
             case 59725: // Improved Spell Reflection - aoe aura
                 // Target entry seems to be wrong for this spell :/
@@ -3763,6 +3755,16 @@ void SpellMgr::LoadSpellInfoCorrections()
                 break;
             case 49376: // Feral Charge (Cat Form)
                 spellInfo->AttributesEx3 &= ~SPELL_ATTR3_CANT_TRIGGER_PROC;
+                break;
+            case 45257: // Using Steam Tonk Controller
+            case 45440: // Steam Tonk Controller
+            case 60256: // Collect Sample
+                // Crashes client on pressing ESC
+                spellInfo->AttributesEx4 &= ~SPELL_ATTR4_TRIGGERED;
+                break;
+            case 96942:  // Gaze of Occu'thar
+            case 101009: // Gaze of Occu'thar
+                spellInfo->AttributesEx &= ~SPELL_ATTR1_CHANNELED_1;
                 break;
             default:
                 break;

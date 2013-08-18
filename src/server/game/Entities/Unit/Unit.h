@@ -640,7 +640,8 @@ enum UnitFlags
     UNIT_FLAG_UNK_28                = 0x10000000,
     UNIT_FLAG_UNK_29                = 0x20000000,           // used in Feing Death spell
     UNIT_FLAG_SHEATHE               = 0x40000000,
-    UNIT_FLAG_UNK_31                = 0x80000000
+    UNIT_FLAG_UNK_31                = 0x80000000,
+    MAX_UNIT_FLAGS = 33
 };
 
 // Value masks for UNIT_FIELD_FLAGS_2
@@ -966,7 +967,8 @@ struct CalcDamageInfo
 };
 
 // Spell damage info structure based on structure sending in SMSG_SPELLNONMELEEDAMAGELOG opcode
-struct SpellNonMeleeDamage{
+struct SpellNonMeleeDamage
+{
     SpellNonMeleeDamage(Unit* _attacker, Unit* _target, uint32 _SpellID, uint32 _schoolMask)
         : target(_target), attacker(_attacker), SpellID(_SpellID), damage(0), overkill(0), schoolMask(_schoolMask),
         absorb(0), resist(0), physicalLog(false), unused(false), blocked(0), HitInfo(0), cleanDamage(0)
@@ -1609,13 +1611,14 @@ class Unit : public WorldObject
 
         bool IsLevitating() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_DISABLE_GRAVITY); }
         bool IsWalking() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_WALKING); }
-        virtual bool SetWalk(bool enable);
-        virtual bool SetDisableGravity(bool disable, bool packetOnly = false);
-        virtual bool SetSwim(bool enable);
-        virtual bool SetCanFly(bool enable);
-        virtual bool SetWaterWalking(bool enable, bool packetOnly = false);
-        virtual bool SetFeatherFall(bool enable, bool packetOnly = false);
-        virtual bool SetHover(bool enable, bool packetOnly = false);
+        bool SetWalk(bool enable);
+        bool SetDisableGravity(bool disable, bool packetOnly = false);
+        bool SetFall(bool enable);
+        bool SetSwim(bool enable);
+        bool SetCanFly(bool enable);
+        bool SetWaterWalking(bool enable, bool packetOnly = false);
+        bool SetFeatherFall(bool enable, bool packetOnly = false);
+        bool SetHover(bool enable, bool packetOnly = false);
 
         void SetInFront(WorldObject const* target);
         void SetFacingTo(float ori);
@@ -1656,8 +1659,8 @@ class Unit : public WorldObject
         Player* GetSpellModOwner() const;
 
         Unit* GetOwner() const;
-        Guardian *GetGuardianPet() const;
-        Minion *GetFirstMinion() const;
+        Guardian* GetGuardianPet() const;
+        Minion* GetFirstMinion() const;
         Unit* GetCharmer() const;
         Unit* GetCharm() const;
         Unit* GetCharmerOrOwner() const;
@@ -1752,6 +1755,7 @@ class Unit : public WorldObject
         void RemoveAllAurasOnDeath();
         void RemoveAllAurasRequiringDeadTarget();
         void RemoveAllAurasExceptType(AuraType type);
+        void RemoveAllAurasExceptType(AuraType type1, AuraType type2); /// @todo: once we support variadic templates use them here
         void DelayOwnedAuras(uint32 spellId, uint64 caster, int32 delaytime);
 
         void _RemoveAllAuraStatMods();
@@ -1848,7 +1852,6 @@ class Unit : public WorldObject
         Spell* FindCurrentSpellBySpellId(uint32 spell_id) const;
         int32 GetCurrentSpellCastTime(uint32 spell_id) const;
 
-        uint32 m_addDmgOnce;
         uint64 m_SummonSlot[MAX_SUMMON_SLOT];
         uint64 m_ObjectSlot[MAX_GAMEOBJECT_SLOT];
 
@@ -2001,9 +2004,6 @@ class Unit : public WorldObject
         float GetSpeed(UnitMoveType mtype) const;
         float GetSpeedRate(UnitMoveType mtype) const { return m_speed_rate[mtype]; }
         void SetSpeed(UnitMoveType mtype, float rate, bool forced = false);
-        float m_TempSpeed;
-
-        bool isHover() const { return HasAuraType(SPELL_AURA_HOVER); }
 
         float ApplyEffectModifiers(SpellInfo const* spellProto, uint8 effect_index, float value) const;
         int32 CalculateSpellDamage(Unit const* target, SpellInfo const* spellProto, uint8 effect_index, int32 const* basePoints = NULL) const;
@@ -2046,7 +2046,6 @@ class Unit : public WorldObject
         void ClearComboPointHolders();
 
         ///----------Pet responses methods-----------------
-        void SendPetCastFail(uint8 castCount, SpellInfo const* spellInfo, SpellCastResult result);
         void SendPetActionFeedback (uint8 msg);
         void SendPetTalk (uint32 pettalk);
         void SendPetAIReaction(uint64 guid);

@@ -214,8 +214,7 @@ class spell_warr_concussion_blow : public SpellScriptLoader
         }
 };
 
-/// Updated 4.3.4
-// 12162 - Deep Wounds
+// -12162 - Deep Wounds
 class spell_warr_deep_wounds : public SpellScriptLoader
 {
     public:
@@ -229,7 +228,8 @@ class spell_warr_deep_wounds : public SpellScriptLoader
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_WARRIOR_DEEP_WOUNDS_RANK_1) ||
                     !sSpellMgr->GetSpellInfo(SPELL_WARRIOR_DEEP_WOUNDS_RANK_2) ||
-                    !sSpellMgr->GetSpellInfo(SPELL_WARRIOR_DEEP_WOUNDS_RANK_3))
+                    !sSpellMgr->GetSpellInfo(SPELL_WARRIOR_DEEP_WOUNDS_RANK_3) ||
+                    !sSpellMgr->GetSpellInfo(SPELL_WARRIOR_DEEP_WOUNDS_RANK_PERIODIC))
                     return false;
                 return true;
             }
@@ -711,9 +711,8 @@ class spell_warr_slam : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
-                int32 bp0 = GetEffectValue();
                 if (GetHitUnit())
-                    GetCaster()->CastCustomSpell(GetHitUnit(), SPELL_WARRIOR_SLAM, &bp0, NULL, NULL, true, 0);
+                    GetCaster()->CastCustomSpell(SPELL_WARRIOR_SLAM, SPELLVALUE_BASE_POINT0, GetEffectValue(), GetHitUnit(), TRIGGERED_FULL_MASK);
             }
 
             void Register() OVERRIDE

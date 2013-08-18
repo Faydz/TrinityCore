@@ -680,7 +680,7 @@ class spell_gen_cannibalize : public SpellScriptLoader
         {
             PrepareSpellScript(spell_gen_cannibalize_SpellScript);
 
-            bool Validate(SpellInfo const* /*spellEntry*/) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_CANNIBALIZE_TRIGGERED))
                     return false;
@@ -733,7 +733,7 @@ class spell_gen_chaos_blast : public SpellScriptLoader
         {
             PrepareSpellScript(spell_gen_chaos_blast_SpellScript)
 
-            bool Validate(SpellInfo const* /*SpellEntry*/) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_CHAOS_BLAST))
                     return false;
@@ -853,7 +853,7 @@ class spell_gen_clone_weapon_aura : public SpellScriptLoader
 
             uint32 prevItem;
 
-            bool Validate(SpellInfo const* /*spellEntry*/) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_COPY_WEAPON_AURA) ||
                     !sSpellMgr->GetSpellInfo(SPELL_COPY_WEAPON_2_AURA) ||
@@ -1095,9 +1095,10 @@ class spell_gen_dalaran_disguise : public SpellScriptLoader
         class spell_gen_dalaran_disguise_SpellScript : public SpellScript
         {
             PrepareSpellScript(spell_gen_dalaran_disguise_SpellScript);
-            bool Validate(SpellInfo const* spellEntry) OVERRIDE
+
+            bool Validate(SpellInfo const* spellInfo) OVERRIDE
             {
-                switch (spellEntry->Id)
+                switch (spellInfo->Id)
                 {
                     case SPELL_SUNREAVER_DISGUISE_TRIGGER:
                         if (!sSpellMgr->GetSpellInfo(SPELL_SUNREAVER_DISGUISE_FEMALE) ||
@@ -1165,7 +1166,7 @@ class spell_gen_defend : public SpellScriptLoader
         {
             PrepareAuraScript(spell_gen_defend_AuraScript);
 
-            bool Validate(SpellInfo const* /*spellEntry*/) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_VISUAL_SHIELD_1))
                     return false;
@@ -1287,7 +1288,7 @@ class spell_gen_divine_storm_cd_reset : public SpellScriptLoader
                 return GetCaster()->GetTypeId() == TYPEID_PLAYER;
             }
 
-            bool Validate(SpellInfo const* /*spellEntry*/) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_DIVINE_STORM))
                     return false;
@@ -1310,36 +1311,6 @@ class spell_gen_divine_storm_cd_reset : public SpellScriptLoader
         SpellScript* GetSpellScript() const OVERRIDE
         {
             return new spell_gen_divine_storm_cd_reset_SpellScript();
-        }
-};
-
-class spell_gen_dream_funnel: public SpellScriptLoader
-{
-    public:
-        spell_gen_dream_funnel() : SpellScriptLoader("spell_gen_dream_funnel") { }
-
-        class spell_gen_dream_funnel_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_gen_dream_funnel_AuraScript);
-
-            void HandleEffectCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
-            {
-                if (GetCaster())
-                    amount = GetCaster()->GetMaxHealth() * 0.05f;
-
-                canBeRecalculated = false;
-            }
-
-            void Register() OVERRIDE
-            {
-                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_gen_dream_funnel_AuraScript::HandleEffectCalcAmount, EFFECT_0, SPELL_AURA_PERIODIC_HEAL);
-                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_gen_dream_funnel_AuraScript::HandleEffectCalcAmount, EFFECT_2, SPELL_AURA_PERIODIC_DAMAGE);
-            }
-        };
-
-        AuraScript* GetAuraScript() const OVERRIDE
-        {
-            return new spell_gen_dream_funnel_AuraScript();
         }
 };
 
@@ -1395,7 +1366,7 @@ class spell_gen_dummy_trigger : public SpellScriptLoader
         {
             PrepareSpellScript(spell_gen_dummy_trigger_SpellScript);
 
-            bool Validate(SpellInfo const* /*SpellEntry*/) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_PERSISTANT_SHIELD_TRIGGERED) ||
                     !sSpellMgr->GetSpellInfo(SPELL_PERSISTANT_SHIELD))
@@ -1488,7 +1459,7 @@ class spell_gen_elune_candle : public SpellScriptLoader
         class spell_gen_elune_candle_SpellScript : public SpellScript
         {
             PrepareSpellScript(spell_gen_elune_candle_SpellScript);
-            bool Validate(SpellInfo const* /*spellEntry*/) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_ELUNE_CANDLE_OMEN_HEAD) ||
                     !sSpellMgr->GetSpellInfo(SPELL_ELUNE_CANDLE_OMEN_CHEST) ||
@@ -1555,7 +1526,7 @@ class spell_gen_gadgetzan_transporter_backfire : public SpellScriptLoader
         {
             PrepareSpellScript(spell_gen_gadgetzan_transporter_backfire_SpellScript)
 
-            bool Validate(SpellInfo const* /*SpellEntry*/) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_TRANSPORTER_MALFUNCTION_POLYMORPH) ||
                     !sSpellMgr->GetSpellInfo(SPELL_TRANSPORTER_EVIL_TWIN) ||
@@ -1656,7 +1627,7 @@ class spell_gen_gnomish_transporter : public SpellScriptLoader
         {
             PrepareSpellScript(spell_gen_gnomish_transporter_SpellScript)
 
-            bool Validate(SpellInfo const* /*SpellEntry*/) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_TRANSPORTER_SUCCESS) ||
                     !sSpellMgr->GetSpellInfo(SPELL_TRANSPORTER_FAILURE))
@@ -3221,7 +3192,7 @@ class spell_gen_summon_tournament_mount : public SpellScriptLoader
         {
             PrepareSpellScript(spell_gen_summon_tournament_mount_SpellScript);
 
-            bool Validate(SpellInfo const* /*spellEntry*/) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_LANCE_EQUIPPED))
                     return false;
@@ -3270,7 +3241,7 @@ class spell_gen_tournament_duel : public SpellScriptLoader
         {
             PrepareSpellScript(spell_gen_tournament_duel_SpellScript);
 
-            bool Validate(SpellInfo const* /*spellEntry*/) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_ON_TOURNAMENT_MOUNT) ||
                     !sSpellMgr->GetSpellInfo(SPELL_MOUNTED_DUEL))
@@ -3362,7 +3333,7 @@ class spell_pvp_trinket_wotf_shared_cd : public SpellScriptLoader
                 return GetCaster()->GetTypeId() == TYPEID_PLAYER;
             }
 
-            bool Validate(SpellInfo const* /*spellEntry*/) OVERRIDE
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
             {
                 if (!sSpellMgr->GetSpellInfo(SPELL_WILL_OF_THE_FORSAKEN_COOLDOWN_TRIGGER) ||
                     !sSpellMgr->GetSpellInfo(SPELL_WILL_OF_THE_FORSAKEN_COOLDOWN_TRIGGER_WOTF))
@@ -3667,7 +3638,6 @@ void AddSC_generic_spell_scripts()
     new spell_gen_clone_weapon();
     new spell_gen_clone_weapon_aura();
     new spell_gen_count_pct_from_max_hp("spell_gen_default_count_pct_from_max_hp");
-    new spell_gen_count_pct_from_max_hp("spell_gen_30pct_count_pct_from_max_hp", 30);
     new spell_gen_count_pct_from_max_hp("spell_gen_50pct_count_pct_from_max_hp", 50);
     new spell_gen_create_lance();
     new spell_gen_creature_permanent_feign_death();
@@ -3676,7 +3646,6 @@ void AddSC_generic_spell_scripts()
     new spell_gen_defend();
     new spell_gen_despawn_self();
     new spell_gen_divine_storm_cd_reset();
-    new spell_gen_dream_funnel();
     new spell_gen_ds_flush_knockback();
     new spell_gen_dummy_trigger();
     new spell_gen_dungeon_credit();
