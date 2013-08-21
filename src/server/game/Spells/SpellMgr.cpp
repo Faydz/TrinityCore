@@ -3081,7 +3081,7 @@ void SpellMgr::LoadSpellCustomAttr()
             // Sudden Death
             case 29723:
             case 29725:
-                spellInfo->SpellFamilyName = SPELLFAMILY_WARfRIOR;
+                spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
                 break;
             case 91264:// ring of frost immunity
                 spellInfo->DurationEntry= sSpellDurationStore.LookupEntry(29); // 12 sec, wrong dbc?
