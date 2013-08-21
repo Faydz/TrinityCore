@@ -323,7 +323,7 @@ SpellImplicitTargetInfo::StaticData  SpellImplicitTargetInfo::_data[TOTAL_SPELL_
     {TARGET_OBJECT_TYPE_NONE, TARGET_REFERENCE_TYPE_NONE,   TARGET_SELECT_CATEGORY_NYI,     TARGET_CHECK_DEFAULT,  TARGET_DIR_NONE},        // 113
     {TARGET_OBJECT_TYPE_NONE, TARGET_REFERENCE_TYPE_NONE,   TARGET_SELECT_CATEGORY_NYI,     TARGET_CHECK_DEFAULT,  TARGET_DIR_NONE},        // 114
     {TARGET_OBJECT_TYPE_NONE, TARGET_REFERENCE_TYPE_NONE,   TARGET_SELECT_CATEGORY_NYI,     TARGET_CHECK_DEFAULT,  TARGET_DIR_NONE},        // 115
-    {TARGET_OBJECT_TYPE_NONE, TARGET_REFERENCE_TYPE_NONE,   TARGET_SELECT_CATEGORY_NYI,     TARGET_CHECK_DEFAULT,  TARGET_DIR_NONE},        // 116
+    {TARGET_OBJECT_TYPE_UNIT, TARGET_REFERENCE_TYPE_CASTER, TARGET_SELECT_CATEGORY_AREA,    TARGET_CHECK_RAID,     TARGET_DIR_NONE},        // 116 TARGET_RAID_MEMBERS
     {TARGET_OBJECT_TYPE_NONE, TARGET_REFERENCE_TYPE_NONE,   TARGET_SELECT_CATEGORY_NYI,     TARGET_CHECK_DEFAULT,  TARGET_DIR_NONE},        // 117
     {TARGET_OBJECT_TYPE_NONE, TARGET_REFERENCE_TYPE_NONE,   TARGET_SELECT_CATEGORY_NYI,     TARGET_CHECK_DEFAULT,  TARGET_DIR_NONE},        // 118
     {TARGET_OBJECT_TYPE_UNIT, TARGET_REFERENCE_TYPE_CASTER, TARGET_SELECT_CATEGORY_AREA,    TARGET_CHECK_RAID,     TARGET_DIR_NONE},        // 119
@@ -987,6 +987,14 @@ bool SpellInfo::HasAura(AuraType aura) const
     return false;
 }
 
+bool SpellInfo::HasAnyAura() const
+{
+    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+        if (Effects[i].IsAura())
+            return true;
+    return false;
+}
+
 bool SpellInfo::HasAreaAuraEffect() const
 {
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
@@ -1260,6 +1268,17 @@ bool SpellInfo::IsAutoRepeatRangedSpell() const
     return AttributesEx2 & SPELL_ATTR2_AUTOREPEAT_FLAG;
 }
 
+bool SpellInfo::IsMultiSchoolSpell() const
+{
+    int counter = 0;
+
+    for (int i = 0; i < MAX_SPELL_SCHOOL; ++i)
+        if (SchoolMask & (1 << i))
+            counter++;
+
+    return counter > 1 ? true : false;
+}
+
 bool SpellInfo::IsAffectedBySpellMods() const
 {
     return !(AttributesEx3 & SPELL_ATTR3_NO_DONE_BONUS);
@@ -1318,6 +1337,9 @@ bool SpellInfo::IsSingleTarget() const
 {
     // all other single target spells have if it has AttributesEx5
     if (AttributesEx5 & SPELL_ATTR5_SINGLE_TARGET_SPELL)
+        return true;
+
+    if (Id == 33763)
         return true;
 
     switch (GetSpellSpecific())
@@ -1515,9 +1537,9 @@ SpellCastResult SpellInfo::CheckLocation(uint32 map_id, uint32 zone_id, uint32 a
     // bg spell checks
     switch (Id)
     {
-        case 23333:                                         // Warsong Flag
-        case 23335:                                         // Silverwing Flag
-            return map_id == 489 && player && player->InBattleground() ? SPELL_CAST_OK : SPELL_FAILED_REQUIRES_AREA;
+        case 23333:                                         // Warsong Flag | TP:Alliance Flag
+        case 23335:                                         // Silverwing Flag | TP:Horde Flag
+            return (map_id == 489 || map_id == 726) && player && player->InBattleground() ? SPELL_CAST_OK : SPELL_FAILED_REQUIRES_AREA;
         case 34976:                                         // Netherstorm Flag
             return map_id == 566 && player && player->InBattleground() ? SPELL_CAST_OK : SPELL_FAILED_REQUIRES_AREA;
         case 2584:                                          // Waiting to Resurrect
@@ -1845,6 +1867,11 @@ bool SpellInfo::CheckTargetCreatureType(Unit const* target) const
         else
             return true;
     }
+
+    // Skip creature type check for Grounding Totem
+    if (target->GetUInt32Value(UNIT_CREATED_BY_SPELL) == 8177)
+        return true;
+
     uint32 creatureType = target->GetCreatureTypeMask();
     return !TargetCreatureType || !creatureType || (creatureType & TargetCreatureType);
 }
@@ -2093,10 +2120,17 @@ SpellSpecificType SpellInfo::GetSpellSpecific() const
             // only hunter stings have this
             if (Dispel == DISPEL_POISON)
                 return SPELL_SPECIFIC_STING;
-
-            // only hunter aspects have this (but not all aspects in hunter family)
-            if (SpellFamilyFlags.HasFlag(0x00380000, 0x00440000, 0x00001010))
-                return SPELL_SPECIFIC_ASPECT;
+            
+            // Fix aspects with deterrence up
+            switch(Id)
+            {
+                case 13165: //Aspect of the Hawk
+                case 82661: //Aspect of the Fox
+                case 5118:  //Aspect of the Cheetah
+                case 13159: //Aspect of the Pack
+                case 20043: //Aspect of the Wild
+                    return SPELL_SPECIFIC_ASPECT;
+            }
 
             break;
         }
@@ -2217,9 +2251,6 @@ uint32 SpellInfo::CalcCastTime(Unit* caster, Spell* spell) const
 
     if (caster)
         caster->ModSpellCastTime(this, castTime, spell);
-
-    if (Attributes & SPELL_ATTR0_REQ_AMMO && (!IsAutoRepeatRangedSpell()))
-        castTime += 500;
 
     return (castTime > 0) ? uint32(castTime) : 0;
 }

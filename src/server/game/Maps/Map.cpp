@@ -2765,10 +2765,31 @@ void BattlegroundMap::SetUnload()
 void BattlegroundMap::RemoveAllPlayers()
 {
     if (HavePlayers())
-        for (MapRefManager::iterator itr = m_mapRefManager.begin(); itr != m_mapRefManager.end(); ++itr)
-            if (Player* player = itr->getSource())
-                if (!player->IsBeingTeleportedFar())
+        for (MapRefManager::iterator itr = m_mapRefManager.begin(); itr != m_mapRefManager.end(); ++itr){
+            if (Player* player = itr->getSource()){
+                if (!player->IsBeingTeleportedFar()){
                     player->TeleportTo(player->GetBattlegroundEntryPoint());
+                    sScriptMgr->OnPlayerRemoveFromBattleground(player, m_bg);
+                }
+            }
+        }
+}
+
+void BattlegroundMap::RemoveSpectators()
+{
+    if (HavePlayers()){
+        for (MapRefManager::iterator itr = m_mapRefManager.begin(); itr != m_mapRefManager.end(); ++itr){
+            if (Player* player = itr->getSource()){
+                if (!player->IsBeingTeleportedFar()){
+                    if(player->GetSpectator()){
+                        player->TeleportTo(player->GetBattlegroundEntryPoint());
+                        sScriptMgr->OnPlayerRemoveFromBattleground(player, m_bg);
+                        player->SetSpectator(false);
+                    }
+                }
+            }
+        }
+    }
 }
 
 Creature* Map::GetCreature(uint64 guid)

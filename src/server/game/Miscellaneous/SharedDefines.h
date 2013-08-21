@@ -1186,9 +1186,9 @@ enum SpellCustomErrors
     SPELL_CUSTOM_ERROR_CANT_TARGET_FRIENDLY_NONPARTY    =  6, // You cannot target friendly units outside your party.
     SPELL_CUSTOM_ERROR_NEED_CHILL_NYMPH                 =  7, // You must target a weakened chill nymph.
     SPELL_CUSTOM_ERROR_MUST_BE_IN_ENKILAH               =  8, // The Imbued Scourge Shroud will only work when equipped in the Temple City of En'kilah.
-    SPELL_CUSTOM_ERROR_REQUIRES_CORPSE_DUST             =  9, // Requires Corpse Dust
+    //SPELL_CUSTOM_ERROR_REQUIRES_CORPSE_DUST             =  9, // Requires Corpse Dust
     SPELL_CUSTOM_ERROR_CANT_SUMMON_GARGOYLE             = 10, // You cannot summon another gargoyle yet.
-    SPELL_CUSTOM_ERROR_NEED_CORPSE_DUST_IF_NO_TARGET    = 11, // Requires Corpse Dust if the target is not dead and humanoid.
+    //SPELL_CUSTOM_ERROR_NEED_CORPSE_DUST_IF_NO_TARGET    = 11, // Requires Corpse Dust if the target is not dead and humanoid.
     SPELL_CUSTOM_ERROR_MUST_BE_AT_SHATTERHORN           = 12, // Can only be placed near Shatterhorn
     SPELL_CUSTOM_ERROR_MUST_TARGET_PROTO_DRAKE_EGG      = 13, // You must first select a Proto-Drake Egg.
     SPELL_CUSTOM_ERROR_MUST_BE_CLOSE_TO_TREE            = 14, // You must be close to a marked tree.
@@ -1594,7 +1594,7 @@ enum Targets
     TARGET_UNK_116                     = 116,
     TARGET_UNK_117                     = 117,
     TARGET_UNK_118                     = 118,
-    TARGET_UNK_119                     = 119,
+    TARGET_RAID_MEMBERS                = 119,
     TARGET_UNK_120                     = 120,
     TARGET_UNK_121                     = 121,
     TARGET_UNK_122                     = 122,
@@ -3989,6 +3989,13 @@ enum DungeonStatusFlag
     RAID_STATUSFLAG_25MAN_NORMAL = 0x02,
     RAID_STATUSFLAG_10MAN_HEROIC = 0x04,
     RAID_STATUSFLAG_25MAN_HEROIC = 0x08
+};
+
+enum ConquestPointsSources
+{
+    CP_SOURCE_ARENA             = 0, 
+    CP_SOURCE_RATED_BG          = 1, 
+    CP_SOURCE_MAX
 };
 
 #define VOID_STORAGE_UNLOCK       100*GOLD

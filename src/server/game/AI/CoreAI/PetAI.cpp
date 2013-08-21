@@ -426,6 +426,9 @@ void PetAI::HandleReturnMovement()
     if (me->isCharmed())
         return;
 
+    if (!me->GetCharmInfo())
+        return;
+
     if (me->GetCharmInfo()->HasCommandState(COMMAND_STAY))
     {
         if (!me->GetCharmInfo()->IsAtStay() && !me->GetCharmInfo()->IsReturning())
@@ -435,7 +438,7 @@ void PetAI::HandleReturnMovement()
 
             me->GetCharmInfo()->GetStayPosition(x, y, z);
             ClearCharmInfoFlags();
-            me->GetCharmInfo()->SetIsReturning(true);
+			me->GetCharmInfo()->SetIsReturning(true);
             me->GetMotionMaster()->Clear();
             me->GetMotionMaster()->MovePoint(me->GetGUIDLow(), x, y, z);
         }
@@ -536,13 +539,17 @@ bool PetAI::CanAttack(Unit* target)
         return false;
     }
 
+    if (!me->GetCharmInfo())
+        return false;
+
     // Passive - passive pets can attack if told to
     if (me->HasReactState(REACT_PASSIVE))
         return me->GetCharmInfo()->IsCommandAttack();
 
     // CC - mobs under crowd control can be attacked if owner commanded
     if (target->HasBreakableByDamageCrowdControlAura())
-        return me->GetCharmInfo()->IsCommandAttack();
+		if(me->GetCharmInfo()->IsCommandAttack())
+            return me->GetCharmInfo()->IsCommandAttack();
 
     // Returning - pets ignore attacks only if owner clicked follow
     if (me->GetCharmInfo()->IsReturning())

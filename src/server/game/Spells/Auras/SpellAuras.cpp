@@ -959,7 +959,7 @@ bool Aura::CanBeSaved() const
     }
 
     // When a druid logins, he doesnt have either eclipse power, nor the marker auras, nor the eclipse buffs. Dont save them.
-    if (GetId() == 67483 || GetId() == 67484 || GetId() == 48517 || GetId() == 48518)
+    if (GetId() == 67483 || GetId() == 67484 || GetId() == 48517 || GetId() == 48518 || GetId() == 94338)
         return false;
 
     // don't save auras removed by proc system
@@ -1217,6 +1217,7 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
             case SPELLFAMILY_WARRIOR:
                 if (!caster)
                     break;
+				
                 switch (GetId())
                 {
                     case 60970: // Heroic Fury (remove Intercept cooldown)
@@ -1268,13 +1269,25 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
             case SPELLFAMILY_HUNTER:
                 switch(GetId())
                 {
-                case 1978:
-                    if (AuraEffect* auraEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 536, 0))
+					// Serpent Sting
+                    case 1978:
+						if(caster && GetEffect(EFFECT_0))
+						{
+							if (AuraEffect* auraEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 536, 0))
+                            {
+                                int32 bp0 = (GetEffect(EFFECT_0)->CalculateAmount(caster) * GetEffect(EFFECT_0)->GetTotalTicks()) / 100 * auraEff->GetAmount();
+                                caster->CastCustomSpell(target, 83077, &bp0, NULL, NULL, true, NULL, GetEffect(0));
+                            }
+						}
+                        break;
+                    // Master Marksman
+                    case 82925:
+                        if (target->GetTypeId() == TYPEID_PLAYER && GetStackAmount() == 5)
                         {
-                            int32 bp0 = (GetEffect(EFFECT_0)->CalculateAmount(caster) * GetEffect(EFFECT_0)->GetTotalTicks()) / 100 * auraEff->GetAmount();
-                            caster->CastCustomSpell(target, 83077, &bp0, NULL, NULL, true, NULL, GetEffect(0));
+                            target->CastSpell(target, 82926, true);
+                            target->RemoveAura(82925);
                         }
-                    break;
+                        break;
                 }
                 break;
             case SPELLFAMILY_PRIEST:
@@ -1438,7 +1451,8 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                 // Blood of the North
                 // Reaping
                 // Death Rune Mastery
-                if (GetSpellInfo()->SpellIconID == 3041 || GetSpellInfo()->SpellIconID == 22 || GetSpellInfo()->SpellIconID == 2622)
+                // Blood rites
+                if (GetSpellInfo()->SpellIconID == 3041 || GetSpellInfo()->SpellIconID == 22 || GetSpellInfo()->SpellIconID == 2622 || GetSpellInfo()->SpellIconID == 2724)
                 {
                     if (!GetEffect(0) || GetEffect(0)->GetAuraType() != SPELL_AURA_PERIODIC_DUMMY)
                         break;
@@ -1457,21 +1471,27 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                     if (caster && caster->HasAura(56845))
                         target->CastSpell(target, 61394, true);
                 break;
-            case SPELLFAMILY_SHAMAN:
-                // Flame Shock
-                if (removeMode == AURA_REMOVE_BY_ENEMY_SPELL && GetSpellInfo()->Id == 8050)
-                {
-                    // Lava Flows
-                    if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 3087, 0))
-                        caster->CastSpell(caster, 65264, true);
-                }
-                break;
         }
     }
 
     // mods at aura apply or remove
     switch (GetSpellInfo()->SpellFamilyName)
     {
+
+	case SPELLFAMILY_GENERIC:
+		switch(GetId())
+		{
+		case 50720: //Vigilance
+
+			if(apply)
+				target->CastSpell(caster,59665,true,0,0,caster->GetGUID());
+			else
+				target->SetRedirectThreat(0,0);
+			break;
+		}
+
+		break;
+
         case SPELLFAMILY_DRUID:
             // Enrage
             if ((GetSpellInfo()->SpellFamilyFlags[0] & 0x80000) && GetSpellInfo()->SpellIconID == 961)

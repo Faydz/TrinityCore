@@ -755,6 +755,7 @@ class World
 
         void UpdatePhaseDefinitions();
         void ReloadRBAC();
+        void ManualResetCurrencyWeekCap();
 
     protected:
         void _UpdateGameTime();

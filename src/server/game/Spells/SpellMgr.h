@@ -63,6 +63,7 @@ enum SpellFamilyFlag
     SPELLFAMILYFLAG1_ROGUE_DISMANTLE        = 0x00100000,   // Dismantle
     SPELLFAMILYFLAG_ROGUE_BLADE_FLURRY      = 0x40000000,   // Blade Flurry
     SPELLFAMILYFLAG1_ROGUE_BLADE_FLURRY     = 0x00000800,   // Blade Flurry
+    SPELLFAMILYFLAG_ROGUE_SMOKE_BOMB        = 0x80000000,   // Smoke bomb
 
     // Warrior
     SPELLFAMILYFLAG_WARRIOR_CHARGE          = 0x00000001,
@@ -148,6 +149,12 @@ enum ProcFlags
     PROC_FLAG_DONE_OFFHAND_ATTACK             = 0x00800000,    // 23 Done off-hand melee attacks (spell and autoattack)
 
     PROC_FLAG_DEATH                           = 0x01000000,    // 24 Died in any way
+
+    PROC_FLAG_DONE_APPLY_AURA_POS             = 0x10000000,    // 25 Done positive apply spell aura
+    PROC_FLAG_TAKEN_APPLY_AURA_POS            = 0x20000000,    // 26 Taken positive apply spell aura
+
+    PROC_FLAG_DONE_APPLY_AURA_NEG             = 0x40000000,    // 27 Done negative apply spell aura
+    PROC_FLAG_TAKEN_APPLY_AURA_NEG            = 0x80000000,    // 28 Taken negative apply spell aura
 
     // flag masks
     AUTO_ATTACK_PROC_FLAG_MASK                = PROC_FLAG_DONE_MELEE_AUTO_ATTACK | PROC_FLAG_TAKEN_MELEE_AUTO_ATTACK
@@ -585,7 +592,7 @@ bool IsWeaponSkill(uint32 skill);
 
 inline bool IsProfessionSkill(uint32 skill)
 {
-    return  IsPrimaryProfessionSkill(skill) || skill == SKILL_FISHING || skill == SKILL_COOKING || skill == SKILL_FIRST_AID;
+    return  IsPrimaryProfessionSkill(skill) || skill == SKILL_FISHING || skill == SKILL_COOKING || skill == SKILL_FIRST_AID || skill == SKILL_ARCHAEOLOGY;
 }
 
 inline bool IsProfessionOrRidingSkill(uint32 skill)

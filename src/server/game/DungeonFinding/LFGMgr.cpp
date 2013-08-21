@@ -453,6 +453,7 @@ void LFGMgr::JoinLfg(Player* player, uint8 roles, LfgDungeonSet& dungeons, const
     uint64 guid = player->GetGUID();
     uint64 gguid = grp ? grp->GetGUID() : guid;
     LfgJoinResultData joinData;
+    LfgUpdateData updateData;
     LfgGuidSet players;
     uint32 rDungeonId = 0;
     bool isContinue = grp && grp->isLFGGroup() && GetState(gguid) != LFG_STATE_FINISHED_DUNGEON;
@@ -579,10 +580,11 @@ void LFGMgr::JoinLfg(Player* player, uint8 roles, LfgDungeonSet& dungeons, const
         sLog->outDebug(LOG_FILTER_LFG, "LFGMgr::Join: [" UI64FMTD "] trying to join raid browser and it's disabled.", guid);
         return;
     }
-
+    sLog->outError(LOG_FILTER_GENERAL, "STEP 0");
     std::string debugNames = "";
     if (grp)                                               // Begin rolecheck
     {
+        sLog->outError(LOG_FILTER_GENERAL, "STEP 1");
         // Create new rolecheck
         LfgRoleCheck& roleCheck = RoleChecksStore[gguid];
         roleCheck.cancelTime = time_t(time(NULL)) + LFG_TIME_ROLECHECK;
@@ -620,13 +622,14 @@ void LFGMgr::JoinLfg(Player* player, uint8 roles, LfgDungeonSet& dungeons, const
     }
     else                                                   // Add player to queue
     {
+        sLog->outError(LOG_FILTER_GENERAL, "STEP 2");
         LfgRolesMap rolesMap;
         rolesMap[guid] = roles;
         LFGQueue& queue = GetQueue(guid);
         queue.AddQueueData(guid, time(NULL), dungeons, rolesMap);
 
         if (!isContinue)
-        {
+        {   
             if (rDungeonId)
             {
                 dungeons.clear();
@@ -635,8 +638,9 @@ void LFGMgr::JoinLfg(Player* player, uint8 roles, LfgDungeonSet& dungeons, const
             SetSelectedDungeons(guid, dungeons);
         }
         // Send update to player
+        player->GetSession()->SendLfgUpdateStatus(LfgUpdateData(LFG_UPDATETYPE_JOIN_QUEUE, dungeons, comment));
         player->GetSession()->SendLfgJoinResult(joinData);
-        player->GetSession()->SendLfgUpdatePlayer(LfgUpdateData(LFG_UPDATETYPE_JOIN_QUEUE, dungeons, comment));
+        //player->GetSession()->SendLfgUpdatePlayer(LfgUpdateData(LFG_UPDATETYPE_JOIN_QUEUE, dungeons, comment));
         SetState(gguid, LFG_STATE_QUEUED);
         SetRoles(guid, roles);
         debugNames.append(player->GetName());

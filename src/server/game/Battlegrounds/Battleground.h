@@ -137,12 +137,12 @@ enum BattlegroundBuffObjects
 /// Battleground currency rewards. Should be with precision mod.
 enum BattlegroundRandomRewards
 {
-    BG_REWARD_WINNER_HONOR_FIRST    = 27000,
+    BG_REWARD_WINNER_HONOR_FIRST    = 270,
     BG_REWARD_WINNER_CONQUEST_FIRST = 10000,
-    BG_REWARD_WINNER_HONOR_LAST     = 13500,
+    BG_REWARD_WINNER_HONOR_LAST     = 135,
     BG_REWARD_WINNER_CONQUEST_LAST  = 5000,
-    BG_REWARD_LOSER_HONOR_FIRST     = 4500,
-    BG_REWARD_LOSER_HONOR_LAST      = 3500
+    BG_REWARD_LOSER_HONOR_FIRST     = 45,
+    BG_REWARD_LOSER_HONOR_LAST      = 45
 };
 
 const uint32 Buff_Entries[3] = { BG_OBJECTID_SPEEDBUFF_ENTRY, BG_OBJECTID_REGENBUFF_ENTRY, BG_OBJECTID_BERSERKERBUFF_ENTRY };
@@ -203,7 +203,8 @@ enum ArenaType
 {
     ARENA_TYPE_2v2          = 2,
     ARENA_TYPE_3v3          = 3,
-    ARENA_TYPE_5v5          = 5
+    ARENA_TYPE_5v5          = 5,
+    ARENA_TYPE_10v10        = 10
 };
 
 enum BattlegroundType

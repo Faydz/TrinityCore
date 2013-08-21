@@ -286,15 +286,13 @@ void MotionMaster::MoveFollow(Unit* target, float dist, float angle, MovementSlo
 
 void MotionMaster::MovePoint(uint32 id, float x, float y, float z, bool generatePath)
 {
-    if (_owner->GetTypeId() == TYPEID_PLAYER)
+    if (_owner && _owner->GetTypeId() == TYPEID_PLAYER)
     {
         sLog->outDebug(LOG_FILTER_GENERAL, "Player (GUID: %u) targeted point (Id: %u X: %f Y: %f Z: %f)", _owner->GetGUIDLow(), id, x, y, z);
         Mutate(new PointMovementGenerator<Player>(id, x, y, z, generatePath), MOTION_SLOT_ACTIVE);
     }
     else
     {
-        sLog->outDebug(LOG_FILTER_GENERAL, "Creature (Entry: %u GUID: %u) targeted point (ID: %u X: %f Y: %f Z: %f)",
-            _owner->GetEntry(), _owner->GetGUIDLow(), id, x, y, z);
         Mutate(new PointMovementGenerator<Creature>(id, x, y, z, generatePath), MOTION_SLOT_ACTIVE);
     }
 }
@@ -370,11 +368,17 @@ void MotionMaster::MoveJump(float x, float y, float z, float speedXY, float spee
     float moveTimeHalf = speedZ / Movement::gravity;
     float max_height = -Movement::computeFallElevation(moveTimeHalf, false, -speedZ);
 
+    int32 timerToDestination = 0;
+
     Movement::MoveSplineInit init(_owner);
     init.MoveTo(x, y, z, false);
     init.SetParabolic(max_height, 0);
     init.SetVelocity(speedXY);
-    init.Launch();
+    timerToDestination = init.Launch();
+
+    if (_owner->ToPlayer())
+        _owner->ToPlayer()->SetJumpTimerDestination(timerToDestination + 100);
+
     Mutate(new EffectMovementGenerator(id), MOTION_SLOT_CONTROLLED);
 }
 
@@ -431,10 +435,15 @@ void MotionMaster::MoveCharge(PathGenerator const& path)
     MoveCharge(dest.x, dest.y, dest.z, SPEED_CHARGE, EVENT_CHARGE_PREPATH);
 
     // Charge movement is not started when using EVENT_CHARGE_PREPATH
+    int32 timerToDestination = 0;
+
     Movement::MoveSplineInit init(_owner);
     init.MovebyPath(path.GetPath());
     init.SetVelocity(SPEED_CHARGE);
-    init.Launch();
+    timerToDestination = init.Launch();
+
+    if (_owner->ToPlayer())
+        _owner->ToPlayer()->SetJumpTimerDestination(timerToDestination + 100);
 }
 
 void MotionMaster::MoveSeekAssistance(float x, float y, float z)

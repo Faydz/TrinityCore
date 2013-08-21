@@ -18,6 +18,8 @@ set(scripts_STAT_SRCS
   EasternKingdoms/AlteracValley/boss_vanndar.cpp
   EasternKingdoms/AlteracValley/alterac_valley.cpp
   EasternKingdoms/BaradinHold/boss_alizabal.cpp
+  EasternKingdoms/BaradinHold/boss_argaloth.cpp
+  EasternKingdoms/BaradinHold/boss_occuthar.cpp
   EasternKingdoms/BaradinHold/instance_baradin_hold.cpp
   EasternKingdoms/Scholomance/boss_the_ravenian.cpp
   EasternKingdoms/Scholomance/boss_instructor_malicia.cpp
@@ -35,16 +37,14 @@ set(scripts_STAT_SRCS
   EasternKingdoms/Scholomance/boss_ras_frostwhisper.cpp
   EasternKingdoms/Scholomance/boss_kirtonos_the_herald.cpp
   EasternKingdoms/zone_isle_of_queldanas.cpp
-  EasternKingdoms/ZulGurub/boss_grilek.cpp
-  EasternKingdoms/ZulGurub/boss_hazzarah.cpp
+  EasternKingdoms/ZulGurub/boss_cache_of_madness.cpp
   EasternKingdoms/ZulGurub/boss_jindo_the_godbreaker.cpp
   EasternKingdoms/ZulGurub/boss_kilnara.cpp
   EasternKingdoms/ZulGurub/boss_mandokir.cpp
-  EasternKingdoms/ZulGurub/boss_renataki.cpp
   EasternKingdoms/ZulGurub/boss_venoxis.cpp
-  EasternKingdoms/ZulGurub/boss_wushoolay.cpp
   EasternKingdoms/ZulGurub/boss_zanzil.cpp
   EasternKingdoms/ZulGurub/instance_zulgurub.cpp
+  EasternKingdoms/ZulGurub/zulgurub.cpp
   EasternKingdoms/ZulGurub/zulgurub.h
   EasternKingdoms/zone_wetlands.cpp
   EasternKingdoms/zone_arathi_highlands.cpp
@@ -161,6 +161,7 @@ set(scripts_STAT_SRCS
   EasternKingdoms/ShadowfangKeep/shadowfang_keep.cpp
   EasternKingdoms/ShadowfangKeep/instance_shadowfang_keep.cpp
   EasternKingdoms/ShadowfangKeep/shadowfang_keep.h
+  EasternKingdoms/ShadowfangKeep/boss_baron_ashbury.cpp
   EasternKingdoms/zone_burning_steppes.cpp
   EasternKingdoms/BlackwingLair/boss_chromaggus.cpp
   EasternKingdoms/BlackwingLair/boss_razorgore.cpp
@@ -175,8 +176,8 @@ set(scripts_STAT_SRCS
   EasternKingdoms/zone_blasted_lands.cpp
   EasternKingdoms/zone_stormwind_city.cpp
   EasternKingdoms/ZulAman/boss_halazzi.cpp
-  EasternKingdoms/ZulAman/boss_hexlord.cpp
-  EasternKingdoms/ZulAman/boss_zuljin.cpp
+  EasternKingdoms/ZulAman/boss_hex_lord_malacrass.cpp
+  EasternKingdoms/ZulAman/boss_daakara.cpp
   EasternKingdoms/ZulAman/boss_akilzon.cpp
   EasternKingdoms/ZulAman/instance_zulaman.cpp
   EasternKingdoms/ZulAman/boss_janalai.cpp
@@ -222,7 +223,22 @@ set(scripts_STAT_SRCS
   EasternKingdoms/ThroneOfTheTides/boss_lady_nazjar.cpp
   EasternKingdoms/ThroneOfTheTides/boss_mindbender_ghursha.cpp
   EasternKingdoms/ThroneOfTheTides/boss_ozumat.cpp
-
+  EasternKingdoms/BastionOfTwilight/bastion_of_twilight.h
+  EasternKingdoms/BastionOfTwilight/boss_chogall.cpp
+  EasternKingdoms/BastionOfTwilight/boss_council_of_ascendents.cpp
+  EasternKingdoms/BastionOfTwilight/boss_halfus_wyrmbreaker.cpp
+  EasternKingdoms/BastionOfTwilight/boss_sinestra.cpp
+  EasternKingdoms/BastionOfTwilight/boss_theralion_and_valiona.cpp
+  EasternKingdoms/BastionOfTwilight/instance_bastion_of_twilight.cpp
+  EasternKingdoms/BlackwingDescent/blackwing_descent.h
+  EasternKingdoms/BlackwingDescent/blackwing_descent.cpp
+  EasternKingdoms/BlackwingDescent/boss_atramedes.cpp
+  EasternKingdoms/BlackwingDescent/boss_chimaeron.cpp
+  EasternKingdoms/BlackwingDescent/boss_magmaw.cpp
+  EasternKingdoms/BlackwingDescent/boss_maloriak.cpp
+  EasternKingdoms/BlackwingDescent/boss_nefarian.cpp
+  EasternKingdoms/BlackwingDescent/boss_omnotron_defense_system.cpp
+  EasternKingdoms/BlackwingDescent/instance_blackwing_descent.cpp
 )
 
 message("  -> Prepared: Eastern Kingdoms")

@@ -14,5 +14,10 @@ Questo documento tiene traccia delle ottimizzazioni da fare una volta stabilizza
 	SpellScaling.dbc				id(1277)
 
 7 Da sistemare il metodo GetHealth() e derivati. Restituisce più hp degli effetivi posseduti dal target.
-8 Inserire lo script per SPELL_AURA_MOD_AUTOATTACK_DAMAGE e SPELL_AURA_MOD_SPELL_COOLDOWN_BY_HASTE.
-9 Sistemare il SetPower(POWER_RAGE, n), che internamente imposta il corretto valore di rage ma graficamente mantiene il valore precedente.
+8 Inserire lo script per SPELL_AURA_MOD_SPELL_COOLDOWN_BY_HASTE (aura usata solo per il talento Sanctity of Battle - Pally Retri, ora fixato tramite hackfix).
+9 Sistemare l'hackfix di Dual Wield (Player::RemoveSpell, if con id 86629) e controllare che lo stesso non si ripeta per le altre classi (vedi mantis ticket #348).
+10 Sistemare il tooltip con il giusto valore di attack power dato quando si passa il cursore sulla stat agility o strenght in Cat e Bear Form (l'attack power dato realmente funziona).
+11 Riabilitare la spell Wild Mushroom e fixare il crash che ne consegue, quando utilizzata.
+12 Migliorare la gestione del filtro dei target in stealth per gli script Multi Shot e Holy Wrath
+13 Gestire il caso in cui un player e una unit (es. manichino) si sovrappongono e sono sotto Ring of Frost. Il fix temporaneo riduce questo bug a verificarsi solo quando un player e un non-player si sovrappongono grazie a spellInfo->Effects[EFFECT_0].MaxRadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_0_YARDS); (82691)
+14 Nella funzione Player::ResetDuelStatsAndCooldown, il SetPower non aggiorna graficamente il power effettivo. Questo bug si verifica per POWER_RUNIC_POWER, POWER_FOCUS e POWER_RAGE (solo Warrior). Il bug si ripropone in altre chiamate del SetPower, eccezione fatta per quelle negli script, dove funziona correttamente.

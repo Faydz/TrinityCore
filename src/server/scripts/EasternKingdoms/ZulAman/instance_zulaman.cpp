@@ -76,11 +76,16 @@ class instance_zulaman : public InstanceMapScript
             uint64 HarrisonJonesGUID;
 
             uint64 HexLordGateGUID;
-            uint64 ZulJinGateGUID;
+            uint64 DaakaraGateGUID;
             uint64 MassiveGateGUID;
             uint64 AkilzonDoorGUID;
-            uint64 ZulJinDoorGUID;
+            uint64 DaakaraDoorGUID;
             uint64 HalazziDoorGUID;
+
+            uint64 uiLynxSpirit;
+            uint64 uiBearSpirit;
+            uint64 uiDragonhawkSpirit;
+            uint64 uiEagleSpirit;
 
             uint32 QuestTimer;
             uint16 BossKilled;
@@ -100,11 +105,11 @@ class instance_zulaman : public InstanceMapScript
                 KrazsPackageGUID = 0;
                 StrangeGongGUID = 0;
                 HexLordGateGUID = 0;
-                ZulJinGateGUID = 0;
+                DaakaraGateGUID = 0;
                 MassiveGateGUID = 0;
                 AkilzonDoorGUID = 0;
                 HalazziDoorGUID = 0;
-                ZulJinDoorGUID = 0;
+                DaakaraDoorGUID = 0;
 
                 HarrisonJonesGUID = 0;
 
@@ -141,8 +146,20 @@ class instance_zulaman : public InstanceMapScript
                     case NPC_HARRISON_JONES:
                         HarrisonJonesGUID = creature->GetGUID();
                         break;
+                    case NPC_LYNX_SPIRIT:
+                        uiLynxSpirit = creature->GetGUID();
+                        break;
+                    case NPC_BEAR_SPIRIT:
+                        uiBearSpirit = creature->GetGUID();
+                        break;
+                    case NPC_DRAGONHAWK_SPIRIT:
+                        uiDragonhawkSpirit = creature->GetGUID();
+                        break;
+                    case NPC_EAGLE_SPIRIT:
+                        uiEagleSpirit = creature->GetGUID();
+                        break;
                     case NPC_JANALAI:
-                    case NPC_ZULJIN:
+                    case NPC_DAAKARA:
                     case NPC_HEXLORD:
                     case NPC_HALAZZI:
                     case NPC_NALORAKK:
@@ -156,11 +173,11 @@ class instance_zulaman : public InstanceMapScript
                 switch (go->GetEntry())
                 {
                     case GO_DOOR_HALAZZI: HalazziDoorGUID = go->GetGUID(); break;
-                    case GO_GATE_ZULJIN: ZulJinGateGUID = go->GetGUID(); break;
+                    case GO_GATE_DAAKARA: DaakaraGateGUID = go->GetGUID(); break;
                     case GO_GATE_HEXLORD: HexLordGateGUID = go->GetGUID(); break;
                     case GO_MASSIVE_GATE: MassiveGateGUID = go->GetGUID(); break;
                     case GO_DOOR_AKILZON: AkilzonDoorGUID = go->GetGUID(); break;
-                    case GO_DOOR_ZULJIN: ZulJinDoorGUID = go->GetGUID(); break;
+                    case GO_DOOR_DAAKARA: DaakaraDoorGUID = go->GetGUID(); break;
 
                     case GO_HARKORS_SATCHEL: HarkorsSatchelGUID = go->GetGUID(); break;
                     case GO_TANZARS_TRUNK: TanzarsTrunkGUID = go->GetGUID(); break;
@@ -198,7 +215,7 @@ class instance_zulaman : public InstanceMapScript
                     HandleGameObject(HexLordGateGUID, true);
 
                 if (BossKilled >= DATA_HEXLORDEVENT)
-                    HandleGameObject(ZulJinGateGUID, true);
+                    HandleGameObject(DaakaraGateGUID, true);
             }
 
             std::string GetSaveData()
@@ -284,9 +301,9 @@ class instance_zulaman : public InstanceMapScript
                     else if (data == NOT_STARTED)
                         CheckInstanceStatus();
                     break;
-                case DATA_ZULJINEVENT:
-                    m_auiEncounter[DATA_ZULJINEVENT] = data;
-                    HandleGameObject(ZulJinDoorGUID, data != IN_PROGRESS);
+                case DATA_DAAKARAEVENT:
+                    m_auiEncounter[DATA_DAAKARAEVENT] = data;
+                    HandleGameObject(DaakaraDoorGUID, data != IN_PROGRESS);
                     break;
                 case DATA_CHESTLOOTED:
                     ++ChestLooted;
@@ -317,17 +334,17 @@ class instance_zulaman : public InstanceMapScript
             {
                 switch (type)
                 {
-                case DATA_GONGEVENT:     return m_auiEncounter[DATA_GONGEVENT];
-                case DATA_NALORAKKEVENT: return m_auiEncounter[DATA_NALORAKKEVENT];
-                case DATA_AKILZONEVENT:  return m_auiEncounter[DATA_AKILZONEVENT];
-                case DATA_JANALAIEVENT:  return m_auiEncounter[DATA_JANALAIEVENT];
-                case DATA_HALAZZIEVENT:  return m_auiEncounter[DATA_HALAZZIEVENT];
-                case DATA_HEXLORDEVENT:  return m_auiEncounter[DATA_HEXLORDEVENT];
-                case DATA_ZULJINEVENT:   return m_auiEncounter[DATA_ZULJINEVENT];
-                case DATA_CHESTLOOTED:   return ChestLooted;
-                case TYPE_RAND_VENDOR_1: return RandVendor[0];
-                case TYPE_RAND_VENDOR_2: return RandVendor[1];
-                default:                 return 0;
+                case DATA_GONGEVENT:        return m_auiEncounter[DATA_GONGEVENT];
+                case DATA_NALORAKKEVENT:    return m_auiEncounter[DATA_NALORAKKEVENT];
+                case DATA_AKILZONEVENT:     return m_auiEncounter[DATA_AKILZONEVENT];
+                case DATA_JANALAIEVENT:     return m_auiEncounter[DATA_JANALAIEVENT];
+                case DATA_HALAZZIEVENT:     return m_auiEncounter[DATA_HALAZZIEVENT];
+                case DATA_HEXLORDEVENT:     return m_auiEncounter[DATA_HEXLORDEVENT];
+                case DATA_DAAKARAEVENT:     return m_auiEncounter[DATA_DAAKARAEVENT];
+                case DATA_CHESTLOOTED:      return ChestLooted;
+                case TYPE_RAND_VENDOR_1:    return RandVendor[0];
+                case TYPE_RAND_VENDOR_2:    return RandVendor[1];
+                default:                    return 0;
                 }
             }
 
@@ -354,10 +371,12 @@ class instance_zulaman : public InstanceMapScript
             {
                 switch (type)
                 {
-                    case GO_STRANGE_GONG:
-                        return StrangeGongGUID;
-                    case GO_MASSIVE_GATE:
-                        return MassiveGateGUID;
+                    case GO_STRANGE_GONG:       return StrangeGongGUID;
+                    case GO_MASSIVE_GATE:       return MassiveGateGUID;
+                    case NPC_LYNX_SPIRIT:       return uiLynxSpirit;
+                    case NPC_BEAR_SPIRIT:       return uiBearSpirit;
+                    case NPC_DRAGONHAWK_SPIRIT: return uiDragonhawkSpirit;
+                    case NPC_EAGLE_SPIRIT:      return uiEagleSpirit;
                 }
 
                 return 0;

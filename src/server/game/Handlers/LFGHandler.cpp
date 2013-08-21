@@ -22,6 +22,7 @@
 #include "Opcodes.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#include "GameEventMgr.h"
 
 void BuildPlayerLockDungeonBlock(WorldPacket& data, lfg::LfgLockMap const& lock)
 {
@@ -55,34 +56,39 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recvData)
         return;
     }
 
-    uint8 numDungeons;
+    uint32 dungeon;
+    uint32 unk[3];
+    std::string comment;
     uint32 roles;
 
     recvData >> roles;
-    recvData.read_skip<uint16>();                          // uint8 (always 0) - uint8 (always 0)
-    recvData >> numDungeons;
-    if (!numDungeons)
+
+    for (int8 i = 0; i < 3; ++i)
     {
-        sLog->outDebug(LOG_FILTER_LFG, "CMSG_LFG_JOIN %s no dungeons selected", GetPlayerInfo().c_str());
+        recvData >> unk[i]; // Unknown.
+    }
+
+    uint32 length = recvData.ReadBits(9);
+    uint32 count  = recvData.ReadBits(24);
+
+    comment = recvData.ReadString(length);
+
+    if (!count) // numDungeons.
+    {
+        sLog->outDebug(LOG_FILTER_NETWORKIO, "CMSG_LFG_JOIN [" UI64FMTD "] no dungeons selected", GetPlayer()->GetGUID());
         recvData.rfinish();
         return;
     }
 
     lfg::LfgDungeonSet newDungeons;
-    for (int8 i = 0; i < numDungeons; ++i)
+    for (uint32 i = 0; i < count; ++i)
     {
-        uint32 dungeon;
-        recvData >> dungeon;
-        newDungeons.insert((dungeon & 0x00FFFFFF));        // remove the type from the dungeon entry
+        recvData >> dungeon; // dungeonentry
+        sLog->outError(LOG_FILTER_GENERAL, "Dentro %u", dungeon);
+        newDungeons.insert((dungeon & 0x00FFFFFF));       // remove the type from the dungeon entry
     }
 
-    recvData.read_skip<uint32>();                          // for 0..uint8 (always 3) { uint8 (always 0) }
-
-    std::string comment;
-    recvData >> comment;
-    sLog->outDebug(LOG_FILTER_LFG, "CMSG_LFG_JOIN %s roles: %u, Dungeons: %u, Comment: %s",
-        GetPlayerInfo().c_str(), roles, uint8(newDungeons.size()), comment.c_str());
-
+    sLog->outError(LOG_FILTER_GENERAL, "CMSG_LFG_JOIN [" UI64FMTD "] roles: %u, Dungeons: %u, Comment: %s", GetPlayer()->GetGUID(), roles, uint8(newDungeons.size()), comment.c_str());
     sLFGMgr->JoinLfg(GetPlayer(), uint8(roles), newDungeons, comment);
 }
 
@@ -165,20 +171,49 @@ void WorldSession::HandleLfgTeleportOpcode(WorldPacket& recvData)
 void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvData*/)
 {
     uint64 guid = GetPlayer()->GetGUID();
-    sLog->outDebug(LOG_FILTER_LFG, "CMSG_LFG_PLAYER_LOCK_INFO_REQUEST %s",
-        GetPlayerInfo().c_str());
+    sLog->outDebug(LOG_FILTER_NETWORKIO, "CMSG_LFD_PLAYER_LOCK_INFO_REQUEST [" UI64FMTD "]", guid);
 
     // Get Random dungeons that can be done at a certain level and expansion
+    // FIXME - Should return seasonals (when not disabled)
     uint8 level = GetPlayer()->getLevel();
-    lfg::LfgDungeonSet const& randomDungeons =
-        sLFGMgr->GetRandomAndSeasonalDungeons(level, GetPlayer()->GetSession()->Expansion());
+    uint8 expansion = GetPlayer()->GetSession()->Expansion();
+    lfg::LfgDungeonSet /*const&*/ randomDungeons = sLFGMgr->GetRandomAndSeasonalDungeons(level, expansion);
+    for (uint32 i = 0; i < sLFGDungeonStore.GetNumRows(); ++i)
+    {
+        LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(i);
+        if (dungeon && dungeon->type == 6 && dungeon->expansion <= expansion && dungeon->minlevel <= level && level <= dungeon->maxlevel)
+            randomDungeons.insert(dungeon->Entry());
+        // Dungeons Seleccionables con el evento en el server correspondiente. (En Dungeon Finder)
+        if (dungeon && dungeon->grouptype == 11 && dungeon->expansion <= expansion && dungeon->minlevel <= level && level <= dungeon->maxlevel)
+        {
+            QueryResult result = WorldDatabase.Query("SELECT dungeonId, eventEntry FROM lfg_dungeon_event");
+
+            if (!result)
+                return;
+
+            Field* fields = NULL;
+            do
+            {
+                fields = result->Fetch();
+                uint32 dungeonId = fields[0].GetUInt32();
+                uint32 eventEntry = fields[1].GetUInt32();
+                if (dungeonId != dungeon->ID)
+                    continue;
+
+                if (eventEntry && sGameEventMgr->IsActiveEvent(eventEntry))
+                    randomDungeons.insert(dungeon->Entry());
+
+            }
+            while (result->NextRow());
+        }
+    }
 
     // Get player locked Dungeons
     lfg::LfgLockMap const& lock = sLFGMgr->GetLockedDungeons(guid);
     uint32 rsize = uint32(randomDungeons.size());
     uint32 lsize = uint32(lock.size());
 
-    sLog->outDebug(LOG_FILTER_LFG, "SMSG_LFG_PLAYER_INFO %s", GetPlayerInfo().c_str());
+    sLog->outDebug(LOG_FILTER_NETWORKIO, "SMSG_LFG_PLAYER_INFO [" UI64FMTD "]", guid);
     WorldPacket data(SMSG_LFG_PLAYER_INFO, 1 + rsize * (4 + 1 + 4 + 4 + 4 + 4 + 1 + 4 + 4 + 4) + 4 + lsize * (1 + 4 + 4 + 4 + 4 + 1 + 4 + 4 + 4));
 
     data << uint8(randomDungeons.size());                  // Random Dungeon count
@@ -186,37 +221,70 @@ void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvData*
     {
         data << uint32(*it);                               // Dungeon Entry (id + type)
         lfg::LfgReward const* reward = sLFGMgr->GetRandomDungeonReward(*it, level);
-        Quest const* quest = NULL;
-        bool done = false;
+        Quest const* qRew = NULL;
+        uint8 done = 0;
         if (reward)
         {
-            quest = sObjectMgr->GetQuestTemplate(reward->firstQuest);
-            if (quest)
+            qRew = sObjectMgr->GetQuestTemplate(reward->firstQuest);
+            if (qRew)
             {
-                done = !GetPlayer()->CanRewardQuest(quest, false);
+                done = GetPlayer()->CanRewardQuest(qRew, false);
                 if (done)
-                    quest = sObjectMgr->GetQuestTemplate(reward->otherQuest);
+                    qRew = sObjectMgr->GetQuestTemplate(reward->otherQuest);
             }
         }
 
-        if (quest)
+        if (qRew)
         {
-            data << uint8(done);
-            data << uint32(quest->GetRewOrReqMoney());
-            data << uint32(quest->XPValue(GetPlayer()));
-            data << uint32(0);
-            data << uint32(0);
-            data << uint8(quest->GetRewItemsCount());
-            if (quest->GetRewItemsCount())
+            data << uint8(done);                                        //First Completion
+            data << uint32(0);                                          //Base Money
+            data << uint32(0);                                          //Base XP
+            data << uint32(0);                                          //Variable Money
+            data << uint32(0);                                          //Variable XP
+
+            for(int j = 0; j < 9; j++)                                  //Unk 1,2,3,4,5,6,7,8,8.1
+                data << uint32(0);
+
+            data << uint8(0);                                           //Unk 9
+
+            // 4.3.4 Loot Slot Info
+            for(int j = 0; j < 3; j++)                                  //Unk 1 Array (index 0,1,2)
+                data << uint32(0);
+
+            data << uint32(qRew->GetRewOrReqMoney());                   //Unk 10 - Money rew
+            data << uint32(qRew->XPValue(GetPlayer()));                 //Unk 11 - Exp rew
+
+            if (qRew->GetRewItemsCount())
             {
+                data << uint8(qRew->GetRewItemsCount());
+                ItemTemplate const* iProto = NULL;
                 for (uint8 i = 0; i < QUEST_REWARDS_COUNT; ++i)
-                    if (uint32 itemId = quest->RewardItemId[i])
-                    {
-                        ItemTemplate const* item = sObjectMgr->GetItemTemplate(itemId);
-                        data << uint32(itemId);
-                        data << uint32(item ? item->DisplayInfoID : 0);
-                        data << uint32(quest->RewardItemIdCount[i]);
-                    }
+                {
+                    if(!qRew->RewardItemId[i])
+                        continue;
+
+                    iProto = sObjectMgr->GetItemTemplate(qRew->RewardItemId[i]);
+
+                    data << uint32(qRew->RewardItemId[i]);
+                    data << uint32(iProto ? iProto->DisplayInfoID : 0);
+                    data << uint32(qRew->RewardItemIdCount[i]);
+
+                    data << uint8(iProto ? 0 : 1); // Is Currency
+                }
+            }
+            if (qRew->GetRewCurrencyCount())
+            {
+                data << uint8(qRew->GetRewCurrencyCount());             //Reward Item/Currency Count
+                for(uint8 i = 0; i < 4; i++)
+                {
+                    if(!qRew->RewardCurrencyId[i])
+                        continue;
+
+                    data << uint32(qRew->RewardCurrencyId[i]);          //Reward Item Or Currency Id
+                    data << uint32(0);                                  //Reward Item Display ID
+                    data << uint32(qRew->RewardCurrencyCount[i]*100);   //Reward Item Stack Count
+                    data << uint8(1);                                   // Is Currency
+                }
             }
         }
         else
@@ -226,12 +294,27 @@ void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvData*
             data << uint32(0);
             data << uint32(0);
             data << uint32(0);
+
+            // New 4.3.4 15595
+            for(int j = 0; j < 8; j++)
+                data << uint32(1);
+
+            data << uint8(1);
+
+            // 4.3.4 Loot Slot Info
+            for(int j = 0; j < 3; j++)
+                data << uint32(0);
+
+            data << uint32(1);
+            data << uint32(1);
+
             data << uint8(0);
         }
     }
     BuildPlayerLockDungeonBlock(data, lock);
     SendPacket(&data);
 }
+
 
 void WorldSession::HandleLfgPartyLockInfoRequestOpcode(WorldPacket&  /*recvData*/)
 {
@@ -304,6 +387,105 @@ void WorldSession::HandleLfgGetStatus(WorldPacket& /*recvData*/)
         updateData.dungeons.clear();
         SendLfgUpdateParty(updateData);
     }
+}
+
+void WorldSession::SendLfgUpdateStatus(lfg::LfgUpdateData const& updateData)
+{
+    uint32 queueId = GetPlayer()->GetTeam();
+    uint64 guid = GetPlayer()->GetGUID();
+    //ObjectGuid pguid = guid;
+
+    uint8 pguid[8];
+    memcpy(pguid, &guid, 8); // Fu
+
+    bool queued = false;
+    bool extrainfo = false;
+    bool join = false;
+
+    switch (updateData.updateType)
+    {
+    case lfg::LFG_UPDATETYPE_JOIN_QUEUE:
+    case lfg::LFG_UPDATETYPE_ADDED_TO_QUEUE:
+        join = true;
+        queued = true;
+        extrainfo = true;
+        break;
+    case lfg::LFG_UPDATETYPE_REMOVED_FROM_QUEUE:
+        extrainfo = true;
+        queued = false;
+        join = false;
+        break;
+        //case LFG_UPDATETYPE_CLEAR_LOCK_LIST: // TODO: Sometimes has extrainfo - Check ocurrences...
+    case lfg::LFG_UPDATETYPE_PROPOSAL_BEGIN:
+        join = true;
+        queued = false;
+        extrainfo = true;
+        break;
+    default:
+        break;
+    }
+
+    uint8 size = uint8(updateData.dungeons.size());
+
+    sLog->outError(LOG_FILTER_GENERAL,"updateData.dungeons.size() = %u, getMSTime() = %u", uint8(updateData.dungeons.size()), getMSTime());
+
+    WorldPacket data(SMSG_LFG_UPDATE_STATUS);
+
+    data.WriteBit(pguid[1]);
+
+    data.WriteBit(0); // Unk Bit 65
+
+    data.WriteBits(size, 24);
+
+    data.WriteBit(pguid[6]);
+
+    data.WriteBit(join ? 1 : 0); // Joined
+
+    data.WriteBits(updateData.comment.length(), 9);
+
+    data.WriteBit(pguid[4]);
+    data.WriteBit(pguid[7]);
+    data.WriteBit(pguid[2]);
+
+    data.WriteBit(join ? 1 : 0); // LFGJoined
+
+    data.WriteBit(pguid[0]);
+    data.WriteBit(pguid[3]);
+    data.WriteBit(pguid[5]);
+
+    data.WriteBit(queued);
+    data << uint8(0); // Unk Byte 64
+
+    data.WriteString(updateData.comment);
+    data << uint32(queueId); // Queue Id
+    data << uint32(getMSTime());
+
+    data.WriteByteSeq(pguid[6]);
+
+    data << uint8(0); // Unk Byte
+    data << uint8(0); // Unk Byte
+    data << uint8(0); // Unk Byte
+
+    data.WriteByteSeq(pguid[1]);
+    data.WriteByteSeq(pguid[2]);
+    data.WriteByteSeq(pguid[4]);
+    data.WriteByteSeq(pguid[3]);
+    data.WriteByteSeq(pguid[5]);
+    data.WriteByteSeq(pguid[0]);
+
+    data << uint32(3);
+
+    data.WriteByteSeq(pguid[7]);
+
+    if (size)
+        for (lfg::LfgDungeonSet::const_iterator it = updateData.dungeons.begin(); it != updateData.dungeons.end(); ++it)
+        {
+            data << uint32(*it);
+            sLog->outError(LOG_FILTER_GENERAL, "dungeon = %u", (*it));
+        }
+
+
+    SendPacket(&data);
 }
 
 void WorldSession::SendLfgUpdatePlayer(lfg::LfgUpdateData const& updateData)
@@ -448,7 +630,86 @@ void WorldSession::SendLfgRoleCheckUpdate(lfg::LfgRoleCheck const& roleCheck)
 
 void WorldSession::SendLfgJoinResult(lfg::LfgJoinResultData const& joinData)
 {
+    uint32 queueId = GetPlayer()->GetTeam();
     uint32 size = 0;
+    ObjectGuid playerGuid = GetPlayer()->GetGUID();
+
+    for (lfg::LfgLockPartyMap::const_iterator it = joinData.lockmap.begin(); it != joinData.lockmap.end(); ++it)
+        size += 8 + 4 + uint32(it->second.size()) * (4 + 4 + 4 + 4);
+
+    sLog->outError(LOG_FILTER_GENERAL, "SMSG_LFG_JOIN_RESULT [" UI64FMTD "] checkResult: %u checkValue: %u", GetPlayer()->GetGUID(), joinData.result, joinData.state);
+    WorldPacket data(SMSG_LFG_JOIN_RESULT);
+
+    data << uint32(3);                                      //Unk_UInt32_1
+    data << uint8(joinData.result);                         //Check Result
+    data << uint32(queueId);
+    data << uint8(joinData.state);                          // state
+    // data << uint32(sLFGMgr->GetJoinedTime(GetPlayer()->GetGUID()));
+    data << uint32(100);
+
+    data.WriteBit(playerGuid[2]);
+    data.WriteBit(playerGuid[7]);
+    data.WriteBit(playerGuid[3]);
+    data.WriteBit(playerGuid[0]);
+
+    data.WriteBits(joinData.lockmap.size(),24);
+
+    for(lfg::LfgLockPartyMap::const_iterator itr = joinData.lockmap.begin(); itr != joinData.lockmap.end(); ++itr)
+    {
+        ObjectGuid playerGuid1 = itr->first;
+        data.WriteBit(playerGuid1[7]);
+        data.WriteBit(playerGuid1[5]);
+        data.WriteBit(playerGuid1[3]);
+        data.WriteBit(playerGuid1[6]);
+        data.WriteBit(playerGuid1[0]);
+        data.WriteBit(playerGuid1[2]);
+        data.WriteBit(playerGuid1[4]);
+        data.WriteBit(playerGuid1[1]);
+        data.WriteBits(itr->second.size(),22);
+    }
+
+    data.WriteBit(playerGuid[4]);
+    data.WriteBit(playerGuid[5]);
+    data.WriteBit(playerGuid[1]);
+    data.WriteBit(playerGuid[6]);
+
+    data.FlushBits();
+
+    for(lfg::LfgLockPartyMap::const_iterator itr = joinData.lockmap.begin(); itr != joinData.lockmap.end(); ++itr)
+    {
+        for (lfg::LfgLockMap::const_iterator itr1 = itr->second.begin(); itr1 != itr->second.end(); ++itr1)
+        {
+            data << uint32(itr1->first);                         // Dungeon entry (id + type)
+            data << uint32(itr1->second);                        // Lock status
+            data << uint32(0);                                   // needed ILvL
+            data << uint32(0);                                   // player ILvL
+        }
+
+        ObjectGuid playerGuid1 = itr->first;
+
+        data.WriteByteSeq(playerGuid1[2]);
+        data.WriteByteSeq(playerGuid1[5]);
+        data.WriteByteSeq(playerGuid1[1]);
+        data.WriteByteSeq(playerGuid1[0]);
+        data.WriteByteSeq(playerGuid1[4]);
+        data.WriteByteSeq(playerGuid1[3]);
+        data.WriteByteSeq(playerGuid1[6]);
+        data.WriteByteSeq(playerGuid1[7]);
+    }
+
+    data.WriteByteSeq(playerGuid[1]);
+    data.WriteByteSeq(playerGuid[7]);
+    data.WriteByteSeq(playerGuid[3]);
+    data.WriteByteSeq(playerGuid[5]);
+    data.WriteByteSeq(playerGuid[0]);
+    data.WriteByteSeq(playerGuid[7]);
+    data.WriteByteSeq(playerGuid[2]);
+    data.WriteByteSeq(playerGuid[6]);
+
+    SendPacket(&data);
+    return;
+
+/*     uint32 size = 0;
     for (lfg::LfgLockPartyMap::const_iterator it = joinData.lockmap.begin(); it != joinData.lockmap.end(); ++it)
         size += 8 + 4 + uint32(it->second.size()) * (4 + 4 + 4 + 4);
 
@@ -460,7 +721,7 @@ void WorldSession::SendLfgJoinResult(lfg::LfgJoinResultData const& joinData)
     data << uint32(joinData.state);                        // Check Value
     if (!joinData.lockmap.empty())
         BuildPartyLockDungeonBlock(data, joinData.lockmap);
-    SendPacket(&data);
+    SendPacket(&data);*/
 }
 
 void WorldSession::SendLfgQueueStatus(lfg::LfgQueueStatusData const& queueData)
@@ -472,6 +733,52 @@ void WorldSession::SendLfgQueueStatus(lfg::LfgQueueStatusData const& queueData)
         queueData.waitTimeTank, queueData.waitTimeHealer, queueData.waitTimeDps,
         queueData.queuedTime, queueData.tanks, queueData.healers, queueData.dps);
 
+    ObjectGuid pguid = GetPlayer()->GetGUID();
+ 
+    WorldPacket data(SMSG_LFG_QUEUE_STATUS);
+ 
+    data.WriteBit(pguid[3]);
+    data.WriteBit(pguid[2]);
+    data.WriteBit(pguid[0]);
+    data.WriteBit(pguid[6]);
+    data.WriteBit(pguid[5]);
+    data.WriteBit(pguid[7]);
+    data.WriteBit(pguid[1]);
+    data.WriteBit(pguid[4]);
+ 
+    data.WriteByteSeq(pguid[0]);
+ 
+    data << uint8(queueData.tanks);
+    data << uint32(queueData.waitTimeTank);                         // Wait For Tank Time
+ 
+    data << uint8(queueData.healers);
+    data << uint32(queueData.waitTimeHealer);                       // Wait For Healer Time
+ 
+    data << uint8(queueData.dps);
+    data << uint32(queueData.waitTimeDps);                          // Wait For Damage Time
+ 
+    data.WriteByteSeq(pguid[4]);
+    data.WriteByteSeq(pguid[6]);
+ 
+    data << int32(queueData.waitTimeAvg);                           // Average Wait time
+    data << int32(queueData.queuedTime);
+    data << uint32(queueData.dungeonId);                            // Dungeon
+    data << uint32(queueData.queuedTime);                           // Wait Time
+ 
+    data.WriteByteSeq(pguid[5]);
+    data.WriteByteSeq(pguid[7]);
+    data.WriteByteSeq(pguid[3]);
+ 
+    data << uint32(0);                                              // Queue ID
+ 
+    data.WriteByteSeq(pguid[1]);
+    data.WriteByteSeq(pguid[2]);
+ 
+    data << int32(queueData.waitTime);
+    data << uint32(3);
+ 
+    SendPacket(&data);
+/*
     WorldPacket data(SMSG_LFG_QUEUE_STATUS, 4 + 4 + 4 + 4 + 4 +4 + 1 + 1 + 1 + 4);
     data << uint32(queueData.dungeonId);                   // Dungeon
     data << int32(queueData.waitTimeAvg);                  // Average Wait time
@@ -483,7 +790,7 @@ void WorldSession::SendLfgQueueStatus(lfg::LfgQueueStatusData const& queueData)
     data << uint8(queueData.healers);                      // Healers needed
     data << uint8(queueData.dps);                          // Dps needed
     data << uint32(queueData.queuedTime);                  // Player wait time in queue
-    SendPacket(&data);
+    SendPacket(&data);*/
 }
 
 void WorldSession::SendLfgPlayerReward(lfg::LfgPlayerRewardData const& rewardData)

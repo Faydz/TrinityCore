@@ -39,8 +39,12 @@ enum HunterSpells
     SPELL_HUNTER_CHIMERA_SHOT_VIPER                 = 53358,
     SPELL_HUNTER_CHIMERA_SHOT_SCORPID               = 53359,
 	SPELL_HUNTER_CHIMERA_SHOT_SERPENT               = 53353,
+    SPELL_HUNTER_COBRA_SHOT                         = 77767,
+    SPELL_HUNTER_COBRA_SHOT_ENERGIZE                = 91954,
     SPELL_HUNTER_GLYPH_OF_ASPECT_OF_THE_VIPER       = 56851,
+    SPELL_HUNTER_GLYPH_OF_SILENCING_SHOT            = 56836,
     SPELL_HUNTER_INVIGORATION_TRIGGERED             = 53398,
+    SPELL_HUNTER_KILL_SHOT                          = 53351,
     SPELL_HUNTER_MASTERS_CALL_TRIGGERED             = 62305,
     SPELL_HUNTER_MISDIRECTION_PROC                  = 35079,
     SPELL_HUNTER_PET_LAST_STAND_TRIGGERED           = 53479,
@@ -49,9 +53,95 @@ enum HunterSpells
     SPELL_HUNTER_PET_HEART_OF_THE_PHOENIX_DEBUFF    = 55711,
     SPELL_HUNTER_PET_CARRION_FEEDER_TRIGGERED       = 54045,
     SPELL_HUNTER_READINESS                          = 23989,
+    SPELL_HUNTER_SERPENT_STING_DEBUFF               = 1978,
     SPELL_HUNTER_SNIPER_TRAINING_R1                 = 53302,
     SPELL_HUNTER_SNIPER_TRAINING_BUFF_R1            = 64418,
+    SPELL_HUNTER_FOCUS_ENERGIZE                     = 82716,
+    SPELL_HUNTER_THRILL_OF_THE_HUNT                 = 34720,
     SPELL_DRAENEI_GIFT_OF_THE_NAARU                 = 59543,
+};
+
+// 53476 - pet intervene
+class spell_hun_pet_intervene : public SpellScriptLoader 
+{
+    public:
+        spell_hun_pet_intervene() : SpellScriptLoader("spell_hun_pet_intervene") { }
+
+        class spell_hun_pet_intervene_AuraScript: public AuraScript
+        {
+            PrepareAuraScript(spell_hun_pet_intervene_AuraScript);
+
+            void OnEffectCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = false;
+
+                if(Unit* caster = GetCaster())
+                {
+                    amount = CalculatePct(caster->GetMaxHealth(), 50);
+                }
+            }
+            
+            void function (AuraEffect* aurEff, DamageInfo& /*dmgInfo*/, uint32& /*absorbAmount*/)
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetTarget();
+
+                if(caster && target)
+                {
+                    target->RemoveAura(GetId(), caster->GetGUID());
+                }
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_hun_pet_intervene_AuraScript::OnEffectCalcAmount, EFFECT_1, SPELL_AURA_SCHOOL_ABSORB);
+                AfterEffectAbsorb += AuraEffectAbsorbFn(spell_hun_pet_intervene_AuraScript::function, EFFECT_1);
+            }
+        };
+
+        AuraScript* GetAuraScript() const 
+        {
+            return new spell_hun_pet_intervene_AuraScript();
+        }
+};
+
+// 34490 - Silencing Shot
+class spell_hun_silencing_shot : public SpellScriptLoader
+{
+    public:
+        spell_hun_silencing_shot() : SpellScriptLoader("spell_hun_silencing_shot") { }
+
+        class spell_hun_silencing_shot_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_hun_silencing_shot_AuraScript);
+
+            void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetTarget();
+                if (caster && target)
+                {
+                    // Glyph of Silencing Shot energize on spell interruption
+                    if (caster->HasAura(SPELL_HUNTER_GLYPH_OF_SILENCING_SHOT) && target->HasUnitState(UNIT_STATE_CASTING))
+                    {
+                        // Fixed value
+                        int32 bp0 = 10;
+                        caster->CastCustomSpell(caster, SPELL_HUNTER_FOCUS_ENERGIZE, &bp0, NULL, NULL, true);
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_hun_silencing_shot_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_MOD_SILENCE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            }
+        };
+
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_hun_silencing_shot_AuraScript();
+        }
 };
 
 // 13161 - Aspect of the Beast
@@ -144,99 +234,6 @@ class spell_hun_ascpect_of_the_viper : public SpellScriptLoader
         AuraScript* GetAuraScript() const
         {
             return new spell_hun_ascpect_of_the_viper_AuraScript();
-        }
-};
-
-// 53209 - Chimera Shot
-class spell_hun_chimera_shot : public SpellScriptLoader
-{
-    public:
-        spell_hun_chimera_shot() : SpellScriptLoader("spell_hun_chimera_shot") { }
-
-        class spell_hun_chimera_shot_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_hun_chimera_shot_SpellScript);
-
-            bool Validate(SpellInfo const* /*spellInfo*/)
-            {
-                if (!sSpellMgr->GetSpellInfo(SPELL_HUNTER_CHIMERA_SHOT_SERPENT) || !sSpellMgr->GetSpellInfo(SPELL_HUNTER_CHIMERA_SHOT_VIPER) || !sSpellMgr->GetSpellInfo(SPELL_HUNTER_CHIMERA_SHOT_SCORPID))
-                    return false;
-                return true;
-            }
-
-            void HandleScriptEffect(SpellEffIndex /*effIndex*/)
-            {
-                Unit* caster = GetCaster();
-                if (Unit* unitTarget = GetHitUnit())
-                {
-                    uint32 spellId = 0;
-                    int32 basePoint = 0;
-                    Unit::AuraApplicationMap& Auras = unitTarget->GetAppliedAuras();
-                    for (Unit::AuraApplicationMap::iterator i = Auras.begin(); i != Auras.end(); ++i)
-                    {
-                        Aura* aura = i->second->GetBase();
-                        if (aura->GetCasterGUID() != caster->GetGUID())
-                            continue;
-
-                        // Search only Serpent Sting, Viper Sting, Scorpid Sting auras
-                        flag96 familyFlag = aura->GetSpellInfo()->SpellFamilyFlags;
-                        if (!(familyFlag[1] & 0x00000080 || familyFlag[0] & 0x0000C000))
-                            continue;
-                        if (AuraEffect const* aurEff = aura->GetEffect(0))
-                        {
-                            // Serpent Sting - Instantly deals 40% of the damage done by your Serpent Sting.
-                            if (familyFlag[0] & 0x4000)
-                            {
-                                int32 TickCount = aurEff->GetTotalTicks();
-                                spellId = SPELL_HUNTER_CHIMERA_SHOT_SERPENT;
-                                basePoint = caster->SpellDamageBonusDone(unitTarget, aura->GetSpellInfo(), aurEff->GetAmount(), DOT, aura->GetStackAmount());
-                                ApplyPct(basePoint, TickCount * 40);
-                                basePoint = unitTarget->SpellDamageBonusTaken(caster, aura->GetSpellInfo(), basePoint, DOT, aura->GetStackAmount());
-                            }
-                            // Viper Sting - Instantly restores mana to you equal to 60% of the total amount drained by your Viper Sting.
-                            else if (familyFlag[1] & 0x00000080)
-                            {
-                                int32 TickCount = aura->GetEffect(0)->GetTotalTicks();
-                                spellId = SPELL_HUNTER_CHIMERA_SHOT_VIPER;
-
-                                // Amount of one aura tick
-                                basePoint = int32(CalculatePct(unitTarget->GetMaxPower(POWER_MANA), aurEff->GetAmount()));
-                                int32 casterBasePoint = aurEff->GetAmount() * unitTarget->GetMaxPower(POWER_MANA) / 50; /// @todo WTF? caster uses unitTarget?
-                                if (basePoint > casterBasePoint)
-                                    basePoint = casterBasePoint;
-                                ApplyPct(basePoint, TickCount * 60);
-                            }
-                            // Scorpid Sting - Attempts to Disarm the target for 10 sec. This effect cannot occur more than once per 1 minute.
-                            else if (familyFlag[0] & 0x00008000)
-                                spellId = SPELL_HUNTER_CHIMERA_SHOT_SCORPID;
-                            // ?? nothing say in spell desc (possibly need addition check)
-                            //if (familyFlag & 0x0000010000000000LL || // dot
-                            //    familyFlag & 0x0000100000000000LL)   // stun
-                            //{
-                            //    spellId = 53366; // 53366 Chimera Shot - Wyvern
-                            //}
-
-                            // Refresh aura duration
-                            aura->RefreshDuration();
-                        }
-                        break;
-                    }
-                    if (spellId)
-                        caster->CastCustomSpell(unitTarget, spellId, &basePoint, 0, 0, true);
-                    if (spellId == SPELL_HUNTER_CHIMERA_SHOT_SCORPID && caster->ToPlayer()) // Scorpid Sting - Add 1 minute cooldown
-                        caster->ToPlayer()->AddSpellCooldown(spellId, 0, uint32(time(NULL) + 60));
-                }
-            }
-
-            void Register()
-            {
-                OnEffectHitTarget += SpellEffectFn(spell_hun_chimera_shot_SpellScript::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
-            }
-        };
-
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_hun_chimera_shot_SpellScript();
         }
 };
 
@@ -368,38 +365,48 @@ class spell_hun_masters_call : public SpellScriptLoader
         class spell_hun_masters_call_SpellScript : public SpellScript
         {
             PrepareSpellScript(spell_hun_masters_call_SpellScript);
+            
+            SpellCastResult CheckCast(){
+                Unit* caster = GetCaster();
+                Pet* pet = caster->ToPlayer()->GetPet();
+
+                if (!pet || pet->isDead())
+                    return SPELL_FAILED_NO_PET;
+
+                return SPELL_CAST_OK;
+            }
 
             bool Validate(SpellInfo const* spellInfo)
             {
-                if (!sSpellMgr->GetSpellInfo(SPELL_HUNTER_MASTERS_CALL_TRIGGERED) || !sSpellMgr->GetSpellInfo(spellInfo->Effects[EFFECT_0].CalcValue()) || !sSpellMgr->GetSpellInfo(spellInfo->Effects[EFFECT_1].CalcValue()))
+                if (!sSpellMgr->GetSpellInfo(SPELL_HUNTER_MASTERS_CALL_TRIGGERED) || !sSpellMgr->GetSpellInfo(spellInfo->Effects[EFFECT_0].CalcValue()))
                     return false;
                 return true;
             }
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
-                if (Unit* ally = GetHitUnit())
-                    if (Player* caster = GetCaster()->ToPlayer())
-                        if (Pet* target = caster->GetPet())
+                if (Player* caster = GetCaster()->ToPlayer())
+                {
+                    if (Pet* pet = caster->GetPet())
+                    {
+                        if (Unit * ally = GetHitUnit())
                         {
-                            TriggerCastFlags castMask = TriggerCastFlags(TRIGGERED_FULL_MASK & ~TRIGGERED_IGNORE_CASTER_AURASTATE);
-                            target->CastSpell(ally, GetEffectValue(), castMask);
-                            target->CastSpell(ally, GetSpellInfo()->Effects[EFFECT_0].CalcValue(), castMask);
+                            pet->RemoveMovementImpairingAuras();
+                            pet->CastSpell(ally, GetEffectValue(), true);
                         }
+                    }
+                }
             }
 
             void HandleScriptEffect(SpellEffIndex /*effIndex*/)
             {
-                if (Unit* target = GetHitUnit())
-                {
-                    // Cannot be processed while pet is dead
-                    TriggerCastFlags castMask = TriggerCastFlags(TRIGGERED_FULL_MASK & ~TRIGGERED_IGNORE_CASTER_AURASTATE);
-                    target->CastSpell(target, SPELL_HUNTER_MASTERS_CALL_TRIGGERED, castMask);
-                }
+                if (Unit* pet = GetHitUnit())
+                    pet->CastSpell(pet, SPELL_HUNTER_MASTERS_CALL_TRIGGERED, true);
             }
 
             void Register()
             {
+                OnCheckCast += SpellCheckCastFn(spell_hun_masters_call_SpellScript::CheckCast);
                 OnEffectHitTarget += SpellEffectFn(spell_hun_masters_call_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
                 OnEffectHitTarget += SpellEffectFn(spell_hun_masters_call_SpellScript::HandleScriptEffect, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
             }
@@ -571,11 +578,14 @@ class spell_hun_pet_heart_of_the_phoenix : public SpellScriptLoader
             {
                 Unit* caster = GetCaster();
                 if (Unit* owner = caster->GetOwner())
+                {
                     if (!caster->HasAura(SPELL_HUNTER_PET_HEART_OF_THE_PHOENIX_DEBUFF))
                     {
-                        owner->CastCustomSpell(SPELL_HUNTER_PET_HEART_OF_THE_PHOENIX_TRIGGERED, SPELLVALUE_BASE_POINT0, 100, caster, true);
+                        int32 bp0 = 100;
+                        owner->CastCustomSpell(caster, SPELL_HUNTER_PET_HEART_OF_THE_PHOENIX_TRIGGERED, &bp0, NULL, NULL, true);
                         caster->CastSpell(caster, SPELL_HUNTER_PET_HEART_OF_THE_PHOENIX_DEBUFF, true);
                     }
+                }
             }
 
             void Register()
@@ -873,11 +883,453 @@ class spell_hun_kill_command : public SpellScriptLoader
         }
 };
 
+//80326 Camouflage
+class spell_hun_camouflage: public SpellScriptLoader 
+{
+    public:
+    spell_hun_camouflage() : SpellScriptLoader("spell_hun_camouflage"){ }
+
+    class spell_hun_camouflage_AuraScript: public AuraScript 
+    {
+        PrepareAuraScript(spell_hun_camouflage_AuraScript)
+
+		void HandlePeriodic(AuraEffect const * aurEff) 
+        {
+            PreventDefaultAction();
+            
+            if(Unit * target = GetTarget())
+            {
+                if (!target->ToPlayer() && !target->ToPet())
+				    return;
+
+                if(!target->isMoving())
+                {
+                    if(!target->HasAura(80325))
+                    {
+                        target->AddAura(80325, target);
+                    }
+                }
+            }
+		}
+
+		void Register() 
+        {
+			OnEffectPeriodic += AuraEffectPeriodicFn(spell_hun_camouflage_AuraScript::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
+		}
+    };
+
+    AuraScript* GetAuraScript() const 
+    {
+        return new spell_hun_camouflage_AuraScript();
+    }
+};
+
+class spell_hun_basic_attack : public SpellScriptLoader
+{
+    public:
+        spell_hun_basic_attack() : SpellScriptLoader("spell_hun_basic_attack") { }
+
+        class spell_hun_basic_attack_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_basic_attack_SpellScript);
+
+            void HandleDummy()
+            {
+                Unit* caster = GetCaster();
+                if(!caster)
+                    return;
+
+                if(Unit* pl = caster->GetOwner())
+                {
+                    if(Aura* cs = pl->GetAura(53257))       // Cobra Strikes
+                    {
+                        if(cs->GetStackAmount() == 2)
+                            cs->SetStackAmount(1);
+                        else
+                            cs->Remove();
+                    }
+                    if(AuraEffect* aurEff = pl->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER ,SPELLFAMILY_HUNTER, 1562, EFFECT_0))    // Frenzy
+                    {
+                        int32 bp0 = aurEff->GetAmount();
+                        caster->CastCustomSpell(caster, 19615, &bp0, NULL, NULL, true);
+                    }
+                
+                    // Wild Hunt
+                    if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_PET, 3748, EFFECT_0))
+                    {
+                        SpellInfo const* spellProto = GetSpellInfo();
+
+                        if(caster->GetPower(POWER_FOCUS) + spellProto->CalcPowerCost(caster, spellProto->GetSchoolMask()) >= 50)
+                        {
+                            sLog->outError(LOG_FILTER_GENERAL, "Set %d", caster->GetPower(POWER_FOCUS) - spellProto->CalcPowerCost(caster, spellProto->GetSchoolMask()));
+
+                            caster->SetPower(POWER_FOCUS, caster->GetPower(POWER_FOCUS) - spellProto->CalcPowerCost(caster, spellProto->GetSchoolMask()));
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                AfterCast  += SpellCastFn(spell_hun_basic_attack_SpellScript::HandleDummy);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_basic_attack_SpellScript();
+        }
+};
+
+class spell_hun_cobra_strikes: public SpellScriptLoader 
+{
+    public:
+    spell_hun_cobra_strikes() : SpellScriptLoader("spell_hun_cobra_strikes"){ }
+
+    class spell_hun_cobra_strikes_AuraScript: public AuraScript 
+    {
+        PrepareAuraScript(spell_hun_cobra_strikes_AuraScript)
+
+		void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            SetStackAmount(2);
+		}
+
+		void Register() 
+        {
+			OnEffectApply += AuraEffectApplyFn(spell_hun_cobra_strikes_AuraScript::OnApply, EFFECT_0, SPELL_AURA_ADD_FLAT_MODIFIER, AURA_EFFECT_HANDLE_REAL);
+		}
+    };
+
+    AuraScript* GetAuraScript() const 
+    {
+        return new spell_hun_cobra_strikes_AuraScript();
+    }
+};
+
+class spell_hun_focus_fire : public SpellScriptLoader
+{
+    public:
+        spell_hun_focus_fire() : SpellScriptLoader("spell_hun_focus_fire") { }
+
+        class spell_hun_focus_fire_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_focus_fire_SpellScript);
+    
+            SpellCastResult CheckCast(){
+                Unit* caster = GetCaster();
+                Pet* pet = caster->ToPlayer()->GetPet();
+
+                if (!pet || pet->isDead())
+                    return SPELL_FAILED_NO_PET;
+
+                if (!pet->GetAura(19615))
+                    return SPELL_FAILED_NO_CHARGES_REMAIN;
+
+                return SPELL_CAST_OK;
+            }
+
+            void HandleDummy()
+            {
+                if(Unit* pl = GetCaster())
+                {
+                    if(Unit* pet = pl->GetGuardianPet())
+                    {
+                        if(Aura* frenzy = pet->GetAura(19615))
+                        {
+                            if(Aura* ff = pl->AddAura(82692, pl))
+                            {
+                                uint8 charges = frenzy->GetStackAmount();
+                                ff->SetStackAmount(charges-1);
+                                int32 focus = pet->GetPower(POWER_FOCUS) + frenzy->GetStackAmount()*4;
+                                pet->SetPower(POWER_FOCUS, focus);
+                                frenzy->Remove();
+                            }
+                        }
+                    }
+                }
+                
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_hun_focus_fire_SpellScript::CheckCast);
+                OnCast  += SpellCastFn(spell_hun_focus_fire_SpellScript::HandleDummy);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_focus_fire_SpellScript();
+        }
+};
+
+class spell_hun_chimera_shot : public SpellScriptLoader
+{
+    public:
+        spell_hun_chimera_shot() : SpellScriptLoader("spell_hun_chimera_shot") { }
+
+        class spell_hun_chimera_shot_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_chimera_shot_SpellScript);
+                
+            void HandleDummy()
+            {
+                if(!GetCaster())
+                    return;
+
+                if(!GetHitUnit())
+                    return;
+
+                Unit* pl = GetCaster();
+                Unit* target = GetHitUnit();
+                pl->CastSpell(pl, 53353, true);
+                if(Aura* ss = target->GetAura(1978, pl->GetGUID()))
+                {
+                    ss->RefreshDuration();
+                }
+
+            }
+
+            void Register()
+            {
+                OnHit += SpellHitFn(spell_hun_chimera_shot_SpellScript::HandleDummy);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_chimera_shot_SpellScript();
+        }
+};
+
+class spell_hun_trap_launcher_trap : public SpellScriptLoader
+{
+    public:
+        spell_hun_trap_launcher_trap() : SpellScriptLoader("spell_hun_trap_launcher_trap") { }
+
+        class spell_hun_trap_launcher_trap_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_trap_launcher_trap_SpellScript);
+                
+            void HandleDummy()
+            {
+               if(!GetCaster())
+                   return;
+               if(GetCaster()->HasAura(77769))
+               {
+                   GetCaster()->RemoveAura(77769);
+                   GetCaster()->RemoveAura(82946);
+               }
+            }
+
+            void Register()
+            {
+                OnCast += SpellCastFn(spell_hun_trap_launcher_trap_SpellScript::HandleDummy);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_trap_launcher_trap_SpellScript();
+        }
+};
+
+//77767 - Cobra Shot
+/// 4.3.4 updated
+class spell_hun_cobra_shot : public SpellScriptLoader
+{
+    public:
+        spell_hun_cobra_shot() : SpellScriptLoader("spell_hun_cobra_shot") { }
+
+        class spell_hun_cobra_shot_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_cobra_shot_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellEntry*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_HUNTER_COBRA_SHOT))
+                    return false;
+                return true;
+            }
+
+            void HandleScript(SpellEffIndex effIndex)
+            {
+                if(Unit * target = GetHitUnit())
+                {
+                    if(target->GetAura(SPELL_HUNTER_SERPENT_STING_DEBUFF))
+                    {
+                        uint32 actualDuration = target->GetAura(SPELL_HUNTER_SERPENT_STING_DEBUFF)->GetDuration();
+                        if ((actualDuration + 6000) > 16999)
+                            target->GetAura(SPELL_HUNTER_SERPENT_STING_DEBUFF)->SetDuration(17000);
+                        else
+                            target->GetAura(SPELL_HUNTER_SERPENT_STING_DEBUFF)->SetDuration(actualDuration + 6000);
+                    }
+                }
+                
+                if(Unit * caster = GetCaster())
+                {
+                    // Base focus regen
+                    int32 bp0 = 9;
+
+                    if (AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_HUNTER, 2008, EFFECT_0))
+                        bp0 += aurEff->GetAmount();
+
+                    caster->CastCustomSpell(caster, SPELL_HUNTER_COBRA_SHOT_ENERGIZE, &bp0, NULL, NULL, true);  
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_hun_cobra_shot_SpellScript::HandleScript, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_cobra_shot_SpellScript();
+        }
+};
+
+class spell_hun_kill_shot : public SpellScriptLoader
+{
+    public:
+        spell_hun_kill_shot() : SpellScriptLoader("spell_hun_kill_shot") { }
+
+        class spell_hun_kill_shot_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_kill_shot_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellEntry*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_HUNTER_KILL_SHOT))
+                    return false;
+                return true;
+            }
+
+            void HandleScript()
+            {
+                // Glyph of Kill Shot
+                if(Unit * caster = GetCaster())
+                {
+                    if(caster->HasAura(63067) && !caster->HasAura(90967))
+                    {
+                        if(Unit * target = GetHitUnit())
+                        {
+                            if(target->isAlive())
+                            {
+                                caster->ToPlayer()->RemoveSpellCooldown(53351, true);
+                                caster->AddAura(90967, caster);
+                            }
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_hun_kill_shot_SpellScript::HandleScript);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_kill_shot_SpellScript();
+        }
+};
+
+class spell_hun_multi_shot : public SpellScriptLoader
+{
+    public:
+        spell_hun_multi_shot() : SpellScriptLoader("spell_hun_multi_shot") { }
+
+        class spell_hun_multi_shot_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_hun_multi_shot_SpellScript);
+
+            void FilterTargets(std::list<WorldObject*>& targets)
+            {
+                std::list<WorldObject*> toAdd;
+
+                for (std::list<WorldObject*>::iterator iter = targets.begin(); iter != targets.end(); ++iter)
+                {
+                    if ((*iter))
+                    {
+                        if (Unit* unit = (*iter)->ToUnit())
+                        {
+                            // No-stealthed unit are saved
+                            if(!unit->HasAuraType(SPELL_AURA_MOD_STEALTH))
+                            {
+                                toAdd.push_back((*iter));
+                            }
+                        }
+                    }
+                }
+
+                targets.clear();
+                
+                for (std::list<WorldObject*>::iterator iter = toAdd.begin(); iter != toAdd.end(); ++iter)
+                {
+                    targets.push_back((*iter));
+                }
+            }
+
+            void Register()
+            {
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_hun_multi_shot_SpellScript::FilterTargets, EFFECT_1, TARGET_UNIT_DEST_AREA_ENEMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_hun_multi_shot_SpellScript();
+        }
+};
+
+// 34497 - Thrill of the Hunt
+class spell_hun_thrill_of_the_hunt : public SpellScriptLoader
+{
+    public:
+        spell_hun_thrill_of_the_hunt() : SpellScriptLoader("spell_hun_thrill_of_the_hunt") { }
+
+        class spell_hun_thrill_of_the_hunt_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_hun_thrill_of_the_hunt_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_HUNTER_THRILL_OF_THE_HUNT))
+                    return false;
+                return true;
+            }
+
+            void HandleEffectProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+            {
+                PreventDefaultAction();
+                int32 focus = eventInfo.GetDamageInfo()->GetSpellInfo()->CalcPowerCost(GetTarget(), SpellSchoolMask(eventInfo.GetDamageInfo()->GetSchoolMask()));
+                focus = CalculatePct(focus, aurEff->GetAmount());
+
+                GetTarget()->CastCustomSpell(GetTarget(), SPELL_HUNTER_THRILL_OF_THE_HUNT, &focus, NULL, NULL, true, NULL, aurEff);
+            }
+
+            void Register()
+            {
+                OnEffectProc += AuraEffectProcFn(spell_hun_thrill_of_the_hunt_AuraScript::HandleEffectProc, EFFECT_0, SPELL_AURA_DUMMY);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_hun_thrill_of_the_hunt_AuraScript();
+        }
+};
+
 void AddSC_hunter_spell_scripts()
 {
+    new spell_hun_pet_intervene();
+    new spell_hun_silencing_shot();
     new spell_hun_aspect_of_the_beast();
     new spell_hun_ascpect_of_the_viper();
-    new spell_hun_chimera_shot();
     new spell_hun_disengage();
     new spell_hun_invigoration();
     new spell_hun_last_stand_pet();
@@ -892,4 +1344,14 @@ void AddSC_hunter_spell_scripts()
     new spell_hun_tame_beast();
     new spell_hun_target_only_pet_and_owner();
     new spell_hun_kill_command();
+    new spell_hun_camouflage();
+    new spell_hun_basic_attack();
+    new spell_hun_cobra_strikes();
+    new spell_hun_focus_fire();
+    new spell_hun_chimera_shot();
+    new spell_hun_trap_launcher_trap();
+    new spell_hun_cobra_shot();
+    new spell_hun_kill_shot();
+    new spell_hun_multi_shot();
+    new spell_hun_thrill_of_the_hunt();
 }

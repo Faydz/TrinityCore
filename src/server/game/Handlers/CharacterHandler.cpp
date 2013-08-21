@@ -216,6 +216,10 @@ bool LoginQueryHolder::Initialize()
     stmt->setUInt32(0, lowGuid);
     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_CURRENCY, stmt);
 
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PLAYER_CURRENCY_WEEK_CAP);
+    stmt->setUInt32(0, lowGuid);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_CURRENCY_WEEK_CAP, stmt);
+
     return res;
 }
 
@@ -276,8 +280,7 @@ void WorldSession::HandleCharEnumOpcode(WorldPacket & /*recvData*/)
     else
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ENUM);
 
-    stmt->setUInt8(0, PET_SAVE_AS_CURRENT);
-    stmt->setUInt32(1, GetAccountId());
+    stmt->setUInt32(0, GetAccountId());
 
     _charEnumCallback = CharacterDatabase.AsyncQuery(stmt);
 }
@@ -1054,7 +1057,8 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
             pCurrChar->CastSpell(pCurrChar, 20584, true, 0);// auras SPELL_AURA_INCREASE_SPEED(+speed in wisp form), SPELL_AURA_INCREASE_SWIM_SPEED(+swim speed in wisp form), SPELL_AURA_TRANSFORM (to wisp form)
         pCurrChar->CastSpell(pCurrChar, 8326, true, 0);     // auras SPELL_AURA_GHOST, SPELL_AURA_INCREASE_SPEED(why?), SPELL_AURA_INCREASE_SWIM_SPEED(why?)
 
-        pCurrChar->SendMovementSetWaterWalking(true);
+        pCurrChar->AddUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
+        pCurrChar->SendMovementWaterWalking();
     }
 
     pCurrChar->ContinueTaxiFlight();
@@ -1088,7 +1092,30 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     }
 
     if (pCurrChar->HasAtLoginFlag(AT_LOGIN_FIRST))
+    {
         pCurrChar->RemoveAtLoginFlag(AT_LOGIN_FIRST);
+
+        if (pCurrChar->getClass() == CLASS_HUNTER)
+        {
+            static uint32 const HunterCreatePetSpells[MAX_RACES] = 
+            {
+                   0,  /* None */                          79597,  /* Human - Young Wolf */
+               79598,  /* Orc - Young Boar */              79593,  /* Dwarf - Young Bear */
+               79602,  /* Night Elf - Young Cat */         79600,  /* Undead - Young Widow */
+               79603,  /* Tauren - Young Tallstrider */        0,  /* Gnome */
+               79599,  /* Troll - Young Raptor */          79595,  /* Goblin - Young Crab */
+               79594,  /* Blood Elf - Young Dragonhawk */  79601,  /* Draenei - Young Moth */
+                   0,  /* Fel Orc */                           0,  /* Naga */
+                   0,  /* Broken */                            0,  /* Skeleton */
+                   0,  /* Vrykul */                            0,  /* Tuskarr */
+                   0,  /* Forest Troll */                      0,  /* Taunka */
+                   0,  /* Northrend Skeleton */                0,  /* Ice Troll */
+               79596,  /* Worgen - Young Mastiff */
+            };
+
+            pCurrChar->CastSpell(pCurrChar, HunterCreatePetSpells[pCurrChar->getRace()], true);
+        }
+    }
 
     // show time before shutdown if shutdown planned.
     if (sWorld->IsShuttingDown())
@@ -1099,6 +1126,39 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     if (pCurrChar->isGameMaster())
         SendNotification(LANG_GM_ON);
+
+    // Learn worgen spells
+    if (pCurrChar->getRace() == RACE_WORGEN)
+    {
+        if (pCurrChar->getLevel() >= 10)
+        {
+            // Two forms
+            if (!pCurrChar->HasSpell(68996))
+                pCurrChar->learnSpell(68996, false);
+
+            // Darkflight
+            if (!pCurrChar->HasSpell(68992))
+                pCurrChar->learnSpell(68992, false);
+
+            // Aberration
+            if (!pCurrChar->HasSpell(68976))
+                pCurrChar->learnSpell(68976, false);
+
+            // Viciousness
+            if (!pCurrChar->HasSpell(68975))
+                pCurrChar->learnSpell(68975, false);
+        }
+        if (pCurrChar->getLevel() >= 20)
+        {
+            // Running wild
+            if (!pCurrChar->HasSpell(87840))
+                pCurrChar->learnSpell(87840, false);
+
+            // App Riding
+            if (!pCurrChar->HasSpell(33388))
+                pCurrChar->learnSpell(33388, false);
+        }
+    }
 
     std::string IP_str = GetRemoteAddress();
     sLog->outInfo(LOG_FILTER_CHARACTER, "Account: %d (IP: %s) Login Character:[%s] (GUID: %u) Level: %d",

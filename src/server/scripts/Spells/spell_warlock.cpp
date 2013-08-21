@@ -43,17 +43,18 @@ enum WarlockSpells
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER     = 54509,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS      = 54435,
     SPELL_WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER    = 54443,
-    SPELL_WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE        = 89653,
     SPELL_WARLOCK_DEMON_SOUL_IMP                    = 79459,
     SPELL_WARLOCK_DEMON_SOUL_FELHUNTER              = 79460,
-    SPELL_WARLOCK_DEMON_SOUL_FELGUARD               = 79452,
-    SPELL_WARLOCK_DEMON_SOUL_SUCCUBUS               = 79453,
-    SPELL_WARLOCK_DEMON_SOUL_VOIDWALKER             = 79454,
+    SPELL_WARLOCK_DEMON_SOUL_FELGUARD               = 79462,
+    SPELL_WARLOCK_DEMON_SOUL_SUCCUBUS               = 79463,
+    SPELL_WARLOCK_DEMON_SOUL_VOIDWALKER             = 79464,
+    SPELL_WARLOCK_DRAIN_LIFE_HEALTH_ENERGIZE        = 89653,
+    SPELL_WARLOCK_GLYPH_OF_SHADOWBURN_BUFF          = 91001,
+    SPELL_WARLOCK_HAND_OF_GUL_DAN_AURA              = 86000,
+    SPELL_WARLOCK_HAND_OF_GUL_DAN_GRAPHIC           = 85526,
     SPELL_WARLOCK_HAUNT                             = 48181,
     SPELL_WARLOCK_HAUNT_HEAL                        = 48210,
     SPELL_WARLOCK_IMMOLATE                          = 348,
-    SPELL_WARLOCK_HAND_OF_GUL_DAN_AURA              = 86000,
-    SPELL_WARLOCK_HAND_OF_GUL_DAN_GRAPHIC           = 85526,
     SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1         = 18703,
     SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R2         = 18704,
     SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1    = 60955,
@@ -66,17 +67,218 @@ enum WarlockSpells
     SPELL_WARLOCK_MANA_FEED_ICON_ID                 = 1982,
     SPELL_WARLOCK_NETHER_WARD                       = 91711,
     SPELL_WARLOCK_NETHER_WARD_TALENT                = 91713,
+    SPELL_WARLOCK_NIGHTFALL                         = 91713,
+    SPELL_WARLOCK_SACRIFICE                         = 7812,
+    SPELL_WARLOCK_SHADOWBURN                        = 17877,
     SPELL_WARLOCK_SHADOW_WARD                       = 6229,
     SPELL_WARLOCK_SIPHON_LIFE_HEAL                  = 63106,
-    SPELL_WARLOCK_SOULSHATTER                       = 32835,
     SPELL_WARLOCK_SOUL_SHARD_ENERGIZE               = 87388,
     SPELL_WARLOCK_SOUL_SWAP_COOLDOWN                = 94229,
     SPELL_WARLOCK_SOUL_SWAP_GLYPH                   = 56226,
     SPELL_WARLOCK_SOUL_SWAP_GRAPHIC_EFFECT          = 92795,
     SPELL_WARLOCK_SOUL_SWAP_SAVE_DOTS               = 86211,
     SPELL_WARLOCK_SOULBURN                          = 74434,
+    SPELL_WARLOCK_SOULBURN_DEMONIC_CIRCLE			= 79438,
+    SPELL_WARLOCK_SOULSHATTER                       = 32835,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION               = 30108,
     SPELL_WARLOCK_UNSTABLE_AFFLICTION_DISPEL        = 31117,
+};
+
+enum WarlockGlyphs
+{
+    SPELL_WARLOCK_GLYPH_OF_SEDUCTION                = 56250,
+    SPELL_WARLOCK_GLYPH_OF_SHADOWBURN               = 56229,
+    SPELL_WARLOCK_GLYPH_OF_SOUL_LINK                = 173,
+};
+
+bool _SeedOfCorruptionFlag = false;
+bool _CanProcNetherProtection = false;
+
+// 686 - Shadow Bolt
+class spell_warl_shadow_bolt : public SpellScriptLoader
+{
+    public:
+        spell_warl_shadow_bolt() : SpellScriptLoader("spell_warl_shadow_bolt") { }
+
+        class spell_warl_shadow_bolt_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warl_shadow_bolt_SpellScript);
+
+            void HandleAfter()
+            {
+                Unit * caster = GetCaster();
+                Spell* spell = GetSpell();
+
+                // Nightfall is removed only with instant Shadow Bolt
+                if(caster && spell && caster->HasAura(SPELL_WARLOCK_NIGHTFALL) && spell->GetCastTime() == 0)
+                {
+                    caster->RemoveAurasDueToSpell(SPELL_WARLOCK_NIGHTFALL);
+                }
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_warl_shadow_bolt_SpellScript::HandleAfter);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warl_shadow_bolt_SpellScript();
+        }
+};
+
+// 30299-30301 - Nether Protection
+class spell_warl_nether_protection : public SpellScriptLoader
+{
+    public:
+        spell_warl_nether_protection() : SpellScriptLoader("spell_warl_nether_protection") { }
+
+        class spell_warl_nether_protection_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warl_nether_protection_AuraScript);
+
+            bool CheckProc(ProcEventInfo& eventInfo)
+            {
+                bool toReturn = _CanProcNetherProtection;
+
+                _CanProcNetherProtection = false;
+
+                return toReturn;
+            }
+
+            void Register()
+            {
+                DoCheckProc += AuraCheckProcFn(spell_warl_nether_protection_AuraScript::CheckProc);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_warl_nether_protection_AuraScript();
+        }
+};
+
+// 25228 - Soul Link
+class spell_warl_soul_link : public SpellScriptLoader 
+{
+    public:
+        spell_warl_soul_link() : SpellScriptLoader("spell_warl_soul_link") { }
+
+        class spell_warl_soul_link_AuraScript: public AuraScript
+        {
+            PrepareAuraScript(spell_warl_soul_link_AuraScript);
+
+            void OnEffectCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                canBeRecalculated = false;
+
+                if(!GetCaster())
+                    return;
+
+                if(Unit* caster = GetCaster()->GetCharmerOrOwner())
+                {
+                    // Glyph of Soul Link
+                    if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, SPELL_WARLOCK_GLYPH_OF_SOUL_LINK, EFFECT_0))
+                    {
+                        amount += aurEff->GetAmount();
+                    }
+                }
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warl_soul_link_AuraScript::OnEffectCalcAmount, EFFECT_0, SPELL_AURA_SPLIT_DAMAGE_PCT);
+            }
+        };
+
+        AuraScript* GetAuraScript() const 
+        {
+            return new spell_warl_soul_link_AuraScript();
+        }
+};
+
+// 17877 - Shadowburn
+class spell_warl_shadowburn : public SpellScriptLoader
+{
+    public:
+        spell_warl_shadowburn() : SpellScriptLoader("spell_warl_shadowburn") { }
+
+        class spell_warl_shadowburn_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warl_shadowburn_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellEntry*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_WARLOCK_SHADOWBURN))
+                    return false;
+                return true;
+            }
+
+            void HandleAfter()
+            {
+                // Glyph of Shadowburn
+                if(Unit * caster = GetCaster())
+                {
+                    if(caster->HasAura(SPELL_WARLOCK_GLYPH_OF_SHADOWBURN) && !caster->HasAura(SPELL_WARLOCK_GLYPH_OF_SHADOWBURN_BUFF))
+                    {
+                        if(Unit * target = GetHitUnit())
+                        {
+                            if(target->isAlive())
+                            {
+                                caster->ToPlayer()->RemoveSpellCooldown(SPELL_WARLOCK_SHADOWBURN, true);
+                                caster->AddAura(SPELL_WARLOCK_GLYPH_OF_SHADOWBURN_BUFF, caster);
+                            }
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                AfterHit += SpellHitFn(spell_warl_shadowburn_SpellScript::HandleAfter);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_warl_shadowburn_SpellScript();
+        }
+};
+
+// 6358 - Seduction
+class spell_warl_seduction : public SpellScriptLoader
+{
+    public:
+        spell_warl_seduction() : SpellScriptLoader("spell_warl_seduction") { }
+
+        class spell_warl_seduction_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_warl_seduction_AuraScript);
+
+            void HandleEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                Unit* pet = GetCaster();
+                Unit* target = GetTarget();
+
+                if (!pet || !pet->GetCharmerOrOwner() || !target || !pet->GetCharmerOrOwner()->HasAura(SPELL_WARLOCK_GLYPH_OF_SEDUCTION))
+                    return;
+                
+                target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE, 0, target->GetAura(32409)); // SW:D shall not be removed.
+				target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE_PERCENT);
+				target->RemoveAurasByType(SPELL_AURA_PERIODIC_LEECH);
+
+            }
+            void Register()
+            {
+                AfterEffectApply += AuraEffectApplyFn(spell_warl_seduction_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_warl_seduction_AuraScript();
+        }
 };
 
 // 71521 spell_warl_Hand_of_Guldan
@@ -266,6 +468,79 @@ public:
     AuraScript* GetAuraScript() const
     {
         return new spell_warl_curse_of_the_elements_AuraScript();
+    }
+};
+
+enum WarlockWeaknessJinx
+{
+    SPELL_WARLOCK_JINX_RAGE                         = 85539,
+    SPELL_WARLOCK_JINX_ENERGY                       = 85540,
+    SPELL_WARLOCK_JINX_RUNIC_POWER                  = 85541,
+    SPELL_WARLOCK_JINX_FOCUS                        = 85542,
+};
+
+// 702 - Curse of Weakness
+class spell_warl_curse_of_weakness: public SpellScriptLoader
+{
+public:
+    spell_warl_curse_of_weakness() : SpellScriptLoader("spell_warl_curse_of_weakness"){ }
+
+    class spell_warl_curse_of_weakness_AuraScript: public AuraScript
+    {
+        PrepareAuraScript(spell_warl_curse_of_weakness_AuraScript);
+
+        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetTarget();
+
+            if(caster && target)
+            {
+                if(AuraEffect* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 5002, EFFECT_1))
+                {
+                    int32 bp0 = aurEff->GetAmount();
+
+                    switch(target->getClass())
+                    {
+                        case CLASS_WARRIOR:
+                            caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_RAGE, &bp0, NULL, NULL, true);
+                            break;
+                        case CLASS_ROGUE:
+                            caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_ENERGY, &bp0, NULL, NULL, true);
+                            break;
+                        case CLASS_DEATH_KNIGHT:
+                            caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_RUNIC_POWER, &bp0, NULL, NULL, true);
+                            break;
+                        case CLASS_HUNTER:
+                            caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_FOCUS, &bp0, NULL, NULL, true);
+                            break;
+                        case CLASS_DRUID:
+                            target->RemoveAura(SPELL_WARLOCK_JINX_RAGE);
+                            target->RemoveAura(SPELL_WARLOCK_JINX_ENERGY);
+
+                            if(target->GetShapeshiftForm() == FORM_BEAR)
+                            {
+                                caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_RAGE, &bp0, NULL, NULL, true);
+                            }
+                            else if(target->GetShapeshiftForm() == FORM_CAT)
+                            {
+                                caster->CastCustomSpell(target, SPELL_WARLOCK_JINX_ENERGY, &bp0, NULL, NULL, true);
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
+        void Register()
+        {
+            OnEffectApply += AuraEffectApplyFn(spell_warl_curse_of_weakness_AuraScript::HandleApply, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+        }
+    };
+
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_warl_curse_of_weakness_AuraScript();
     }
 };
 
@@ -609,8 +884,25 @@ class spell_warl_conflagrate : public SpellScriptLoader
 
             void HandleHit(SpellEffIndex /*effIndex*/)
             {
-                if (AuraEffect const* aurEff = GetHitUnit()->GetAuraEffect(SPELL_WARLOCK_IMMOLATE, EFFECT_2, GetCaster()->GetGUID()))
-                    SetHitDamage(CalculatePct(aurEff->GetAmount(), GetSpellInfo()->Effects[EFFECT_1].CalcValue(GetCaster())));
+                Unit* caster = GetCaster();
+                Unit* target = GetHitUnit();
+
+                if(caster && target)
+                {
+                    if(AuraEffect* aurEff = target->GetAuraEffect(SPELL_WARLOCK_IMMOLATE, EFFECT_2, caster->GetGUID()))
+                    {
+                        if(aurEff->GetBase())
+                        {
+                            int32 immolateTotalDamage;
+                            int32 singleDotDamage = aurEff->GetAmount();
+                            uint32 baseTotalTicks = aurEff->GetBase()->GetMaxDuration();
+                            
+                            singleDotDamage = caster->SpellDamageBonusDone(target, aurEff->GetSpellInfo(), singleDotDamage, DOT, aurEff->GetBase()->GetStackAmount());
+                            immolateTotalDamage = singleDotDamage * int32(baseTotalTicks / aurEff->GetAmplitude());
+                            SetHitDamage(CalculatePct(immolateTotalDamage, 60.0f));
+                        }
+                    }
+                }
             }
 
             void Register()
@@ -677,6 +969,7 @@ class spell_warl_seed_of_corruption_dot : public SpellScriptLoader
                     //Checks for soulburn buff and soulburn: Seed of Corruption talent
                     if(caster->HasAura(SPELL_WARLOCK_SOULBURN) && caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 1932, 0))
                     {
+                        _SeedOfCorruptionFlag = true;
                         caster->RemoveAurasDueToSpell(SPELL_WARLOCK_SOULBURN);
                     }
                 }
@@ -694,7 +987,7 @@ class spell_warl_seed_of_corruption_dot : public SpellScriptLoader
         }
 };
 
-// 6229 - Shadow Ward
+// 6229/91711/7812 - Shadow Ward/Nether Ward/Sacrifice
 class spell_warl_shadow_ward : public SpellScriptLoader
 {
     public:
@@ -706,22 +999,31 @@ class spell_warl_shadow_ward : public SpellScriptLoader
 
             void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
             {
+                // Voidwalker's Sacrifice has not sp benefit
+                if(GetId() == SPELL_WARLOCK_SACRIFICE)
+                    return;
+
                 canBeRecalculated = false;
                 if (Unit* caster = GetCaster())
                 {
                     // +80.68% from sp bonus
                     float bonus = 0.8068f;
 
-                    bonus *= caster->SpellBaseHealingBonusDone(GetSpellInfo()->GetSchoolMask());
-                    bonus *= caster->CalculateLevelPenalty(GetSpellInfo());
+                    bonus *= caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC);
 
                     amount += int32(bonus);
                 }
+            }
+            
+            void Absorb(AuraEffect * /*aurEff*/, DamageInfo &/*dmgInfo*/, uint32 &/*absorbAmount*/) 
+            {
+                _CanProcNetherProtection = true;
             }
 
             void Register()
             {
                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warl_shadow_ward_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
+                OnEffectAbsorb += AuraEffectAbsorbFn(spell_warl_shadow_ward_AuraScript::Absorb, EFFECT_0);
             }
         };
 
@@ -853,6 +1155,12 @@ class spell_warl_demonic_circle_teleport : public SpellScriptLoader
                     {
                         player->NearTeleportTo(circle->GetPositionX(), circle->GetPositionY(), circle->GetPositionZ(), circle->GetOrientation());
                         player->RemoveMovementImpairingAuras();
+						
+						// Soulburn: Demonic Circle check
+						if(player->HasAura(SPELL_WARLOCK_SOULBURN))
+						{
+							player->CastSpell(player, SPELL_WARLOCK_SOULBURN_DEMONIC_CIRCLE, true);
+						}
                     }
                 }
             }
@@ -1268,6 +1576,30 @@ class spell_warl_seed_of_corruption : public SpellScriptLoader
 
             void FilterTargets(std::list<WorldObject*>& targets)
             {
+                if(Unit* caster = GetCaster())
+                {
+                    if(_SeedOfCorruptionFlag)
+                    {
+                        //Resets the flag for the next SoC without soulburn
+                        _SeedOfCorruptionFlag = false;
+
+                        //The detonation is successful, soul shard is refund
+                        caster->CastSpell(caster, SPELL_WARLOCK_SOUL_SHARD_ENERGIZE, true);
+
+                        //All target of the seed of corruption detonation are affected by corruption
+                        for (std::list<WorldObject*>::iterator iter = targets.begin(); iter != targets.end(); ++iter)
+                        {
+                            if ((*iter))
+                            {
+                                if (Unit* unit = (*iter)->ToUnit())
+                                {
+                                    caster->CastSpell(unit, SPELL_WARLOCK_CORRUPTION, true);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (GetExplTargetUnit())
                     targets.remove(GetExplTargetUnit());
             }
@@ -1365,11 +1697,17 @@ class spell_warl_unstable_affliction : public SpellScriptLoader
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_shadow_bolt();
+    new spell_warl_nether_protection();
+    new spell_warl_soul_link();
+    new spell_warl_shadowburn();
+    new spell_warl_seduction();
 	new spell_warl_hand_of_guldan();
     new spell_warl_armor_nether_ward_ignore();
     new spell_warl_fel_flame();
     new spell_warl_incinerate();
     new spell_warl_curse_of_the_elements();
+    new spell_warl_curse_of_weakness();
     new spell_warl_soul_swap();
     new spell_warl_soul_swap_buff();
     new spell_warl_soul_swap_exhale();

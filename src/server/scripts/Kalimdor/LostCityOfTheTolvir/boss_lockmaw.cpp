@@ -113,7 +113,7 @@ public:
             DoZoneInCombat();
         }
 
-        void UpdateAI(const uint32 uiDiff) 
+        void UpdateAI( uint32 uiDiff) 
         {
             if (!UpdateVictim())
                 return;
@@ -218,7 +218,7 @@ public:
             DoZoneInCombat();
         }
 
-        void DoAction(const int32 action)
+        void DoAction( int32 action)
         {
             switch (action)
             {
@@ -234,7 +234,7 @@ public:
             }
         }
 
-        void UpdateAI(const uint32 uiDiff) 
+        void UpdateAI( uint32 uiDiff) 
         {
             if (!UpdateVictim())
                 return;

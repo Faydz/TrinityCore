@@ -23,7 +23,7 @@
 enum Spells 
 {
     SPELL_HAMMER_FIST                             = 83655,
-    SPELL_SHOCKWAVE                               = 83445, // Don't work
+    SPELL_SHOCKWAVE                               = 83499,
     SPELL_BAD_INTENTION                           = 83113,
     SPELL_DETONATE_TRAPS                          = 91263, // Dont work :|
     SPELL_MYSTIC_TRAP                             = 91259, // Dont work 
@@ -33,6 +33,7 @@ enum Events
 {
     EVENT_HAMMER_FIST = 0,
     EVENT_BAD_INTENTION = 1,
+    EVENT_SHOCKWAVE = 2,
 };
 
 
@@ -73,6 +74,7 @@ public:
 
             events.ScheduleEvent(EVENT_HAMMER_FIST, urand(2000, 4000), 0, 0);
             events.ScheduleEvent(EVENT_BAD_INTENTION, urand(10000, 12000), 0, 0);
+            events.ScheduleEvent(EVENT_SHOCKWAVE, urand(8000, 15000), 0, 0);
 
             DoCast(me->getVictim(), SPELL_BAD_INTENTION);
 
@@ -80,7 +82,7 @@ public:
                 pInstance->SetData(DATA_GENERAL_HUSAM_EVENT, IN_PROGRESS);
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -104,6 +106,12 @@ public:
 
                         events.ScheduleEvent(EVENT_BAD_INTENTION, urand(6000, 12000), 0, 0);
                         return;
+                    case EVENT_SHOCKWAVE:
+                         if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0))
+                            DoCast(target, SPELL_SHOCKWAVE);
+
+                        events.ScheduleEvent(EVENT_SHOCKWAVE, urand(12000, 19000), 0, 0);
+                        break;
                     default:
                         break;
                 }

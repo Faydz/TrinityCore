@@ -51,10 +51,7 @@ void WorldSession::HandleClientCastFlags(WorldPacket& recvPacket, uint8 castFlag
         uint8 hasMovementData;
         recvPacket >> hasMovementData;
         if (hasMovementData)
-        {
-            recvPacket.SetOpcode(Opcodes(recvPacket.read<uint32>()));
             HandleMovementOpcodes(recvPacket);
-        }
     }
     else if (castFlags & 0x8)   // Archaeology
     {
@@ -356,18 +353,28 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    if (spellInfo->IsPassive())
+    // Archeology craft artifacts
+    if (mover && mover->ToPlayer() && mover->ToPlayer()->HasSkill(SKILL_ARCHAEOLOGY))
     {
-            // Archeology craft artifacts
-            if (mover->ToPlayer()->HasSkill(SKILL_ARCHAEOLOGY))
-               for (uint32 i = 9; i < sResearchProjectStore.GetNumRows(); i++)
-                   if (ResearchProjectEntry* rp = sResearchProjectStore.LookupRow(i))
-                       if (rp->spellId == spellId)
-                       {
-                           mover->ToPlayer()->CompleteArtifact(rp->id, rp->spellId, recvPacket);
-                           recvPacket.rfinish();
-                           return;
-                       }
+        if (spellInfo->IsAbilityOfSkillType(SKILL_ARCHAEOLOGY))
+        {
+            for (uint32 i = 9; i < sResearchProjectStore.GetNumRows(); i++)
+            {
+                if (ResearchProjectEntry* rp = sResearchProjectStore.LookupRow(i))
+                {
+                   if (rp->spellId == spellId)
+                   {
+                       mover->ToPlayer()->CompleteArtifact(rp->id, rp->spellId, recvPacket);
+                       recvPacket.rfinish();
+                       return;
+                   }
+                }
+            }
+        }
+    }
+    
+    if (spellInfo->IsPassive())
+    {          
         recvPacket.rfinish(); // prevent spam at ignore packet
         return;
     }
@@ -743,4 +750,28 @@ void WorldSession::HandleUpdateProjectilePosition(WorldPacket& recvPacket)
     data << float(y);
     data << float(z);
     caster->SendMessageToSet(&data, true);
+}
+
+void WorldSession::HandleRequestCategoryCooldowns(WorldPacket& /*recvPacket*/)
+{
+    std::map<uint32, int32> categoryMods;
+    Unit::AuraEffectList const& categoryCooldownAuras = _player->GetAuraEffectsByType(SPELL_AURA_MOD_SPELL_CATEGORY_COOLDOWN);
+    for (Unit::AuraEffectList::const_iterator itr = categoryCooldownAuras.begin(); itr != categoryCooldownAuras.end(); ++itr)
+    {
+        std::map<uint32, int32>::iterator cItr = categoryMods.find((*itr)->GetMiscValue());
+        if (cItr == categoryMods.end())
+            categoryMods[(*itr)->GetMiscValue()] = (*itr)->GetAmount();
+        else
+            cItr->second += (*itr)->GetAmount();
+    }
+
+    WorldPacket data(SMSG_SPELL_CATEGORY_COOLDOWN, 11);
+    data.WriteBits(categoryMods.size(), 23);
+    for (std::map<uint32, int32>::const_iterator itr = categoryMods.begin(); itr != categoryMods.end(); ++itr)
+    {
+        data << uint32(itr->first);
+        data << int32(-itr->second);
+    }
+
+    SendPacket(&data);
 }

@@ -260,6 +260,8 @@ void Battleground::Update(uint32 diff)
         return;
     }
 
+
+
     switch (GetStatus())
     {
         case STATUS_WAIT_JOIN:
@@ -608,6 +610,14 @@ inline void Battleground::_ProcessLeave(uint32 diff)
     // *********************************************************
     // remove all players from battleground after 2 minutes
     SetRemainingTime(GetRemainingTime() - diff);
+
+    // Remove spectators
+    if (isArena())
+    {
+        if(BattlegroundMap* bgmap = GetBgMap())
+            bgmap->RemoveSpectators();
+    }
+
     if (GetRemainingTime() <= 0)
     {
         SetRemainingTime(0);
@@ -870,9 +880,9 @@ void Battleground::EndBattleground(uint32 winner)
             if (isArena() && isRated() && winnerArenaTeam && loserArenaTeam && winnerArenaTeam != loserArenaTeam)
             {
                 if (team == winner)
-                    winnerArenaTeam->OfflineMemberLost(itr->first, loserMatchmakerRating, winnerMatchmakerChange);
+                    winnerArenaTeam->OfflineMemberLost(itr->first, winnerMatchmakerRating, loserMatchmakerRating, winnerMatchmakerChange);
                 else
-                    loserArenaTeam->OfflineMemberLost(itr->first, winnerMatchmakerRating, loserMatchmakerChange);
+                    loserArenaTeam->OfflineMemberLost(itr->first, loserMatchmakerRating, winnerMatchmakerRating, loserMatchmakerChange);
             }
             continue;
         }
@@ -912,11 +922,14 @@ void Battleground::EndBattleground(uint32 winner)
                 player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_WIN_ARENA, GetMapId());
                 player->ModifyCurrency(CURRENCY_TYPE_CONQUEST_META_ARENA, sWorld->getIntConfig(CONFIG_CURRENCY_CONQUEST_POINTS_ARENA_REWARD));
 
-                winnerArenaTeam->MemberWon(player, loserMatchmakerRating, winnerMatchmakerChange);
+                // Update max week rating
+                player->UpdateMaxWeekRating(CP_SOURCE_ARENA, winnerArenaTeam->GetSlot());
+
+                winnerArenaTeam->MemberWon(player, winnerMatchmakerRating, loserMatchmakerRating, winnerMatchmakerChange);
             }
             else
             {
-                loserArenaTeam->MemberLost(player, winnerMatchmakerRating, loserMatchmakerChange);
+                loserArenaTeam->MemberLost(player, loserMatchmakerRating, winnerMatchmakerRating, loserMatchmakerChange);
 
                 // Arena lost => reset the win_rated_arena having the "no_lose" condition
                 player->ResetAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_WIN_RATED_ARENA, ACHIEVEMENT_CRITERIA_CONDITION_NO_LOSE);
@@ -941,10 +954,10 @@ void Battleground::EndBattleground(uint32 winner)
                     // 100cp awarded for the first random battleground won each day
                     player->ModifyCurrency(CURRENCY_TYPE_CONQUEST_META_ARENA, BG_REWARD_WINNER_CONQUEST_FIRST);
                     player->SetRandomWinner(true);
-                }
+                } 
+                else // 50cp awarded for each non-rated battleground won
+                    player->ModifyCurrency(CURRENCY_TYPE_CONQUEST_META_ARENA, BG_REWARD_WINNER_CONQUEST_LAST);
             }
-            else // 50cp awarded for each non-rated battleground won
-                player->ModifyCurrency(CURRENCY_TYPE_CONQUEST_META_ARENA, BG_REWARD_WINNER_CONQUEST_LAST);
 
             player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_WIN_BG, 1);
             if (!guildAwarded)
@@ -1008,6 +1021,7 @@ void Battleground::BlockMovement(Player* player)
 
 void Battleground::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPacket)
 {
+
     uint32 team = GetPlayerTeam(guid);
     bool participant = false;
     // Remove from lists/maps
@@ -1072,7 +1086,9 @@ void Battleground::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
                     ArenaTeam* winnerArenaTeam = sArenaTeamMgr->GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(team)));
                     ArenaTeam* loserArenaTeam = sArenaTeamMgr->GetArenaTeamById(GetArenaTeamIdForTeam(team));
                     if (winnerArenaTeam && loserArenaTeam && winnerArenaTeam != loserArenaTeam)
-                        loserArenaTeam->MemberLost(player, GetArenaMatchmakerRating(GetOtherTeam(team)));
+                    {
+                        loserArenaTeam->MemberLost(player, GetArenaMatchmakerRating(winnerArenaTeam->GetId()), GetArenaMatchmakerRating(loserArenaTeam->GetId()));
+                    }
                 }
             }
             if (SendPacket)
@@ -1094,7 +1110,7 @@ void Battleground::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
                 ArenaTeam* others_arena_team = sArenaTeamMgr->GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(team)));
                 ArenaTeam* players_arena_team = sArenaTeamMgr->GetArenaTeamById(GetArenaTeamIdForTeam(team));
                 if (others_arena_team && players_arena_team)
-                    players_arena_team->OfflineMemberLost(guid, GetArenaMatchmakerRating(GetOtherTeam(team)));
+                    players_arena_team->OfflineMemberLost(guid, GetArenaMatchmakerRating(team), GetArenaMatchmakerRating(GetOtherTeam(team)));
             }
         }
 
@@ -1317,6 +1333,11 @@ void Battleground::EventPlayerLoggedIn(Player* player)
             break;
         }
     }
+
+    // Arena Spectator
+    if (!IsPlayerInBattleground(guid))
+       return;
+
     m_Players[guid].OfflineRemoveTime = 0;
     PlayerAddedToBGCheckIfBGIsRunning(player);
     // if battleground is starting, then add preparation aura
@@ -1327,6 +1348,7 @@ void Battleground::EventPlayerLoggedIn(Player* player)
 void Battleground::EventPlayerLoggedOut(Player* player)
 {
     uint64 guid = player->GetGUID();
+
     if (!IsPlayerInBattleground(guid))  // Check if this player really is in battleground (might be a GM who teleported inside)
         return;
 

@@ -62,13 +62,13 @@ void WorldSession::HandleVoidStorageUnlock(WorldPacket& recvData)
     Creature* unit = player->GetNPCIfCanInteractWith(npcGuid, UNIT_NPC_FLAG_VAULTKEEPER);
     if (!unit)
     {
-        sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageUnlock - Unit (GUID: %u) not found or player can't interact with it.", GUID_LOPART(npcGuid));
+        sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageUnlock - Unit (GUID: %u) not found or player can't interact with it.", GUID_LOPART(npcGuid));
         return;
     }
 
     if (player->IsVoidStorageUnlocked())
     {
-        sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageUnlock - Player (GUID: %u, name: %s) tried to unlock void storage a 2nd time.", player->GetGUIDLow(), player->GetName().c_str());
+        sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageUnlock - Player (GUID: %u, name: %s) tried to unlock void storage a 2nd time.", player->GetGUIDLow(), player->GetName().c_str());
         return;
     }
 
@@ -78,7 +78,7 @@ void WorldSession::HandleVoidStorageUnlock(WorldPacket& recvData)
 
 void WorldSession::HandleVoidStorageQuery(WorldPacket& recvData)
 {
-    sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: Received CMSG_VOID_STORAGE_QUERY");
+    sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: Received CMSG_VOID_STORAGE_QUERY");
     Player* player = GetPlayer();
 
     ObjectGuid npcGuid;
@@ -103,13 +103,13 @@ void WorldSession::HandleVoidStorageQuery(WorldPacket& recvData)
     Creature* unit = player->GetNPCIfCanInteractWith(npcGuid, UNIT_NPC_FLAG_VAULTKEEPER);
     if (!unit)
     {
-        sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageQuery - Unit (GUID: %u) not found or player can't interact with it.", GUID_LOPART(npcGuid));
+        sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageQuery - Unit (GUID: %u) not found or player can't interact with it.", GUID_LOPART(npcGuid));
         return;
     }
 
     if (!player->IsVoidStorageUnlocked())
     {
-        sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageQuery - Player (GUID: %u, name: %s) queried void storage without unlocking it.", player->GetGUIDLow(), player->GetName().c_str());
+        sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageQuery - Player (GUID: %u, name: %s) queried void storage without unlocking it.", player->GetGUIDLow(), player->GetName().c_str());
         return;
     }
 
@@ -187,7 +187,7 @@ void WorldSession::HandleVoidStorageQuery(WorldPacket& recvData)
 
 void WorldSession::HandleVoidStorageTransfer(WorldPacket& recvData)
 {
-    sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: Received CMSG_VOID_STORAGE_TRANSFER");
+    sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: Received CMSG_VOID_STORAGE_TRANSFER");
     Player* player = GetPlayer();
 
     // Read everything
@@ -199,7 +199,7 @@ void WorldSession::HandleVoidStorageTransfer(WorldPacket& recvData)
 
     if (countDeposit > 9)
     {
-        sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) wants to deposit more than 9 items (%u).", player->GetGUIDLow(), player->GetName().c_str(), countDeposit);
+        sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) wants to deposit more than 9 items (%u).", player->GetGUIDLow(), player->GetName().c_str(), countDeposit);
         return;
     }
 
@@ -227,7 +227,7 @@ void WorldSession::HandleVoidStorageTransfer(WorldPacket& recvData)
 
     if (countWithdraw > 9)
     {
-        sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) wants to withdraw more than 9 items (%u).", player->GetGUIDLow(), player->GetName().c_str(), countWithdraw);
+        sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) wants to withdraw more than 9 items (%u).", player->GetGUIDLow(), player->GetName().c_str(), countWithdraw);
         return;
     }
 
@@ -245,8 +245,6 @@ void WorldSession::HandleVoidStorageTransfer(WorldPacket& recvData)
     }
 
     npcGuid[7] = recvData.ReadBit();
-
-    recvData.FlushBits();
 
     for (uint32 i = 0; i < countDeposit; ++i)
     {
@@ -266,8 +264,8 @@ void WorldSession::HandleVoidStorageTransfer(WorldPacket& recvData)
     for (uint32 i = 0; i < countWithdraw; ++i)
     {
         recvData.ReadByteSeq(itemIds[i][3]);
-        recvData.ReadByteSeq(itemIds[i][1]);
         recvData.ReadByteSeq(itemIds[i][0]);
+        recvData.ReadByteSeq(itemIds[i][1]);
         recvData.ReadByteSeq(itemIds[i][6]);
         recvData.ReadByteSeq(itemIds[i][2]);
         recvData.ReadByteSeq(itemIds[i][7]);
@@ -285,13 +283,13 @@ void WorldSession::HandleVoidStorageTransfer(WorldPacket& recvData)
     Creature* unit = player->GetNPCIfCanInteractWith(npcGuid, UNIT_NPC_FLAG_VAULTKEEPER);
     if (!unit)
     {
-        sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Unit (GUID: %u) not found or player can't interact with it.", GUID_LOPART(npcGuid));
+        sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Unit (GUID: %u) not found or player can't interact with it.", GUID_LOPART(npcGuid));
         return;
     }
 
     if (!player->IsVoidStorageUnlocked())
     {
-        sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) queried void storage without unlocking it.", player->GetGUIDLow(), player->GetName().c_str());
+        sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) queried void storage without unlocking it.", player->GetGUIDLow(), player->GetName().c_str());
         return;
     }
 
@@ -332,7 +330,7 @@ void WorldSession::HandleVoidStorageTransfer(WorldPacket& recvData)
         Item* item = player->GetItemByGuid(*itr);
         if (!item)
         {
-            sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) wants to deposit an invalid item (item guid: " UI64FMTD ").", player->GetGUIDLow(), player->GetName().c_str(), uint64(*itr));
+            sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) wants to deposit an invalid item (item guid: " UI64FMTD ").", player->GetGUIDLow(), player->GetName().c_str(), uint64(*itr));
             continue;
         }
 
@@ -354,10 +352,11 @@ void WorldSession::HandleVoidStorageTransfer(WorldPacket& recvData)
     for (std::vector<ObjectGuid>::iterator itr = itemIds.begin(); itr != itemIds.end(); ++itr)
     {
         uint8 slot;
+        //sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - On Slot: %u, player: %s) is trying to withdraw item guid: " UI64FMTD ").", player->GetGUIDLow(), player->GetName().c_str(), uint64(*itr));
         VoidStorageItem* itemVS = player->GetVoidStorageItem(*itr, slot);
         if (!itemVS)
         {
-            sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) tried to withdraw an invalid item (id: " UI64FMTD ")", player->GetGUIDLow(), player->GetName().c_str(), uint64(*itr));
+            //sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) tried to withdraw an invalid item (id: " UI64FMTD ")", player->GetGUIDLow(), player->GetName().c_str(), uint64(*itr));
             continue;
         }
 
@@ -366,7 +365,7 @@ void WorldSession::HandleVoidStorageTransfer(WorldPacket& recvData)
         if (msg != EQUIP_ERR_OK)
         {
             SendVoidStorageTransferResult(VOID_TRANSFER_ERROR_INVENTORY_FULL);
-            sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) couldn't withdraw item id " UI64FMTD " because inventory was full.", player->GetGUIDLow(), player->GetName().c_str(), uint64(*itr));
+            sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) couldn't withdraw item id " UI64FMTD " because inventory was full.", player->GetGUIDLow(), player->GetName().c_str(), uint64(*itr));
             return;
         }
 

@@ -374,6 +374,25 @@ void InstanceScript::DoRemoveAurasDueToSpellOnPlayers(uint32 spell)
     }
 }
 
+// Set Power to players
+void InstanceScript::DoSetPowerOnPlayers(Powers power, int32 val)
+{
+    Map::PlayerList const& PlayerList = instance->GetPlayers();
+    if (!PlayerList.isEmpty())
+    {
+        for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
+        {
+            if (Player* player = itr->getSource())
+            {
+                if (power == POWER_ALTERNATE_POWER)
+                    player->SetMaxPower(POWER_ALTERNATE_POWER, 100);
+
+                player->SetPower(power, val);
+            }
+        }
+    }
+}
+
 // Cast spell on all players in instance
 void InstanceScript::DoCastSpellOnPlayers(uint32 spell)
 {

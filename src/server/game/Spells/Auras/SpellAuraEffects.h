@@ -136,6 +136,7 @@ class AuraEffect
         void HandleModInvisibility(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         void HandleModStealth(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         void HandleModStealthLevel(AuraApplication const* aurApp, uint8 mode, bool apply) const;
+        void HandleModCamouflage(AuraApplication const * aurApp, uint8 mode, bool apply) const;
         void HandleModStealthDetect(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         void HandleSpiritOfRedemption(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         void HandleAuraGhost(AuraApplication const* aurApp, uint8 mode, bool apply) const;
@@ -146,6 +147,7 @@ class AuraEffect
         void HandleAuraModScale(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         void HandleAuraCloneCaster(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         //  fight
+        void HandleAuraDeterrence(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         void HandleFeignDeath(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         void HandleModUnattackable(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         void HandleAuraModDisarm(AuraApplication const* aurApp, uint8 mode, bool apply) const;
@@ -285,6 +287,7 @@ class AuraEffect
         void HandleAuraSetVehicle(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         void HandlePreventResurrection(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         void HandleAuraForceWeather(AuraApplication const* aurApp, uint8 mode, bool apply) const;
+        void HandleAuraProgressBar(AuraApplication const * aurApp, uint8 mode, bool apply) const;
 
         // aura effect periodic tick handlers
         void HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const;
@@ -305,6 +308,9 @@ class AuraEffect
         void HandleProcTriggerDamageAuraProc(AuraApplication* aurApp, ProcEventInfo& eventInfo);
         void HandleRaidProcFromChargeAuraProc(AuraApplication* aurApp, ProcEventInfo& eventInfo);
         void HandleRaidProcFromChargeWithValueAuraProc(AuraApplication* aurApp, ProcEventInfo& eventInfo);
+
+        // aura effect modify spellpower
+        void HandleAuraOverrideSpellpowerByAPPercent(AuraApplication const* aurApp, uint8 mode, bool apply) const;
 };
 
 namespace Trinity

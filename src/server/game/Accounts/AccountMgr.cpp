@@ -62,7 +62,7 @@ AccountOpResult AccountMgr::CreateAccount(std::string username, std::string pass
 
     RBACGroupContainer const& groupsToAdd = _defaultSecGroups[0]; // 0: Default sec level
     for (RBACGroupContainer::const_iterator it = groupsToAdd.begin(); it != groupsToAdd.end(); ++it)
-        rbac->AddGroup(*it, -1);
+        rbac->AddGroup(*it, 1);
 
     delete rbac;
 

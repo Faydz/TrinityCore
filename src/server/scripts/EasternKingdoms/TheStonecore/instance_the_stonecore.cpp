@@ -74,6 +74,17 @@ public:
             return false;
         }
 
+        void OnGameObjectCreate(GameObject* obj)
+        {
+            switch (obj->GetEntry())
+            {
+                case 207343:
+                    if (uiEncounter[0] == DONE)
+                        HandleGameObject(obj->GetGUID(), true, 0);
+                    break;
+            }
+        }
+
         void OnCreatureCreate(Creature* pCreature) 
         {
             Map::PlayerList const &players = instance->GetPlayers();

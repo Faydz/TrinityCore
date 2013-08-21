@@ -79,6 +79,7 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#include "MovementStructures.h"
 
 #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
 
@@ -531,6 +532,13 @@ inline void KillRewarder::_RewardReputation(Player* player, float rate)
     player->RewardReputation(_victim, rate);
 }
 
+inline void KillRewarder::_RewardCurrency(Player* player)
+{
+    // 4.3.2 Give currency
+    // Even dead players and corpses are rewarded.
+    player->RewardCurrency(_victim);
+}
+
 inline void KillRewarder::_RewardKillCredit(Player* player)
 {
     // 4.4. Give kill credit (player must not be in group, or he must be alive or without corpse).
@@ -564,6 +572,7 @@ void KillRewarder::_RewardPlayer(Player* player, bool isDungeon)
         {
             // If killer is in dungeon then all members receive full reputation at kill.
             _RewardReputation(player, isDungeon ? 1.0f : rate);
+            _RewardCurrency(player);
             _RewardKillCredit(player);
         }
     }
@@ -598,7 +607,9 @@ void KillRewarder::_RewardGroup()
                     if (member->IsAtGroupRewardDistance(_victim))
                     {
                         _RewardPlayer(member, isDungeon);
-                        member->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_SPECIAL_PVP_KILL, 1, 0, 0, _victim);
+						
+						if (_victim)
+							member->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_SPECIAL_PVP_KILL, 1, 0, 0, _victim);
                     }
                 }
             }
@@ -680,11 +691,15 @@ Player::Player(WorldSession* session): Unit(true), phaseMgr(this)
     m_comboTarget = 0;
     m_comboPoints = 0;
 
+    m_petSlotUsed = 0;
+    m_currentPetSlot = PET_SLOT_DELETED;
+
     m_regenTimer = 0;
     m_regenTimerCount = 0;
     m_holyPowerRegenTimerCount = 0;
     m_focusRegenTimerCount = 0;
     m_weaponChangeTimer = 0;
+    m_timerJumpDestination = 0;
 
     m_zoneUpdateId = 0;
     m_zoneUpdateTimer = 0;
@@ -814,7 +829,16 @@ Player::Player(WorldSession* session): Unit(true), phaseMgr(this)
     // Honor System
     m_lastHonorUpdateTime = time(NULL);
 
+    // Currency Week Cap
+    m_maxWeekRating[CP_SOURCE_ARENA] = 0;
+    m_maxWeekRating[CP_SOURCE_RATED_BG] = 0;
+    m_conquestPointsWeekCap[CP_SOURCE_ARENA] = 1350;
+    m_conquestPointsWeekCap[CP_SOURCE_RATED_BG] = 1650;
+
     m_IsBGRandomWinner = false;
+
+    // Spectator
+    m_isSpectator = false;
 
     // Player summoning
     m_summon_expire = 0;
@@ -1303,6 +1327,9 @@ int32 Player::getMaxTimer(MirrorTimerType timer)
     switch (timer)
     {
         case FATIGUE_TIMER:
+            if (!isAlive() || GetZoneId() == 4815 || GetZoneId() == 5145 || GetZoneId() == 5144)
+                 return DISABLED_MIRROR_TIMER;
+
             return MINUTE * IN_MILLISECONDS;
         case BREATH_TIMER:
         {
@@ -1388,6 +1415,10 @@ void Player::HandleDrowning(uint32 time_diff)
     // In dark water
     if (m_MirrorTimerFlags & UNDERWARER_INDARKWATER)
     {
+        // Vash Jir fatigue
+        if (GetZoneId() == 4815 || GetZoneId() == 5145 || GetZoneId() == 5144)
+            return;
+
         // Fatigue timer not activated - activate it
         if (m_MirrorTimer[FATIGUE_TIMER] == DISABLED_MIRROR_TIMER)
         {
@@ -1825,6 +1856,17 @@ void Player::Update(uint32 p_time)
     if (IsHasDelayedTeleport() && isAlive())
         TeleportTo(m_teleport_dest, m_teleport_options);
 
+    /* Teleport player to itself (HACK!!!!!!! D: )
+    if (m_timerJumpDestination > 0)
+    {
+        if (p_time >= m_timerJumpDestination)
+        {
+           // TeleportTo(GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation());
+            m_timerJumpDestination = 0;
+        } else
+            m_timerJumpDestination -= p_time;
+    }*/
+
     if (getLevel() >= 80)
         RemoveOrAddMasterySpells();
 }
@@ -2221,8 +2263,8 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         //I think this always returns true. Correct me if I am wrong.
         // If the map is not created, assume it is possible to enter it.
         // It will be created in the WorldPortAck.
-        //Map* map = sMapMgr->FindBaseNonInstanceMap(mapid);
-        //if (!map || map->CanEnter(this))
+        // Map* map = sMapMgr->FindBaseNonInstanceMap(mapid);
+        // if (!map || map->CanEnter(this))
         {
             //lets reset near teleport flag if it wasn't reset during chained teleports
             SetSemaphoreTeleportNear(false);
@@ -2511,10 +2553,10 @@ void Player::RegenerateAll()
         }
     }
 
-    if (m_focusRegenTimerCount >= 1000 && getClass() == CLASS_HUNTER)
+    if (m_focusRegenTimerCount >= 500 && getClass() == CLASS_HUNTER)
     {
         Regenerate(POWER_FOCUS);
-        m_focusRegenTimerCount -= 1000;
+        m_focusRegenTimerCount -= 500;
     }
 
     if (m_regenTimerCount >= 2000)
@@ -2589,10 +2631,29 @@ void Player::Regenerate(Powers power)
         }
         break;
         case POWER_FOCUS:
-            addvalue += (6.0f + CalculatePct(6.0f, rangedHaste)) * sWorld->getRate(RATE_POWER_FOCUS);
+        {
+            float focusPerSecond = GetFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER) - 1.0f;
+            focusPerSecond = floor(focusPerSecond * 100.0f + 0.5f) / 100.0f;
+            focusPerSecond += 6.0f;
+            focusPerSecond *= sWorld->getRate(RATE_POWER_FOCUS);
+            focusPerSecond /= 2.0f;
+
+            AuraEffectList const& ModPowerRegenPCTAuras = GetAuraEffectsByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
+                for (AuraEffectList::const_iterator i = ModPowerRegenPCTAuras.begin(); i != ModPowerRegenPCTAuras.end(); ++i)
+                {
+                    // what the fuck is this aura? cazzo
+                    if ((*i)->GetId() == 77442)
+                        continue;
+
+                    if (Powers((*i)->GetMiscValue()) == power)
+                        AddPct(focusPerSecond, (*i)->GetAmount());
+                }
+
+            addvalue += focusPerSecond;
             break;
+        }
         case POWER_ENERGY:                                              // Regenerate energy (rogue)
-            addvalue += ((0.01f * m_regenTimer) + CalculatePct(0.01f, meleeHaste)) * sWorld->getRate(RATE_POWER_ENERGY);
+            addvalue += ((0.01f * m_regenTimer) + (CalculatePct(0.01f, GetRatingBonusValue(CR_HASTE_MELEE)) * m_regenTimer)) * sWorld->getRate(RATE_POWER_ENERGY);
             break;
         case POWER_RUNIC_POWER:
         {
@@ -3165,6 +3226,13 @@ void Player::GiveLevel(uint8 level)
 
     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_REACH_LEVEL);
 
+    // Learn running wild and riding to worgens that reach level 20
+    if (level == 20 && getRace() == RACE_WORGEN)
+    {
+        learnSpell(87840, false); // Running wild
+        learnSpell(33388, false); // Riding
+    }
+
     PhaseUpdateData phaseUdateData;
     phaseUdateData.AddConditionType(CONDITION_LEVEL);
 
@@ -3222,6 +3290,9 @@ void Player::InitTalentForLevel()
 
     if (!GetSession()->PlayerLoading())
         SendTalentsInfoData(false);                         // update at client
+    
+    // Updates mastery for Frost Mage and Fury Warrior (2 base mastery points) at talent switching
+    UpdateMastery();
 }
 
 void Player::InitStatsForLevel(bool reapplyMods)
@@ -4230,6 +4301,9 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank)
 
     if (spell_id == 46917 && m_canTitanGrip)
         SetCanTitanGrip(false);
+    if (spell_id == 86629 && m_canParry)
+        SetCanParry(false);
+
     if (m_canDualWield)
     {
         SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spell_id);
@@ -5100,7 +5174,8 @@ void Player::BuildPlayerRepop()
     // convert player body to ghost
     SetHealth(1);
 
-    SendMovementSetWaterWalking(true);
+    AddUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
+    SendMovementWaterWalking();
     if (!GetSession()->isLogingOut())
         SetRooted(false);
 
@@ -5142,7 +5217,8 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
 
     setDeathState(ALIVE);
 
-    SendMovementSetWaterWalking(false);
+    RemoveUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
+    SendMovementWaterWalking();
     SetRooted(false);
 
     m_deathTimer = 0;
@@ -5556,7 +5632,7 @@ bool Player::CanJoinConstantChannelInZone(ChatChannelsEntry const* channel, Area
     if (channel->flags & CHANNEL_DBC_FLAG_ZONE_DEP && zone->flags & AREA_FLAG_ARENA_INSTANCE)
         return false;
 
-    if ((channel->flags & CHANNEL_DBC_FLAG_CITY_ONLY) && (!(zone->flags & AREA_FLAG_SLAVE_CAPITAL)))
+    if ((channel->flags & CHANNEL_DBC_FLAG_CITY_ONLY) && (!(zone->flags & AREA_FLAG_SLAVE_CAPITAL)) && !(channel->flags & CHANNEL_DBC_FLAG_LFG))
         return false;
 
     if ((channel->flags & CHANNEL_DBC_FLAG_GUILD_REQ) && GetGuildId())
@@ -5607,6 +5683,9 @@ void Player::UpdateLocalChannels(uint32 newZone)
     {
         if (ChatChannelsEntry const* channel = sChatChannelsStore.LookupEntry(i))
         {
+            if (channel->flags & CHANNEL_DBC_FLAG_LFG)
+                continue;
+
             Channel* usedChannel = NULL;
 
             for (JoinedChannelsList::iterator itr = m_channels.begin(); itr != m_channels.end(); ++itr)
@@ -5709,6 +5788,7 @@ void Player::HandleBaseModValue(BaseModGroup modGroup, BaseModType modType, floa
         case CRIT_PERCENTAGE:              UpdateCritPercentage(BASE_ATTACK);                          break;
         case RANGED_CRIT_PERCENTAGE:       UpdateCritPercentage(RANGED_ATTACK);                        break;
         case OFFHAND_CRIT_PERCENTAGE:      UpdateCritPercentage(OFF_ATTACK);                           break;
+        case SHIELD_BLOCK_VALUE:           UpdateBlockValue();                                         break;
         default: break;
     }
 }
@@ -5888,6 +5968,12 @@ float Player::OCTRegenMPPerSpirit()
 void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
 {
     m_baseRatingValue[cr] +=(apply ? value : -value);
+    UpdateRating(cr);
+    
+    // Even the pet gets 100% benefit from master's haste/hit
+    Pet* pet = GetPet();
+    if (pet)
+        pet->ApplyRatingMod(cr, value * GetRatingMultiplier(cr), apply);
 
     // explicit affected values
     switch (cr)
@@ -5914,8 +6000,6 @@ void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
         default:
             break;
     }
-
-    UpdateRating(cr);
 }
 
 void Player::UpdateRating(CombatRating cr)
@@ -5925,10 +6009,18 @@ void Player::UpdateRating(CombatRating cr)
     // stat used stored in miscValueB for this aura
     AuraEffectList const& modRatingFromStat = GetAuraEffectsByType(SPELL_AURA_MOD_RATING_FROM_STAT);
     for (AuraEffectList::const_iterator i = modRatingFromStat.begin(); i != modRatingFromStat.end(); ++i)
+    {
         if ((*i)->GetMiscValue() & (1<<cr))
             amount += int32(CalculatePct(GetStat(Stats((*i)->GetMiscValueB())), (*i)->GetAmount()));
+
+        // Skip base spirit on spirit to hit conversion
+        if ((*i)->GetMiscValueB() == STAT_SPIRIT)
+            amount -= GetCreateStat(Stats((*i)->GetMiscValueB()));
+    }
+
     if (amount < 0)
         amount = 0;
+
     SetUInt32Value(PLAYER_FIELD_COMBAT_RATING_1 + cr, uint32(amount));
 
     bool affectStats = CanModifyStats();
@@ -5981,6 +6073,10 @@ void Player::UpdateRating(CombatRating cr)
         case CR_HASTE_MELEE:                                // Implemented in Player::ApplyRatingMod
         case CR_HASTE_RANGED:
         case CR_HASTE_SPELL:
+            if (getClass() == CLASS_HUNTER)
+                SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER, (6.0f * (((100.0f / GetFloatValue(PLAYER_FIELD_MOD_RANGED_HASTE) - 100) / 100.0f) + 1)) - 5.0f);
+            else if (getClass() == CLASS_ROGUE)
+                SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER, (GetRatingBonusValue(CR_HASTE_MELEE) / 10.0f));
             break;
         case CR_WEAPON_SKILL_MAINHAND:                      // Implemented in Unit::RollMeleeOutcomeAgainst
         case CR_WEAPON_SKILL_OFFHAND:
@@ -7002,6 +7098,42 @@ void Player::RewardReputation(Unit* victim, float rate)
         return;
 
     ReputationOnKillEntry const* Rep = sObjectMgr->GetReputationOnKilEntry(victim->ToCreature()->GetCreatureTemplate()->Entry);
+
+    ReputationOnKillEntry const* addRep = NULL;
+
+    // All mob in level 85 dungeons give championing reputation && All bosses give guild reputation
+    if (!Rep)
+    {
+        if (Map* map = victim->GetMap())
+        {
+            if (map->IsDungeon())
+            {
+                // Dungeon & Raid trashes
+                if (victim->getLevel() >= 82 && victim->GetMaxHealth() >= 45000)
+                {
+                    if (!map->IsHeroic())
+                        Rep = sObjectMgr->GetReputationOnKilEntry(42696);
+                    else
+                        Rep = sObjectMgr->GetReputationOnKilEntry(49667);
+                }
+
+                // Dungeon & Raid Bosses 
+                if (victim->getLevel() >= 86 && victim->GetMaxHealth() >= 2000000)
+                {
+                    if (!map->IsHeroic())
+                        Rep = sObjectMgr->GetReputationOnKilEntry(43296);
+                    else
+                        Rep = sObjectMgr->GetReputationOnKilEntry(47775);
+
+                    if (!map->IsHeroic())
+                        addRep = sObjectMgr->GetReputationOnKilEntry(43438);
+                    else
+                        addRep = sObjectMgr->GetReputationOnKilEntry(49642);
+                }
+            }
+        }
+    }
+
     if (!Rep)
         return;
 
@@ -7010,17 +7142,25 @@ void Player::RewardReputation(Unit* victim, float rate)
     if (GetChampioningFaction())
     {
         // support for: Championing - http://www.wowwiki.com/Championing
-
         Map const* map = GetMap();
         if (map && map->IsNonRaidDungeon())
         {
             if (AccessRequirement const* accessRequirement = sObjectMgr->GetAccessRequirement(map->GetId(), map->GetDifficulty()))
-                if (accessRequirement->levelMin == 80)
+            {
+                if (accessRequirement->levelMin == 80 || accessRequirement->levelMin == 85)
                     ChampioningFaction = GetChampioningFaction();
+            }
         }
     }
 
     uint32 team = GetTeam();
+
+    // Skip Guild rep from championing if we are in a guild group
+    if (Rep->RepFaction1 == 1168 || Rep->RepFaction2 == 1168)
+    {
+        if (GetGroup() && GetGroup()->IsGuildGroup(GetGuildId()))
+            ChampioningFaction = 0;
+    }
 
     if (Rep->RepFaction1 && (!Rep->TeamDependent || team == ALLIANCE))
     {
@@ -7043,7 +7183,58 @@ void Player::RewardReputation(Unit* victim, float rate)
         if (factionEntry2 && current_reputation_rank2 <= Rep->ReputationMaxCap2)
             GetReputationMgr().ModifyReputation(factionEntry2, donerep2);
     }
+
+    // Give Additional Rep
+    if (addRep)
+    {
+        if (addRep->RepFaction1)
+        {
+            int32 donerep1 = CalculateReputationGain(REPUTATION_SOURCE_KILL, victim->getLevel(), addRep->RepValue1, addRep->RepFaction1);
+            donerep1 = int32(donerep1 * rate);
+            FactionEntry const* factionEntry1 = sFactionStore.LookupEntry(addRep->RepFaction1);
+            uint32 current_reputation_rank1 = GetReputationMgr().GetRank(factionEntry1);
+            if (factionEntry1 && current_reputation_rank1 <= addRep->ReputationMaxCap1)
+                GetReputationMgr().ModifyReputation(factionEntry1, donerep1);
+        }
+
+        if (addRep->RepFaction2)
+        {
+            int32 donerep2 = CalculateReputationGain(REPUTATION_SOURCE_KILL, victim->getLevel(), addRep->RepValue2, addRep->RepFaction2);
+            donerep2 = int32(donerep2 * rate);
+            FactionEntry const* factionEntry2 = sFactionStore.LookupEntry(addRep->RepFaction2);
+            uint32 current_reputation_rank2 = GetReputationMgr().GetRank(factionEntry2);
+            if (factionEntry2 && current_reputation_rank2 <= addRep->ReputationMaxCap2)
+                GetReputationMgr().ModifyReputation(factionEntry2, donerep2);
+        }
+    }
 }
+
+void Player::RewardCurrency(Unit* victim)
+{
+    if (!victim || victim->GetTypeId() == TYPEID_PLAYER)
+        return;
+
+    CurrencyOnKillEntry const* Cur = sObjectMgr->GetCurrencyOnKilEntry(victim->ToCreature()->GetCreatureTemplate()->Entry);
+
+    if (!Cur)
+        return;
+
+    if (Cur->CurrencyId1 && Cur->CurrencyValue1)
+    {
+        ModifyCurrency(Cur->CurrencyId1, Cur->CurrencyValue1 * 100, true, true);
+    }
+
+    if (Cur->CurrencyId2 && Cur->CurrencyValue2)
+    {
+        ModifyCurrency(Cur->CurrencyId2, Cur->CurrencyValue2 * 100, true, true);
+    }
+
+    if (Cur->CurrencyId3 && Cur->CurrencyValue3)
+    {
+        ModifyCurrency(Cur->CurrencyId3, Cur->CurrencyValue3 * 100, true, true);
+    }
+}
+
 
 // Calculate how many reputation points player gain with the quest
 void Player::RewardReputation(Quest const* quest)
@@ -7085,6 +7276,20 @@ void Player::RewardReputation(Quest const* quest)
 
         if (FactionEntry const* factionEntry = sFactionStore.LookupEntry(quest->RewardFactionId[i]))
             GetReputationMgr().ModifyReputation(factionEntry, rep);
+
+        // Give guild rep on completed quest
+        if (Guild * pGuild = sGuildMgr->GetGuildById(GetGuildId()))
+        {
+            if (uint32 exp = quest->XPValue(this))
+            {
+                uint32 gRep = exp / 450;
+                if (gRep <= 0)
+                    gRep = 1;
+
+                if (FactionEntry const* guildEntry = sFactionStore.LookupEntry(1168))
+                    GetReputationMgr().ModifyReputation(guildEntry, gRep);
+            }
+        }   
     }
 }
 
@@ -7292,11 +7497,34 @@ void Player::_LoadCurrency(PreparedQueryResult result)
         cur.state = PLAYERCURRENCY_UNCHANGED;
         cur.weekCount = fields[1].GetUInt32();
         cur.totalCount = fields[2].GetUInt32();
+        cur.seasonCount = fields[3].GetUInt32();
 
         _currencyStorage.insert(PlayerCurrenciesMap::value_type(currencyID, cur));
 
     } while (result->NextRow());
 }
+
+void Player::_LoadCurrencyWeekCap(PreparedQueryResult result)
+{
+    //           0         1            2
+    // "SELECT source, maxWeekRating, weekCap FROM character_cp_weekcap WHERE guid = ?"
+
+    if (!result)
+        return;
+
+    do
+    {
+        Field *fields = result->Fetch();
+
+        uint16 source = fields[0].GetUInt16();
+        if (source != CP_SOURCE_ARENA && source != CP_SOURCE_RATED_BG)
+            continue;
+
+        m_maxWeekRating[source] = fields[1].GetUInt16();
+        m_conquestPointsWeekCap[source] = fields[2].GetUInt16();
+    } while (result->NextRow());
+}
+
 
 void Player::_SaveCurrency(SQLTransaction& trans)
 {
@@ -7315,14 +7543,16 @@ void Player::_SaveCurrency(SQLTransaction& trans)
                 stmt->setUInt16(1, itr->first);
                 stmt->setUInt32(2, itr->second.weekCount);
                 stmt->setUInt32(3, itr->second.totalCount);
+                stmt->setUInt32(4, itr->second.seasonCount);
                 trans->Append(stmt);
                 break;
             case PLAYERCURRENCY_CHANGED:
                 stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_PLAYER_CURRENCY);
                 stmt->setUInt32(0, itr->second.weekCount);
                 stmt->setUInt32(1, itr->second.totalCount);
-                stmt->setUInt32(2, GetGUIDLow());
-                stmt->setUInt16(3, itr->first);
+                stmt->setUInt32(2, itr->second.seasonCount);
+                stmt->setUInt32(3, GetGUIDLow());
+                stmt->setUInt16(4, itr->first);
                 trans->Append(stmt);
                 break;
             default:
@@ -7330,6 +7560,21 @@ void Player::_SaveCurrency(SQLTransaction& trans)
         }
 
         itr->second.state = PLAYERCURRENCY_UNCHANGED;
+    }
+}
+
+void Player::_SaveCurrencyWeekCap(SQLTransaction& trans)
+{
+    PreparedStatement* stmt = NULL;
+
+    for (uint8 source = 0; source < CP_SOURCE_MAX; source++)
+    {
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_PLAYER_CURRENCY_WEEK_CAP);
+        stmt->setUInt32(0, GetGUIDLow());
+        stmt->setUInt8 (1, source);
+        stmt->setUInt16(2, m_maxWeekRating[source]);
+        stmt->setUInt16(3, m_conquestPointsWeekCap[source]);
+        trans->Append(stmt);
     }
 }
 
@@ -7354,14 +7599,14 @@ void Player::SendNewCurrency(uint32 id) const
     packet.WriteBit(weekCount);
     packet.WriteBits(0, 4); // some flags
     packet.WriteBit(weekCap);
-    packet.WriteBit(0);     // season total earned
+    packet.WriteBit(itr->second.seasonCount > 0 ? 1 : 0);     // season total earned
 
     currencyData << uint32(itr->second.totalCount / precision);
     if (weekCap)
         currencyData << uint32(weekCap);
 
-    //if (seasonTotal)
-    //    currencyData << uint32(seasonTotal / precision);
+    if (itr->second.seasonCount > 0)
+        currencyData << uint32(itr->second.seasonCount / precision);
 
     currencyData << uint32(entry->ID);
     if (weekCount)
@@ -7395,14 +7640,14 @@ void Player::SendCurrencies() const
         packet.WriteBit(weekCount);
         packet.WriteBits(0, 4); // some flags
         packet.WriteBit(weekCap);
-        packet.WriteBit(0);     // season total earned
+        packet.WriteBit(itr->second.seasonCount > 0 ? 1 : 0);     // season total earned
 
         currencyData << uint32(itr->second.totalCount / precision);
         if (weekCap)
             currencyData << uint32(weekCap);
 
-        //if (seasonTotal)
-        //    currencyData << uint32(seasonTotal / precision);
+        if (itr->second.seasonCount > 0)
+            currencyData << uint32(itr->second.seasonCount / precision);
 
         currencyData << uint32(entry->ID);
         if (weekCount)
@@ -7460,7 +7705,13 @@ bool Player::HasCurrency(uint32 id, uint32 count) const
     return itr != _currencyStorage.end() && itr->second.totalCount >= count;
 }
 
-void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bool ignoreMultipliers/* = false*/)
+bool Player::HasCurrencySeasonCount(uint32 id, uint32 count) const
+{
+    PlayerCurrenciesMap::const_iterator itr = _currencyStorage.find(id);
+    return itr != _currencyStorage.end() && itr->second.seasonCount >= count;
+}
+
+void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bool ignoreMultipliers/* = false*/, bool refund/* = false*/, bool ignoreCap/* = false*/)
 {
     if (!count)
         return;
@@ -7474,6 +7725,8 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
     int32 precision = currency->Flags & CURRENCY_FLAG_HIGH_PRECISION ? CURRENCY_PRECISION : 1;
     uint32 oldTotalCount = 0;
     uint32 oldWeekCount = 0;
+    uint32 oldSeasonCount = 0;
+
     PlayerCurrenciesMap::iterator itr = _currencyStorage.find(id);
     if (itr == _currencyStorage.end())
     {
@@ -7481,6 +7734,7 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
         cur.state = PLAYERCURRENCY_NEW;
         cur.totalCount = 0;
         cur.weekCount = 0;
+        cur.seasonCount = 0;
         _currencyStorage[id] = cur;
         itr = _currencyStorage.find(id);
     }
@@ -7488,11 +7742,15 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
     {
         oldTotalCount = itr->second.totalCount;
         oldWeekCount = itr->second.weekCount;
+        oldSeasonCount = itr->second.seasonCount;
     }
+
+    // seasonCount
+    int32 newSeasonCount = int32(oldSeasonCount) + (!refund ? (count > 0 ? count : 0) : 0);
 
     // count can't be more then weekCap if used (weekCap > 0)
     uint32 weekCap = GetCurrencyWeekCap(currency);
-    if (weekCap && count > int32(weekCap))
+    if (!ignoreCap && weekCap && count > int32(weekCap))
         count = weekCap;
 
     // count can't be more then totalCap if used (totalCap > 0)
@@ -7507,13 +7765,14 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
     int32 newWeekCount = int32(oldWeekCount) + (count > 0 ? count : 0);
     if (newWeekCount < 0)
         newWeekCount = 0;
-    sLog->outError(LOG_FILTER_GENERAL, "AA %d bb %d", weekCap, oldWeekCount);
+
     // if we get more then weekCap just set to limit
     if (weekCap && int32(weekCap) < newWeekCount)
     {
         newWeekCount = int32(weekCap);
         // weekCap - oldWeekCount always >= 0 as we set limit before!
-        newTotalCount = oldTotalCount + (weekCap - oldWeekCount);
+        if (!ignoreCap)
+            newTotalCount = oldTotalCount + (weekCap - oldWeekCount);
     }
 
     // if we get more then totalCap set to maximum;
@@ -7530,6 +7789,7 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
 
         itr->second.totalCount = newTotalCount;
         itr->second.weekCount = newWeekCount;
+        itr->second.seasonCount = newSeasonCount;
 
         if (count > 0)
             UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_CURRENCY, id, count);
@@ -7544,10 +7804,11 @@ void Player::ModifyCurrency(uint32 id, int32 count, bool printLog/* = true*/, bo
         WorldPacket packet(SMSG_UPDATE_CURRENCY, 12);
 
         packet.WriteBit(weekCap != 0);
-        packet.WriteBit(0); // hasSeasonCount
+        packet.WriteBit(itr->second.seasonCount > 0 ? 1 : 0); // hasSeasonCount
         packet.WriteBit(!printLog); // print in log
 
-        // if hasSeasonCount packet << uint32(seasontotalearned); TODO: save this in character DB and use it
+        if (itr->second.seasonCount > 0)
+            packet << uint32(itr->second.seasonCount / CURRENCY_PRECISION);
 
         packet << uint32(newTotalCount / precision);
         packet << uint32(id);
@@ -7567,6 +7828,7 @@ void Player::SetCurrency(uint32 id, uint32 count, bool /*printLog*/ /*= true*/)
         cur.state = PLAYERCURRENCY_NEW;
         cur.totalCount = count;
         cur.weekCount = 0;
+        cur.seasonCount = count;
         _currencyStorage[id] = cur;
     }
 }
@@ -7584,6 +7846,22 @@ uint32 Player::GetCurrencyWeekCap(uint32 id, bool usePrecision) const
 
 void Player::ResetCurrencyWeekCap()
 {
+    // How nice it's this Formula ? *_*
+    uint32 newCap = Trinity::Currency::ConquestRatingCalculator(m_maxWeekRating[CP_SOURCE_ARENA]);
+    m_conquestPointsWeekCap[CP_SOURCE_ARENA] = uint16(newCap); 
+
+    // Our players must be skilled every week u.u
+    m_maxWeekRating[CP_SOURCE_ARENA] = 0;
+
+    // Update database!
+    SQLTransaction trans = CharacterDatabase.BeginTransaction();
+    _SaveCurrencyWeekCap(trans);
+    _SaveCurrency(trans);
+    CharacterDatabase.CommitTransaction(trans);
+
+    // Let know players what the fuck i'm doing :V
+    SendCurrencies();
+
     for (uint32 arenaSlot = 0; arenaSlot < MAX_ARENA_SLOT; arenaSlot++)
     {
         if (uint32 arenaTeamId = GetArenaTeamId(arenaSlot))
@@ -7614,10 +7892,10 @@ uint32 Player::GetCurrencyWeekCap(CurrencyTypesEntry const* currency) const
             return std::max(GetCurrencyWeekCap(CURRENCY_TYPE_CONQUEST_META_ARENA, false), GetCurrencyWeekCap(CURRENCY_TYPE_CONQUEST_META_RBG, false));
         case CURRENCY_TYPE_CONQUEST_META_ARENA:
             // should add precision mod = 100
-            return Trinity::Currency::ConquestRatingCalculator(_maxPersonalArenaRate) * CURRENCY_PRECISION;
+            return m_conquestPointsWeekCap[CP_SOURCE_ARENA] * CURRENCY_PRECISION;
         case CURRENCY_TYPE_CONQUEST_META_RBG:
             // should add precision mod = 100
-            return Trinity::Currency::BgConquestRatingCalculator(GetRBGPersonalRating()) * CURRENCY_PRECISION;
+            return m_conquestPointsWeekCap[CP_SOURCE_RATED_BG] * CURRENCY_PRECISION;
     }
 
     return currency->WeekCap;
@@ -8003,12 +8281,16 @@ void Player::DuelComplete(DuelCompleteType type)
     {
         data.Initialize(SMSG_DUEL_WINNER, (1+20));          // we guess size
         data << uint8(type == DUEL_WON ? 0 : 1);            // 0 = just won; 1 = fled
-        data << GetName();
         data << duel->opponent->GetName();
+        data << GetName();
         SendMessageToSet(&data, true);
     }
 
     sScriptMgr->OnPlayerDuelEnd(duel->opponent, this, type);
+
+    // Resets stats and cooldown on duel complete
+    ResetDuelStatsAndCooldown();
+    duel->opponent->ResetDuelStatsAndCooldown();
 
     switch (type)
     {
@@ -8098,6 +8380,67 @@ void Player::DuelComplete(DuelCompleteType type)
     duel = NULL;
 }
 
+void Player::ResetDuelStatsAndCooldown()
+{
+    // Cooldown
+    RemoveAllSpellCooldown();
+    
+    // Health
+    SetHealth(GetMaxHealth());
+    
+
+    Powers power = getPowerType();
+    
+    // Reset pet stats
+    if(Pet* pet = GetPet())
+    {
+        // Health
+        pet->SetHealth(pet->GetMaxHealth());
+
+        // Power
+        Powers petpower = pet->getPowerType();
+        pet->SetPower(petpower, pet->GetMaxPower(power));
+    }
+
+    // Multiple power for druid, not handled in the switch
+    if(getClass() == CLASS_DRUID)
+    {
+        SetPower(POWER_MANA, GetMaxPower(POWER_MANA));
+        SetPower(POWER_ENERGY, GetMaxPower(POWER_ENERGY));
+        SetPower(POWER_RAGE, 0);
+        SetPower(POWER_ECLIPSE, 0);
+
+        return;
+    }
+
+    // Power
+    switch(power)
+    {
+        case POWER_ENERGY:
+        case POWER_MANA:
+            SetPower(power, GetMaxPower(power));
+
+            switch(getClass())
+            {
+                case CLASS_PALADIN:
+                    SetPower(POWER_HOLY_POWER, 0);
+                    break;
+                case CLASS_WARLOCK:
+                    // Energizes 3 Soul Shard
+                    CastSpell(this, 95810);
+                    break;
+            }
+            break;
+        case POWER_FOCUS:
+            SetPower(power, GetMaxPower(power));
+            break;
+        case POWER_RAGE:
+        case POWER_RUNIC_POWER:
+            SetPower(power, 0);
+            break;
+    }
+}
+
 //---------------------------------------------------------//
 
 void Player::RemoveOrAddMasterySpells() 
@@ -8107,126 +8450,171 @@ void Player::RemoveOrAddMasterySpells()
 
 	if (!HasAuraType(SPELL_AURA_MASTERY) || GetPrimaryTalentTree(GetActiveSpec()) == 0) 
     {
-        if (HasAura(77514))
-            RemoveAurasDueToSpell(77514);
+        if (HasAura(76838)) {RemoveAurasDueToSpell(76838);}                                                                     //Strikes of Opportunity
 
-        if (HasAura(77515))
-            RemoveAurasDueToSpell(77515);
+        if (HasAura(76856)) {RemoveAurasDueToSpell(76856);}                                                                     //Unshackled Fury
 
-        if (HasAura(77493))
-            RemoveAurasDueToSpell(77493);
+        if (HasAura(76857)) {RemoveAurasDueToSpell(76857);}                                                                     //Critical Block
 
-        if (HasAura(76658))
-            RemoveAurasDueToSpell(76658);
+        if (HasAura(76669)) {RemoveAurasDueToSpell(76669);}                                                                     //Illuminated Healing
 
-        if (HasAura(76657))
-            RemoveAurasDueToSpell(76657);
+        if (HasAura(76671)) {RemoveAurasDueToSpell(76671);}                                                                     //Divine Bulwark
 
-        if (HasAura(76595))
-            RemoveAurasDueToSpell(76595);
+        if (HasAura(76672)) {RemoveAurasDueToSpell(76672);}                                                                     //Hand of Light
 
-        if (HasAura(76671))
-            RemoveAurasDueToSpell(76671);
+        if (HasAura(76657)) {RemoveAurasDueToSpell(76657);}                                                                     //Master of Beasts
 
-        if (HasAura(77220))
-            RemoveAurasDueToSpell(77220);
+        if (HasAura(76659)) {RemoveAurasDueToSpell(76659);}                                                                     //Wild Quiver
 
-        if (HasAura(76857))
-            RemoveAurasDueToSpell(76857);
+        if (HasAura(76658)) {RemoveAurasDueToSpell(76658);}                                                                     //Essence of the Viper
 
-        if (HasAura(76672))
-            RemoveAurasDueToSpell(76672);
+        if (HasAura(76803)) {RemoveAurasDueToSpell(76803);}                                                                     //Potent Poisons
 
-        if (HasAura(76659))
-            RemoveAurasDueToSpell(76659);
+        if (HasAura(76806)) {RemoveAurasDueToSpell(76806);}                                                                     //Main Gauche
 
-        if (HasAura(77222))
-            RemoveAurasDueToSpell(77222);
+        if (HasAura(76808)) {RemoveAurasDueToSpell(76808);}                                                                     //Executioner
 
-        if (HasAura(76838))
-            RemoveAurasDueToSpell(76838);
+        if (HasAura(77484)) {RemoveAurasDueToSpell(77484);}                                                                     //Shield Discipline
 
-        if (HasAura(77485))
-            RemoveAurasDueToSpell(77485);
+        if (HasAura(77485)) {RemoveAurasDueToSpell(77485);}                                                                     //Echo of Light
 
-        if (HasAura(76669))
-            RemoveAurasDueToSpell(76669);     
+        if (HasAura(77486)) {RemoveAurasDueToSpell(77486);}                                                                     //Shadow Orb Power
 
-        if (HasAura(77495))
-            RemoveAurasDueToSpell(77495);  
+        if (HasAura(77513)) {RemoveAurasDueToSpell(77513);}                                                                     //Blood Shield
 
-        if (HasAura(76806))
-            RemoveAurasDueToSpell(76806);
+        if (HasAura(77514)) {RemoveAurasDueToSpell(77514);}                                                                     //Frozen Heart
+
+        if (HasAura(77515)) {RemoveAurasDueToSpell(77515);}                                                                     //Dreadblade
+
+        if (HasAura(77222)) {RemoveAurasDueToSpell(77222);}                                                                     //Elemental Overload
+
+        if (HasAura(77223)) {RemoveAurasDueToSpell(77223);}                                                                     //Enhanced Elements
+
+        if (HasAura(77226)) {RemoveAurasDueToSpell(77226);}                                                                     //Deep Healing
+
+        if (HasAura(76547)) {RemoveAurasDueToSpell(76547);}                                                                     //Mana Adept
+
+        if (HasAura(76595)) {RemoveAurasDueToSpell(76595);}                                                                     //Flashburn
+
+        if (HasAura(76613)) {RemoveAurasDueToSpell(76613);}                                                                     //Frostburn
+
+        if (HasAura(77215)) {RemoveAurasDueToSpell(77215);}                                                                     //Potent Afflictions
+
+        if (HasAura(77219)) {RemoveAurasDueToSpell(77219);}                                                                     //Master Demonologist
+
+        if (HasAura(77220)) {RemoveAurasDueToSpell(77220);}                                                                     //Fiery Apocalypse
+
+        if (HasAura(77492)) {RemoveAurasDueToSpell(77492);}                                                                     //Total Eclipse
+
+        if (HasAura(77494)) {RemoveAurasDueToSpell(77494);}                                                                     //Savage Defender
+
+        if (HasAura(77495)) {RemoveAurasDueToSpell(77495);}                                                                     //Harmony
 	} 
     else if (HasAuraType(SPELL_AURA_MASTERY)) 
     {
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_DEATH_KNIGHT_FROST)
-            if (!HasAura(77514))
-                AddAura(77514, this);
+        switch(getClass())
+        {
+        case CLASS_WARRIOR:
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_WARRIOR_ARMS) {if (!HasAura(76838)) {AddAura(76838, this);}}            //Strikes of Opportunity
+            else if (HasAura(76838)) {RemoveAurasDueToSpell(76838);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_DEATH_KNIGHT_UNHOLY)
-            if (!HasAura(77515))
-                AddAura(77515, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_WARRIOR_FURY) {if (!HasAura(76856)) {AddAura(76856, this);}}            //Unshackled Fury
+            else if (HasAura(76856)) {RemoveAurasDueToSpell(76856);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_DRUID_FERAL_COMBAT)
-            if (!HasAura(77493))
-                AddAura(77493, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_WARRIOR_PROTECTION) {if (!HasAura(76857)) {AddAura(76857, this);}}      //Critical Block
+            else if (HasAura(76857)) {RemoveAurasDueToSpell(76857);}
+        break;
+        case CLASS_PALADIN:
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PALADIN_HOLY) {if (!HasAura(76669)) {AddAura(76669, this);}}            //Illuminated Healing
+            else if (HasAura(76669)) {RemoveAurasDueToSpell(76669);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_HUNTER_SURVIVAL)
-            if (!HasAura(76658))
-                AddAura(76658, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PALADIN_PROTECTION) {if (!HasAura(76671)) {AddAura(76671, this);}}      //Divine Bulwark
+            else if (HasAura(76671)) {RemoveAurasDueToSpell(76671);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_HUNTER_BEAST_MASTERY)
-            if (!HasAura(76657))
-                AddAura(76657, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PALADIN_RETRIBUTION) {if (!HasAura(76672)) {AddAura(76672, this);}}     //Hand of Light
+            else if (HasAura(76672)) {RemoveAurasDueToSpell(76672);}
+        break;
+        case CLASS_HUNTER:
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_HUNTER_BEAST_MASTERY) {if (!HasAura(76657)) {AddAura(76657, this);}}    //Master of Beasts
+            else if (HasAura(76657)) {RemoveAurasDueToSpell(76657);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_MAGE_FIRE)
-            if (!HasAura(76595))
-                AddAura(76595, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_HUNTER_MARKMANSHIP) {if (!HasAura(76659)) {AddAura(76659, this);}}      //Wild Quiver
+            else if (HasAura(76659)) {RemoveAurasDueToSpell(76659);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PALADIN_PROTECTION)
-            if (!HasAura(76671))
-                AddAura(76671, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_HUNTER_SURVIVAL) {if (!HasAura(76658)) {AddAura(76658, this);}}         //Essence of the Viper
+            else if (HasAura(76658)) {RemoveAurasDueToSpell(76658);}
+        break;
+        case CLASS_ROGUE:
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BG_ROGUE_ASSASINATION) {if (!HasAura(76803)) {AddAura(76803 , this);}}     //Potent Poisons
+            else if (HasAura(76803)) {RemoveAurasDueToSpell(76803);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_WARLOCK_DESTRUCTION)
-            if (!HasAura(77220))
-                AddAura(77220, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_ROGUE_COMBAT) {if (!HasAura(76806)) {AddAura(76806 , this);}}           //Main Gauche
+            else if (HasAura(76806)) {RemoveAurasDueToSpell(76806);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_WARRIOR_PROTECTION)
-            if (!HasAura(76857))
-                AddAura(76857, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_ROGUE_SUBTLETY) {if (!HasAura(76808)) {AddAura(76808 , this);}}         //Executioner
+            else if (HasAura(76808)) {RemoveAurasDueToSpell(76808);}
+        break;
+        case CLASS_PRIEST:
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PRIEST_DISCIPLINE) {if (!HasAura(77484)) {AddAura(77484 , this);}}      //Shield Discipline
+            else if (HasAura(77484)) {RemoveAurasDueToSpell(77484);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PALADIN_RETRIBUTION)
-            if (!HasAura(76672))
-                AddAura(76672, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PRIEST_HOLY) {if (!HasAura(77485)) {AddAura(77485 , this);}}            //Echo of Light
+            else if (HasAura(77485)) {RemoveAurasDueToSpell(77485);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_HUNTER_MARKMANSHIP)
-            if (!HasAura(76659))
-                AddAura(76659, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PRIEST_SHADOW) {if (!HasAura(77486)) {AddAura(77486 , this);}}          //Shadow Orb Power
+            else if (HasAura(77486)) {RemoveAurasDueToSpell(77486);}
+        break;
+        case CLASS_DEATH_KNIGHT:
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_DEATH_KNIGHT_BLOOD) {if (!HasAura(77513)) {AddAura(77513 , this);}}     //Blood Shield
+            else if (HasAura(77513)) {RemoveAurasDueToSpell(77513);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_SHAMAN_ELEMENTAL)
-            if (!HasAura(77222))
-                AddAura(77222, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_DEATH_KNIGHT_FROST) {if (!HasAura(77514)) {AddAura(77514 , this);}}     //Frozen Heart
+            else if (HasAura(77514)) {RemoveAurasDueToSpell(77514);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PRIEST_HOLY)
-            if (!HasAura(77485))
-                AddAura(77485, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_DEATH_KNIGHT_UNHOLY) {if (!HasAura(77515)) {AddAura(77515 , this);}}    //Dreadblade
+            else if (HasAura(77515)) {RemoveAurasDueToSpell(77515);}
+        break;
+        case CLASS_SHAMAN:
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_SHAMAN_ELEMENTAL) {if (!HasAura(77222)) {AddAura(77222 , this);}}       //Elemental Overload
+            else if (HasAura(77222)) {RemoveAurasDueToSpell(77222);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_PALADIN_HOLY)
-            if (!HasAura(76669))
-                AddAura(76669, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_SHAMAN_ENCHANCEMENT) {if (!HasAura(77223)) {AddAura(77223 , this);}}    //Enhanced Elements
+            else if (HasAura(76857)) {RemoveAurasDueToSpell(76857);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_DRUID_RESTORATION)
-            if (!HasAura(77495))
-                AddAura(77495, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_SHAMAN_RESTORATION) {if (!HasAura(77226)) {AddAura(77226 , this);}}     //Deep Healing
+            else if (HasAura(77226)) {RemoveAurasDueToSpell(77226);}
+        break;
+        case CLASS_MAGE:
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_MAGE_ARCANE) {if (!HasAura(76547)) {AddAura(76547 , this);}}            //Mana Adept
+            else if (HasAura(76547)) {RemoveAurasDueToSpell(76547);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_ROGUE_COMBAT)
-            if (!HasAura(76806))
-                AddAura(76806, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_MAGE_FIRE) {if (!HasAura(76595)) {AddAura(76595 , this);}}              //Flashburn
+            else if (HasAura(76595)) {RemoveAurasDueToSpell(76595);}
 
-        if (GetPrimaryTalentTree(GetActiveSpec()) == BS_WARRIOR_ARMS)
-            if (!HasAura(76838))
-                AddAura(76838, this);
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_MAGE_FROST) {if (!HasAura(76613)) {AddAura(76613 , this);}}             //Frostburn
+            else if (HasAura(76613)) {RemoveAurasDueToSpell(76613);}
+        break;
+        case CLASS_WARLOCK:
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_WARLOCK_AFFLICTION) {if (!HasAura(77215)) {AddAura(77215 , this);}}     //Potent Afflictions
+            else if (HasAura(77215)) {RemoveAurasDueToSpell(77215);}
+
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_WARLOCK_DEMONOLOGY) {if (!HasAura(77219)) {AddAura(77219 , this);}}     //Master Demonologist
+            else if (HasAura(77219)) {RemoveAurasDueToSpell(77219);}
+
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_WARLOCK_DESTRUCTION) {if (!HasAura(77220)) {AddAura(77220 , this);}}    //Fiery Apocalypse
+            else if (HasAura(77220)) {RemoveAurasDueToSpell(77220);}
+        break;
+        case CLASS_DRUID:
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_DRUID_BALANCE) {if (!HasAura(77492)) {AddAura(77492 , this);}}          //Total Eclipse
+            else if (HasAura(77492)) {RemoveAurasDueToSpell(77492);}
+
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_DRUID_FERAL_COMBAT) {if (!HasAura(77494)) {AddAura(77494 , this);}}     //Savage Defender
+            else if (HasAura(77494)) {RemoveAurasDueToSpell(77494);}
+
+            if (GetPrimaryTalentTree(GetActiveSpec()) == BS_DRUID_RESTORATION) {if (!HasAura(77495)) {AddAura(77495 , this);}}      //Harmony
+            else if (HasAura(77495)) {RemoveAurasDueToSpell(77495);}
+        break;
+        }
     }
 }
 
@@ -8430,8 +8818,16 @@ void Player::_ApplyItemBonuses(ItemTemplate const* proto, uint8 slot, bool apply
                 ApplyRatingMod(CR_ARMOR_PENETRATION, int32(val), apply);
                 break;
             case ITEM_MOD_SPELL_POWER:
+            {
+                // I think  that this is not the proper way... but it works. 
+                // Search if there are exploit similar to this
+                int32 mod = GetTotalAuraModifier(SPELL_AURA_MOD_SPELL_POWER_PCT);
+                if (mod > 0)
+                    val *= 1.0 + mod / 100.0f;
+
                 ApplySpellPowerBonus(int32(val), apply);
                 break;
+            }
             case ITEM_MOD_HEALTH_REGEN:
                 ApplyHealthRegenBonus(int32(val), apply);
                 break;
@@ -13596,6 +13992,13 @@ bool Player::IsUseEquipedWeapon(bool mainhand) const
     return !IsInFeralForm() && (!mainhand || !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED));
 }
 
+bool Player::IsOneHandUsed(bool mainhand) const
+{
+    Item* mainItem = GetItemByPos(INVENTORY_SLOT_BAG_0, mainhand ? EQUIPMENT_SLOT_MAINHAND : EQUIPMENT_SLOT_OFFHAND);
+    return mainItem && (mainItem->GetTemplate()->InventoryType == INVTYPE_WEAPON 
+        || mainItem->GetTemplate()->InventoryType == INVTYPE_WEAPONMAINHAND);
+}
+
 bool Player::IsTwoHandUsed() const
 {
     Item* mainItem = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
@@ -15248,6 +15651,10 @@ bool Player::CanRewardQuest(Quest const* quest, bool msg)
         }
     }
 
+    for (uint8 i = 0; i < QUEST_REQUIRED_CURRENCY_COUNT; i++)
+        if (quest->RequiredCurrencyId[i] && !HasCurrency(quest->RequiredCurrencyId[i], quest->RequiredCurrencyCount[i]))
+            return false;
+            
     // prevent receive reward with low money and GetRewOrReqMoney() < 0
     if (quest->GetRewOrReqMoney() < 0 && !HasEnoughMoney(-int64(quest->GetRewOrReqMoney())))
         return false;
@@ -15412,6 +15819,10 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
         if (quest->RequiredItemId[i])
             DestroyItemCount(quest->RequiredItemId[i], quest->RequiredItemCount[i], true);
 
+    for (uint8 i = 0; i < QUEST_REQUIRED_CURRENCY_COUNT; ++i)
+        if (quest->RequiredCurrencyId[i])
+            ModifyCurrency(quest->RequiredCurrencyId[i], -int32(quest->RequiredCurrencyCount[i]));
+            
     for (uint8 i = 0; i < QUEST_SOURCE_ITEM_IDS_COUNT; ++i)
     {
         if (quest->RequiredSourceItemId[i])
@@ -15451,7 +15862,18 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
             }
         }
     }
-
+    
+    for (uint8 i = 0; i < QUEST_REWARD_CURRENCY_COUNT; ++i)
+        if (quest->RewardCurrencyId[i])
+        {
+            CurrencyTypesEntry const* currencyType = sCurrencyTypesStore.LookupEntry(quest->RewardCurrencyId[i]);
+            uint32 precision = (currencyType && currencyType->Flags & CURRENCY_FLAG_HIGH_PRECISION) ? CURRENCY_PRECISION : 1;
+            ModifyCurrency(quest->RewardCurrencyId[i], quest->RewardCurrencyCount[i] * precision);
+        }
+    
+    if (uint32 skill = quest->GetRewardSkillId())
+        UpdateSkillPro(skill, 1000, quest->GetRewardSkillPoints());
+    
     RewardReputation(quest);
 
     uint16 log_slot = FindQuestSlot(quest_id);
@@ -17164,8 +17586,8 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     //"totalKills, todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk, "
     // 46      47      48      49      50      51      52           53         54          55             56
     //"health, power1, power2, power3, power4, power5, instance_id, speccount, activespec, exploredZones, equipmentCache, "
-    // 57           58          59
-    //"knownTitles, actionBars, grantableLevels FROM characters WHERE guid = '%u'", guid);
+    // 57           58          59               60                61
+    //"knownTitles, actionBars, grantableLevels, current_pet_slot, pet_slot_used FROM characters WHERE guid = '%u'", guid);
     PreparedQueryResult result = holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_FROM);
     if (!result)
     {
@@ -17277,6 +17699,11 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     // set which actionbars the client has active - DO NOT REMOVE EVER AGAIN (can be changed though, if it does change fieldwise)
     SetByteValue(PLAYER_FIELD_BYTES, 2, fields[58].GetUInt8());
 
+    // m_currentPetSlot = (PetSlot)fields[60].GetUInt32();
+    // Hardcoded for now
+    m_currentPetSlot = PET_SLOT_HUNTER_FIRST;
+    m_petSlotUsed = fields[61].GetUInt32();
+
     InitDisplayIds();
 
     // cleanup inventory related item value fields (its will be filled correctly in _LoadInventory)
@@ -17343,7 +17770,12 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
             SetArenaTeamInfoField(arena_slot, ArenaTeamInfoType(j), 0);
     }
 
+    // Load Currency
     _LoadCurrency(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CURRENCY));
+
+    // Load Currency Week Cap
+    _LoadCurrencyWeekCap(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CURRENCY_WEEK_CAP));
+    
     SetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS, fields[40].GetUInt32());
     SetUInt16Value(PLAYER_FIELD_KILLS, 0, fields[41].GetUInt16());
     SetUInt16Value(PLAYER_FIELD_KILLS, 1, fields[42].GetUInt16());
@@ -17698,6 +18130,7 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
 
     // after spell and quest load
     InitTalentForLevel();
+        
     learnDefaultSpells();
 
     // must be before inventory (some items required reputation check)
@@ -17772,7 +18205,12 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
 
         uint32 talentTree = atol(talentTrees[i]);
         if (sTalentTabStore.LookupEntry(talentTree))
+        {
             SetPrimaryTalentTree(i, talentTree);
+
+            // Updates mastery for Frost Mage and Fury Warrior (2 base mastery points)
+            UpdateMastery();
+        }
         else if (i == GetActiveSpec() && talentTree != 0)
             SetAtLoginFlag(AT_LOGIN_RESET_TALENTS); // invalid tree, reset talents
     }
@@ -17843,7 +18281,7 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     _LoadEquipmentSets(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_EQUIPMENT_SETS));
 
     _LoadCUFProfiles(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CUF_PROFILES));
-
+    
     return true;
 }
 
@@ -18241,7 +18679,8 @@ void Player::_LoadVoidStorage(PreparedQueryResult result)
             continue;
         }
 
-        if (!sObjectMgr->GetPlayerByLowGUID(creatorGuid))
+        std::string name;
+        if (creatorGuid && !sObjectMgr->GetPlayerNameByGUID(creatorGuid, name))
         {
             sLog->outError(LOG_FILTER_PLAYER, "Player::_LoadVoidStorage - Player (GUID: %u, name: %s) has an item with an invalid creator guid, set to 0 (item id: " UI64FMTD ", entry: %u, creatorGuid: %u).", GetGUIDLow(), GetName().c_str(), itemId, itemEntry, creatorGuid);
             creatorGuid = 0;
@@ -19147,6 +19586,10 @@ bool Player::Satisfy(AccessRequirement const* ar, uint32 target_map, bool report
             if (!leader || !leader->HasAchieved(ar->achievement))
                 missingAchievement = ar->achievement;
 
+        // Temp Hack for BoT Hero.
+        if (target_map == 671 && missingAchievement != 0)
+            missingAchievement = 0;
+
         Difficulty target_difficulty = GetDifficulty(mapEntry->IsRaid());
         MapDifficulty const* mapDiff = GetDownscaledMapDifficultyData(target_map, target_difficulty);
         if (LevelMin || LevelMax || missingItem || missingQuest || missingAchievement)
@@ -19181,6 +19624,15 @@ bool Player::CheckInstanceLoginValid()
         // cannot be in raid instance without a group
         if (!GetGroup())
             return false;
+        else
+        {
+            uint32 maxPlayers = ((InstanceMap*)GetMap())->GetMaxPlayers();
+            if (GetMap()->GetPlayersCountExceptGMs() >= maxPlayers)
+            {
+                SendTransferAborted(GetMap()->GetId(), TRANSFER_ABORT_MAX_PLAYERS);
+                return false;
+            }
+        }
     }
     else
     {
@@ -19521,6 +19973,11 @@ void Player::SaveToDB(bool create /*=false*/)
         stmt->setUInt8(index++, GetByteValue(PLAYER_FIELD_BYTES, 2));
         stmt->setUInt32(index++, m_grantableLevels);
 
+        // Pet slot
+        stmt->setUInt32(index++, m_currentPetSlot);
+        stmt->setUInt32(index++, m_petSlotUsed);
+
+        // Online
         stmt->setUInt8(index++, IsInWorld() && !GetSession()->PlayerLogout() ? 1 : 0);
         // Index
         stmt->setUInt32(index++, GetGUIDLow());
@@ -19554,6 +20011,7 @@ void Player::SaveToDB(bool create /*=false*/)
     _SaveGlyphs(trans);
     _SaveInstanceTimeRestrictions(trans);
     _SaveCurrency(trans);
+    _SaveCurrencyWeekCap(trans);
     _SaveCUFProfiles(trans);
 
     // check if stats should only be saved on logout
@@ -19595,6 +20053,7 @@ void Player::SaveInventoryAndGoldToDB(SQLTransaction& trans)
 {
     _SaveInventory(trans);
     _SaveCurrency(trans);
+    _SaveCurrencyWeekCap(trans);
     SaveGoldToDB(trans);
 }
 
@@ -20690,6 +21149,10 @@ void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent)
         }
     }
 
+    // If is hunter pet save with his slot, not alternative slot.
+    if (pet->getPetType() == HUNTER_PET && mode == PET_SAVE_NOT_IN_SLOT)
+        mode = PetSaveMode(m_currentPetSlot);
+
     // only if current pet in slot
     pet->SavePetToDB(mode);
 
@@ -21719,6 +22182,10 @@ void Player::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs)
         if (spellInfo->PreventionType != SPELL_PREVENTION_TYPE_SILENCE)
             continue;
 
+        // Not sent cooldown for multischool spells
+        if (spellInfo->IsMultiSchoolSpell())
+            continue;
+
         if ((idSchoolMask & spellInfo->GetSchoolMask()) && GetSpellCooldownDelay(unSpellId) < unTimeMs)
         {
             data << uint32(unSpellId);
@@ -21828,6 +22295,18 @@ inline bool Player::_StoreOrEquipNewItem(uint32 vendorslot, uint32 item, uint8 c
 
         for (int i = 0; i < MAX_ITEM_EXT_COST_CURRENCIES; ++i)
         {
+            CurrencyTypesEntry const* entry = sCurrencyTypesStore.LookupEntry(iece->RequiredCurrency[i]);
+            if (!entry)
+                continue;
+
+            // Skip check only currencies.. 
+            uint32 checkValue = entry->TotalCap;
+            if (entry->ID == CURRENCY_TYPE_CONQUEST_POINTS)
+                checkValue = 600000;
+                
+            if (checkValue > 0 && iece->RequiredCurrencyCount[i] * stacks > checkValue)
+                continue;
+
             if (iece->RequiredCurrency[i])
                 ModifyCurrency(iece->RequiredCurrency[i], -int32(iece->RequiredCurrencyCount[i] * stacks), true, true);
         }
@@ -21867,7 +22346,8 @@ inline bool Player::_StoreOrEquipNewItem(uint32 vendorslot, uint32 item, uint8 c
 bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uint32 currency, uint32 count)
 {
     // cheating attempt
-    if (count < 1) count = 1;
+    if (count < 1) 
+        count = 1;
 
     if (!isAlive())
         return false;
@@ -21902,19 +22382,13 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
 
     VendorItem const* crItem = vItems->GetItem(vendorSlot);
     // store diff item (cheating)
+
     if (!crItem || crItem->item != currency || crItem->Type != ITEM_VENDOR_TYPE_CURRENCY)
     {
         SendBuyError(BUY_ERR_CANT_FIND_ITEM, creature, currency, 0);
         return false;
     }
 
-    if (count % crItem->maxcount)
-    {
-        SendEquipError(EQUIP_ERR_CANT_BUY_QUANTITY, NULL, NULL);
-        return false;
-    }
-
-    uint32 stacks = count / crItem->maxcount;
     ItemExtendedCostEntry const* iece = NULL;
     if (crItem->ExtendedCost)
     {
@@ -21923,15 +22397,6 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
         {
             sLog->outError(LOG_FILTER_PLAYER, "Currency %u have wrong ExtendedCost field value %u", currency, crItem->ExtendedCost);
             return false;
-        }
-
-        for (uint8 i = 0; i < MAX_ITEM_EXT_COST_ITEMS; ++i)
-        {
-            if (iece->RequiredItem[i] && !HasItemCount(iece->RequiredItem[i], (iece->RequiredItemCount[i] * stacks)))
-            {
-                SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, NULL, NULL);
-                return false;
-            }
         }
 
         for (uint8 i = 0; i < MAX_ITEM_EXT_COST_CURRENCIES; ++i)
@@ -21946,7 +22411,7 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
                 return false;
             }
 
-            if (!HasCurrency(iece->RequiredCurrency[i], (iece->RequiredCurrencyCount[i] * stacks)))
+            if (!HasCurrency(iece->RequiredCurrency[i], (iece->RequiredCurrencyCount[i])))
             {
                 SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, NULL, NULL); // Find correct error
                 return false;
@@ -21967,26 +22432,38 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
         return false;
     }
 
-    ModifyCurrency(currency, count, true, true);
     if (iece)
     {
-        for (uint8 i = 0; i < MAX_ITEM_EXT_COST_ITEMS; ++i)
-        {
-            if (!iece->RequiredItem[i])
-                continue;
-
-            DestroyItemCount(iece->RequiredItem[i], iece->RequiredItemCount[i] * stacks, true);
-        }
-
         for (uint8 i = 0; i < MAX_ITEM_EXT_COST_CURRENCIES; ++i)
         {
             if (!iece->RequiredCurrency[i])
                 continue;
 
-            ModifyCurrency(iece->RequiredCurrency[i], -int32(iece->RequiredCurrencyCount[i]) * stacks, false, true);
+            count = iece->RequiredCurrencyCount[i];
+
+            // Check if we are above the cap
+            uint32 cap = GetCurrencyWeekCap(proto);
+            uint32 totalCap = proto->TotalCap;
+
+            // Check Week Cap
+            if (cap > 0 && (GetCurrencyOnWeek(currency, true) + count) > cap)
+            {
+                SendBuyError(BUY_ERR_CANT_FIND_ITEM, NULL, currency, 0);	
+                return false;
+            }
+
+            // Check total cap
+            if (totalCap > 0 && (GetCurrency(currency, false)) > totalCap)
+            {
+                SendBuyError(BUY_ERR_CANT_FIND_ITEM, NULL, currency, 0);	
+                return false;
+            }
+
+            ModifyCurrency(iece->RequiredCurrency[i], -int32(count), false, true);
         }
     }
 
+    ModifyCurrency(currency, count, true, true, false, false);
     return true;
 }
 
@@ -21994,7 +22471,8 @@ bool Player::BuyCurrencyFromVendorSlot(uint64 vendorGuid, uint32 vendorSlot, uin
 bool Player::BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 item, uint8 count, uint8 bag, uint8 slot)
 {
     // cheating attempt
-    if (count < 1) count = 1;
+    if (count < 1) 
+        count = 1;
 
     // cheating attempt
     if (slot > MAX_BAG_SIZE && slot != NULL_SLOT)
@@ -22093,10 +22571,27 @@ bool Player::BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 
                 return false;
             }
 
-            if (!HasCurrency(iece->RequiredCurrency[i], iece->RequiredCurrencyCount[i] * stacks))
+            // See if we mush check CurrentAmount or TotalSeasonAmount
+            uint32 checkValue = entry->TotalCap;
+            if (entry->ID == CURRENCY_TYPE_CONQUEST_POINTS)
+                checkValue = 600000;
+                
+            if (checkValue != 0 && iece->RequiredCurrencyCount[i] * stacks > checkValue)
             {
-                SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, NULL, NULL);
-                return false;
+                // Check for total season amount
+                if (!HasCurrencySeasonCount(iece->RequiredCurrency[i], iece->RequiredCurrencyCount[i] * stacks))
+                {
+                    SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, NULL, NULL);
+                    return false;
+                }
+            } else
+            {
+                // Check for current amount
+                if (!HasCurrency(iece->RequiredCurrency[i], iece->RequiredCurrencyCount[i] * stacks))
+                {
+                    SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, NULL, NULL);
+                    return false;
+                }
             }
         }
 
@@ -22378,9 +22873,26 @@ void Player::AddSpellAndCategoryCooldowns(SpellInfo const* spellInfo, uint32 ite
         if (catrec > 0 && !(spellInfo->AttributesEx6 & SPELL_ATTR6_IGNORE_CATEGORY_COOLDOWN_MODS))
             ApplySpellMod(spellInfo->Id, SPELLMOD_COOLDOWN, catrec, spell);
 
+        // Apply SPELL_AURA_MOD_SPELL_CATEGORY_COOLDOWN modifiers
+        // Note: This aura applies its modifiers to all cooldowns of spells with set category, not to category cooldown only
+        if (cat)
+        {
+            if (int32 categoryModifier = GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_SPELL_CATEGORY_COOLDOWN, cat))
+            {
+                if (rec > 0)
+                    rec += categoryModifier;
+
+                if (catrec > 0)
+                    catrec += categoryModifier;
+            }
+        }
+
         // replace negative cooldowns by 0
-        if (rec < 0) rec = 0;
-        if (catrec < 0) catrec = 0;
+        if (rec < 0)
+            rec = 0;
+
+        if (catrec < 0)
+            catrec = 0;
 
         // no cooldown after applying spell mods
         if (rec == 0 && catrec == 0)
@@ -22709,15 +23221,6 @@ bool Player::CanJoinToBattleground(Battleground const* bg) const
     if (HasAura(26013))
         return false;
 
-    if (bg->isArena() && !GetSession()->HasPermission(RBAC_PERM_JOIN_ARENAS))
-        return false;
-
-    if (bg->IsRandom() && !GetSession()->HasPermission(RBAC_PERM_JOIN_RANDOM_BG))
-        return false;
-
-    if (!GetSession()->HasPermission(RBAC_PERM_JOIN_NORMAL_BG))
-        return false;
-
     return true;
 }
 
@@ -22818,6 +23321,11 @@ bool Player::IsVisibleGloballyFor(Player const* u) const
     // GMs are visible for higher gms (or players are visible for gms)
     if (!AccountMgr::IsPlayerAccount(u->GetSession()->GetSecurity()))
         return GetSession()->GetSecurity() <= u->GetSession()->GetSecurity();
+
+    // Arena Spectator
+    if (!isGMVisible())
+        return false;
+
 
     // non faction visibility non-breakable for non-GMs
     if (!IsVisible())
@@ -23185,6 +23693,24 @@ void Player::SendInitialPacketsBeforeAddToMap()
 
     SendTalentsInfoData(false);
 
+    data.Initialize(SMSG_WORLD_SERVER_INFO, 1 + 1 + 4 + 4);
+    data.WriteBit(0);                                               // HasRestrictedLevel
+    data.WriteBit(0);                                               // HasRestrictedMoney
+    data.WriteBit(0);                                               // IneligibleForLoot
+    data.FlushBits();
+    //if (IneligibleForLoot)
+    //    data << uint32(0);                                        // EncounterMask
+
+    data << uint8(0);                                               // IsOnTournamentRealm
+    //if (HasRestrictedMoney)
+    //    data << uint32(100000);                                   // RestrictedMoney (starter accounts)
+    //if (HasRestrictedLevel)
+    //    data << uint32(20);                                       // RestrictedLevel (starter accounts)
+
+    data << uint32(sWorld->GetNextWeeklyQuestsResetTime() - WEEK);  // LastWeeklyReset (not instance reset)
+    data << uint32(GetMap()->GetDifficulty());
+    GetSession()->SendPacket(&data);
+
     SendInitialSpells();
 
     data.Initialize(SMSG_SEND_UNLEARN_SPELLS, 4);
@@ -23226,13 +23752,14 @@ void Player::SendInitialPacketsAfterAddToMap()
     ResetTimeSync();
     SendTimeSync();
 
-    Player::GetSession()->SendLoadCUFProfiles();
+    GetSession()->SendLoadCUFProfiles();
 
     CastSpell(this, 836, true);                             // LOGINEFFECT
 
     // set some aura effects that send packet to player client after add player to map
     // SendMessageToSet not send it to player not it map, only for aura that not changed anything at re-apply
     // same auras state lost at far teleport, send it one more time in this case also
+    
     static const AuraType auratypes[] =
     {
         SPELL_AURA_MOD_FEAR,     SPELL_AURA_TRANSFORM,                 SPELL_AURA_WATER_WALK,
@@ -23245,6 +23772,7 @@ void Player::SendInitialPacketsAfterAddToMap()
         if (!auraList.empty())
             auraList.front()->HandleEffect(this, AURA_EFFECT_HANDLE_SEND_FOR_CLIENT, true);
     }
+    
 
     if (HasAuraType(SPELL_AURA_MOD_STUN))
         SetRooted(true);
@@ -23256,7 +23784,13 @@ void Player::SendInitialPacketsAfterAddToMap()
     SendAurasForTarget(this);
     SendEnchantmentDurations();                             // must be after add to map
     SendItemDurations();                                    // must be after add to map
+    
+    RestoreAllSpellMods();
+    UpdateSpeed(MOVE_RUN, true);
 
+    // RIAPPLICAZIONE DEI TALENTI PER EVITARE I FASTIDIOSI BUG LATO CLIENT SU DK E BLOCCO A TERRA
+    ForceAuraEffectReactivation();
+    
     // raid downscaling - send difficulty to player
     if (GetMap()->IsRaid())
     {
@@ -23656,6 +24190,11 @@ void Player::ResetMonthlyQuestStatus()
     m_monthlyquests.clear();
     // DB data deleted in caller
     m_MonthlyQuestChanged = false;
+}
+
+void Player::UpdateMaxWeekRating(ConquestPointsSources source, uint8 slot)
+{
+    m_maxWeekRating[source] = std::max(m_maxWeekRating[source], (uint16) GetArenaPersonalRating(slot));
 }
 
 Battleground* Player::GetBattleground() const
@@ -24074,9 +24613,9 @@ void Player::RemoveItemDependentAurasAndCasts(Item* pItem)
     {
         Aura* aura = itr->second;
 
-        // skip passive (passive item dependent spells work in another way) and not self applied auras
+        // skip passive (passive item dependent spells work in another way), not self applied auras and Bladestorm aura
         SpellInfo const* spellInfo = aura->GetSpellInfo();
-        if (aura->IsPassive() ||  aura->GetCasterGUID() != GetGUID())
+        if (aura->IsPassive() ||  aura->GetCasterGUID() != GetGUID() || aura->GetId() == 46924)
         {
             ++itr;
             continue;
@@ -24881,6 +25420,18 @@ void Player::SetTitle(CharTitlesEntry const* title, bool lost)
     GetSession()->SendPacket(&data);
 }
 
+void Player::SetSpectator(bool spectator){
+
+        m_isSpectator = spectator;
+
+}
+
+bool Player::GetSpectator(){
+
+    return m_isSpectator;
+
+}
+
 bool Player::isTotalImmunity()
 {
     AuraEffectList const& immune = GetAuraEffectsByType(SPELL_AURA_SCHOOL_IMMUNITY);
@@ -24941,11 +25492,7 @@ uint32 Player::GetRuneTypeBaseCooldown(RuneType runeType) const
 {
     float cooldown = RUNE_BASE_COOLDOWN;
     float hastePct = 0.0f;
-
-    AuraEffectList const& regenAura = GetAuraEffectsByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
-    for (AuraEffectList::const_iterator i = regenAura.begin();i != regenAura.end(); ++i)
-        if ((*i)->GetMiscValue() == POWER_RUNES && (*i)->GetMiscValueB() == runeType)
-            cooldown *= 1.0f - (*i)->GetAmount() / 100.0f;
+    float additionalPct = 0.0f;
 
     // Runes cooldown are now affected by player's haste from equipment ...
     hastePct = GetRatingBonusValue(CR_HASTE_MELEE);
@@ -24953,9 +25500,12 @@ uint32 Player::GetRuneTypeBaseCooldown(RuneType runeType) const
     // ... and some auras.
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE);
     hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE_2);
-    hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE_3);
-
+    hastePct += GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_RANGED_HASTE);
+    // first recalc of haste is happening -- VERIFIED
     cooldown *=  1.0f - (hastePct / 100.0f);
+    // second recalc due to the SPELL_AURA_MOD_POWER_PERCENTAGE (RUNIC EMPOWERMENT)
+    additionalPct += GetTotalAuraModifier(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
+    cooldown = (cooldown / (1.0f + additionalPct / 100.0f));
 
     return cooldown;
 }
@@ -24964,6 +25514,30 @@ void Player::SetRuneCooldown(uint8 index, uint32 cooldown)
 {
     m_runes->runes[index].Cooldown = cooldown;
     m_runes->SetRuneState(index, (cooldown == 0) ? true : false);
+}
+
+void Player::SetRandomRuneAvailable()
+{      
+    uint8 cooldownrunes[MAX_RUNES];  // Define an array containing rules in cooldown
+    uint8 runescount = 0;             
+
+    for (uint8 j = 0; j < MAX_RUNES; ++j) 
+    {
+        if (GetRuneCooldown(j) > 0 ) 
+        {
+            cooldownrunes[runescount] = j;     //If a rune is in cooldown, i just insert it in my array.
+            runescount++;
+        }
+    }
+    
+    if (runescount > 0) // If at least one rune is in cooldown I refresh it
+    {
+            uint8 index = uint8(urand(0, runescount - 1));
+            SetRuneCooldown(cooldownrunes[index], 0);
+            ResyncRunes(MAX_RUNES);  // this function is  not refreshing runes correctly (same problem with blood tap) -> NEEDS TO BE CORRECTED
+    }
+    else
+        return;
 }
 
 void Player::SetRuneConvertAura(uint8 index, AuraEffect const* aura)
@@ -24992,7 +25566,7 @@ void Player::RestoreBaseRune(uint8 index)
 {
     AuraEffect const* aura = m_runes->runes[index].ConvertAura;
     // If rune was converted by a non-pasive aura that still active we should keep it converted
-    if (aura && !(aura->GetSpellInfo()->Attributes & SPELL_ATTR0_PASSIVE))
+    if (aura && !(!aura->GetSpellInfo() || aura->GetSpellInfo()->Attributes & SPELL_ATTR0_PASSIVE))
         return;
     ConvertRune(index, GetBaseRune(index));
     SetRuneConvertAura(index, NULL);
@@ -25015,6 +25589,7 @@ void Player::ConvertRune(uint8 index, RuneType newType)
     data << uint8(index);
     data << uint8(newType);
     GetSession()->SendPacket(&data);
+    ResyncRunes(MAX_RUNES);
 }
 
 void Player::ResyncRunes(uint8 count)
@@ -25023,8 +25598,8 @@ void Player::ResyncRunes(uint8 count)
     data << uint32(count);
     for (uint32 i = 0; i < count; ++i)
     {
-        data << uint8(GetCurrentRune(i));                   // rune type
-        data << uint8(255 - (GetRuneCooldown(i) * 51));     // passed cooldown time (0-255)
+        data << uint8(GetCurrentRune(i));                                   // rune type
+        data << uint8(255.0f - (float(GetRuneCooldown(i)) * 0.0255f));      // passed cooldown time (0-255)
     }
     GetSession()->SendPacket(&data);
 }
@@ -26437,6 +27012,37 @@ void Player::UpdateSpecCount(uint8 count)
     SendTalentsInfoData(false);
 }
 
+// Custom function used to force some effects to be reactivated after teleporting.
+void Player::ForceAuraEffectReactivation(){
+
+    // CLASS: DEATH KNIGHT
+    if(getClass() == CLASS_DEATH_KNIGHT){
+
+        // Blood of the North
+        if(this->HasAura(54637)){
+            if(AuraEffect *aurEff = this->GetAuraEffect(54637,0)){
+                for(uint8 i = 0;i<MAX_RUNES;i++){
+                    if(this->GetBaseRune(i) == RUNE_BLOOD){
+                        this->AddRuneByAuraEffect(i, RUNE_DEATH, aurEff);
+                    }
+                }
+            }
+        }
+
+    }
+
+    
+
+    // Unstuck Player
+    for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i){
+        if(i!=5 && i!=8){
+            SetSpeed(UnitMoveType(i), this->GetSpeedRate(UnitMoveType(i)), true);
+            UpdateSpeed(UnitMoveType(i),true);
+        }
+    }
+}
+
+
 void Player::ActivateSpec(uint8 spec)
 {
     if (GetActiveSpec() == spec)
@@ -26607,8 +27213,10 @@ void Player::ResetTimeSync()
 
 void Player::SendTimeSync()
 {
+    m_timeSyncCounter = m_movementCounter;
+
     WorldPacket data(SMSG_TIME_SYNC_REQ, 4);
-    data << uint32(m_timeSyncCounter++);
+    data << uint32(m_movementCounter++);
     GetSession()->SendPacket(&data);
 
     // Schedule next sync in 10 sec
@@ -26874,8 +27482,21 @@ void Player::RefundItem(Item* item)
     {
         uint32 count = iece->RequiredCurrencyCount[i];
         uint32 currencyid = iece->RequiredCurrency[i];
+
+        CurrencyTypesEntry const* entry = sCurrencyTypesStore.LookupEntry(currencyid);
+        if (!entry)
+            continue;
+
+        // Skip check only currencies.. fucking lamers
+        uint32 checkValue = entry->TotalCap;
+        if (entry->ID == CURRENCY_TYPE_CONQUEST_POINTS)
+            checkValue = 600000;
+
+        if (checkValue > 0 && count > checkValue)
+            continue;
+
         if (count && currencyid)
-            ModifyCurrency(currencyid, count);
+            ModifyCurrency(currencyid, count, false, true, true, true);
     }
 
     // Grant back money
@@ -27059,266 +27680,32 @@ VoidStorageItem* Player::GetVoidStorageItem(uint64 id, uint8& slot) const
 {
     for (uint8 i = 0; i < VOID_STORAGE_MAX_SLOT; ++i)
     {
-        if (_voidStorageItems[i] && _voidStorageItems[i]->ItemId == id)
-        {
-            slot = i;
-            return _voidStorageItems[i];
+        if (_voidStorageItems[i]){
+            if(_voidStorageItems[i]->ItemId == id)
+            {
+                sLog->outError(LOG_FILTER_NETWORKIO, "WORLD: HandleVoidStorageTransfer - Player (GUID: %u, name: %s) withdrawing item (id: " UI64FMTD ")", this->GetGUIDLow(), this->GetName().c_str(), uint64(id));
+                slot = i;
+                return _voidStorageItems[i];
+            }    
         }
     }
 
     return NULL;
 }
 
-void Player::SendMovementSetCanFly(bool apply)
-{
-    ObjectGuid guid = GetGUID();
-    WorldPacket data;
-    if (apply)
-    {
-        data.Initialize(SMSG_MOVE_SET_CAN_FLY, 1 + 8 + 4);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[7]);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[2]);
-        data.WriteBit(guid[3]);
-
-        data.WriteByteSeq(guid[6]);
-        data.WriteByteSeq(guid[3]);
-
-        data << uint32(0);          //! movement counter
-
-        data.WriteByteSeq(guid[2]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[5]);
-    }
-    else
-    {
-        data.Initialize(SMSG_MOVE_UNSET_CAN_FLY, 1 + 8 + 4);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[2]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[7]);
-
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[6]);
-
-        data << uint32(0);          //! movement counter
-
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[2]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[7]);
-    }
-    SendDirectMessage(&data);
-}
-
 void Player::SendMovementSetCanTransitionBetweenSwimAndFly(bool apply)
 {
-    WorldPacket data(apply ?
+    Movement::PacketSender(this, NULL_OPCODE, apply ?
         SMSG_MOVE_SET_CAN_TRANSITION_BETWEEN_SWIM_AND_FLY :
-        SMSG_MOVE_UNSET_CAN_TRANSITION_BETWEEN_SWIM_AND_FLY, 12);
-    data.append(GetPackGUID());
-    data << uint32(0);          //! movement counter
-    SendDirectMessage(&data);
-}
-
-void Player::SendMovementSetHover(bool apply)
-{
-    ObjectGuid guid = GetGUID();
-    WorldPacket data;
-    if (apply)
-    {
-        data.Initialize(SMSG_MOVE_SET_HOVER, 12);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[2]);
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[7]);
-
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[2]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[6]);
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[7]);
-        data << uint32(0);          // movement counter
-    }
-    else
-    {
-        data.Initialize(SMSG_MOVE_UNSET_HOVER, 12);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[2]);
-        data.WriteBit(guid[7]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[0]);
-
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[6]);
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[2]);
-        data.WriteByteSeq(guid[0]);
-        data << uint32(0);          // movement counter
-    }
-
-    SendDirectMessage(&data);
-}
-
-void Player::SendMovementSetWaterWalking(bool apply)
-{
-    ObjectGuid guid = GetGUID();
-    WorldPacket data;
-    if (apply)
-    {
-        data.Initialize(SMSG_MOVE_WATER_WALK, 1 + 4 + 8);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[7]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[2]);
-
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[2]);
-        data << uint32(0);          //! movement counter
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[6]);
-    }
-    else
-    {
-        data.Initialize(SMSG_MOVE_LAND_WALK, 1 + 4 + 8);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[2]);
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[7]);
-
-        data.WriteByteSeq(guid[6]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[2]);
-        data << uint32(0);          //! movement counter
-    }
-    SendDirectMessage(&data);
-}
-
-void Player::SendMovementSetFeatherFall(bool apply)
-{
-    ObjectGuid guid = GetGUID();
-    WorldPacket data;
-
-    if (apply)
-    {
-        data.Initialize(SMSG_MOVE_FEATHER_FALL, 1 + 4 + 8);
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[7]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[2]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[6]);
-
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[2]);
-        data << uint32(0);          //! movement counter
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[6]);
-    }
-    else
-    {
-        data.Initialize(SMSG_MOVE_NORMAL_FALL, 1 + 4 + 8);
-
-        data << uint32(0);          //! movement counter
-
-        data.WriteBit(guid[3]);
-        data.WriteBit(guid[0]);
-        data.WriteBit(guid[1]);
-        data.WriteBit(guid[5]);
-        data.WriteBit(guid[7]);
-        data.WriteBit(guid[4]);
-        data.WriteBit(guid[6]);
-        data.WriteBit(guid[2]);
-
-        data.WriteByteSeq(guid[2]);
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[6]);
-    }
-
-    SendDirectMessage(&data);
+        SMSG_MOVE_UNSET_CAN_TRANSITION_BETWEEN_SWIM_AND_FLY).Send();
 }
 
 void Player::SendMovementSetCollisionHeight(float height)
 {
-    ObjectGuid guid = GetGUID();
-    WorldPacket data(SMSG_MOVE_SET_COLLISION_HEIGHT, 2 + 8 + 4 + 4);
-    data.WriteBits(0, 2);
-    data.WriteBit(guid[6]);
-    data.WriteBit(guid[1]);
-    data.WriteBit(guid[4]);
-    data.WriteBit(guid[7]);
-    data.WriteBit(guid[5]);
-    data.WriteBit(guid[2]);
-    data.WriteBit(guid[0]);
-    data.WriteBit(guid[3]);
-    data.FlushBits();
-
-    data.WriteByteSeq(guid[6]);
-    data.WriteByteSeq(guid[0]);
-    data.WriteByteSeq(guid[4]);
-    data.WriteByteSeq(guid[3]);
-    data.WriteByteSeq(guid[5]);
-    data << uint32(sWorld->GetGameTime());   // Packet counter
-    data.WriteByteSeq(guid[1]);
-    data.WriteByteSeq(guid[2]);
-    data.WriteByteSeq(guid[7]);
-    data << float(height);
-
-    SendDirectMessage(&data);
+    static MovementStatusElements const heightElement = MSEExtraFloat;
+    Movement::ExtraMovementStatusElement extra(&heightElement);
+    extra.Data.floatData = height;
+    Movement::PacketSender(this, NULL_OPCODE, SMSG_MOVE_SET_COLLISION_HEIGHT, SMSG_MOVE_UPDATE_COLLISION_HEIGHT, &extra).Send();
 }
 
 float Player::GetCollisionHeight(bool mounted) const
@@ -27360,14 +27747,17 @@ Guild* Player::GetGuild()
     return guildId ? sGuildMgr->GetGuildById(guildId) : NULL;
 }
 
-Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 duration)
+Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 duration, PetSlot slot)
 {
     Pet* pet = new Pet(this, petType);
 
     // Can it be placed in a better position ?
     HandlePetSummonState(petType, PETSUMMON_SUMMONING);
 
-    if (petType == SUMMON_PET && pet->LoadPetFromDB(this, entry))
+    // Set Slot used to this
+    m_currentPetSlot = slot;
+
+    if (petType == SUMMON_PET && pet->LoadPetFromDB(this, entry, 0, false, slot))
     {
         // Remove Demonic Sacrifice auras (known pet)
         Unit::AuraEffectList const& auraClassScripts = GetAuraEffectsByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);

@@ -1462,6 +1462,9 @@ void World::SetInitialWorldSettings()
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Loading Creature Reputation OnKill Data...");
     sObjectMgr->LoadReputationOnKill();
 
+    sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Loading Creature Currency OnKill Data...");
+    sObjectMgr->LoadCurrencyOnKill();
+
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Loading Reputation Spillover Data...");
     sObjectMgr->LoadReputationSpilloverTemplate();
 
@@ -1714,7 +1717,7 @@ void World::SetInitialWorldSettings()
 
     ///- Handle outdated emails (delete/return)
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Returning old mails...");
-    sObjectMgr->ReturnOrDeleteOldMails(false);
+    // sObjectMgr->ReturnOrDeleteOldMails(false);
 
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Loading Autobroadcasts...");
     LoadAutobroadcasts();
@@ -1976,8 +1979,8 @@ void World::Update(uint32 diff)
     if (m_gameTime > m_NextGuildReset)
         ResetGuildCap();
 
-    if (m_gameTime > m_NextCurrencyReset)
-        ResetCurrencyWeekCap();
+    /*if (m_gameTime > m_NextCurrencyReset)
+        ResetCurrencyWeekCap();*/
 
     /// <ul><li> Handle auctions when the timer has passed
     if (m_timers[WUPDATE_AUCTIONS].Passed())
@@ -2888,6 +2891,12 @@ void World::ResetCurrencyWeekCap()
 {
     CharacterDatabase.Execute("UPDATE `character_currency` SET `week_count` = 0");
 
+    // Calculating week cap for conquest points
+    CharacterDatabase.Execute("UPDATE character_currency_weekcap SET week_cap = ROUND(1.4326 * (1511.26 / (1 + 1639.28 / exp(0.00412 * `max_week_rating`))) + 857.15) WHERE `source`=0 AND `max_week_rating` BETWEEN 1500 AND 3000");
+    CharacterDatabase.PExecute("UPDATE character_currency_weekcap SET week_cap = '%u' WHERE `source`=0 AND `max_week_rating` < 1500", 1350);
+    CharacterDatabase.Execute("UPDATE character_currency_weekcap SET week_cap =3000 WHERE `source`=0 AND `max_week_rating` > 3000");
+    CharacterDatabase.Execute("UPDATE character_currency_weekcap SET max_week_rating=0");
+
     for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
         if (itr->second->GetPlayer())
             itr->second->GetPlayer()->ResetCurrencyWeekCap();
@@ -3217,4 +3226,11 @@ void World::ReloadRBAC()
     for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
         if (WorldSession* session = itr->second)
             session->InvalidateRBACData();
+}
+
+void World::ManualResetCurrencyWeekCap()
+{
+    std::string str = "-- FLUSH PUNTI ARENA / CONQUEST / CAP SETTIMANALI --";
+    SendServerMessage(SERVER_MSG_STRING, str.c_str());
+    ResetCurrencyWeekCap();
 }

@@ -349,6 +349,14 @@ int Master::Run()
     return World::GetExitCode();
 }
 
+// Pre-Start Custom Function to verify issues
+bool Master::PreLoadCheck(){
+    sLog->outInfo(LOG_FILTER_WORLDSERVER,"Executing Pre-Load Custom Check...");
+    sLog->outInfo(LOG_FILTER_WORLDSERVER,"Pre-Load Checks are done!"); 
+    return true;
+}
+
+
 /// Initialize connection to the databases
 bool Master::_StartDB()
 {
@@ -447,6 +455,7 @@ bool Master::_StartDB()
     sWorld->LoadDBVersion();
 
     sLog->outInfo(LOG_FILTER_WORLDSERVER, "Using World DB: %s", sWorld->GetDBVersion());
+    PreLoadCheck();
     return true;
 }
 

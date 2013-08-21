@@ -111,6 +111,7 @@ public:
             { "cometome",           SEC_ADMINISTRATOR,      false, &HandleComeToMeCommand,              "", NULL },
             { "damage",             SEC_ADMINISTRATOR,      false, &HandleDamageCommand,                "", NULL },
             { "combatstop",         SEC_GAMEMASTER,         true,  &HandleCombatStopCommand,            "", NULL },
+            { "flusharenapoints",   SEC_ADMINISTRATOR,      true,  &HandleFlushArenaPointsCommand,      "", NULL },
             { "repairitems",        SEC_GAMEMASTER,         true,  &HandleRepairitemsCommand,           "", NULL },
             { "freeze",             SEC_MODERATOR,          false, &HandleFreezeCommand,                "", NULL },
             { "unfreeze",           SEC_MODERATOR,          false, &HandleUnFreezeCommand,              "", NULL },
@@ -2126,6 +2127,12 @@ public:
             return false;
 
         handler->GetSession()->GetPlayer()->SpellNonMeleeDamageLog(target, spellid, damage);
+        return true;
+    }
+
+    static bool HandleFlushArenaPointsCommand(ChatHandler* handler, char const* args)
+    {
+        sWorld->ManualResetCurrencyWeekCap();
         return true;
     }
 

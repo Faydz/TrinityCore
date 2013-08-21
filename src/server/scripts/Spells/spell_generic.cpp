@@ -36,6 +36,7 @@
 #include "SkillDiscovery.h"
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
+#include "AchievementMgr.h"
 
 class spell_gen_absorb0_hitlimit1 : public SpellScriptLoader
 {
@@ -821,16 +822,24 @@ class spell_pvp_trinket_wotf_shared_cd : public SpellScriptLoader
                 return true;
             }
 
-            void HandleScript()
+            void HandleScript(SpellEffIndex /*effIndex*/)
             {
-                // This is only needed because spells cast from spell_linked_spell are triggered by default
-                // Spell::SendSpellCooldown() skips all spells with TRIGGERED_IGNORE_SPELL_AND_CATEGORY_CD
-                GetCaster()->ToPlayer()->AddSpellAndCategoryCooldowns(GetSpellInfo(), GetCastItem() ? GetCastItem()->GetEntry() : 0, GetSpell());
+			    if (Player* caster = GetCaster()->ToPlayer())
+                {
+                    SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(GetSpellInfo()->Id);
+			        caster->AddSpellCooldown(spellInfo->Id, NULL, time(NULL) + spellInfo->GetRecoveryTime() / IN_MILLISECONDS);
+			        WorldPacket data(SMSG_SPELL_COOLDOWN, 8 + 1 + 4);
+			        data << uint64(caster->GetGUID());
+			        data << uint8(0);
+			        data << uint32(spellInfo->Id);
+			        data << uint32(0);
+			        caster->GetSession()->SendPacket(&data);
+		        }
             }
 
             void Register()
             {
-                AfterCast += SpellCastFn(spell_pvp_trinket_wotf_shared_cd_SpellScript::HandleScript);
+                OnEffectHitTarget += SpellEffectFn(spell_pvp_trinket_wotf_shared_cd_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_DUMMY);
             }
         };
 
@@ -3417,7 +3426,7 @@ class spell_gen_replenishment : public SpellScriptLoader
                 switch (GetSpellInfo()->Id)
                 {
                 case SPELL_REPLENISHMENT:
-                    amount = GetUnitOwner()->GetMaxPower(POWER_MANA) * 0.002f;
+                    amount = GetUnitOwner()->GetMaxPower(POWER_MANA) * 0.001f;
                     break;
                 case SPELL_INFINITE_REPLENISHMENT:
                     amount = GetUnitOwner()->GetMaxPower(POWER_MANA) * 0.0025f;
@@ -3635,6 +3644,133 @@ public:
    }
 };
 
+class spell_gen_searing_bolt : public SpellScriptLoader
+{
+    public:
+        spell_gen_searing_bolt() : SpellScriptLoader("spell_gen_searing_bolt") { }
+
+        class spell_gen_searing_bolt_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_gen_searing_bolt_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(3606))
+                    return false;
+                return true;
+            }
+
+            void HandleEffect(SpellEffIndex effIndex)
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if(Unit* owner = caster->GetOwner())
+                    {
+                        if(AuraEffect* aurEff = owner->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_SHAMAN, 680, EFFECT_0))
+                        {
+                            uint32 chance = aurEff->GetAmount();
+                            if(roll_chance_i(chance))
+                            {
+                                if(Unit* target = GetHitUnit())
+                                    caster->CastSpell(target, 77661, true);
+                            }
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_gen_searing_bolt_SpellScript::HandleEffect, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_gen_searing_bolt_SpellScript();
+        }
+};
+
+class spell_gen_ring_of_frost : public SpellScriptLoader
+{
+public:
+   spell_gen_ring_of_frost() : SpellScriptLoader("spell_gen_ring_of_frost")
+   { }
+
+   class spell_gen_ring_of_frost_AuraScript: public AuraScript
+   {
+       PrepareAuraScript(spell_gen_ring_of_frost_AuraScript)
+
+       void HandleAfterEffect(AuraEffect const* aurEff, AuraEffectHandleModes mode)
+       {
+           if (Unit* target = GetTarget())
+               target->AddAura(91264, target);
+       }
+
+       void Register()
+       {
+           AfterEffectRemove += AuraEffectRemoveFn(spell_gen_ring_of_frost_AuraScript::HandleAfterEffect, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL);
+       }
+   };
+
+   AuraScript *GetAuraScript() const
+   {
+       return new spell_gen_ring_of_frost_AuraScript();
+   }
+};
+
+// Forged Fury (trinket)
+class spell_gen_forged_fury: public SpellScriptLoader 
+{
+public:
+        spell_gen_forged_fury() : SpellScriptLoader("spell_gen_forged_fury") { }
+
+        class spell_gen_forged_fury_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_gen_forged_fury_SpellScript)
+
+            SpellCastResult CheckRequirement()
+            {
+                if (Unit* caster = GetCaster()) 
+                {
+                    if (Aura* rawFury = caster->GetAura(91832))
+                    {
+                        //Check if there are any dots on the target
+                        if (rawFury->GetStackAmount() >= 5)
+                            return SPELL_CAST_OK;
+                    }
+
+                }
+                return SPELL_FAILED_NO_POWER;
+            }
+            
+            void BeforeEffect(SpellEffIndex /*effIndex*/) 
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetHitUnit();
+
+                if (!target)
+                    return;
+
+                if (!caster)
+                    return;
+
+                caster->RemoveAurasDueToSpell(91832);
+            }
+
+            void Register()
+            {
+                OnCheckCast += SpellCheckCastFn(spell_gen_forged_fury_SpellScript::CheckRequirement);
+                OnEffectHitTarget += SpellEffectFn(spell_gen_forged_fury_SpellScript::BeforeEffect, EFFECT_0, SPELL_EFFECT_APPLY_AURA); 
+            }
+        };
+
+        SpellScript *GetSpellScript() const
+        {
+            return new spell_gen_forged_fury_SpellScript();
+        }
+};
+
 
 void AddSC_generic_spell_scripts()
 {
@@ -3724,4 +3860,7 @@ void AddSC_generic_spell_scripts()
     new spell_gen_two_forms();
     new spell_gen_darkflight();
     new spell_gen_vengeance();
+    new spell_gen_searing_bolt();
+    new spell_gen_ring_of_frost();
+    new spell_gen_forged_fury();
 }

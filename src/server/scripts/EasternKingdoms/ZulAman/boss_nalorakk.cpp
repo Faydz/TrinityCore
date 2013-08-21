@@ -23,6 +23,7 @@ SDComment:
 SDCategory: Zul'Aman
 EndScriptData */
 
+#include "ScriptPCH.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "zulaman.h"
@@ -44,13 +45,9 @@ float NalorakkWay[8][3] =
 };
 
 #define YELL_NALORAKK_WAVE1     "Get da move on, guards! It be killin' time!"
-#define SOUND_NALORAKK_WAVE1    12066
 #define YELL_NALORAKK_WAVE2     "Guards, go already! Who you more afraid of, dem... or me?"
-#define SOUND_NALORAKK_WAVE2    12067
 #define YELL_NALORAKK_WAVE3     "Ride now! Ride out dere and bring me back some heads!"
-#define SOUND_NALORAKK_WAVE3    12068
 #define YELL_NALORAKK_WAVE4     "I be losin' me patience! Go on: make dem wish dey was never born!"
-#define SOUND_NALORAKK_WAVE4    12069
 
 //Unimplemented SoundIDs
 /*
@@ -58,53 +55,78 @@ float NalorakkWay[8][3] =
 #define SOUND_NALORAKK_EVENT2   12079
 */
 
-//General defines
+// Fight
 #define YELL_AGGRO              "You be dead soon enough!"
-#define SOUND_YELL_AGGRO        12070
 #define YELL_KILL_ONE           "Mua-ha-ha! Now whatchoo got to say?"
-#define SOUND_YELL_KILL_ONE     12075
 #define YELL_KILL_TWO           "Da Amani gonna rule again!"
-#define SOUND_YELL_KILL_TWO     12076
 #define YELL_DEATH              "I... be waitin' on da udda side...."
-#define SOUND_YELL_DEATH        12077
 #define YELL_BERSERK            "You had your chance, now it be too late!" //Never seen this being used, so just guessing from what I hear.
-#define SOUND_YELL_BERSERK      12074
-
-#define SPELL_BERSERK           45078
-
-//Defines for Troll form
-#define SPELL_BRUTALSWIPE       42384
-#define SPELL_MANGLE            42389
-#define SPELL_MANGLEEFFECT      44955
-#define SPELL_SURGE             42402
-#define SPELL_BEARFORM          42377
-
 #define YELL_SURGE              "I bring da pain!"
-#define SOUND_YELL_SURGE        12071
-
 #define YELL_SHIFTEDTOTROLL     "Make way for Nalorakk!"
-#define SOUND_YELL_TOTROLL      12073
+#define YELL_SHIFTEDTOBEAR      "You call on da beast, you gonna get more dan you bargain for!"*/
 
-//Defines for Bear form
-#define SPELL_LACERATINGSLASH   42395
-#define SPELL_RENDFLESH         42397
-#define SPELL_DEAFENINGROAR     42398
+enum Sound
+{
+    // Trash Waves
+    SOUND_NALORAKK_WAVE1            = 12066,
+    SOUND_NALORAKK_WAVE2            = 12067,
+    SOUND_NALORAKK_WAVE3            = 12068,
+    SOUND_NALORAKK_WAVE4            = 12069,
 
-#define YELL_SHIFTEDTOBEAR      "You call on da beast, you gonna get more dan you bargain for!"
-#define SOUND_YELL_TOBEAR       12072
+    SOUND_YELL_AGGRO                = 12070,
+    SOUND_YELL_KILL_ONE             = 12075,
+    SOUND_YELL_KILL_TWO             = 12076,
+    SOUND_YELL_DEATH                = 12077,
+    SOUND_YELL_BERSERK              = 12074,
+    SOUND_YELL_SURGE                = 12071,
+    SOUND_YELL_TOTROLL              = 12073,
+    SOUND_YELL_TOBEAR               = 12072
+};
+
+enum Spells
+{
+    // Normal Form
+    SPELL_BRUTAL_STRIKE             = 42384,
+    SPELL_SURGE                     = 42402,
+    SPELL_BEAR_FORM                 = 42594,
+
+    // Bear Form
+    SPELL_LACERATING_SLASH          = 42395,
+    SPELL_REND_FLESH                = 97810,
+    SPELL_DEAFENING_ROAR            = 49721,
+
+    SPELL_BERSERK                   = 45078
+};
+
+enum Events
+{
+    EVENT_SURGE = 1,
+    EVENT_BRUTAL_STRIKE,
+    EVENT_BEAR_FORM,
+
+    EVENT_LACERATING_SLASH,
+    EVENT_REND_FLESH,
+    EVENT_DEAFENING_ROAR,
+    EVENT_NORMAL_FORM,
+
+    EVENT_BERSERK
+    
+};
+
 
 class boss_nalorakk : public CreatureScript
 {
     public:
+        boss_nalorakk() : CreatureScript("boss_nalorakk") { }
 
-        boss_nalorakk()
-            : CreatureScript("boss_nalorakk")
+        CreatureAI* GetAI(Creature* creature) const
         {
+            return new boss_nalorakkAI(creature);
         }
 
-        struct boss_nalorakkAI : public ScriptedAI
+        struct boss_nalorakkAI : public BossAI
         {
-            boss_nalorakkAI(Creature* creature) : ScriptedAI(creature)
+            boss_nalorakkAI(Creature* creature) : BossAI(creature, DATA_NALORAKKEVENT)
             {
                 MoveEvent = true;
                 MovePhase = 0;
@@ -112,19 +134,8 @@ class boss_nalorakk : public CreatureScript
             }
 
             InstanceScript* instance;
+            EventMap events;
 
-            uint32 BrutalSwipe_Timer;
-            uint32 Mangle_Timer;
-            uint32 Surge_Timer;
-
-            uint32 LaceratingSlash_Timer;
-            uint32 RendFlesh_Timer;
-            uint32 DeafeningRoar_Timer;
-
-            uint32 ShapeShift_Timer;
-            uint32 Berserk_Timer;
-
-            bool inBearForm;
             bool MoveEvent;
             bool inMove;
             uint32 MovePhase;
@@ -132,30 +143,17 @@ class boss_nalorakk : public CreatureScript
 
             void Reset()
             {
-                if (MoveEvent)
-                {
-                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                    inMove = false;
-                    waitTimer = 0;
-                    me->SetSpeed(MOVE_RUN, 2);
-                    me->SetWalk(false);
-                }else
-                {
-                    (*me).GetMotionMaster()->MovePoint(0, NalorakkWay[7][0], NalorakkWay[7][1], NalorakkWay[7][2]);
-                }
+                events.Reset();
+                _Reset();
 
-                if (instance)
-                    instance->SetData(DATA_NALORAKKEVENT, NOT_STARTED);
-
-                Surge_Timer = urand(15000, 20000);
-                BrutalSwipe_Timer = urand(7000, 12000);
-                Mangle_Timer = urand(10000, 15000);
-                ShapeShift_Timer = urand(45000, 50000);
-                Berserk_Timer = 600000;
-
-                inBearForm = false;
-                // me->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1, 5122);  /// @todo find the correct equipment id
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                inMove = false;
+                MoveEvent = true;
+                waitTimer = 0;
+                me->SetSpeed(MOVE_RUN, 2);
+                me->SetWalk(false);
+                MovePhase = 0;
             }
 
             void SendAttacker(Unit* target)
@@ -271,8 +269,12 @@ class boss_nalorakk : public CreatureScript
 
             void EnterCombat(Unit* /*who*/)
             {
-                if (instance)
-                    instance->SetData(DATA_NALORAKKEVENT, IN_PROGRESS);
+                _EnterCombat();
+
+                events.ScheduleEvent(EVENT_SURGE, 10000);
+                events.ScheduleEvent(EVENT_BRUTAL_STRIKE, 15000);
+                events.ScheduleEvent(EVENT_BEAR_FORM, 30000);
+                events.ScheduleEvent(EVENT_BERSERK, 600000);
 
                 me->MonsterYell(YELL_AGGRO, LANG_UNIVERSAL, 0);
                 DoPlaySoundToSet(me, SOUND_YELL_AGGRO);
@@ -281,8 +283,7 @@ class boss_nalorakk : public CreatureScript
 
             void JustDied(Unit* /*killer*/)
             {
-                if (instance)
-                    instance->SetData(DATA_NALORAKKEVENT, DONE);
+                _JustDied();
 
                 me->MonsterYell(YELL_DEATH, LANG_UNIVERSAL, 0);
                 DoPlaySoundToSet(me, SOUND_YELL_DEATH);
@@ -358,103 +359,66 @@ class boss_nalorakk : public CreatureScript
                 if (!UpdateVictim())
                     return;
 
-                if (Berserk_Timer <= diff)
-                {
-                    DoCast(me, SPELL_BERSERK, true);
-                    me->MonsterYell(YELL_BERSERK, LANG_UNIVERSAL, 0);
-                    DoPlaySoundToSet(me, SOUND_YELL_BERSERK);
-                    Berserk_Timer = 600000;
-                } else Berserk_Timer -= diff;
+                if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
 
-                if (ShapeShift_Timer <= diff)
+                events.Update(diff);
+
+                
+                while (uint32 eventId = events.ExecuteEvent())
                 {
-                    if (inBearForm)
+                    switch (eventId)
                     {
-                        // me->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1, 5122);
-                        me->MonsterYell(YELL_SHIFTEDTOTROLL, LANG_UNIVERSAL, 0);
-                        DoPlaySoundToSet(me, SOUND_YELL_TOTROLL);
-                        me->RemoveAurasDueToSpell(SPELL_BEARFORM);
-                        Surge_Timer = urand(15000, 20000);
-                        BrutalSwipe_Timer = urand(7000, 12000);
-                        Mangle_Timer = urand(10000, 15000);
-                        ShapeShift_Timer = urand(45000, 50000);
-                        inBearForm = false;
+                        case EVENT_SURGE:
+                            if(Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0))
+                                me->CastSpell(target, SPELL_SURGE, true);
+                            events.ScheduleEvent(EVENT_SURGE, 9000);
+                            break;
+                        case EVENT_BRUTAL_STRIKE:
+                            me->CastSpell(me->getVictim(), SPELL_BRUTAL_STRIKE, true);
+                            events.ScheduleEvent(EVENT_BRUTAL_STRIKE, 10000);
+                            break;
+                        case EVENT_BEAR_FORM:
+                            me->CastSpell(me, SPELL_BEAR_FORM, false);
+                            events.CancelEvent(EVENT_SURGE);
+                            events.CancelEvent(EVENT_BRUTAL_STRIKE);
+                            events.ScheduleEvent(EVENT_LACERATING_SLASH, 5000);
+                            events.ScheduleEvent(EVENT_REND_FLESH, urand(5000, 20000));
+                            events.ScheduleEvent(EVENT_DEAFENING_ROAR, urand(10000, 12000));
+                            events.ScheduleEvent(EVENT_NORMAL_FORM, 30000);
+                            break;
+                        case EVENT_LACERATING_SLASH:
+                            me->CastSpell(me->getVictim(), SPELL_LACERATING_SLASH, true);
+                            break;
+                        case EVENT_REND_FLESH:
+                            me->CastSpell(me->getVictim(), SPELL_REND_FLESH, true);
+                            events.ScheduleEvent(EVENT_REND_FLESH, urand(5000, 20000));
+                            break;
+                        case EVENT_DEAFENING_ROAR:
+                            me->CastSpell(me, SPELL_DEAFENING_ROAR, false);
+                            events.ScheduleEvent(EVENT_DEAFENING_ROAR, 10000);
+                            break;
+                        case EVENT_NORMAL_FORM:
+                            me->RemoveAura(SPELL_BEAR_FORM);
+                            events.CancelEvent(EVENT_LACERATING_SLASH);
+                            events.CancelEvent(EVENT_REND_FLESH);
+                            events.CancelEvent(EVENT_DEAFENING_ROAR);
+                            events.ScheduleEvent(EVENT_SURGE, 10000);
+                            events.ScheduleEvent(EVENT_BRUTAL_STRIKE, 15000);
+                            events.ScheduleEvent(EVENT_BEAR_FORM, 30000);
+                            break;
+                        case EVENT_BERSERK:
+                            me->CastSpell(me, SPELL_BERSERK, true);
+                            break;
                     }
-                    else
-                    {
-                        // me->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1, 0);
-                        me->MonsterYell(YELL_SHIFTEDTOBEAR, LANG_UNIVERSAL, 0);
-                        DoPlaySoundToSet(me, SOUND_YELL_TOBEAR);
-                        DoCast(me, SPELL_BEARFORM, true);
-                        LaceratingSlash_Timer = 2000; // dur 18s
-                        RendFlesh_Timer = 3000;  // dur 5s
-                        DeafeningRoar_Timer = urand(5000, 10000);  // dur 2s
-                        ShapeShift_Timer = urand(20000, 25000); // dur 30s
-                        inBearForm = true;
-                    }
-                } else ShapeShift_Timer -= diff;
-
-                if (!inBearForm)
-                {
-                    if (BrutalSwipe_Timer <= diff)
-                    {
-                        DoCast(me->getVictim(), SPELL_BRUTALSWIPE);
-                        BrutalSwipe_Timer = urand(7000, 12000);
-                    } else BrutalSwipe_Timer -= diff;
-
-                    if (Mangle_Timer <= diff)
-                    {
-                        if (me->getVictim() && !me->getVictim()->HasAura(SPELL_MANGLEEFFECT))
-                        {
-                            DoCast(me->getVictim(), SPELL_MANGLE);
-                            Mangle_Timer = 1000;
-                        }
-                        else Mangle_Timer = urand(10000, 15000);
-                    } else Mangle_Timer -= diff;
-
-                    if (Surge_Timer <= diff)
-                    {
-                        me->MonsterYell(YELL_SURGE, LANG_UNIVERSAL, 0);
-                        DoPlaySoundToSet(me, SOUND_YELL_SURGE);
-                        Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 45, true);
-                        if (target)
-                            DoCast(target, SPELL_SURGE);
-                        Surge_Timer = urand(15000, 20000);
-                    } else Surge_Timer -= diff;
-                }
-                else
-                {
-                    if (LaceratingSlash_Timer <= diff)
-                    {
-                        DoCast(me->getVictim(), SPELL_LACERATINGSLASH);
-                        LaceratingSlash_Timer = urand(18000, 23000);
-                    } else LaceratingSlash_Timer -= diff;
-
-                    if (RendFlesh_Timer <= diff)
-                    {
-                        DoCast(me->getVictim(), SPELL_RENDFLESH);
-                        RendFlesh_Timer = urand(5000, 10000);
-                    } else RendFlesh_Timer -= diff;
-
-                    if (DeafeningRoar_Timer <= diff)
-                    {
-                        DoCast(me->getVictim(), SPELL_DEAFENINGROAR);
-                        DeafeningRoar_Timer = urand(15000, 20000);
-                    } else DeafeningRoar_Timer -= diff;
                 }
 
                 DoMeleeAttackIfReady();
             }
         };
-
-        CreatureAI* GetAI(Creature* creature) const
-        {
-            return new boss_nalorakkAI(creature);
-        }
 };
 
 void AddSC_boss_nalorakk()
 {
     new boss_nalorakk();
 }
-

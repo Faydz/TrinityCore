@@ -28,6 +28,7 @@
 #include "Object.h"
 #include "SpellAuraDefines.h"
 #include "ThreatManager.h"
+#include "MoveSplineInit.h"
 
 #define WORLD_TRIGGER   12999
 
@@ -354,6 +355,11 @@ class Vehicle;
 class VehicleJoinEvent;
 class TransportBase;
 class SpellCastTargets;
+namespace Movement
+{
+    class ExtraMovementStatusElement;
+    class MoveSpline;
+}
 
 typedef std::list<Unit*> UnitList;
 typedef std::list< std::pair<Aura*, uint8> > DispelChargesList;
@@ -790,10 +796,6 @@ enum UnitTypeMask
     UNIT_MASK_CONTROLABLE_GUARDIAN  = 0x00000100,
     UNIT_MASK_ACCESSORY             = 0x00000200
 };
-
-namespace Movement{
-    class MoveSpline;
-}
 
 struct DiminishingReturn
 {
@@ -1293,7 +1295,7 @@ class Unit : public WorldObject
 
         DiminishingLevels GetDiminishing(DiminishingGroup  group);
         void IncrDiminishing(DiminishingGroup group);
-        float ApplyDiminishingToDuration(DiminishingGroup  group, int32 &duration, Unit* caster, DiminishingLevels Level, int32 limitduration);
+        float ApplyDiminishingToDuration(DiminishingGroup  group, int32 &duration, Unit* caster, DiminishingLevels Level, int32 limitduration, SpellInfo const* spellInfo);
         void ApplyDiminishingAura(DiminishingGroup  group, bool apply);
         void ClearDiminishings() { m_Diminishing.clear(); }
 
@@ -1367,6 +1369,8 @@ class Unit : public WorldObject
         uint32 GetResistance(SpellSchools school) const { return GetUInt32Value(UNIT_FIELD_RESISTANCES+school); }
         uint32 GetResistance(SpellSchoolMask mask) const;
         void SetResistance(SpellSchools school, int32 val) { SetStatInt32Value(UNIT_FIELD_RESISTANCES+school, val); }
+
+        bool IsVisionObscured(Unit* pVictim);
 
         uint32 GetHealth()    const { return GetUInt32Value(UNIT_FIELD_HEALTH); }
         uint32 GetMaxHealth() const { return GetUInt32Value(UNIT_FIELD_MAXHEALTH); }
@@ -1472,7 +1476,7 @@ class Unit : public WorldObject
 
         // player or player's pet resilience (-1%)
         uint32 GetCritDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_RESILIENCE_CRIT_TAKEN, 2.2f, 33.0f, damage); }
-        uint32 GetDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_RESILIENCE_PLAYER_DAMAGE_TAKEN, 2.0f, 100.0f, damage); }
+        uint32 GetDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_RESILIENCE_PLAYER_DAMAGE_TAKEN, 1.0f, 100.0f, damage); }
 
         void ApplyResilience(const Unit* victim, int32 * damage, bool isCrit) const;
 
@@ -1598,9 +1602,6 @@ class Unit : public WorldObject
         void JumpTo(WorldObject* obj, float speedZ);
 
         void MonsterMoveWithSpeed(float x, float y, float z, float speed, bool generatePath = false, bool forceDestination = false);
-        //void SetFacing(float ori, WorldObject* obj = NULL);
-        //void SendMonsterMove(float NewPosX, float NewPosY, float NewPosZ, uint8 type, uint32 MovementFlags, uint32 Time, Player* player = NULL);
-        void SendMovementFlagUpdate(bool self = false);
 
         /*! These methods send the same packet to the client in apply and unapply case.
             The client-side interpretation of this packet depends on the presence of relevant movementflags
@@ -1610,8 +1611,13 @@ class Unit : public WorldObject
         void SendMovementHover();
         void SendMovementFeatherFall();
         void SendMovementWaterWalking();
-        void SendMovementGravityChange();
         void SendMovementCanFlyChange();
+        void SendMovementDisableGravity();
+        void SendMovementWalkMode();
+        void SendMovementSwimming();
+
+        void SendSetPlayHoverAnim(bool enable);
+        void SendMovementSetSplineAnim(Movement::AnimType anim);
 
         bool IsLevitating() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_DISABLE_GRAVITY);}
         bool IsWalking() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_WALKING);}
@@ -1629,8 +1635,6 @@ class Unit : public WorldObject
         void SendThreatListUpdate();
 
         void SendClearTarget();
-
-        void BuildHeartBeatMsg(WorldPacket* data) const;
 
         bool isAlive() const { return (m_deathState == ALIVE); }
         bool isDying() const { return (m_deathState == JUST_DIED); }
@@ -1748,6 +1752,7 @@ class Unit : public WorldObject
         void RemoveAurasWithAttribute(uint32 flags);
         void RemoveAurasWithFamily(SpellFamilyNames family, uint32 familyFlag1, uint32 familyFlag2, uint32 familyFlag3, uint64 casterGUID);
         void RemoveAurasWithMechanic(uint32 mechanic_mask, AuraRemoveMode removemode = AURA_REMOVE_BY_DEFAULT, uint32 except=0);
+        void RemoveRandomAuraWithMechanic(uint32 mechanic_mask, AuraRemoveMode removemode = AURA_REMOVE_BY_DEFAULT, uint32 except=0);
         void RemoveMovementImpairingAuras();
         
         void RemoveAndSaveSoulSwapDots(Unit* caster);
@@ -1792,7 +1797,7 @@ class Unit : public WorldObject
         bool HasAuraEffect(uint32 spellId, uint8 effIndex, uint64 caster = 0) const;
         uint32 GetAuraCount(uint32 spellId) const;
         bool HasAura(uint32 spellId, uint64 casterGUID = 0, uint64 itemCasterGUID = 0, uint8 reqEffMask = 0) const;
-        bool HasAuraType(AuraType auraType) const;
+        bool HasAuraType(AuraType auraType = SPELL_AURA_NONE) const;
         bool HasAuraTypeWithCaster(AuraType auratype, uint64 caster) const;
         bool HasAuraTypeWithMiscvalue(AuraType auratype, int32 miscvalue) const;
         bool HasAuraTypeWithAffectMask(AuraType auratype, SpellInfo const* affectedSpell) const;
@@ -2126,8 +2131,8 @@ class Unit : public WorldObject
         void _ExitVehicle(Position const* exitPosition = NULL);
         void _EnterVehicle(Vehicle* vehicle, int8 seatId, AuraApplication const* aurApp = NULL);
 
-        void ReadMovementInfo(WorldPacket& data, MovementInfo* mi);
-        void WriteMovementInfo(WorldPacket& data) const;
+        void ReadMovementInfo(WorldPacket& data, MovementInfo* mi, Movement::ExtraMovementStatusElement* extras = NULL);
+        void WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusElement* extras = NULL);
 
         bool isMoving() const   { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_MASK_MOVING); }
         bool isTurning() const  { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_MASK_TURNING); }
@@ -2135,7 +2140,7 @@ class Unit : public WorldObject
         bool IsFlying() const   { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_FLYING | MOVEMENTFLAG_DISABLE_GRAVITY); }
         void SetCanFly(bool apply);
 
-        void RewardRage(uint32 baseRage, bool attacker);
+        void RewardRage(uint32 baseRage, bool attacker, bool isPhysical = false);
 
         virtual float GetFollowAngle() const { return static_cast<float>(M_PI/2); }
 
@@ -2167,6 +2172,9 @@ class Unit : public WorldObject
         int GetRejuvenationCounter(){ return m_rejuvenationCounter; }
         void SetRejuvenationCounter(int counter){ m_rejuvenationCounter = counter; }
         void ModRejuvenationCounter(bool add){ add ? m_rejuvenationCounter++ : m_rejuvenationCounter--; }
+        
+        int32 GetWordOfGloryHolyPower(){ return m_wordOfGloryHolyPower; }
+        void SetWordOfGloryHolyPower(int32 counter){ m_wordOfGloryHolyPower = counter; }
 
         //used for Improved steady shot (ID 53224)
         uint32 m_lastSpell;
@@ -2184,6 +2192,7 @@ class Unit : public WorldObject
         time_t GetLastDamagedTime() const { return _lastDamagedTime; }
         void SetLastDamagedTime(time_t val) { _lastDamagedTime = val; }
 
+        uint8 corruptionDone;
         uint32 m_heal_done[120];
         uint32 m_damage_done[120];
         uint32 m_damage_taken[120];
@@ -2193,6 +2202,8 @@ class Unit : public WorldObject
         uint32 GetDamageTakenInPastSecs(uint32 secs);
         void ResetDamageDoneInPastSecs(uint32 secs);
         void ResetHealingDoneInPastSecs(uint32 secs);
+        void CheckCorruption();
+        void GetResurectableRaidMember(std::list <Unit*> &nearMembers, float radius);
 
     protected:
         explicit Unit (bool isWorldObject);
@@ -2273,6 +2284,7 @@ class Unit : public WorldObject
         Unit* m_darkIntentUnit; //Could be either the warlock owner of the DI or  the friendly buffed target
 
         int m_rejuvenationCounter;
+        int32 m_wordOfGloryHolyPower;
 
         void DisableSpline();
     private:
@@ -2300,8 +2312,9 @@ class Unit : public WorldObject
         void SetStunned(bool apply);
         void SetRooted(bool apply);
 
+        uint32 m_movementCounter;       ///< Incrementing counter used in movement packets
+
     private:
-        uint32 m_rootTimes;
 
         uint32 m_state;                                     // Even derived shouldn't modify
         uint32 m_CombatTimer;

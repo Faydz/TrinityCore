@@ -2293,8 +2293,7 @@ class spell_item_unusual_compass : public SpellScriptLoader
             void HandleDummy(SpellEffIndex /* effIndex */)
             {
                 Unit* caster = GetCaster();
-                caster->SetOrientation(frand(0.0f, 62832.0f) / 10000.0f);
-                caster->SendMovementFlagUpdate(true);
+                caster->SetFacingTo(frand(0.0f, 62832.0f) / 10000.0f);
             }
 
             void Register()
@@ -2467,6 +2466,82 @@ public:
     }
 };
 
+// 79637 Flask of Enhancement
+enum eFlaskOfEnhancementSpells 
+{
+    SPELL_FLASK_OF_ENHANCEMENT_SP = 79640,
+    SPELL_FLASK_OF_ENHANCEMENT_AP = 79639,
+    SPELL_FLASK_OF_ENHANCEMENT_STR = 79638,
+};
+
+class spell_item_flask_of_enhancement: public SpellScriptLoader 
+{
+public:
+    spell_item_flask_of_enhancement() : SpellScriptLoader("spell_item_flask_of_enhancement") { }
+
+    class spell_item_flask_of_enhancement_SpellScript: public SpellScript
+    {		
+        PrepareSpellScript(spell_item_flask_of_enhancement_SpellScript)
+
+        bool Validate(SpellInfo const* /*spellEntry*/) 
+        {
+            if (!sSpellMgr->GetSpellInfo(SPELL_FLASK_OF_ENHANCEMENT_SP))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_FLASK_OF_ENHANCEMENT_AP))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_FLASK_OF_ENHANCEMENT_STR))
+                return false;
+            return true;
+        }
+
+        void HandleDummy(SpellEffIndex /*effIndex*/) 
+        {
+            Unit* pCaster = GetCaster();
+            if (pCaster->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            std::vector<uint32> possibleSpells;
+            switch (pCaster->getClass())
+            {
+                case CLASS_WARLOCK:
+                case CLASS_MAGE:
+                case CLASS_PRIEST:
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_SP);
+                break;
+                case CLASS_DEATH_KNIGHT:
+                case CLASS_WARRIOR:
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_STR);
+                    break;
+                case CLASS_ROGUE:
+                case CLASS_HUNTER:
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_AP);
+                    break;
+                case CLASS_DRUID:
+                case CLASS_PALADIN:
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_SP);
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_STR);
+                    break;
+                case CLASS_SHAMAN:
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_SP);
+                    possibleSpells.push_back(SPELL_FLASK_OF_ENHANCEMENT_AP);
+                    break;
+            }
+
+            pCaster->CastSpell(pCaster, possibleSpells[irand(0, (possibleSpells.size() - 1))], true, NULL);
+        }
+
+        void Register() 
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_item_flask_of_enhancement_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+    };
+
+    SpellScript* GetSpellScript() const
+    {
+        return new spell_item_flask_of_enhancement_SpellScript();
+    }
+};
+
 void AddSC_item_spell_scripts()
 {
     // 23074 Arcanite Dragonling
@@ -2531,4 +2606,5 @@ void AddSC_item_spell_scripts()
     new spell_item_chicken_cover();
     new spell_item_muisek_vessel();
     new spell_item_greatmothers_soulcatcher();
+    new spell_item_flask_of_enhancement();
 }

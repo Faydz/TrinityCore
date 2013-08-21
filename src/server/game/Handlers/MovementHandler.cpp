@@ -30,6 +30,7 @@
 #include "WaypointMovementGenerator.h"
 #include "InstanceSaveMgr.h"
 #include "ObjectMgr.h"
+#include "MovementStructures.h"
 
 void WorldSession::HandleMoveWorldportAckOpcode(WorldPacket& /*recvPacket*/)
 {
@@ -113,7 +114,9 @@ void WorldSession::HandleMoveWorldportAckOpcode()
         else if (Battleground* bg = _player->GetBattleground())
         {
             if (_player->IsInvitedForBattlegroundInstance(_player->GetBattlegroundId()))
-                bg->AddPlayer(_player);
+            {
+                    bg->AddPlayer(_player);
+            }
         }
     }
 
@@ -289,6 +292,40 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recvPacket)
         return;
     }
 
+    if(plrMover)
+    {
+        float underMapValueZ;   
+        switch (plrMover->GetMapId())    
+        {
+            case 617: underMapValueZ = 3.0f; break; // Dalaran Sewers
+            case 618: underMapValueZ = 28.0f; break; // Ring of Valor
+            case 562: underMapValueZ = -10.0f; break; // Blade Edge Arena
+            case 559: underMapValueZ = -18.0f; break; // Nagrand arena
+            case 572: underMapValueZ = 28.0f; break; // Lordearon
+            case 571: underMapValueZ = -400.0f; break; // Northrend
+            default: underMapValueZ = -500.0f; break;
+        }
+    
+        // Hackfix for ArenaUnderZ -> Teleport 
+        if (movementInfo.pos.GetPositionZ() < underMapValueZ)
+        {
+            if (underMapValueZ != -500) // Only Case Values
+            {
+                if (plrMover->GetMapId() == 572) // Lordaeron Arena 
+                    plrMover->TeleportTo(572, 1286.14868f, 1667.32f, 41.0f, 1.6f); //
+                   
+                if (plrMover->GetMapId() == 559) // Nagrand Arena 
+                    plrMover->TeleportTo(559, 4052.79868f, 2926.32f, 16.0f, 1.6f); 
+           
+                if (plrMover->GetMapId() == 562) // Blade Edge arena 
+                    plrMover->TeleportTo(562, 6237.79768f, 261.142f, 2.0f, 4.0f); 
+                    
+                if (plrMover->GetMapId() == 617) // Dalaran Arena 
+                    plrMover->TeleportTo(617, 1292.34868f, 790.40f, 8.5f, 1.6f);  
+            }
+        }
+    }
+
     /* handle special cases */
     if (movementInfo.t_guid)
     {
@@ -380,10 +417,6 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recvPacket)
 
     /*----------------------*/
     /* process position-change */
-    WorldPacket data(SMSG_PLAYER_MOVE, recvPacket.size());
-    _player->WriteMovementInfo(data);
-    mover->SendMessageToSet(&data, _player);
-
     // this is almost never true (not sure why it is sometimes, but it is), normally use mover->IsVehicle()
     if (mover->GetVehicle())
     {
@@ -392,6 +425,10 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recvPacket)
     }
 
     mover->UpdatePosition(movementInfo.pos);
+
+    WorldPacket data(SMSG_PLAYER_MOVE, recvPacket.size());
+    _player->WriteMovementInfo(data);
+    mover->SendMessageToSet(&data, _player);
 
     if (plrMover)                                            // nothing is charmed, or player charmed
     {
@@ -425,63 +462,60 @@ void WorldSession::HandleForceSpeedChangeAck(WorldPacket &recvData)
     uint32 opcode = recvData.GetOpcode();
 
     /* extract packet */
-    uint64 guid;
-    uint32 unk1;
-    float  newspeed;
-
-    recvData.readPackGUID(guid);
+    MovementInfo movementInfo;
+    static MovementStatusElements const speedElement = MSEExtraFloat;
+    Movement::ExtraMovementStatusElement extras(&speedElement);
+    GetPlayer()->ReadMovementInfo(recvData, &movementInfo, &extras);
 
     // now can skip not our packet
-    if (_player->GetGUID() != guid)
+    if (_player->GetGUID() != movementInfo.guid)
     {
         recvData.rfinish();                   // prevent warnings spam
         return;
     }
 
-    // continue parse packet
-
-    recvData >> unk1;                                      // counter or moveEvent
-
-    MovementInfo movementInfo;
-    movementInfo.guid = guid;
-    GetPlayer()->ReadMovementInfo(recvData, &movementInfo);
-
-    recvData >> newspeed;
+    float newspeed = extras.Data.floatData;
     /*----------------*/
 
     // client ACK send one packet for mounted/run case and need skip all except last from its
     // in other cases anti-cheat check can be fail in false case
     UnitMoveType move_type;
-    UnitMoveType force_move_type;
 
-    static char const* move_type_name[MAX_MOVE_TYPE] = {  "Walk", "Run", "RunBack", "Swim", "SwimBack", "TurnRate", "Flight", "FlightBack", "PitchRate" };
+    static char const* const move_type_name[MAX_MOVE_TYPE] =
+    {
+        "Walk",
+        "Run",
+        "RunBack",
+        "Swim",
+        "SwimBack",
+        "TurnRate",
+        "Flight",
+        "FlightBack",
+        "PitchRate"
+    };
 
-    /*
     switch (opcode)
     {
-        //case CMSG_MOVE_FORCE_WALK_SPEED_CHANGE_ACK:          move_type = MOVE_WALK;          force_move_type = MOVE_WALK;        break;
-        //case CMSG_MOVE_FORCE_RUN_SPEED_CHANGE_ACK:           move_type = MOVE_RUN;           force_move_type = MOVE_RUN;         break;
-        //case CMSG_MOVE_FORCE_RUN_BACK_SPEED_CHANGE_ACK:      move_type = MOVE_RUN_BACK;      force_move_type = MOVE_RUN_BACK;    break;
-        //case CMSG_MOVE_FORCE_SWIM_SPEED_CHANGE_ACK:          move_type = MOVE_SWIM;          force_move_type = MOVE_SWIM;        break;
-        //case CMSG_MOVE_FORCE_SWIM_BACK_SPEED_CHANGE_ACK:     move_type = MOVE_SWIM_BACK;     force_move_type = MOVE_SWIM_BACK;   break;
-        //case CMSG_MOVE_FORCE_TURN_RATE_CHANGE_ACK:           move_type = MOVE_TURN_RATE;     force_move_type = MOVE_TURN_RATE;   break;
-        //case CMSG_MOVE_FORCE_FLIGHT_SPEED_CHANGE_ACK:        move_type = MOVE_FLIGHT;        force_move_type = MOVE_FLIGHT;      break;
-        //case CMSG_MOVE_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK:   move_type = MOVE_FLIGHT_BACK;   force_move_type = MOVE_FLIGHT_BACK; break;
-        //case CMSG_MOVE_FORCE_PITCH_RATE_CHANGE_ACK:          move_type = MOVE_PITCH_RATE;    force_move_type = MOVE_PITCH_RATE;  break;
+        case CMSG_MOVE_FORCE_WALK_SPEED_CHANGE_ACK:        move_type = MOVE_WALK;        break;
+        case CMSG_MOVE_FORCE_RUN_SPEED_CHANGE_ACK:         move_type = MOVE_RUN;         break;
+        case CMSG_MOVE_FORCE_RUN_BACK_SPEED_CHANGE_ACK:    move_type = MOVE_RUN_BACK;    break;
+        case CMSG_MOVE_FORCE_SWIM_SPEED_CHANGE_ACK:        move_type = MOVE_SWIM;        break;
+        case CMSG_MOVE_FORCE_SWIM_BACK_SPEED_CHANGE_ACK:   move_type = MOVE_SWIM_BACK;   break;
+        case CMSG_MOVE_FORCE_TURN_RATE_CHANGE_ACK:         move_type = MOVE_TURN_RATE;   break;
+        case CMSG_MOVE_FORCE_FLIGHT_SPEED_CHANGE_ACK:      move_type = MOVE_FLIGHT;      break;
+        case CMSG_MOVE_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK: move_type = MOVE_FLIGHT_BACK; break;
+        case CMSG_MOVE_FORCE_PITCH_RATE_CHANGE_ACK:        move_type = MOVE_PITCH_RATE;  break;
         default:
             sLog->outError(LOG_FILTER_NETWORKIO, "WorldSession::HandleForceSpeedChangeAck: Unknown move type opcode: %u", opcode);
             return;
     }
-    */
-    sLog->outError(LOG_FILTER_NETWORKIO, "WorldSession::HandleForceSpeedChangeAck: Unknown move type opcode: %u", opcode);
-    return;
 
     // skip all forced speed changes except last and unexpected
-    // in run/mounted case used one ACK and it must be skipped.m_forced_speed_changes[MOVE_RUN} store both.
-    if (_player->m_forced_speed_changes[force_move_type] > 0)
+    // in run/mounted case used one ACK and it must be skipped. m_forced_speed_changes[MOVE_RUN] store both.
+    if (_player->m_forced_speed_changes[move_type] > 0)
     {
-        --_player->m_forced_speed_changes[force_move_type];
-        if (_player->m_forced_speed_changes[force_move_type] > 0)
+        --_player->m_forced_speed_changes[move_type];
+        if (_player->m_forced_speed_changes[move_type] > 0)
             return;
     }
 
@@ -608,4 +642,14 @@ void WorldSession::HandleSummonResponseOpcode(WorldPacket& recvData)
     recvData >> agree;
 
     _player->SummonIfPossible(agree);
+}
+
+void WorldSession::HandleSetCollisionHeightAck(WorldPacket& recvPacket)
+{
+    sLog->outDebug(LOG_FILTER_NETWORKIO, "CMSG_MOVE_SET_COLLISION_HEIGHT_ACK");
+
+    static MovementStatusElements const heightElement = MSEExtraFloat;
+    Movement::ExtraMovementStatusElement extra(&heightElement);
+    MovementInfo movementInfo;
+    GetPlayer()->ReadMovementInfo(recvPacket, &movementInfo, &extra);
 }

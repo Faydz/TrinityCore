@@ -385,6 +385,9 @@ void BattlegroundMgr::BuildPvpLogDataPacket(WorldPacket* data, Battleground* bg)
             continue;
         }
         Player* player = ObjectAccessor::FindPlayer(itr->first);
+        if (!player)
+            continue;
+
         ObjectGuid playerGUID = itr->first;
 
         data->WriteBit(0);              // Unk 1
@@ -545,7 +548,7 @@ void BattlegroundMgr::BuildPvpLogDataPacket(WorldPacket* data, Battleground* bg)
     if (isRated)                                             // arena
     {
         // it seems this must be according to BG_WINNER_A/H and _NOT_ BG_TEAM_A/H
-        for (int8 i = 0; i < BG_TEAMS_COUNT; ++i)
+        for (int8 i = BG_TEAMS_COUNT - 1; i >= 0; --i)
         {
             int32 rating_change = bg->GetArenaTeamRatingChangeByIndex(i);
 
@@ -780,7 +783,7 @@ Battleground* BattlegroundMgr::GetBattlegroundTemplate(BattlegroundTypeId bgType
 uint32 BattlegroundMgr::CreateClientVisibleInstanceId(BattlegroundTypeId bgTypeId, BattlegroundBracketId bracket_id)
 {
     if (IsArenaType(bgTypeId))
-        return 0;                                           //arenas don't have client-instanceids
+        return 0;                                           //arenas don't have client-instanceids -- DO RATED BGs HAVE?
 
     // we create here an instanceid, which is just for
     // displaying this to the client and without any other use..
@@ -811,6 +814,8 @@ Battleground* BattlegroundMgr::CreateNewBattleground(BattlegroundTypeId original
     switch (originalBgTypeId)
     {
         case BATTLEGROUND_RB:
+            isRandom = true;
+        case BATTLEGROUND_RATED_10_VS_10:
             isRandom = true;
         case BATTLEGROUND_AA:
             bgTypeId = GetRandomBG(originalBgTypeId);
@@ -873,6 +878,7 @@ Battleground* BattlegroundMgr::CreateNewBattleground(BattlegroundTypeId original
             break;
         case BATTLEGROUND_RB:
         case BATTLEGROUND_AA:
+        case BATTLEGROUND_RATED_10_VS_10:
             bg = new Battleground(*bg_template);
             break;
         default:
@@ -905,6 +911,9 @@ Battleground* BattlegroundMgr::CreateNewBattleground(BattlegroundTypeId original
                 break;
             case ARENA_TYPE_5v5:
                 maxPlayersPerTeam = 5;
+                break;
+            case ARENA_TYPE_10v10:
+                maxPlayersPerTeam = 10;
                 break;
         }
 
@@ -1123,10 +1132,10 @@ void BattlegroundMgr::BuildBattlegroundListPacket(WorldPacket* data, uint64 guid
     PvPDifficultyEntry const* bracketEntry = GetBattlegroundBracketByLevel(it->second.m_Battlegrounds.begin()->second->GetMapId(), player->getLevel());
     if (!bracketEntry)
         return;
-
-    uint32 winner_conquest = (player->GetRandomWinner() ? BG_REWARD_WINNER_CONQUEST_FIRST : BG_REWARD_WINNER_CONQUEST_LAST) / CURRENCY_PRECISION;
-    uint32 winner_honor = (player->GetRandomWinner() ? BG_REWARD_WINNER_HONOR_FIRST : BG_REWARD_WINNER_HONOR_LAST) / CURRENCY_PRECISION;
-    uint32 loser_honor = (!player->GetRandomWinner() ? BG_REWARD_LOSER_HONOR_FIRST : BG_REWARD_LOSER_HONOR_LAST) / CURRENCY_PRECISION;
+    
+    uint32 winner_conquest = (!player->GetRandomWinner() ? BG_REWARD_WINNER_CONQUEST_FIRST : BG_REWARD_WINNER_CONQUEST_LAST) / CURRENCY_PRECISION;
+    uint32 winner_honor = (player->GetRandomWinner() ? BG_REWARD_WINNER_HONOR_FIRST : BG_REWARD_WINNER_HONOR_LAST);
+    uint32 loser_honor = (!player->GetRandomWinner() ? BG_REWARD_LOSER_HONOR_FIRST : BG_REWARD_LOSER_HONOR_LAST);
 
     ObjectGuid guidBytes = guid;
 
