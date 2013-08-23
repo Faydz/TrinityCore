@@ -17,7 +17,7 @@ public:
 		{
 			if (player->HasItemCount(ID_JUSTICETOKEN, 1))
 			{
-				player->ADD_GOOSIP_ITEM(0, "Gerechtigkeitspunktetoken eintauschen", GOSSIP_SENDER_MAIN, 1);
+				player->ADD_GOSSIP_ITEM(0, "Gerechtigkeitspunktetoken eintauschen", GOSSIP_SENDER_MAIN, 1);
 			}
 			
 			if (player->HasItemCount(ID_HONORTOKEN, 1))
@@ -39,20 +39,20 @@ public:
 			switch(action)
 			{
 			case 1:
-				player->SetCurrency(395, (player->GetCurrency(395)+ 400000));
-				player->DestroyItemCount(ID_JUSTICETOKEN, 1);
+				player->SetCurrency(395, (player->GetCurrency(395, true)+ 400000));
+				player->DestroyItemCount(ID_JUSTICETOKEN, 1, true);
 				creature->MonsterWhisper("Vielen Dank, dass du f\303\274r DarkThunder WoW gevotet hast!", player->GetGUID());
 				break;
 			case 2:
-				player->SetCurrency(392, (player->GetCurrency(392)+ 400000));
-				player->DestroyItemCount(ID_HONORTOKEN, 1);
+				player->SetCurrency(392, (player->GetCurrency(392, true)+ 400000));
+				player->DestroyItemCount(ID_HONORTOKEN, 1, true);
 				creature->MonsterWhisper("Vielen Dank, dass du f\303\274r DarkThunder WoW gevotet hast!", player->GetGUID());
 				break;
 			case 3:
 			uint32 acc = player->GetSession()->GetAccountId();
 			LoginDatabase.PExecute("INSERT INTO `rbac_account_groups` (`accountId`, `groupId`, `realmId`) VALUES ('%u', '2', '-1')", acc);
 			LoginDatabase.PExecute("INSERT INTO `vip_days` (`accountID`) VALUES ('%u')", acc);
-			player->DestroyItemCount(ID_VIPTOKEN, 1);
+			player->DestroyItemCount(ID_VIPTOKEN, 1, true);
 			creature->MonsterWhisper("Vielen Dank, dass du f\303\274r DarkThunder WoW gevotet hast! Dein VIP Account ist jetzt f\303\274r 3 Tage aktiv.", player->GetGUID());
 				break;
 			case 100:
