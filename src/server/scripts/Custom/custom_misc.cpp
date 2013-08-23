@@ -29,13 +29,14 @@ public:
 			{
 				player->ADD_GOSSIP_ITEM(0, "VIP Token eintauschen", GOSSIP_SENDER_MAIN, 3);
 			}
-			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen...", GOSSIP_SENDER_MAIN, 100);
+			player->ADD_GOSSIP_ITEM(0, "Aufwiedersehen...", GOSSIP_SENDER_MAIN, 10);
 			player->PlayerTalkClass->SendGossipMenu(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
 			return true;
 		}
 		
 		bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 action)
 		{
+			uint32 acc = player->GetSession()->GetAccountId();
 			switch(action)
 			{
 			case 1:
@@ -49,13 +50,12 @@ public:
 				creature->MonsterWhisper("Vielen Dank, dass du f\303\274r DarkThunder WoW gevotet hast!", player->GetGUID());
 				break;
 			case 3:
-			uint32 acc = player->GetSession()->GetAccountId();
 			LoginDatabase.PExecute("INSERT INTO `rbac_account_groups` (`accountId`, `groupId`, `realmId`) VALUES ('%u', '2', '-1')", acc);
 			LoginDatabase.PExecute("INSERT INTO `vip_days` (`accountID`) VALUES ('%u')", acc);
 			player->DestroyItemCount(ID_VIPTOKEN, 1, true);
 			creature->MonsterWhisper("Vielen Dank, dass du f\303\274r DarkThunder WoW gevotet hast! Dein VIP Account ist jetzt f\303\274r 3 Tage aktiv.", player->GetGUID());
 				break;
-			case 100:
+			case 10:
 				player->CLOSE_GOSSIP_MENU();
 				break;
 			}
