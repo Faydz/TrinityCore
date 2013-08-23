@@ -12,6 +12,7 @@ set(scripts_STAT_SRCS
   ${scripts_STAT_SRCS}
   Custom/bountyhunter.cpp
   Custom/arena_watcher.cpp
+  Custom/custom_misc.cpp
 )
 
 message("  -> Prepared: Custom")

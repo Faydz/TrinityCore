@@ -695,7 +695,7 @@ void AddSC_chat_log();
 
 // arena watcher
 void AddSC_arena_watcher();
-
+void AddSC_custom_misc();
 #endif
 
 void AddScripts()
@@ -1425,5 +1425,6 @@ void AddCustomScripts()
 {
 #ifdef SCRIPTS
     AddSC_arena_watcher();
+	AddSC_custom_misc();
 #endif
 }
