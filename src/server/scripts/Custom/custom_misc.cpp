@@ -40,12 +40,12 @@ public:
 			switch(action)
 			{
 			case 1:
-				player->SetCurrency(395, (player->GetCurrency(395, true)+ 400000));
+				player->ModifyCurrency(395, 400000, true);
 				player->DestroyItemCount(ID_JUSTICETOKEN, 1, true);
 				creature->MonsterWhisper("Vielen Dank, dass du f\303\274r DarkThunder WoW gevotet hast!", player->GetGUID());
 				break;
 			case 2:
-				player->SetCurrency(392, (player->GetCurrency(392, true)+ 400000));
+				player->ModifyCurrency(392, 400000, true);
 				player->DestroyItemCount(ID_HONORTOKEN, 1, true);
 				creature->MonsterWhisper("Vielen Dank, dass du f\303\274r DarkThunder WoW gevotet hast!", player->GetGUID());
 				break;
