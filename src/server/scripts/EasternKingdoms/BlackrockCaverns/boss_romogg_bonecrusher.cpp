@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2011 - 2012 Forgotten Core <http://www.forgottenlands.eu/>
+* Copyright (C) 2011 - 2012 DarkThunder Core <http://darkthunder-wow.net/>
 *
 * This program is free software; you can redistribute it and/or modify it
 * under the terms of the GNU General Public License as published by the
