@@ -696,8 +696,6 @@ void AddSC_chat_log();
 // arena watcher
 void AddSC_arena_watcher();
 void AddSC_custom_misc();
-void AddSC_Generall_Umbriss();
-void AddSC_boss_Forgemaster_Throngus();
 #endif
 
 void AddScripts()
@@ -1428,7 +1426,5 @@ void AddCustomScripts()
 #ifdef SCRIPTS
     AddSC_arena_watcher();
 	AddSC_custom_misc();
-	AddSC_Generall_Umbriss();
-	AddSC_boss_Forgemaster_Throngus();
 #endif
 }

@@ -13,8 +13,6 @@ set(scripts_STAT_SRCS
   Custom/bountyhunter.cpp
   Custom/arena_watcher.cpp
   Custom/custom_misc.cpp
-  Custom/boss_Forgemaster_Throngus.cpp
-  Custom/Boss_Generall_Umbriss.cpp
 )
 
 message("  -> Prepared: Custom")
