@@ -36,7 +36,7 @@ class learn_commandscript : public CommandScript
 public:
     learn_commandscript() : CommandScript("learn_commandscript") { }
 
-    ChatCommand* GetCommands() const
+    ChatCommand* GetCommands() const OVERRIDE
     {
         static ChatCommand learnAllMyCommandTable[] =
         {
@@ -52,8 +52,8 @@ public:
             { "my",             SEC_ADMINISTRATOR,  false, NULL,                                "",  learnAllMyCommandTable },
             { "gm",             SEC_GAMEMASTER,     false, &HandleLearnAllGMCommand,            "", NULL },
             { "crafts",         SEC_GAMEMASTER,     false, &HandleLearnAllCraftsCommand,        "", NULL },
-            { "default",        SEC_MODERATOR,      false, &HandleLearnAllDefaultCommand,       "", NULL },
-            { "lang",           SEC_MODERATOR,      false, &HandleLearnAllLangCommand,          "", NULL },
+            { "default",        SEC_GAMEMASTER,      false, &HandleLearnAllDefaultCommand,       "", NULL },
+            { "lang",           SEC_GAMEMASTER,      false, &HandleLearnAllLangCommand,          "", NULL },
             { "recipes",        SEC_GAMEMASTER,     false, &HandleLearnAllRecipesCommand,       "", NULL },
             { NULL,             0,                  false, NULL,                                "", NULL }
         };
@@ -116,8 +116,7 @@ public:
         else
             targetPlayer->learnSpell(spell, false);
 
-        uint32 firstSpell = sSpellMgr->GetFirstSpellInChain(spell);
-        if (GetTalentSpellCost(firstSpell))
+        if (GetTalentSpellCost(spellInfo->GetFirstRankSpell()->Id))
             targetPlayer->SendTalentsInfoData(false);
 
         return true;
@@ -178,8 +177,7 @@ public:
                 continue;
 
             // skip spells with first rank learned as talent (and all talents then also)
-            uint32 firstRank = sSpellMgr->GetFirstSpellInChain(spellInfo->Id);
-            if (GetTalentSpellCost(firstRank) > 0)
+            if (GetTalentSpellCost(spellInfo->GetFirstRankSpell()->Id) > 0)
                 continue;
 
             // skip broken spells
@@ -474,7 +472,7 @@ public:
         }
 
         if (allRanks)
-            spellId = sSpellMgr->GetFirstSpellInChain (spellId);
+            spellId = sSpellMgr->GetFirstSpellInChain(spellId);
 
         if (target->HasSpell(spellId))
             target->removeSpell(spellId, false, !allRanks);

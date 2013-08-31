@@ -12,6 +12,7 @@ set(scripts_STAT_SRCS
   ${scripts_STAT_SRCS}
   Commands/cs_account.cpp
   Commands/cs_achievement.cpp
+  Commands/cs_arena.cpp
   Commands/cs_ban.cpp
   Commands/cs_bf.cpp
   Commands/cs_cast.cpp
@@ -45,8 +46,6 @@ set(scripts_STAT_SRCS
   Commands/cs_titles.cpp
   Commands/cs_wp.cpp
   Commands/cs_mmaps.cpp
-  Commands/cs_bgkick.cpp
-  Commands/cs_pvpfinder.cpp
 #  Commands/cs_pdump.cpp
 #  Commands/cs_channel.cpp
 #  Commands/cs_pet.cpp

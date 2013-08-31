@@ -36,21 +36,21 @@ class gm_commandscript : public CommandScript
 public:
     gm_commandscript() : CommandScript("gm_commandscript") { }
 
-    ChatCommand* GetCommands() const
+    ChatCommand* GetCommands() const OVERRIDE
     {
         static ChatCommand gmCommandTable[] =
         {
-            { "chat",           SEC_MODERATOR,      false, &HandleGMChatCommand,              "", NULL },
+            { "chat",           SEC_GAMEMASTER,      false, &HandleGMChatCommand,              "", NULL },
             { "fly",            SEC_ADMINISTRATOR,  false, &HandleGMFlyCommand,               "", NULL },
             { "ingame",         SEC_PLAYER,         true,  &HandleGMListIngameCommand,        "", NULL },
             { "list",           SEC_ADMINISTRATOR,  true,  &HandleGMListFullCommand,          "", NULL },
-            { "visible",        SEC_MODERATOR,      false, &HandleGMVisibleCommand,           "", NULL },
-            { "",               SEC_MODERATOR,      false, &HandleGMCommand,                  "", NULL },
+            { "visible",        SEC_GAMEMASTER,      false, &HandleGMVisibleCommand,           "", NULL },
+            { "",               SEC_GAMEMASTER,      false, &HandleGMCommand,                  "", NULL },
             { NULL,             0,                  false, NULL,                              "", NULL }
         };
         static ChatCommand commandTable[] =
         {
-            { "gm",             SEC_MODERATOR,      false, NULL,                     "", gmCommandTable },
+            { "gm",             SEC_GAMEMASTER,      false, NULL,                     "", gmCommandTable },
             { NULL,             0,                  false, NULL,                               "", NULL }
         };
         return commandTable;
@@ -103,15 +103,9 @@ public:
 
         WorldPacket data;
         if (strncmp(args, "on", 3) == 0)
-        {
-            target->AddUnitMovementFlag(MOVEMENTFLAG_CAN_FLY);
-            target->SendMovementCanFlyChange();
-        }
+            target->SetCanFly(true);
         else if (strncmp(args, "off", 4) == 0)
-        {
-            target->RemoveUnitMovementFlag(MOVEMENTFLAG_CAN_FLY);
-            target->SendMovementCanFlyChange();
-        }
+            target->SetCanFly(false);
         else
         {
             handler->SendSysMessage(LANG_USE_BOL);
@@ -131,7 +125,7 @@ public:
         for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
         {
             AccountTypes itrSec = itr->second->GetSession()->GetSecurity();
-            if ((itr->second->isGameMaster() ||
+            if ((itr->second->IsGameMaster() ||
                 (itr->second->GetSession()->HasPermission(RBAC_PERM_COMMANDS_APPEAR_IN_GM_LIST) &&
                  itrSec <= AccountTypes(sWorld->getIntConfig(CONFIG_GM_LEVEL_IN_GM_LIST)))) &&
                 (!handler->GetSession() || itr->second->IsVisibleGloballyFor(handler->GetSession()->GetPlayer())))
@@ -168,7 +162,7 @@ public:
     {
         ///- Get the accounts with GM Level >0
         PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_GM_ACCOUNTS);
-        stmt->setUInt8(0, uint8(SEC_MODERATOR));
+        stmt->setUInt8(0, uint8(SEC_GAMEMASTER));
         stmt->setInt32(1, int32(realmID));
         PreparedQueryResult result = LoginDatabase.Query(stmt);
 
@@ -241,7 +235,7 @@ public:
     {
         if (!*args)
         {
-            if (handler->GetSession()->GetPlayer()->isGameMaster())
+            if (handler->GetSession()->GetPlayer()->IsGameMaster())
                 handler->GetSession()->SendNotification(LANG_GM_ON);
             else
                 handler->GetSession()->SendNotification(LANG_GM_OFF);
