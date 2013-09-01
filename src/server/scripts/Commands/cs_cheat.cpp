@@ -33,7 +33,7 @@ class cheat_commandscript : public CommandScript
 public:
     cheat_commandscript() : CommandScript("cheat_commandscript") { }
 
-    ChatCommand* GetCommands() const OVERRIDE
+    ChatCommand* GetCommands() const
     {
 
         static ChatCommand cheatCommandTable[] =
@@ -198,14 +198,16 @@ public:
         if (argstr == "off")
         {
             target->SetCommandStatusOff(CHEAT_WATERWALK);
-            target->SetWaterWalking(false);
+            target->RemoveUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
+            target->SendMovementWaterWalking();         // OFF
             handler->SendSysMessage("Waterwalking is OFF. You can't walk on water.");
             return true;
         }
         else if (argstr == "on")
         {
             target->SetCommandStatusOn(CHEAT_WATERWALK);
-            target->SetWaterWalking(true);
+            target->AddUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
+            target->SendMovementWaterWalking();          // ON
             handler->SendSysMessage("Waterwalking is ON. You can walk on water.");
             return true;
         }

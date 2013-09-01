@@ -33,7 +33,7 @@ class cast_commandscript : public CommandScript
 public:
     cast_commandscript() : CommandScript("cast_commandscript") { }
 
-    ChatCommand* GetCommands() const OVERRIDE
+    ChatCommand* GetCommands() const
     {
         static ChatCommand castCommandTable[] =
         {
@@ -230,7 +230,7 @@ public:
             return false;
         }
 
-        if (!caster->GetVictim())
+        if (!caster->getVictim())
         {
             handler->SendSysMessage(LANG_SELECTED_TARGET_NOT_HAVE_VICTIM);
             handler->SetSentErrorMessage(true);
@@ -256,7 +256,7 @@ public:
 
         bool triggered = (triggeredStr != NULL);
 
-        caster->CastSpell(caster->GetVictim(), spellId, triggered);
+        caster->CastSpell(caster->getVictim(), spellId, triggered);
 
         return true;
     }

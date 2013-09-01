@@ -40,7 +40,7 @@ class debug_commandscript : public CommandScript
 public:
     debug_commandscript() : CommandScript("debug_commandscript") { }
 
-    ChatCommand* GetCommands() const OVERRIDE
+    ChatCommand* GetCommands() const
     {
         static ChatCommand debugPlayCommandTable[] =
         {
@@ -259,7 +259,7 @@ public:
         if (!unit || (unit->GetTypeId() != TYPEID_PLAYER))
             player = handler->GetSession()->GetPlayer();
         else
-            player = unit->ToPlayer();
+            player = (Player*)unit;
 
         if (!unit)
             unit = player;
@@ -412,11 +412,11 @@ public:
             }
             else
             {
-                TC_LOG_ERROR(LOG_FILTER_GENERAL, "Sending opcode that has unknown type '%s'", type.c_str());
+                sLog->outError(LOG_FILTER_GENERAL, "Sending opcode that has unknown type '%s'", type.c_str());
                 break;
             }
         }
-        TC_LOG_DEBUG(LOG_FILTER_NETWORKIO, "Sending opcode %u", data.GetOpcode());
+        sLog->outDebug(LOG_FILTER_NETWORKIO, "Sending opcode %u", data.GetOpcode());
         data.hexlike();
         player->GetSession()->SendPacket(&data, true);
         handler->PSendSysMessage(LANG_COMMAND_OPCODESENT, data.GetOpcode(), unit->GetName().c_str());
@@ -506,7 +506,7 @@ public:
 
     static bool HandleDebugSendQuestInvalidMsgCommand(ChatHandler* handler, char const* args)
     {
-        QuestFailedReason msg = static_cast<QuestFailedReason>(atol((char*)args));
+        uint32 msg = atol((char*)args);
         handler->GetSession()->GetPlayer()->SendCanTakeQuestResponse(msg);
         return true;
     }
@@ -797,7 +797,7 @@ public:
     static bool HandleDebugThreatListCommand(ChatHandler* handler, char const* /*args*/)
     {
         Creature* target = handler->getSelectedCreature();
-        if (!target || target->IsTotem() || target->IsPet())
+        if (!target || target->isTotem() || target->isPet())
             return false;
 
         ThreatContainer::StorageType const &threatList = target->getThreatManager().getThreatList();
@@ -826,7 +826,7 @@ public:
         handler->PSendSysMessage("Hostil reference list of %s (guid %u)", target->GetName().c_str(), target->GetGUIDLow());
         while (ref)
         {
-            if (Unit* unit = ref->GetSource()->GetOwner())
+            if (Unit* unit = ref->getSource()->getOwner())
             {
                 ++count;
                 handler->PSendSysMessage("   %u.   %s   (guid %u)  - threat %f", count, unit->GetName().c_str(), unit->GetGUIDLow(), ref->getThreat());
@@ -1350,7 +1350,7 @@ public:
     {
         Player* player = handler->GetSession()->GetPlayer();
 
-        TC_LOG_INFO(LOG_FILTER_SQL_DEV, "(@PATH, XX, %.3f, %.3f, %.5f, 0, 0, 0, 100, 0),", player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+        sLog->outInfo(LOG_FILTER_SQL_DEV, "(@PATH, XX, %.3f, %.3f, %.5f, 0, 0, 0, 100, 0),", player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
 
         handler->PSendSysMessage("Waypoint SQL written to SQL Developer log");
         return true;

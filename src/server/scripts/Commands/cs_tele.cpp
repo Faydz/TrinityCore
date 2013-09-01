@@ -35,7 +35,7 @@ class tele_commandscript : public CommandScript
 public:
     tele_commandscript() : CommandScript("tele_commandscript") { }
 
-    ChatCommand* GetCommands() const OVERRIDE
+    ChatCommand* GetCommands() const
     {
         static ChatCommand teleCommandTable[] =
         {
@@ -183,7 +183,7 @@ public:
                 ChatHandler(target->GetSession()).PSendSysMessage(LANG_TELEPORTED_TO_BY, handler->GetNameLink().c_str());
 
             // stop flight if need
-            if (target->IsInFlight())
+            if (target->isInFlight())
             {
                 target->GetMotionMaster()->MovementExpired();
                 target->CleanupAfterTaxiFlight();
@@ -257,7 +257,7 @@ public:
 
         for (GroupReference* itr = grp->GetFirstMember(); itr != NULL; itr = itr->next())
         {
-            Player* player = itr->GetSource();
+            Player* player = itr->getSource();
 
             if (!player || !player->GetSession())
                 continue;
@@ -279,7 +279,7 @@ public:
                 ChatHandler(player->GetSession()).PSendSysMessage(LANG_TELEPORTED_TO_BY, nameLink.c_str());
 
             // stop flight if need
-            if (player->IsInFlight())
+            if (player->isInFlight())
             {
                 player->GetMotionMaster()->MovementExpired();
                 player->CleanupAfterTaxiFlight();
@@ -311,7 +311,7 @@ public:
             return false;
         }
 
-        if (me->IsInCombat())
+        if (me->isInCombat())
         {
             handler->SendSysMessage(LANG_YOU_IN_COMBAT);
             handler->SetSentErrorMessage(true);
@@ -327,7 +327,7 @@ public:
         }
 
         // stop flight if need
-        if (me->IsInFlight())
+        if (me->isInFlight())
         {
             me->GetMotionMaster()->MovementExpired();
             me->CleanupAfterTaxiFlight();

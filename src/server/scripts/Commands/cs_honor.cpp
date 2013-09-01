@@ -33,7 +33,7 @@ class honor_commandscript : public CommandScript
 public:
     honor_commandscript() : CommandScript("honor_commandscript") { }
 
-    ChatCommand* GetCommands() const OVERRIDE
+    ChatCommand* GetCommands() const
     {
         static ChatCommand honorAddCommandTable[] =
         {
@@ -90,9 +90,8 @@ public:
         }
 
         // check online security
-        if (Player* player = target->ToPlayer())
-            if (handler->HasLowerSecurity(player, 0))
-                return false;
+        if (target->GetTypeId() == TYPEID_PLAYER && handler->HasLowerSecurity((Player*)target, 0))
+            return false;
 
         handler->GetSession()->GetPlayer()->RewardHonor(target, 1);
         return true;
